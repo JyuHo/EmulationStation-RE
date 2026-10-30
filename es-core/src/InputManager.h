@@ -4,6 +4,7 @@
 #include <SDL.h>
 #include <vector>
 #include <map>
+#include <memory>
 #include <string>
 
 class InputConfig;
@@ -25,7 +26,7 @@ private:
 	std::map<SDL_JoystickID, InputConfig*> mInputConfigs;
 	InputConfig* mKeyboardInputConfig;
 
-	std::map<SDL_JoystickID, int*> mPrevAxisValues;
+	std::map<SDL_JoystickID, std::unique_ptr<int[]>> mPrevAxisValues;
 
 	bool initialized() const;
 
