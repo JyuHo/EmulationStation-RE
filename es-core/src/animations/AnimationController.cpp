@@ -1,16 +1,14 @@
 #include "animations/AnimationController.h"
 
 AnimationController::AnimationController(
-	Animation* anim, int delay, std::function<void()> finishedCallback, bool reverse) :
-	mAnimation(anim), mFinishedCallback(finishedCallback), mReverse(reverse), mTime(-delay), mDelay(delay)
+	std::unique_ptr<Animation> anim, int delay, std::function<void()> finishedCallback, bool reverse) :
+	mAnimation(std::move(anim)), mFinishedCallback(finishedCallback), mReverse(reverse), mTime(-delay), mDelay(delay)
 {}
 
 AnimationController::~AnimationController()
 {
 	if(mFinishedCallback)
 		mFinishedCallback();
-
-	delete mAnimation;
 }
 
 bool AnimationController::update(int deltaTime)

@@ -239,7 +239,7 @@ void DetailedGameListView::updateInfoPanel()
 			auto func = [comp](float t) {
 				comp->setOpacity((unsigned char)(lerp<float>(0.0f, 1.0f, t) * 255));
 			};
-			comp->setAnimation(new LambdaAnimation(func, 150), 0, nullptr, fadingOut);
+			comp->setAnimation(std::make_unique<LambdaAnimation>(func, 150), 0, nullptr, fadingOut);
 		}
 	}
 }

@@ -205,12 +205,12 @@ void GuiComponent::textInput(const char* text)
 }
 
 void GuiComponent::setAnimation(
-	Animation* anim, int delay, std::function<void()> finishedCallback, bool reverse, unsigned char slot)
+	std::unique_ptr<Animation> anim, int delay, std::function<void()> finishedCallback, bool reverse, unsigned char slot)
 {
 	assert(slot < MAX_ANIMATIONS);
 
 	AnimationController* oldAnim = mAnimationMap[slot];
-	mAnimationMap[slot] = new AnimationController(anim, delay, finishedCallback, reverse);
+	mAnimationMap[slot] = new AnimationController(std::move(anim), delay, finishedCallback, reverse);
 
 	if(oldAnim)
 		delete oldAnim;
