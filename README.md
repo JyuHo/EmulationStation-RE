@@ -41,7 +41,7 @@ The modernisation roadmap is described in [docs/MODERNIZATION_PLAN.md](docs/MODE
 
 **Dependencies on Arch Linux / CachyOS:**
 ```bash
-sudo pacman -S --needed base-devel cmake ninja sdl2-compat boost freetype2 eigen curl alsa-lib libglvnd freeimage
+sudo pacman -S --needed base-devel cmake ninja sdl2-compat boost freetype2 eigen curl alsa-lib libglvnd libwebp
 ```
 
 **Build:**

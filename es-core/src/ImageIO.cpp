@@ -1,79 +1,107 @@
 #include "ImageIO.h"
 
-#include <memory.h>
+#include <algorithm>
+#include <cstring>
+#include <fstream>
+#include <iterator>
+
+#include <webp/decode.h>
+#include <webp/encode.h>
+
+#include "stb/stb_image.h"
+#include "stb/stb_image_write.h"
 
 #include "Log.h"
 
+namespace
+{
+	enum class ImageFormat { Unknown, Png, Jpeg, WebP, Other };
+
+	ImageFormat detectFormat(const unsigned char* data, size_t size)
+	{
+		if(size >= 12 && std::memcmp(data, "RIFF", 4) == 0 && std::memcmp(data + 8, "WEBP", 4) == 0)
+			return ImageFormat::WebP;
+		if(size >= 8 && std::memcmp(data, "\x89PNG\r\n\x1a\n", 8) == 0)
+			return ImageFormat::Png;
+		if(size >= 3 && data[0] == 0xFF && data[1] == 0xD8 && data[2] == 0xFF)
+			return ImageFormat::Jpeg;
+		return size > 0 ? ImageFormat::Other : ImageFormat::Unknown;
+	}
+
+	// Decodes to top-down RGBA. Returns false on failure.
+	bool decodeRGBA(const unsigned char* data, size_t size, std::vector<unsigned char>& out, int& width, int& height)
+	{
+		if(detectFormat(data, size) == ImageFormat::WebP)
+		{
+			uint8_t* px = WebPDecodeRGBA(data, size, &width, &height);
+			if(px == nullptr)
+				return false;
+			out.assign(px, px + static_cast<size_t>(width) * height * 4);
+			WebPFree(px);
+			return true;
+		}
+
+		int channels = 0;
+		stbi_uc* px = stbi_load_from_memory(data, static_cast<int>(size), &width, &height, &channels, 4);
+		if(px == nullptr)
+			return false;
+		out.assign(px, px + static_cast<size_t>(width) * height * 4);
+		stbi_image_free(px);
+		return true;
+	}
+
+	// Area-averaging downscale (bilinear when upscaling), RGBA8.
+	std::vector<unsigned char> resizeRGBA(const std::vector<unsigned char>& src, int srcW, int srcH, int dstW, int dstH)
+	{
+		std::vector<unsigned char> dst(static_cast<size_t>(dstW) * dstH * 4);
+		const float scaleX = static_cast<float>(srcW) / dstW;
+		const float scaleY = static_cast<float>(srcH) / dstH;
+
+		for(int y = 0; y < dstH; y++)
+		{
+			const int y0 = std::min(static_cast<int>(y * scaleY), srcH - 1);
+			const int y1 = std::clamp(static_cast<int>((y + 1) * scaleY), y0 + 1, srcH);
+			for(int x = 0; x < dstW; x++)
+			{
+				const int x0 = std::min(static_cast<int>(x * scaleX), srcW - 1);
+				const int x1 = std::clamp(static_cast<int>((x + 1) * scaleX), x0 + 1, srcW);
+				unsigned int sum[4] = { 0, 0, 0, 0 };
+				for(int sy = y0; sy < y1; sy++)
+					for(int sx = x0; sx < x1; sx++)
+						for(int c = 0; c < 4; c++)
+							sum[c] += src[(static_cast<size_t>(sy) * srcW + sx) * 4 + c];
+				const unsigned int count = static_cast<unsigned int>((y1 - y0) * (x1 - x0));
+				for(int c = 0; c < 4; c++)
+					dst[(static_cast<size_t>(y) * dstW + x) * 4 + c] = static_cast<unsigned char>(sum[c] / count);
+			}
+		}
+		return dst;
+	}
+
+	void appendToVector(void* context, void* data, int size)
+	{
+		auto* out = static_cast<std::vector<unsigned char>*>(context);
+		auto* bytes = static_cast<unsigned char*>(data);
+		out->insert(out->end(), bytes, bytes + size);
+	}
+}
 
 std::vector<unsigned char> ImageIO::loadFromMemoryRGBA32(const unsigned char * data, const size_t size, size_t & width, size_t & height)
 {
-	std::vector<unsigned char> rawData;
 	width = 0;
 	height = 0;
-	FIMEMORY * fiMemory = FreeImage_OpenMemory((BYTE *)data, size);
-	if (fiMemory != nullptr) {
-		//detect the filetype from data
-		FREE_IMAGE_FORMAT format = FreeImage_GetFileTypeFromMemory(fiMemory);
-		if (format != FIF_UNKNOWN && FreeImage_FIFSupportsReading(format))
-		{
-			//file type is supported. load image
-			FIBITMAP * fiBitmap = FreeImage_LoadFromMemory(format, fiMemory);
-			if (fiBitmap != nullptr)
-			{
-				//loaded. convert to 32bit if necessary
-				FIBITMAP * fiConverted = nullptr;
-				if (FreeImage_GetBPP(fiBitmap) != 32)
-				{
-					FIBITMAP * fiConverted = FreeImage_ConvertTo32Bits(fiBitmap);
-					if (fiConverted != nullptr)
-					{
-						//free original bitmap data
-						FreeImage_Unload(fiBitmap);
-						fiBitmap = fiConverted;
-					}
-				}
-				if (fiBitmap != nullptr)
-				{
-					width = FreeImage_GetWidth(fiBitmap);
-					height = FreeImage_GetHeight(fiBitmap);
-					unsigned int pitch = FreeImage_GetPitch(fiBitmap);
-					//loop through scanlines and add all pixel data to the return vector
-					//this is necessary, because width*height*bpp might not be == pitch
-					unsigned char * tempData = new unsigned char[width * height * 4];
-					for (size_t i = 0; i < height; i++)
-					{
-						const BYTE * scanLine = FreeImage_GetScanLine(fiBitmap, i);
-						memcpy(tempData + (i * width * 4), scanLine, width * 4);
-					}
-					//convert from BGRA to RGBA
-					for(size_t i = 0; i < width*height; i++)
-					{
-						RGBQUAD bgra = ((RGBQUAD *)tempData)[i];
-						RGBQUAD rgba;
-						rgba.rgbBlue = bgra.rgbRed;
-						rgba.rgbGreen = bgra.rgbGreen;
-						rgba.rgbRed = bgra.rgbBlue;
-						rgba.rgbReserved = bgra.rgbReserved;
-						((RGBQUAD *)tempData)[i] = rgba;
-					}
-					rawData = std::vector<unsigned char>(tempData, tempData + width * height * 4);
-					//free bitmap data
-					FreeImage_Unload(fiBitmap);
-					delete[] tempData;
-				}
-			}
-			else
-			{
-				LOG(LogError) << "Error - Failed to load image from memory!";
-			}
-		}
-		else
-		{
-			LOG(LogError) << "Error - File type " << (format == FIF_UNKNOWN ? "unknown" : "unsupported") << "!";
-		}
-		//free FIMEMORY again
-		FreeImage_CloseMemory(fiMemory);
+
+	std::vector<unsigned char> rawData;
+	int w = 0, h = 0;
+	if(!decodeRGBA(data, size, rawData, w, h))
+	{
+		LOG(LogError) << "Error - Failed to load image from memory: " << stbi_failure_reason();
+		return {};
 	}
+
+	width = static_cast<size_t>(w);
+	height = static_cast<size_t>(h);
+	flipPixelsVert(rawData.data(), width, height);
 	return rawData;
 }
 
@@ -90,4 +118,75 @@ void ImageIO::flipPixelsVert(unsigned char* imagePx, const size_t& width, const 
 			arr[x + (height * width) - ((y + 1) * width)] = temp;
 		}
 	}
+}
+
+bool ImageIO::resizeImageFile(const std::string& path, int maxWidth, int maxHeight)
+{
+	if(maxWidth == 0 && maxHeight == 0)
+		return true;
+
+	std::vector<unsigned char> fileData;
+	{
+		std::ifstream in(path, std::ios::binary);
+		if(!in)
+		{
+			LOG(LogError) << "Error - could not open image \"" << path << "\"!";
+			return false;
+		}
+		fileData.assign(std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>());
+	}
+
+	std::vector<unsigned char> pixels;
+	int width = 0, height = 0;
+	if(!decodeRGBA(fileData.data(), fileData.size(), pixels, width, height))
+	{
+		LOG(LogError) << "Error - could not decode image \"" << path << "\"!";
+		return false;
+	}
+
+	if(maxWidth == 0)
+		maxWidth = static_cast<int>((static_cast<float>(maxHeight) / height) * width);
+	else if(maxHeight == 0)
+		maxHeight = static_cast<int>((static_cast<float>(maxWidth) / width) * height);
+	maxWidth = std::max(maxWidth, 1);
+	maxHeight = std::max(maxHeight, 1);
+
+	const std::vector<unsigned char> resized = resizeRGBA(pixels, width, height, maxWidth, maxHeight);
+
+	std::vector<unsigned char> encoded;
+	bool ok = false;
+	switch(detectFormat(fileData.data(), fileData.size()))
+	{
+	case ImageFormat::Jpeg:
+		ok = stbi_write_jpg_to_func(appendToVector, &encoded, maxWidth, maxHeight, 4, resized.data(), 90) != 0;
+		break;
+	case ImageFormat::WebP:
+		{
+			uint8_t* out = nullptr;
+			const size_t outSize = WebPEncodeRGBA(resized.data(), maxWidth, maxHeight, maxWidth * 4, 90.0f, &out);
+			ok = outSize > 0;
+			if(ok)
+				encoded.assign(out, out + outSize);
+			WebPFree(out);
+		}
+		break;
+	default:
+		ok = stbi_write_png_to_func(appendToVector, &encoded, maxWidth, maxHeight, 4, resized.data(), maxWidth * 4) != 0;
+		break;
+	}
+
+	if(!ok)
+	{
+		LOG(LogError) << "Could not encode resized image \"" << path << "\"!";
+		return false;
+	}
+
+	std::ofstream out(path, std::ios::binary | std::ios::trunc);
+	out.write(reinterpret_cast<const char*>(encoded.data()), static_cast<std::streamsize>(encoded.size()));
+	if(!out)
+	{
+		LOG(LogError) << "Failed to save resized image!";
+		return false;
+	}
+	return true;
 }

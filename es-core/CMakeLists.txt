@@ -172,7 +172,7 @@ target_compile_definitions(es-core PUBLIC
 target_link_libraries(es-core PUBLIC
     OpenGL::GL
     Freetype::Freetype
-    FreeImage::FreeImage
+    PkgConfig::WEBP
     SDL2::SDL2
     Boost::filesystem
     Boost::headers
@@ -182,6 +182,7 @@ target_link_libraries(es-core PUBLIC
     ALSA::ALSA
     pugixml
     nanosvg
+    stb
 )
 
 es_set_warnings(es-core)

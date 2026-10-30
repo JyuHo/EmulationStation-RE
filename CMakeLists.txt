@@ -55,7 +55,8 @@ endif()
 set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL REQUIRED)
 find_package(Freetype REQUIRED)
-find_package(FreeImage REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(WEBP REQUIRED IMPORTED_TARGET libwebp)
 find_package(SDL2 CONFIG REQUIRED)
 # Boost.System (1.69) and Boost.DateTime (1.73) are header-only; the Boost.System
 # stub library was removed in 1.89, so only compiled components are requested.
