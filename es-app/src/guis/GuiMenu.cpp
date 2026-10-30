@@ -33,10 +33,10 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "MAIN MEN
 	// [version]
 
 	auto openScrapeNow = [this] {
-		mWindow->pushGui(new GuiScraperStart(mWindow));
+		mWindow->pushGui(std::make_unique<GuiScraperStart>(mWindow));
 	};
 	addEntry("SCRAPER", 0x777777FF, true, [this, openScrapeNow] {
-		auto s = new GuiSettings(mWindow, "SCRAPER");
+		auto s = std::make_unique<GuiSettings>(mWindow, "SCRAPER");
 
 		// scrape from
 		auto scraper_list = std::make_shared<OptionListComponent<std::string>>(mWindow, "SCRAPE FROM", false);
@@ -57,7 +57,7 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "MAIN MEN
 		// scrape now
 		ComponentListRow row;
 		std::function<void()> openAndSave = openScrapeNow;
-		openAndSave = [s, openAndSave] {
+		openAndSave = [&s, openAndSave] {
 			s->save();
 			openAndSave();
 		};
@@ -70,11 +70,11 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "MAIN MEN
 		row.addElement(bracket, false);
 		s->addRow(row);
 
-		mWindow->pushGui(s);
+		mWindow->pushGui(std::move(s));
 	});
 
 	addEntry("SOUND SETTINGS", 0x777777FF, true, [this] {
-		auto s = new GuiSettings(mWindow, "SOUND SETTINGS");
+		auto s = std::make_unique<GuiSettings>(mWindow, "SOUND SETTINGS");
 
 		// volume
 		auto volume = std::make_shared<SliderComponent>(mWindow, 0.f, 100.f, 1.f, "%");
@@ -89,11 +89,11 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "MAIN MEN
 		s->addSaveFunc(
 			[sounds_enabled] { Settings::getInstance()->setBool("EnableSounds", sounds_enabled->getState()); });
 
-		mWindow->pushGui(s);
+		mWindow->pushGui(std::move(s));
 	});
 
 	addEntry("UI SETTINGS", 0x777777FF, true, [this] {
-		auto s = new GuiSettings(mWindow, "UI SETTINGS");
+		auto s = std::make_unique<GuiSettings>(mWindow, "UI SETTINGS");
 
 		// screensaver time
 		auto screensaver_time = std::make_shared<SliderComponent>(mWindow, 0.f, 30.f, 1.f, "m");
@@ -175,20 +175,20 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "MAIN MEN
 			});
 		}
 
-		mWindow->pushGui(s);
+		mWindow->pushGui(std::move(s));
 	});
 
 	addEntry("CONFIGURE INPUT", 0x777777FF, true,
-		[this] { mWindow->pushGui(new GuiDetectDevice(mWindow, false, nullptr)); });
+		[this] { mWindow->pushGui(std::make_unique<GuiDetectDevice>(mWindow, false, nullptr)); });
 
 	addEntry("QUIT", 0x777777FF, true, [this] {
-		auto s = new GuiSettings(mWindow, "QUIT");
+		auto s = std::make_unique<GuiSettings>(mWindow, "QUIT");
 
 		Window* window = mWindow;
 
 		ComponentListRow row;
 		row.makeAcceptInputHandler([window] {
-			window->pushGui(new GuiMsgBox(
+			window->pushGui(std::make_unique<GuiMsgBox>(
 				window, "REALLY RESTART?", "YES",
 				[] {
 					if(runRestartCommand() != 0)
@@ -202,7 +202,7 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "MAIN MEN
 
 		row.elements.clear();
 		row.makeAcceptInputHandler([window] {
-			window->pushGui(new GuiMsgBox(
+			window->pushGui(std::make_unique<GuiMsgBox>(
 				window, "REALLY SHUTDOWN?", "YES",
 				[] {
 					if(runShutdownCommand() != 0)
@@ -218,7 +218,7 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "MAIN MEN
 		{
 			row.elements.clear();
 			row.makeAcceptInputHandler([window] {
-				window->pushGui(new GuiMsgBox(
+				window->pushGui(std::make_unique<GuiMsgBox>(
 					window, "REALLY QUIT?", "YES",
 					[] {
 						SDL_Event ev;
@@ -233,7 +233,7 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "MAIN MEN
 			s->addRow(row);
 		}
 
-		mWindow->pushGui(s);
+		mWindow->pushGui(std::move(s));
 	});
 
 	mVersion.setFont(Font::get(FONT_SIZE_SMALL));

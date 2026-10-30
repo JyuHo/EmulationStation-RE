@@ -289,7 +289,7 @@ void ScraperSearchComponent::onSearchDone(const std::vector<ScraperSearchResult>
 void ScraperSearchComponent::onSearchError(const std::string& error)
 {
 	LOG(LogInfo) << "ScraperSearchComponent search error: " << error;
-	mWindow->pushGui(new GuiMsgBox(mWindow, strToUpper(error), "RETRY",
+	mWindow->pushGui(std::make_unique<GuiMsgBox>(mWindow, strToUpper(error), "RETRY",
 		std::bind(&ScraperSearchComponent::search, this, mLastSearch), "SKIP", mSkipCallback, "CANCEL",
 		mCancelCallback));
 }
@@ -472,7 +472,7 @@ void ScraperSearchComponent::openInputScreen(ScraperSearchParams& params)
 	};
 
 	stop();
-	mWindow->pushGui(new GuiTextEditPopup(mWindow, "SEARCH FOR",
+	mWindow->pushGui(std::make_unique<GuiTextEditPopup>(mWindow, "SEARCH FOR",
 		// initial value is last search if there was one, otherwise the clean path name
 		params.nameOverride.empty() ? params.game->getCleanName() : params.nameOverride, searchForFunc, false,
 		"SEARCH"));

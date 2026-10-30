@@ -76,8 +76,7 @@ void GuiGamelistOptions::openMetaDataEd()
 	ScraperSearchParams p;
 	p.game = file;
 	p.system = file->getSystem();
-	mWindow->pushGui(
-		new GuiMetaDataEd(mWindow, &file->metadata, file->metadata.getMDD(), p, file->getPath().filename().string(),
+	mWindow->pushGui(std::make_unique<GuiMetaDataEd>(mWindow, &file->metadata, file->metadata.getMDD(), p, file->getPath().filename().string(),
 			std::bind(&IGameListView::onFileChanged, getGamelist(), file, FILE_METADATA_CHANGED), [this, file] {
 				std::filesystem::remove(file->getPath()); //actually delete the file on the filesystem
 				file->getParent()->removeChild(

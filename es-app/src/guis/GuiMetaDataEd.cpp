@@ -121,7 +121,7 @@ GuiMetaDataEd::GuiMetaDataEd(Window* window, MetaDataList* md, const std::vector
 				ed->setValue(newVal);
 			}; // ok callback (apply new value to ed)
 			row.makeAcceptInputHandler([this, title, ed, updateVal, multiLine] {
-				mWindow->pushGui(new GuiTextEditPopup(mWindow, title, ed->getValue(), updateVal, multiLine));
+				mWindow->pushGui(std::make_unique<GuiTextEditPopup>(mWindow, title, ed->getValue(), updateVal, multiLine));
 			});
 			break;
 		}
@@ -152,7 +152,7 @@ GuiMetaDataEd::GuiMetaDataEd(Window* window, MetaDataList* md, const std::vector
 			delete this;
 		};
 		auto deleteBtnFunc = [this, deleteFileAndSelf] {
-			mWindow->pushGui(new GuiMsgBox(
+			mWindow->pushGui(std::make_unique<GuiMsgBox>(
 				mWindow, "THIS WILL DELETE A FILE!\nARE YOU SURE?", "YES", deleteFileAndSelf, "NO", nullptr));
 		};
 		buttons.push_back(std::make_shared<ButtonComponent>(mWindow, "DELETE", "delete", deleteBtnFunc));
@@ -200,9 +200,8 @@ void GuiMetaDataEd::save()
 
 void GuiMetaDataEd::fetch()
 {
-	GuiGameScraper* scr =
-		new GuiGameScraper(mWindow, mScraperParams, std::bind(&GuiMetaDataEd::fetchDone, this, std::placeholders::_1));
-	mWindow->pushGui(scr);
+	auto scr = std::make_unique<GuiGameScraper>(mWindow, mScraperParams, std::bind(&GuiMetaDataEd::fetchDone, this, std::placeholders::_1));
+	mWindow->pushGui(std::move(scr));
 }
 
 void GuiMetaDataEd::fetchDone(const ScraperSearchResult& result)
@@ -250,7 +249,7 @@ void GuiMetaDataEd::close(bool closeAllWindows)
 	if(dirty)
 	{
 		// changes were made, ask if the user wants to save them
-		mWindow->pushGui(new GuiMsgBox(
+		mWindow->pushGui(std::make_unique<GuiMsgBox>(
 			mWindow, "SAVE CHANGES?", "YES",
 			[this, closeFunc] {
 				save();
