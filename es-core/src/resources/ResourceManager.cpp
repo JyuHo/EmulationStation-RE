@@ -2,9 +2,9 @@
 #include "Log.h"
 #include "Resources.h"
 #include <fstream>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 
 auto array_deleter = [](unsigned char* p) {
 	delete[] p;

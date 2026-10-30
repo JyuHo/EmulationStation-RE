@@ -3,7 +3,7 @@
 #include "Log.h"
 #include "Util.h"
 
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 
 MetaDataDecl gameDecls[] = {
 	// key,			type,					default,			statistic,	name in GuiMetaDataEd,	prompt in GuiMetaDataEd

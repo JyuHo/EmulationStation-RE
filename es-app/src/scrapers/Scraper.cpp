@@ -2,7 +2,7 @@
 #include "Log.h"
 #include "Settings.h"
 #include "ImageIO.h"
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <boost/assign.hpp>
 
 #include "GamesDBScraper.h"

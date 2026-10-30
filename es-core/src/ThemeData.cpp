@@ -40,7 +40,7 @@ std::map<std::string, ElementMapType> ThemeData::sElementMap = boost::assign::ma
 	makeMap(boost::assign::map_list_of("pos", NORMALIZED_PAIR)("textColor", COLOR)("iconColor", COLOR)(
 		"fontPath", PATH)("fontSize", FLOAT)));
 
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 
 #define MINIMUM_THEME_FORMAT_VERSION 3
 #define CURRENT_THEME_FORMAT_VERSION 3

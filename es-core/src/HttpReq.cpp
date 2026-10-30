@@ -2,7 +2,7 @@
 #include <cassert>
 #include "HttpReq.h"
 #include "Log.h"
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 CURLM* HttpReq::s_multi_handle = curl_multi_init();
 

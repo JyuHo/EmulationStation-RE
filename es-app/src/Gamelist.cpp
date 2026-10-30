@@ -1,12 +1,12 @@
 #include "Gamelist.h"
 #include "SystemData.h"
 #include "pugixml/pugixml.hpp"
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include "Log.h"
 #include "Settings.h"
 #include "Util.h"
 
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 
 FileData* findOrCreateFile(SystemData* system, const boost::filesystem::path& path, FileType type)
 {

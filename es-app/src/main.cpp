@@ -7,7 +7,7 @@
 #include "Renderer.h"
 #include "views/ViewController.h"
 #include "SystemData.h"
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include "guis/GuiDetectDevice.h"
 #include "guis/GuiMsgBox.h"
 #include "AudioManager.h"
@@ -26,7 +26,7 @@
 #include <Windows.h>
 #endif
 
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 
 bool scrape_cmdline = false;
 

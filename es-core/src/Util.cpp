@@ -2,7 +2,7 @@
 #include "resources/ResourceManager.h"
 #include "platform.h"
 
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 
 std::string strToUpper(const char* from)
 {

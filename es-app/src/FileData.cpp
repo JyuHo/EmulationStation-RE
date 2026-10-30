@@ -2,7 +2,7 @@
 #include <cassert>
 #include "SystemData.h"
 
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 
 std::string removeParenthesis(const std::string& str)
 {

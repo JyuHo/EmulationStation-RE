@@ -2,7 +2,7 @@
 #include "Log.h"
 #include "pugixml/pugixml.hpp"
 #include "platform.h"
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <boost/assign.hpp>
 
 Settings* Settings::sInstance = nullptr;

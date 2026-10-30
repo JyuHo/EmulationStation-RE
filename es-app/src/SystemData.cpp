@@ -1,7 +1,7 @@
 #include "SystemData.h"
 #include "utils/Paths.h"
 #include "Gamelist.h"
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <fstream>
 #include <stdlib.h>
 #include <SDL_joystick.h>
@@ -16,7 +16,7 @@
 
 std::vector<SystemData*> SystemData::sSystemVector;
 
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 
 SystemData::SystemData(const std::string& name, const std::string& fullName, const std::string& startPath,
 	const std::vector<std::string>& extensions, const std::string& command,
