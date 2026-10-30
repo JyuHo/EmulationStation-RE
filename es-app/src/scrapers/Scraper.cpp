@@ -16,7 +16,7 @@ std::unique_ptr<ScraperSearchHandle> startScraperSearch(const ScraperSearchParam
 {
 	const std::string& name = Settings::getInstance()->getString("Scraper");
 
-	std::unique_ptr<ScraperSearchHandle> handle(new ScraperSearchHandle());
+	std::unique_ptr<ScraperSearchHandle> handle = std::make_unique<ScraperSearchHandle>();
 	scraper_request_funcs.at(name)(params, handle->mRequestQueue, handle->mResults);
 	return handle;
 }
@@ -86,7 +86,7 @@ ScraperHttpRequest::ScraperHttpRequest(std::vector<ScraperSearchResult>& results
 	ScraperRequest(resultsWrite)
 {
 	setStatus(ASYNC_IN_PROGRESS);
-	mReq = std::unique_ptr<HttpReq>(new HttpReq(url));
+	mReq = std::make_unique<HttpReq>(url);
 }
 
 void ScraperHttpRequest::update()
@@ -113,7 +113,7 @@ void ScraperHttpRequest::update()
 std::unique_ptr<MDResolveHandle> resolveMetaDataAssets(
 	const ScraperSearchResult& result, const ScraperSearchParams& search)
 {
-	return std::unique_ptr<MDResolveHandle>(new MDResolveHandle(result, search));
+	return std::make_unique<MDResolveHandle>(result, search);
 }
 
 MDResolveHandle::MDResolveHandle(const ScraperSearchResult& result, const ScraperSearchParams& search) : mResult(result)
@@ -156,12 +156,12 @@ void MDResolveHandle::update()
 
 std::unique_ptr<ImageDownloadHandle> downloadImageAsync(const std::string& url, const std::string& saveAs)
 {
-	return std::unique_ptr<ImageDownloadHandle>(new ImageDownloadHandle(url, saveAs,
-		Settings::getInstance()->getInt("ScraperResizeWidth"), Settings::getInstance()->getInt("ScraperResizeHeight")));
+	return std::make_unique<ImageDownloadHandle>(url, saveAs,
+		Settings::getInstance()->getInt("ScraperResizeWidth"), Settings::getInstance()->getInt("ScraperResizeHeight"));
 }
 
 ImageDownloadHandle::ImageDownloadHandle(const std::string& url, const std::string& path, int maxWidth, int maxHeight) :
-	mReq(new HttpReq(url)), mSavePath(path), mMaxWidth(maxWidth), mMaxHeight(maxHeight)
+	mReq(std::make_unique<HttpReq>(url)), mSavePath(path), mMaxWidth(maxWidth), mMaxHeight(maxHeight)
 {}
 
 void ImageDownloadHandle::update()
