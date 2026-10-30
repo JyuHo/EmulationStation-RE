@@ -130,10 +130,10 @@ void ViewController::playViewTransition()
 
 		const static int FADE_DURATION = 240; // fade in/out time
 		const static int FADE_WAIT = 320;	  // time to wait between in/out
-		setAnimation(new LambdaAnimation(fadeFunc, FADE_DURATION), 0, [this, fadeFunc, target] {
+		setAnimation(std::make_unique<LambdaAnimation>(fadeFunc, FADE_DURATION), 0, [this, fadeFunc, target] {
 			this->mCamera.translation() = -target;
 			updateHelpPrompts();
-			setAnimation(new LambdaAnimation(fadeFunc, FADE_DURATION), FADE_WAIT, nullptr, true);
+			setAnimation(std::make_unique<LambdaAnimation>(fadeFunc, FADE_DURATION), FADE_WAIT, nullptr, true);
 		});
 
 		// fast-forward animation if we're partway faded
@@ -152,7 +152,7 @@ void ViewController::playViewTransition()
 	else
 	{
 		// slide
-		setAnimation(new MoveCameraAnimation(mCamera, target));
+		setAnimation(std::make_unique<MoveCameraAnimation>(mCamera, target));
 		updateHelpPrompts(); // update help prompts immediately
 	}
 }
@@ -187,21 +187,21 @@ void ViewController::launch(FileData* game, Eigen::Vector3f center)
 			//mFadeOpacity = lerp<float>(0.0f, 1.0f, t*t*t + 1);
 			mFadeOpacity = lerp<float>(0.0f, 1.0f, t);
 		};
-		setAnimation(new LambdaAnimation(fadeFunc, 800), 0, [this, game, fadeFunc] {
+		setAnimation(std::make_unique<LambdaAnimation>(fadeFunc, 800), 0, [this, game, fadeFunc] {
 			game->getSystem()->launchGame(mWindow, game);
 			mLockInput = false;
-			setAnimation(new LambdaAnimation(fadeFunc, 800), 0, nullptr, true);
+			setAnimation(std::make_unique<LambdaAnimation>(fadeFunc, 800), 0, nullptr, true);
 			this->onFileChanged(game, FILE_METADATA_CHANGED);
 		});
 	}
 	else
 	{
 		// move camera to zoom in on center + fade out, launch game, come back in
-		setAnimation(new LaunchAnimation(mCamera, mFadeOpacity, center, 1500), 0, [this, origCamera, center, game] {
+		setAnimation(std::make_unique<LaunchAnimation>(mCamera, mFadeOpacity, center, 1500), 0, [this, origCamera, center, game] {
 			game->getSystem()->launchGame(mWindow, game);
 			mCamera = origCamera;
 			mLockInput = false;
-			setAnimation(new LaunchAnimation(mCamera, mFadeOpacity, center, 600), 0, nullptr, true);
+			setAnimation(std::make_unique<LaunchAnimation>(mCamera, mFadeOpacity, center, 600), 0, nullptr, true);
 			this->onFileChanged(game, FILE_METADATA_CHANGED);
 		});
 	}

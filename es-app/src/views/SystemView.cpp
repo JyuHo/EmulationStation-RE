@@ -1,4 +1,5 @@
 #include "views/SystemView.h"
+#include <memory>
 #include "SystemData.h"
 #include "Renderer.h"
 #include "Log.h"
@@ -165,7 +166,7 @@ void SystemView::onCursorChanged(const CursorState& state)
 
 	const float infoStartOpacity = mSystemInfo.getOpacity() / 255.f;
 
-	Animation* infoFadeOut = new LambdaAnimation(
+	auto infoFadeOut = std::make_unique<LambdaAnimation>(
 		[infoStartOpacity, this](
 			float t) { mSystemInfo.setOpacity((unsigned char)(lerp<float>(infoStartOpacity, 0.f, t) * 255)); },
 		(int)(infoStartOpacity * 150));
@@ -174,7 +175,7 @@ void SystemView::onCursorChanged(const CursorState& state)
 
 	// also change the text after we've fully faded out
 	setAnimation(
-		infoFadeOut, 0,
+		std::move(infoFadeOut), 0,
 		[this, gameCount] {
 			std::stringstream ss;
 
@@ -189,22 +190,22 @@ void SystemView::onCursorChanged(const CursorState& state)
 	// only display a game count if there are at least 2 games
 	if(gameCount > 1)
 	{
-		Animation* infoFadeIn = new LambdaAnimation(
+		auto infoFadeIn = std::make_unique<LambdaAnimation>(
 			[this](float t) { mSystemInfo.setOpacity((unsigned char)(lerp<float>(0.f, 1.f, t) * 255)); }, 300);
 
 		// wait 600ms to fade in
-		setAnimation(infoFadeIn, 2000, nullptr, false, 2);
+		setAnimation(std::move(infoFadeIn), 2000, nullptr, false, 2);
 	}
 
 	// no need to animate transition, we're not going anywhere (probably mEntries.size() == 1)
 	if(endPos == mCamOffset && endPos == mExtrasCamOffset)
 		return;
 
-	Animation* anim;
+	std::unique_ptr<Animation> anim;
 	if(Settings::getInstance()->getString("TransitionStyle") == "fade")
 	{
 		float startExtrasFade = mExtrasFadeOpacity;
-		anim = new LambdaAnimation(
+		anim = std::make_unique<LambdaAnimation>(
 			[startExtrasFade, startPos, endPos, posMax, this](float t) {
 				t -= 1;
 				float f = lerp<float>(startPos, endPos, t * t * t + 1);
@@ -230,7 +231,7 @@ void SystemView::onCursorChanged(const CursorState& state)
 	}
 	else
 	{ // slide
-		anim = new LambdaAnimation(
+		anim = std::make_unique<LambdaAnimation>(
 			[startPos, endPos, posMax, this](float t) {
 				t -= 1;
 				float f = lerp<float>(startPos, endPos, t * t * t + 1);
@@ -245,7 +246,7 @@ void SystemView::onCursorChanged(const CursorState& state)
 			500);
 	}
 
-	setAnimation(anim, 0, nullptr, false, 0);
+	setAnimation(std::move(anim), 0, nullptr, false, 0);
 }
 
 void SystemView::render(const Eigen::Affine3f& parentTrans)

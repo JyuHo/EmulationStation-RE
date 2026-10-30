@@ -59,7 +59,7 @@ public:
 	bool isAnimationPlaying(unsigned char slot) const;
 	bool isAnimationReversed(unsigned char slot) const;
 	int getAnimationTime(unsigned char slot) const;
-	void setAnimation(Animation* animation, int delay = 0, std::function<void()> finishedCallback = nullptr,
+	void setAnimation(std::unique_ptr<Animation> animation, int delay = 0, std::function<void()> finishedCallback = nullptr,
 		bool reverse = false, unsigned char slot = 0);
 	bool stopAnimation(unsigned char slot);
 	bool cancelAnimation(unsigned char
