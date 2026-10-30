@@ -394,7 +394,7 @@ std::string SystemData::getConfigPath(bool forWrite)
 {
 	es::paths::Kind k = es::paths::Kind::Config;
 	auto p = es::paths::userFile(k, "es_systems.cfg");
-	if(forWrite || fs::exists(p))
+	if(forWrite || std::filesystem::exists(p))
 		return p.generic_string();
 
 	auto found = es::paths::find(k, "es_systems.cfg");
@@ -413,7 +413,7 @@ std::string SystemData::getGamelistPath(bool forWrite) const
 	filePath = es::paths::userFile(es::paths::Kind::Data, "gamelists/" + mName + "/gamelist.xml");
 	if(forWrite) // make sure the directory exists if we're going to write to it, or crashes will happen
 		fs::create_directories(filePath.parent_path());
-	if(forWrite || fs::exists(filePath))
+	if(forWrite || std::filesystem::exists(filePath))
 		return filePath.generic_string();
 
 	auto found = es::paths::find(es::paths::Kind::Data, "gamelists/" + mName + "/gamelist.xml");
