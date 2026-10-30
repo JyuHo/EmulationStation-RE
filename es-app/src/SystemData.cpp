@@ -407,13 +407,13 @@ std::string SystemData::getGamelistPath(bool forWrite) const
 	fs::path filePath;
 
 	filePath = mRootFolder->getPath() / "gamelist.xml";
-	if(std::filesystem::exists(filePath))
+	if(fs::exists(filePath))
 		return filePath.generic_string();
 
 	filePath = es::paths::userFile(es::paths::Kind::Data, "gamelists/" + mName + "/gamelist.xml");
 	if(forWrite) // make sure the directory exists if we're going to write to it, or crashes will happen
 		fs::create_directories(filePath.parent_path());
-	if(forWrite || std::filesystem::exists(filePath))
+	if(forWrite || fs::exists(filePath))
 		return filePath.generic_string();
 
 	auto found = es::paths::find(es::paths::Kind::Data, "gamelists/" + mName + "/gamelist.xml");
