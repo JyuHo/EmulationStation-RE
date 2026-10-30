@@ -4,7 +4,8 @@
 #include <string>
 #include <map>
 #include "GuiComponent.h"
-#include <boost/date_time.hpp>
+#include <chrono>
+#include <optional>
 #include <filesystem>
 
 enum MetaDataType
@@ -51,13 +52,13 @@ public:
 
 	void set(const std::string& key, const std::string& value);
 	void setTime(const std::string& key,
-		const boost::posix_time::ptime&
-			time); //times are internally stored as ISO strings (e.g. boost::posix_time::to_iso_string(ptime))
+		const std::chrono::sys_seconds&
+			time); //times are internally stored as ISO strings (e.g. std::format("{:%Y%m%dT%H%M%S}", time))
 
 	const std::string& get(const std::string& key) const;
 	int getInt(const std::string& key) const;
 	float getFloat(const std::string& key) const;
-	boost::posix_time::ptime getTime(const std::string& key) const;
+	std::optional<std::chrono::sys_seconds> getTime(const std::string& key) const;
 
 	inline MetaDataListType getType() const { return mType; }
 	inline const std::vector<MetaDataDecl>& getMDD() const { return getMDDByType(getType()); }

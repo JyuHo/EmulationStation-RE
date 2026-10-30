@@ -20,7 +20,7 @@
 #include <cstdlib>
 #include "ScraperCmdLine.h"
 #include <sstream>
-#include <boost/locale.hpp>
+#include <clocale>
 
 #ifdef WIN32
 #include <Windows.h>
@@ -168,7 +168,7 @@ int main(int argc, char* argv[])
 	unsigned int width = 0;
 	unsigned int height = 0;
 
-	std::locale::global(boost::locale::generator().generate(""));
+	std::setlocale(LC_ALL, "");
 	// std::filesystem has no imbue; locale handling dropped
 
 	if(!parseArgs(argc, argv, &width, &height))

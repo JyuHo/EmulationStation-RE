@@ -1,4 +1,5 @@
 #include "FileSorts.h"
+#include <chrono>
 
 namespace FileSorts {
 const FileData::SortType typesArr[] = {FileData::SortType(&compareFileName, true, "filename, ascending"),
@@ -61,7 +62,7 @@ bool compareLastPlayed(const FileData* file1, const FileData* file2)
 	//only games have lastplayed metadata
 	if(file1->metadata.getType() == GAME_METADATA && file2->metadata.getType() == GAME_METADATA)
 	{
-		return (file1)->metadata.getTime("lastplayed") < (file2)->metadata.getTime("lastplayed");
+		return (file1)->metadata.getTime("lastplayed").value_or(std::chrono::sys_seconds{}) < (file2)->metadata.getTime("lastplayed").value_or(std::chrono::sys_seconds{});
 	}
 
 	return false;

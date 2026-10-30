@@ -7,7 +7,7 @@
 #include <deque>
 #include <string>
 #include <filesystem>
-#include <boost/variant.hpp>
+#include <variant>
 #include <Eigen/Dense>
 #include "pugixml/pugixml.hpp"
 #include "GuiComponent.h"
@@ -96,9 +96,9 @@ public:
 		bool extra;
 		std::string type;
 
-		std::map<std::string, boost::variant<Eigen::Vector2f, std::string, unsigned int, float, bool>> properties;
+		std::map<std::string, std::variant<Eigen::Vector2f, std::string, unsigned int, float, bool>> properties;
 
-		template <typename T> T get(const std::string& prop) const { return boost::get<T>(properties.at(prop)); }
+		template <typename T> T get(const std::string& prop) const { return std::get<T>(properties.at(prop)); }
 
 		inline bool has(const std::string& prop) const { return (properties.find(prop) != properties.end()); }
 	};

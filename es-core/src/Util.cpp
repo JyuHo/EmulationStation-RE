@@ -178,13 +178,13 @@ fs::path makeRelativePath(const fs::path& path, const fs::path& relativeTo, bool
 	return path;
 }
 
-boost::posix_time::ptime string_to_ptime(const std::string& str, const std::string& fmt)
+std::optional<std::chrono::sys_seconds> string_to_ptime(const std::string& str, const std::string& fmt)
 {
 	std::istringstream ss(str);
-	ss.imbue(std::locale(
-		std::locale::classic(), new boost::posix_time::time_input_facet(fmt))); //std::locale handles deleting the facet
-	boost::posix_time::ptime time;
-	ss >> time;
-
+	ss.imbue(std::locale::classic());
+	std::chrono::sys_seconds time{};
+	ss >> std::chrono::parse(fmt, time);
+	if(ss.fail())
+		return std::nullopt;
 	return time;
 }

@@ -1,7 +1,8 @@
 #pragma once
 
 #include "GuiComponent.h"
-#include <boost/date_time.hpp>
+#include <chrono>
+#include <optional>
 #include "resources/Font.h"
 
 // Used to enter or display a specific point in time.
@@ -47,8 +48,8 @@ private:
 
 	void updateTextCache();
 
-	boost::posix_time::ptime mTime;
-	boost::posix_time::ptime mTimeBeforeEdit;
+	std::optional<std::chrono::sys_seconds> mTime;
+	std::optional<std::chrono::sys_seconds> mTimeBeforeEdit;
 
 	bool mEditing;
 	int mEditIndex;
