@@ -34,6 +34,7 @@ include(CompilerWarnings)
 option(ES_WARNINGS_AS_ERRORS "Treat compiler warnings as errors" OFF)
 option(ES_ENABLE_SANITIZERS "Build with AddressSanitizer and UndefinedBehaviorSanitizer" OFF)
 option(ES_ENABLE_LTO "Enable link-time optimisation for release builds" OFF)
+option(ES_BUILD_TESTS "Build the unit tests (requires Catch2 v3)" OFF)
 
 if(ES_ENABLE_SANITIZERS)
     add_compile_options(-fsanitize=address,undefined -fno-omit-frame-pointer)
@@ -71,3 +72,19 @@ find_package(ALSA REQUIRED)
 add_subdirectory(external)
 add_subdirectory(es-core)
 add_subdirectory(es-app)
+
+if(ES_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
+
+#-------------------------------------------------------------------------------
+# Developer tooling
+find_program(ES_RUN_CLANG_TIDY NAMES run-clang-tidy run-clang-tidy-18 run-clang-tidy-19)
+if(ES_RUN_CLANG_TIDY)
+    add_custom_target(es-tidy
+        COMMAND ${ES_RUN_CLANG_TIDY} -quiet -p ${CMAKE_BINARY_DIR} "es-(core|app)/src/"
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        COMMENT "Running clang-tidy on es-core and es-app"
+        USES_TERMINAL)
+endif()

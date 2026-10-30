@@ -25,19 +25,33 @@ jobs:
         run: |
           pacman -Syu --noconfirm --needed \
             git cmake ninja clang \
-            sdl2-compat boost freetype2 eigen curl alsa-lib libglvnd mesa libwebp
+            sdl2-compat boost freetype2 eigen curl alsa-lib libglvnd mesa libwebp \
+            catch2 xorg-server-xvfb imagemagick
 
       - uses: actions/checkout@v5
 
       - name: Configure
         run: |
           cmake -B build -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
             -DCMAKE_C_COMPILER=${{ matrix.cc }} \
-            -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
+            -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
+            -DES_BUILD_TESTS=ON \
+            -DES_WARNINGS_AS_ERRORS=ON
 
       - name: Build
         run: cmake --build build
 
-      - name: Smoke test
-        run: ./build/emulationstation --help
+      - name: Unit tests
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Smoke test (Xvfb)
+        run: tests/smoke/run.sh build/emulationstation 6 smoke-${{ matrix.compiler }}.png
+
+      - name: Upload smoke screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-${{ matrix.compiler }}
+          path: smoke-${{ matrix.compiler }}.png
+          if-no-files-found: ignore
