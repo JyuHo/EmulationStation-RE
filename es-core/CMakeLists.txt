@@ -175,9 +175,6 @@ target_link_libraries(es-core PUBLIC
     Freetype::Freetype
     PkgConfig::WEBP
     SDL2::SDL2
-    Boost::filesystem
-    Boost::headers
-    Boost::locale
     Eigen3::Eigen
     CURL::libcurl
     ALSA::ALSA

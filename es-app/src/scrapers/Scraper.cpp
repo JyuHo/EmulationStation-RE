@@ -3,13 +3,14 @@
 #include "Settings.h"
 #include "ImageIO.h"
 #include <filesystem>
-#include <boost/assign.hpp>
+#include <fstream>
 
 #include "GamesDBScraper.h"
 #include "TheArchiveScraper.h"
 
-const std::map<std::string, generate_scraper_requests_func> scraper_request_funcs = boost::assign::map_list_of(
-	"TheGamesDB", &thegamesdb_generate_scraper_requests)("TheArchive", &thearchive_generate_scraper_requests);
+const std::map<std::string, generate_scraper_requests_func> scraper_request_funcs = {
+	{"TheGamesDB", &thegamesdb_generate_scraper_requests},
+	{"TheArchive", &thearchive_generate_scraper_requests}};
 
 std::unique_ptr<ScraperSearchHandle> startScraperSearch(const ScraperSearchParams& params)
 {

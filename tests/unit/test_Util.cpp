@@ -1,11 +1,12 @@
-// Characterisation tests: they pin the current behaviour so that the Boost ->
-// std migration (phase 3) can prove it changes nothing.
+// Characterisation tests: they pin the current behaviour so that the std
+// migration (phase 3) can prove it changes nothing.
 #include "Util.h"
 
 #include <catch2/catch_test_macros.hpp>
 
 #include <filesystem>
 #include <fstream>
+#include <format>
 
 TEST_CASE("strToUpper", "[Util]")
 {
@@ -48,7 +49,7 @@ TEST_CASE("makeRelativePath and removeCommonPath", "[Util]")
 
 TEST_CASE("string_to_ptime parses gamelist and scraper formats", "[Util]")
 {
-	CHECK(boost::posix_time::to_iso_string(string_to_ptime("20140115T000000")) == "20140115T000000");
-	CHECK(boost::posix_time::to_iso_string(string_to_ptime("01/15/2014", "%m/%d/%Y")) == "20140115T000000");
-	CHECK(string_to_ptime("garbage").is_not_a_date_time());
+	CHECK(std::format("{:%Y%m%dT%H%M%S}", *string_to_ptime("20140115T000000")) == "20140115T000000");
+	CHECK(std::format("{:%Y%m%dT%H%M%S}", *string_to_ptime("01/15/2014", "%m/%d/%Y")) == "20140115T000000");
+	CHECK(!string_to_ptime("garbage").has_value());
 }

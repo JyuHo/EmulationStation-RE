@@ -3,6 +3,10 @@
 #include "Window.h"
 #include "Log.h"
 #include "Util.h"
+#include <ctime>
+#include <format>
+#include <iomanip>
+#include <sstream>
 
 DateTimeComponent::DateTimeComponent(Window* window, DisplayMode dispMode) :
 	GuiComponent(window),
@@ -40,9 +44,9 @@ bool DateTimeComponent::input(InputConfig* config, Input input)
 			mTimeBeforeEdit = mTime;
 
 			//initialize to now if unset
-			if(mTime == boost::posix_time::not_a_date_time)
+			if(!mTime)
 			{
-				mTime = boost::posix_time::ptime(boost::gregorian::day_clock::local_day());
+				mTime = std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::floor<std::chrono::days>(std::chrono::system_clock::now()));
 				updateTextCache();
 			}
 		}
@@ -68,7 +72,8 @@ bool DateTimeComponent::input(InputConfig* config, Input input)
 
 		if(incDir != 0)
 		{
-			tm new_tm = boost::posix_time::to_tm(mTime);
+			std::time_t tt = std::chrono::system_clock::to_time_t(*mTime);
+			std::tm new_tm = *std::gmtime(&tt);
 
 			if(mEditIndex == 0)
 			{
@@ -82,7 +87,9 @@ bool DateTimeComponent::input(InputConfig* config, Input input)
 			else if(mEditIndex == 1)
 			{
 				new_tm.tm_mday += incDir;
-				int days_in_month = mTime.date().end_of_month().day().as_number();
+				std::chrono::year_month_day_last ymdl(
+					std::chrono::year(new_tm.tm_year + 1900), std::chrono::month(new_tm.tm_mon + 1) / std::chrono::last);
+				int days_in_month = static_cast<int>(static_cast<unsigned>(ymdl.day()));
 				if(new_tm.tm_mday > days_in_month)
 					new_tm.tm_mday = days_in_month;
 				else if(new_tm.tm_mday < 1)
@@ -96,12 +103,13 @@ bool DateTimeComponent::input(InputConfig* config, Input input)
 			}
 
 			//validate day
-			int days_in_month =
-				boost::gregorian::date(new_tm.tm_year + 1900, new_tm.tm_mon + 1, 1).end_of_month().day().as_number();
+			std::chrono::year_month_day_last ymdl2(
+				std::chrono::year(new_tm.tm_year + 1900), std::chrono::month(new_tm.tm_mon + 1) / std::chrono::last);
+			int days_in_month = static_cast<int>(static_cast<unsigned>(ymdl2.day()));
 			if(new_tm.tm_mday > days_in_month)
 				new_tm.tm_mday = days_in_month;
 
-			mTime = boost::posix_time::ptime_from_tm(new_tm);
+			mTime = std::chrono::sys_seconds{std::chrono::seconds{::timegm(&new_tm)}};
 
 			updateTextCache();
 			return true;
@@ -179,7 +187,9 @@ void DateTimeComponent::setValue(const std::string& val)
 
 std::string DateTimeComponent::getValue() const
 {
-	return boost::posix_time::to_iso_string(mTime);
+	if(!mTime)
+		return "not-a-date-time";
+	return std::format("{:%Y%m%dT%H%M%S}", *mTime);
 }
 
 DateTimeComponent::DisplayMode DateTimeComponent::getCurrentDisplayMode() const
@@ -205,39 +215,37 @@ std::string DateTimeComponent::getDisplayString(DisplayMode mode) const
 	case DISP_DATE_TIME: fmt = "%m/%d/%Y %H:%M:%S"; break;
 	case DISP_RELATIVE_TO_NOW: {
 		//relative time
-		using namespace boost::posix_time;
-
-		if(mTime == not_a_date_time)
+		if(!mTime)
 			return "never";
 
-		ptime now = second_clock::universal_time();
-		time_duration dur = now - mTime;
+		auto now = std::chrono::system_clock::now();
+		auto dur = std::chrono::duration_cast<std::chrono::seconds>(now - *mTime);
 
-		if(dur < seconds(2))
+		if(dur < std::chrono::seconds(2))
 			return "just now";
-		if(dur < seconds(60))
-			return std::to_string((long long)dur.seconds()) + " secs ago";
-		if(dur < minutes(60))
-			return std::to_string((long long)dur.minutes()) + " min" + (dur < minutes(2) ? "" : "s") + " ago";
-		if(dur < hours(24))
-			return std::to_string((long long)dur.hours()) + " hour" + (dur < hours(2) ? "" : "s") + " ago";
+		if(dur < std::chrono::seconds(60))
+			return std::to_string(dur.count()) + " secs ago";
+		if(dur < std::chrono::minutes(60))
+			return std::to_string(std::chrono::duration_cast<std::chrono::minutes>(dur).count()) + " min" +
+				   (dur < std::chrono::minutes(2) ? "" : "s") + " ago";
+		if(dur < std::chrono::hours(24))
+			return std::to_string(std::chrono::duration_cast<std::chrono::hours>(dur).count()) + " hour" +
+				   (dur < std::chrono::hours(2) ? "" : "s") + " ago";
 
-		long long days = (long long)(dur.hours() / 24);
+		long long days = dur.count() / (24 * 3600);
 		return std::to_string(days) + " day" + (days < 2 ? "" : "s") + " ago";
 	}
 	break;
 	}
 
-	if(mTime == boost::posix_time::not_a_date_time)
+	if(!mTime)
 		return "unknown";
 
-	boost::posix_time::time_facet* facet = new boost::posix_time::time_facet();
-	facet->format(fmt.c_str());
-	std::locale loc(std::locale::classic(), facet);
+	std::time_t tt = std::chrono::system_clock::to_time_t(*mTime);
+	std::tm* tm = std::gmtime(&tt);
 
-	std::stringstream ss;
-	ss.imbue(loc);
-	ss << mTime;
+	std::ostringstream ss;
+	ss << std::put_time(tm, fmt.c_str());
 	return ss.str();
 }
 

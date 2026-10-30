@@ -6,39 +6,62 @@
 #include "Log.h"
 #include "Settings.h"
 #include "pugixml/pugixml.hpp"
-#include <boost/assign.hpp>
 
 #include "components/ImageComponent.h"
 #include "components/TextComponent.h"
 
-// This is a work around for some ambiguity that is introduced in C++11 that boost::assign::map_list_of leave open.
-// We use makeMap(actualmap) to implicitly convert the boost::assign::map_list_of's return type to ElementMapType.
-// Problem exists with gcc 4.7 and Boost 1.51.  Works fine with MSVC2010 without this hack.
 using ElementMapType = std::map<std::string, ThemeData::ElementPropertyType>;
-template <typename T> ElementMapType makeMap(const T& mapInit)
-{
-	ElementMapType m = mapInit;
-	return m;
-}
 
-std::map<std::string, ElementMapType> ThemeData::sElementMap = boost::assign::map_list_of("image",
-	makeMap(boost::assign::map_list_of("pos", NORMALIZED_PAIR)("size", NORMALIZED_PAIR)("maxSize", NORMALIZED_PAIR)(
-		"origin", NORMALIZED_PAIR)("path", PATH)("tile", BOOLEAN)("color", COLOR)))("text",
-	makeMap(boost::assign::map_list_of("pos", NORMALIZED_PAIR)("size", NORMALIZED_PAIR)("text", STRING)("color", COLOR)(
-		"fontPath", PATH)("fontSize", FLOAT)("alignment", STRING)("forceUppercase", BOOLEAN)("lineSpacing", FLOAT)))(
-	"textlist",
-	makeMap(boost::assign::map_list_of("pos", NORMALIZED_PAIR)("size", NORMALIZED_PAIR)("selectorColor", COLOR)(
-		"selectedColor", COLOR)("primaryColor", COLOR)("secondaryColor", COLOR)("fontPath", PATH)("fontSize", FLOAT)(
-		"scrollSound", PATH)("alignment", STRING)("horizontalMargin", FLOAT)("forceUppercase", BOOLEAN)("lineSpacing",
-		FLOAT)))("container", makeMap(boost::assign::map_list_of("pos", NORMALIZED_PAIR)("size", NORMALIZED_PAIR)))(
-	"ninepatch", makeMap(boost::assign::map_list_of("pos", NORMALIZED_PAIR)("size", NORMALIZED_PAIR)("path", PATH)))(
-	"datetime",
-	makeMap(boost::assign::map_list_of("pos", NORMALIZED_PAIR)("size", NORMALIZED_PAIR)("color", COLOR)(
-		"fontPath", PATH)("fontSize", FLOAT)("forceUppercase", BOOLEAN)))("rating",
-	makeMap(boost::assign::map_list_of("pos", NORMALIZED_PAIR)("size", NORMALIZED_PAIR)("filledPath", PATH)(
-		"unfilledPath", PATH)))("sound", makeMap(boost::assign::map_list_of("path", PATH)))("helpsystem",
-	makeMap(boost::assign::map_list_of("pos", NORMALIZED_PAIR)("textColor", COLOR)("iconColor", COLOR)(
-		"fontPath", PATH)("fontSize", FLOAT)));
+std::map<std::string, ElementMapType> ThemeData::sElementMap = {
+	{"image",
+	 {{"pos", NORMALIZED_PAIR},
+	  {"size", NORMALIZED_PAIR},
+	  {"maxSize", NORMALIZED_PAIR},
+	  {"origin", NORMALIZED_PAIR},
+	  {"path", PATH},
+	  {"tile", BOOLEAN},
+	  {"color", COLOR}}},
+	{"text",
+	 {{"pos", NORMALIZED_PAIR},
+	  {"size", NORMALIZED_PAIR},
+	  {"text", STRING},
+	  {"color", COLOR},
+	  {"fontPath", PATH},
+	  {"fontSize", FLOAT},
+	  {"alignment", STRING},
+	  {"forceUppercase", BOOLEAN},
+	  {"lineSpacing", FLOAT}}},
+	{"textlist",
+	 {{"pos", NORMALIZED_PAIR},
+	  {"size", NORMALIZED_PAIR},
+	  {"selectorColor", COLOR},
+	  {"selectedColor", COLOR},
+	  {"primaryColor", COLOR},
+	  {"secondaryColor", COLOR},
+	  {"fontPath", PATH},
+	  {"fontSize", FLOAT},
+	  {"scrollSound", PATH},
+	  {"alignment", STRING},
+	  {"horizontalMargin", FLOAT},
+	  {"forceUppercase", BOOLEAN},
+	  {"lineSpacing", FLOAT}}},
+	{"container", {{"pos", NORMALIZED_PAIR}, {"size", NORMALIZED_PAIR}}},
+	{"ninepatch", {{"pos", NORMALIZED_PAIR}, {"size", NORMALIZED_PAIR}, {"path", PATH}}},
+	{"datetime",
+	 {{"pos", NORMALIZED_PAIR},
+	  {"size", NORMALIZED_PAIR},
+	  {"color", COLOR},
+	  {"fontPath", PATH},
+	  {"fontSize", FLOAT},
+	  {"forceUppercase", BOOLEAN}}},
+	{"rating", {{"pos", NORMALIZED_PAIR}, {"size", NORMALIZED_PAIR}, {"filledPath", PATH}, {"unfilledPath", PATH}}},
+	{"sound", {{"path", PATH}}},
+	{"helpsystem",
+	 {{"pos", NORMALIZED_PAIR},
+	  {"textColor", COLOR},
+	  {"iconColor", COLOR},
+	  {"fontPath", PATH},
+	  {"fontSize", FLOAT}}}};
 
 namespace fs = std::filesystem;
 
@@ -77,7 +100,7 @@ std::string resolvePath(const char* in, const fs::path& relative)
 
 	std::filesystem::path path(in);
 
-	// we use boost filesystem here instead of just string checks because
+	// we use filesystem here instead of just string checks because
 	// some directories could theoretically start with ~ or .
 	if(*path.begin() == "~")
 	{

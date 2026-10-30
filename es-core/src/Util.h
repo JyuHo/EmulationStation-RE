@@ -3,7 +3,8 @@
 #include <string>
 #include <Eigen/Dense>
 #include <filesystem>
-#include <boost/date_time.hpp>
+#include <chrono>
+#include <optional>
 
 std::string strToUpper(const char* from);
 std::string& strToUpper(std::string& str);
@@ -35,4 +36,4 @@ std::filesystem::path makeRelativePath(
 std::filesystem::path resolvePath(
 	const std::filesystem::path& path, const std::filesystem::path& relativeTo, bool allowHome);
 
-boost::posix_time::ptime string_to_ptime(const std::string& str, const std::string& fmt = "%Y%m%dT%H%M%S%F%q");
+std::optional<std::chrono::sys_seconds> string_to_ptime(const std::string& str, const std::string& fmt = "%Y%m%dT%H%M%S");

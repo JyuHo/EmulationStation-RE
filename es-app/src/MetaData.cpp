@@ -2,6 +2,7 @@
 #include "components/TextComponent.h"
 #include "Log.h"
 #include "Util.h"
+#include <format>
 
 namespace fs = std::filesystem;
 
@@ -104,9 +105,9 @@ void MetaDataList::set(const std::string& key, const std::string& value)
 	mMap[key] = value;
 }
 
-void MetaDataList::setTime(const std::string& key, const boost::posix_time::ptime& time)
+void MetaDataList::setTime(const std::string& key, const std::chrono::sys_seconds& time)
 {
-	mMap[key] = boost::posix_time::to_iso_string(time);
+	mMap[key] = std::format("{:%Y%m%dT%H%M%S}", time);
 }
 
 const std::string& MetaDataList::get(const std::string& key) const
@@ -124,7 +125,7 @@ float MetaDataList::getFloat(const std::string& key) const
 	return (float)atof(get(key).c_str());
 }
 
-boost::posix_time::ptime MetaDataList::getTime(const std::string& key) const
+std::optional<std::chrono::sys_seconds> MetaDataList::getTime(const std::string& key) const
 {
-	return string_to_ptime(get(key), "%Y%m%dT%H%M%S%F%q");
+	return string_to_ptime(get(key), "%Y%m%dT%H%M%S");
 }

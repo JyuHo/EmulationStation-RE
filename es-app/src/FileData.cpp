@@ -8,7 +8,7 @@ std::string removeParenthesis(const std::string& str)
 {
 	// remove anything in parenthesis or brackets
 	// should be roughly equivalent to the regex replace "\((.*)\)|\[(.*)\]" with ""
-	// I would love to just use regex, but it's not worth pulling in another boost lib for one function that is used once
+	// I would love to just use regex, but it's not worth pulling in another library for one function that is used once
 
 	std::string ret = str;
 	size_t start, end;

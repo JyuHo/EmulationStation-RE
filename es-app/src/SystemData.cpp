@@ -144,7 +144,7 @@ void SystemData::launchGame(Window* window, FileData* game)
 	game->metadata.set("playcount", std::to_string(static_cast<long long>(timesPlayed)));
 
 	//update last played time
-	boost::posix_time::ptime time = boost::posix_time::second_clock::universal_time();
+	std::chrono::sys_seconds time = std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now());
 	game->metadata.setTime("lastplayed", time);
 }
 
