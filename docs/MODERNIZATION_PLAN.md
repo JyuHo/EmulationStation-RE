@@ -108,6 +108,16 @@ Cible unique : **Linux x86_64, Arch Linux / CachyOS**, GCC 14+ ou Clang 18+, Mes
 - **Dépendances** : uniquement des paquets présents dans les dépôts officiels Arch
   (`core`/`extra`), ou des bibliothèques mono-en-tête vendored dans `external/`
   avec leur licence. Pas de dépendance AUR obligatoire.
+- **Bibliothèques imposées** (choix du propriétaire du projet) :
+  - images : **stb** (`stb_image`, `stb_image_write`, et les autres en-têtes stb au besoin) ;
+  - JSON : **nlohmann/json** exclusivement (paquet Arch `nlohmann-json`,
+    `find_package(nlohmann_json 3.11 CONFIG REQUIRED)`, cible
+    `nlohmann_json::nlohmann_json`). Pas d'autre bibliothèque JSON, pas de parseur maison.
+    La dépendance est ajoutée au build avec son premier usage réel, pas avant.
+    Usages prévus : réponses JSON des scrapers (ScreenScraper), métadonnées de cache
+    (`$XDG_CACHE_HOME`), fixtures de tests, exports/diagnostics. Les formats existants
+    en XML (`es_settings.cfg`, `es_systems.cfg`, `es_input.cfg`, `gamelist.xml`, thèmes)
+    **restent en XML** pour la compatibilité avec Recalbox/Batocera.
 - **Licences** : le projet est sous licence MIT (Aloshi). Recalbox et Batocera servent de
   **référence fonctionnelle** (formats de thèmes, organisation des traductions) ; ne pas
   copier leur code sans vérifier la compatibilité de licence. On réimplémente les formats.
@@ -437,8 +447,7 @@ tout appel direct à `gl*` (`grep -rn "gl[A-Z]" es-core es-app`).
 
 ## Phase 7 — Images : formats animés, chargement asynchrone, cache
 
-> Hypothèse : « stp » dans la demande initiale désigne **stb** (bibliothèques mono-en-tête
-> de Sean Barrett). À confirmer avec le propriétaire du projet.
+> « stp » dans la demande initiale désignait bien **stb** (confirmé par le propriétaire).
 
 ### Acquis de la phase 1
 stb_image (PNG, JPEG, BMP, TGA, GIF), libwebp (WebP statique), nanosvg (SVG),
@@ -665,7 +674,8 @@ prioritaires dans `$XDG_DATA_HOME/emulationstation/locale/`).
 
 ## Hors périmètre immédiat (backlog)
 
-- Scraper ScreenScraper (remplace TheGamesDB legacy et TheArchive, morts).
+- Scraper ScreenScraper (remplace TheGamesDB legacy et TheArchive, morts), réponses JSON
+  analysées avec nlohmann/json.
 - Collections automatiques (favoris, derniers joués) et personnalisées.
 - Backend audio PipeWire natif.
 - Wayland natif vérifié (SDL3 le gère ; tester sous KDE/GNOME/`cage`).
@@ -684,6 +694,7 @@ prioritaires dans `$XDG_DATA_HOME/emulationstation/locale/`).
 | 5 | − `sdl2-compat`, + `sdl3` |
 | 8-9 | + `ffmpeg` (et `libva` pour VA-API) |
 | 10 | + `gettext` |
+| premier usage de JSON | + `nlohmann-json` |
 
 ## Annexe B — Commandes de référence
 

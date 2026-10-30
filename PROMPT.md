@@ -18,6 +18,7 @@ Objectif final :
 - **SDL3** (fenêtre, entrées, manettes, audio) ;
 - rendu **OpenGL 3.3 core** à shaders ;
 - images via **stb_image** + **libwebp** (+ nanosvg) ;
+- JSON via **nlohmann/json** exclusivement ;
 - vidéo et audio via **FFmpeg** ;
 - **thèmes sur le modèle de Recalbox 10** ;
 - **interface multilingue** via catalogues gettext `.pot`/`.po`/`.mo` (modèle Recalbox / Batocera) ;
@@ -116,7 +117,16 @@ sinon régénère avec l'outil et documente-le.
 6. **Une seule plateforme.** Ne réintroduis pas de code Windows, macOS, Raspberry Pi
    (`bcm_host`), Mali ou OpenGL ES 1.x. Le code existant sous `#ifdef WIN32` peut être
    supprimé quand tu touches le fichier.
-7. **Pas d'action irréversible sans accord** : pas de force-push sur `main`, pas de
+7. **Bibliothèques imposées.** Images : **stb** (+ libwebp pour le WebP). JSON :
+   **nlohmann/json** et rien d'autre (paquet Arch `nlohmann-json`, cible CMake
+   `nlohmann_json::nlohmann_json` via `find_package(nlohmann_json 3.11 CONFIG REQUIRED)`).
+   N'ajoute la dépendance qu'avec son premier usage. Utilise `json::parse(text, nullptr,
+   false)` (sans exception) puis teste `is_discarded()` pour les données venant du réseau,
+   et `value("clé", défaut)` / `contains()` plutôt que `at()` sur des champs optionnels.
+   Pour tes types, définis `to_json`/`from_json` (ou `NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT`).
+   Ne convertis pas les fichiers XML existants (`es_settings.cfg`, `es_systems.cfg`,
+   `es_input.cfg`, `gamelist.xml`, thèmes) en JSON : ils restent en XML (pugixml).
+8. **Pas d'action irréversible sans accord** : pas de force-push sur `main`, pas de
    suppression de branches d'autrui, pas de publication de paquet ou de release.
 
 ---
@@ -325,8 +335,6 @@ En français, court :
 
 ## 12. Questions ouvertes (à confirmer avec le propriétaire)
 
-- La demande initiale cite « stp » ; on suppose qu'il s'agit de **stb** (stb_image et
-  compagnie), déjà intégré en phase 1. À confirmer.
 - Format exact des thèmes Recalbox 10 et thème de référence à viser pour les tests.
 - Liste des langues à livrer en plus de `fr` et `en`.
 - Scraper à implémenter en remplacement des services morts (ScreenScraper ?).
