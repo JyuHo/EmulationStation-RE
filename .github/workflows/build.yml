@@ -27,7 +27,7 @@ jobs:
             git cmake ninja clang \
             sdl2-compat boost freetype2 eigen curl alsa-lib libglvnd mesa libwebp
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Configure
         run: |

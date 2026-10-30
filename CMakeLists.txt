@@ -61,7 +61,8 @@ find_package(SDL2 CONFIG REQUIRED)
 # Boost.System (1.69) and Boost.DateTime (1.73) are header-only; the Boost.System
 # stub library was removed in 1.89, so only compiled components are requested.
 find_package(Boost 1.74 CONFIG REQUIRED COMPONENTS filesystem locale)
-find_package(Eigen3 3.3 CONFIG REQUIRED NO_MODULE)
+# No version constraint: Arch ships Eigen 5, whose config rejects "3.x" requests.
+find_package(Eigen3 CONFIG REQUIRED NO_MODULE)
 find_package(CURL REQUIRED)
 find_package(ALSA REQUIRED)
 
