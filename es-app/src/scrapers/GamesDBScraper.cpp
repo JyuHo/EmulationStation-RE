@@ -47,7 +47,7 @@ void thegamesdb_generate_scraper_requests(const ScraperSearchParams& params,
 	if(params.system->getPlatformIds().empty())
 	{
 		// no platform specified, we're done
-		requests.push(std::unique_ptr<ScraperRequest>(new TheGamesDBRequest(results, path)));
+		requests.push(std::make_unique<TheGamesDBRequest>(results, path));
 	}
 	else
 	{
@@ -70,7 +70,7 @@ void thegamesdb_generate_scraper_requests(const ScraperSearchParams& params,
 								<< getPlatformName(*platformIt);
 			}
 
-			requests.push(std::unique_ptr<ScraperRequest>(new TheGamesDBRequest(results, path)));
+			requests.push(std::make_unique<TheGamesDBRequest>(results, path));
 		}
 	}
 }
