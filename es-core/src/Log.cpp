@@ -5,6 +5,7 @@
 #include <mutex>
 
 #include "platform.h"
+#include "utils/Paths.h"
 
 namespace {
 LogLevel sReportingLevel = LogInfo;
@@ -24,9 +25,7 @@ void Log::setReportingLevel(LogLevel level)
 
 std::string Log::getLogPath()
 {
-	// TODO(phase 3.A): move to $XDG_STATE_HOME through the Paths module.
-	std::string home = getHomePath();
-	return home + "/.emulationstation/es_log.txt";
+	return es::paths::userFile(es::paths::Kind::State, "es_log.txt").string();
 }
 
 std::string_view Log::levelName(LogLevel level)
