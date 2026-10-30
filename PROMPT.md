@@ -19,7 +19,11 @@
 |-------|------|----|
 | 1 — Build CMake/C++23, CI Arch, FreeImage → stb_image + libwebp | **fusionnée** | #1 |
 | 2 — Zéro avertissement, `-Werror`, clang-format/tidy, tests Catch2, test de fumée, Log | **terminée** (à fusionner si ce n'est pas fait) | #2 |
-| 3 à 12 | à faire | — |
+| 3.A — XDG paths | **fusionnée** | #3 |
+| 3.B — std::filesystem | **fusionnée** | #4 |
+| 3.C — std::chrono/Assign/Variant/Locale | **fusionnée** | #5 |
+| 3.D — ownership (en cours) | en cours | #6–#13 |
+| 4 à 12 | à faire | — |
 
 Ce qui existe et que tu dois **réutiliser** (ne le recrée pas) :
 - `CMakePresets.json` : configure/build/test presets `debug` (tests + `-Werror`), `release`,
@@ -47,7 +51,18 @@ Fais les PR dans cet ordre (une PR par ligne, chacune verte avant la suivante) :
 3. **`modernize/phase-3c-std-chrono`** — Boost.DateTime → `std::chrono`, Boost.Assign,
    Boost.Variant, Boost.Locale ; suppression de `find_package(Boost)`.
 4. **`modernize/phase-3d-ownership`** — reliquat de la phase 2 : `new`/`delete` nus →
-   `std::unique_ptr` (plan, phase 2, « Reporté »).
+   `std::unique_ptr` (plan, phase 2, « Reporté »). Jalons livrés (une PR par module) :
+   - #6 `Window` possède les GUI empilés via `unique_ptr` ;
+   - #7 `ViewController` : `make_shared` ;
+   - #8 `FontFace` : `make_unique` ;
+   - #9 `SystemView` : `make_shared` ;
+   - #10 `ThemeData` : `make_shared` ;
+   - #11 `Scraper` : `make_unique` ;
+   - #12 `GamesDBScraper` : `make_unique` ;
+   - #13 `InputManager` : tableau d'axes `unique_ptr<int[]>`.
+   Reste : singletons (`Settings`, `InputManager`, `AudioManager`, `ResourceManager`, `Sound`,
+   `VolumeControl`), `FileData`/`SystemData` (propriété des enfants), animations, et tableau
+   `mAnimationMap` (bloqué par `ImageGridComponent` non copiable).
 
 Les tests existants sont des **tests de caractérisation** : ils fixent le comportement
 actuel. Pendant la phase 3, tu ne changes que les types Boost dans leurs assertions

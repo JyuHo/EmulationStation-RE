@@ -321,6 +321,16 @@ Gamelist,MetaData,ScraperCmdLine}.*`, `es-app/src/scrapers/*`, `es-app/src/guis/
 
 ---
 
+### Jalons 3.D (propriété) — PR par module
+- #6 `Window` possède les GUI empilés via `unique_ptr`
+- #7 `ViewController` : `make_shared`
+- #8 `FontFace` : `make_unique`
+- #9 `SystemView` : `make_shared`
+- #10 `ThemeData` : `make_shared`
+- #11 `Scraper` : `make_unique`
+- #12 `GamesDBScraper` : `make_unique`
+- #13 `InputManager` : tableau d'axes `unique_ptr<int[]>`
+
 ## Phase 4 — Remplacement d'Eigen
 
 **Objectif** : supprimer une dépendance lourde utilisée seulement pour des vecteurs 2D/3D
