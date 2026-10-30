@@ -1,4 +1,5 @@
 #include "SystemData.h"
+#include <memory>
 #include "utils/Paths.h"
 #include "Gamelist.h"
 #include <filesystem>
@@ -38,7 +39,7 @@ SystemData::SystemData(const std::string& name, const std::string& fullName, con
 	mPlatformIds = platformIds;
 	mThemeFolder = themeFolder;
 
-	mRootFolder = new FileData(FOLDER, mStartPath, this);
+	mRootFolder = std::make_unique<FileData>(FOLDER, mStartPath, this).release();
 	mRootFolder->metadata.set("name", mFullName);
 
 	if(!Settings::getInstance()->getBool("ParseGamelistOnly"))
@@ -190,7 +191,7 @@ void SystemData::populateFolder(FileData* folder)
 		isGame = false;
 		if(std::find(mSearchExtensions.begin(), mSearchExtensions.end(), extension) != mSearchExtensions.end())
 		{
-			FileData* newGame = new FileData(GAME, filePath.generic_string(), this);
+			FileData* newGame = std::make_unique<FileData>(GAME, filePath.generic_string(), this).release();
 			folder->addChild(newGame);
 			isGame = true;
 		}
@@ -198,7 +199,7 @@ void SystemData::populateFolder(FileData* folder)
 		//add directories that also do not match an extension as folders
 		if(!isGame && fs::is_directory(filePath))
 		{
-			FileData* newFolder = new FileData(FOLDER, filePath.generic_string(), this);
+			FileData* newFolder = std::make_unique<FileData>(FOLDER, filePath.generic_string(), this).release();
 			populateFolder(newFolder);
 
 			//ignore folders that do not contain games
@@ -314,7 +315,7 @@ bool SystemData::loadConfig()
 		std::filesystem::path genericPath(path);
 		path = genericPath.generic_string();
 
-		SystemData* newSys = new SystemData(name, fullname, path, extensions, cmd, platformIds, themeFolder);
+		SystemData* newSys = std::make_unique<SystemData>(name, fullname, path, extensions, cmd, platformIds, themeFolder).release();
 		if(newSys->getRootFolder()->getChildren().size() == 0)
 		{
 			LOG(LogWarning) << "System \"" << name << "\" has no games! Ignoring it.";
