@@ -34,47 +34,32 @@ make
 Building
 ========
 
-EmulationStation uses some C++11 code, which means you'll need to use at least g++-4.7 on Linux, or VS2010 on Windows, to compile.
+EmulationStation-RE targets **Linux x86_64 (Arch Linux / CachyOS)** and requires a
+C++23 compiler (GCC 14+ or Clang 18+) and CMake 3.25+.
 
-EmulationStation has a few dependencies. For building, you'll need CMake, SDL2, Boost (System, Filesystem, DateTime, Locale), FreeImage, FreeType, Eigen3, and cURL.  You also should probably install the `fonts-droid` package which contains fallback fonts for Chinese/Japanese/Korean characters, but ES will still work fine without it (this package is only used at run-time).
+The modernisation roadmap is described in [docs/MODERNIZATION_PLAN.md](docs/MODERNIZATION_PLAN.md).
 
-**On Debian/Ubuntu:**
-All of this be easily installed with apt-get:
+**Dependencies on Arch Linux / CachyOS:**
 ```bash
-sudo apt-get install libsdl2-dev libboost-system-dev libboost-filesystem-dev libboost-date-time-dev libboost-locale-dev libfreeimage-dev libfreetype6-dev libeigen3-dev libcurl4-openssl-dev libasound2-dev libgl1-mesa-dev build-essential cmake fonts-droid
+sudo pacman -S --needed base-devel cmake ninja sdl2-compat boost freetype2 eigen curl alsa-lib libglvnd freeimage
 ```
 
-Then, generate and build the Makefile with CMake:
+**Build:**
 ```bash
-cd YourEmulationStationDirectory
-cmake .
-make
+cmake --preset release          # or: debug, relwithdebinfo, asan, clang-debug
+cmake --build --preset release
+./build/release/emulationstation --windowed --resolution 1280 720
 ```
 
-**On the Raspberry Pi:**
+Without presets:
+```bash
+cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+```
 
-Complete Raspberry Pi build instructions at [emulationstation.org](http://emulationstation.org/gettingstarted.html#install_rpi_standalone).
+In-source builds (`cmake .`) are no longer supported.
 
-**On Windows:**
-
-[Boost](http://www.boost.org/users/download/) (you'll need to compile yourself or get the pre-compiled binaries)
-
-[Eigen3](http://eigen.tuxfamily.org/index.php?title=Main_Page) (header-only library)
-
-[FreeImage](http://downloads.sourceforge.net/freeimage/FreeImage3154Win32.zip)
-
-[FreeType2](http://download.savannah.gnu.org/releases/freetype/freetype-2.4.9.tar.bz2) (you'll need to compile)
-
-[SDL2](http://www.libsdl.org/release/SDL2-devel-2.0.3-VC.zip)
-
-[cURL](http://curl.haxx.se/download.html) (you'll need to compile or get the pre-compiled DLL version)
-
-(Remember to copy necessary .DLLs into the same folder as the executable: probably FreeImage.dll, freetype6.dll, SDL2.dll, libcurl.dll, and zlib1.dll. Exact list depends on if you built your libraries in "static" mode or not.)
-
-[CMake](http://www.cmake.org/cmake/resources/software.html) (this is used for generating the Visual Studio project)
-
-(If you don't know how to use CMake, here are some hints: run cmake-gui and point it at your EmulationStation folder.  Point the "build" directory somewhere - I use EmulationStation/build.  Click configure, choose "Visual Studio [year] Project", fill in red fields as they appear and keep clicking Configure (you may need to check "Advanced"), then click Generate.)
-
+Useful CMake options: `ES_WARNINGS_AS_ERRORS`, `ES_ENABLE_SANITIZERS`, `ES_ENABLE_LTO`.
 
 Configuring
 ===========

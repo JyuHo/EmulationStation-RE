@@ -21,7 +21,7 @@ protected:
 	using IList<ImageGridData, T>::getTransform;
 	using IList<ImageGridData, T>::mSize;
 	using IList<ImageGridData, T>::mCursor;
-	using IList<ImageGridData, T>::Entry;
+	using typename IList<ImageGridData, T>::Entry;
 	using IList<ImageGridData, T>::mWindow;
 
 public:
@@ -218,7 +218,6 @@ void ImageGridComponent<T>::updateImages()
 	Eigen::Vector2i gridSize = getGridSize();
 
 	int cursorRow = mCursor / gridSize.x();
-	int cursorCol = mCursor % gridSize.x();
 
 	int start = (cursorRow - (gridSize.y() / 2)) * gridSize.x();
 

@@ -1,13 +1,8 @@
-project("pugixml")
-
-set(PUGI_HEADERS
-	${CMAKE_CURRENT_SOURCE_DIR}/pugiconfig.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/pugixml.hpp
+add_library(pugixml STATIC
+    src/pugixml.cpp
+    pugiconfig.hpp
+    pugixml.hpp
 )
-
-set(PUGI_SOURCES
-	${CMAKE_CURRENT_SOURCE_DIR}/src/pugixml.cpp
-)
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-add_library(pugixml STATIC ${PUGI_SOURCES} ${PUG_HEADERS})
+target_include_directories(pugixml SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/external)
+set_target_properties(pugixml PROPERTIES POSITION_INDEPENDENT_CODE ON)
+target_include_directories(pugixml PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

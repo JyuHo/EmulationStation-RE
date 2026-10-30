@@ -6,7 +6,7 @@
 #include <SDL.h>
 #include "Log.h"
 #include "ImageIO.h"
-#include "../data/Resources.h"
+#include "Resources.h"
 #include "Settings.h"
 
 #ifdef USE_OPENGL_ES
