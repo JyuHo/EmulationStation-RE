@@ -14,19 +14,15 @@ ComponentGrid::ComponentGrid(Window* window, const Eigen::Vector2i& gridDimensio
 
 	mCells.reserve(gridDimensions.x() * gridDimensions.y());
 
-	mColWidths = new float[gridDimensions.x()];
-	mRowHeights = new float[gridDimensions.y()];
+	mColWidths = std::make_unique<float[]>(gridDimensions.x());
+	mRowHeights = std::make_unique<float[]>(gridDimensions.y());
 	for(int x = 0; x < gridDimensions.x(); x++)
 		mColWidths[x] = 0;
 	for(int y = 0; y < gridDimensions.y(); y++)
 		mRowHeights[y] = 0;
 }
 
-ComponentGrid::~ComponentGrid()
-{
-	delete[] mRowHeights;
-	delete[] mColWidths;
-}
+ComponentGrid::~ComponentGrid() = default;
 
 float ComponentGrid::getColWidth(int col)
 {

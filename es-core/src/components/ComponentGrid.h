@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GuiComponent.h"
+#include <memory>
 
 namespace GridFlags {
 enum UpdateType
@@ -91,8 +92,8 @@ private:
 		operator bool() const { return component != nullptr; }
 	};
 
-	float* mRowHeights;
-	float* mColWidths;
+	std::unique_ptr<float[]> mRowHeights;
+	std::unique_ptr<float[]> mColWidths;
 
 	struct Vert
 	{
