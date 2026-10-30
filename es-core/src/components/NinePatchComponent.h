@@ -18,7 +18,7 @@ class NinePatchComponent : public GuiComponent
 {
 public:
 	NinePatchComponent(Window* window, const std::string& path = "", unsigned int edgeColor = 0xFFFFFFFF, unsigned int centerColor = 0xFFFFFFFF);
-	virtual ~NinePatchComponent();
+	~NinePatchComponent() override;
 
 	void render(const Eigen::Affine3f& parentTrans) override;
 
@@ -30,7 +30,7 @@ public:
 	void setEdgeColor(unsigned int edgeColor); // Apply a color shift to the "edge" parts of the ninepatch.
 	void setCenterColor(unsigned int centerColor); // Apply a color shift to the "center" part of the ninepatch.
 
-	virtual void applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element, unsigned int properties) override;
+	void applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element, unsigned int properties) override;
 
 private:
 	Eigen::Vector2f getCornerSize() const;

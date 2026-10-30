@@ -1,9 +1,10 @@
 #ifndef _LOG_H_
 #define _LOG_H_
 
+// Expands to a single statement so it is safe inside unbraced if/else.
 #define LOG(level) \
-if(level > Log::getReportingLevel()) ; \
-else Log().get(level)
+for(bool _esLogEnabled = (level) <= Log::getReportingLevel(); _esLogEnabled; _esLogEnabled = false) \
+	Log().get(level)
 
 #include <string>
 #include <sstream>

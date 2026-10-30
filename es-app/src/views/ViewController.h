@@ -13,7 +13,7 @@ public:
 	static void init(Window* window);
 	static ViewController* get();
 
-	virtual ~ViewController();
+	~ViewController() override;
 
 	// Try to completely populate the GameListView map.
 	// Caches things so there's no pauses during transitions.
@@ -63,8 +63,8 @@ public:
 
 	inline const State& getState() const { return mState; }
 
-	virtual std::vector<HelpPrompt> getHelpPrompts() override;
-	virtual HelpStyle getHelpStyle() override;
+	std::vector<HelpPrompt> getHelpPrompts() override;
+	HelpStyle getHelpStyle() override;
 
 	std::shared_ptr<IGameListView> getGameListView(SystemData* system);
 	std::shared_ptr<SystemView> getSystemListView();

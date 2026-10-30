@@ -121,7 +121,8 @@ int run_scraper_cmdline()
 	std::string manual_mode_str;
 	std::getline(std::cin, manual_mode_str);
 
-	bool manual_mode = false;
+	// TODO(phase 2 follow-up): manual mode is asked for but never implemented.
+	[[maybe_unused]] bool manual_mode = false;
 
 	if(manual_mode_str == "y" || manual_mode_str == "Y")
 	{

@@ -38,7 +38,7 @@ bool HttpReq::isUrl(const std::string& str)
 }
 
 HttpReq::HttpReq(const std::string& url)
-	: mStatus(REQ_IN_PROGRESS), mHandle(NULL)
+	: mHandle(NULL), mStatus(REQ_IN_PROGRESS)
 {
 	mHandle = curl_easy_init();
 
@@ -118,7 +118,7 @@ HttpReq::Status HttpReq::status()
 
 		int msgs_left;
 		CURLMsg* msg;
-		while(msg = curl_multi_info_read(s_multi_handle, &msgs_left))
+		while((msg = curl_multi_info_read(s_multi_handle, &msgs_left)))
 		{
 			if(msg->msg == CURLMSG_DONE)
 			{

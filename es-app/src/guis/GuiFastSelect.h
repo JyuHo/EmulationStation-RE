@@ -11,8 +11,8 @@ class GuiFastSelect : public GuiComponent
 public:
 	GuiFastSelect(Window* window, IGameListView* gamelist);
 
-	bool input(InputConfig* config, Input input);
-	void update(int deltaTime);
+	bool input(InputConfig* config, Input input) override;
+	void update(int deltaTime) override;
 
 private:
 	void setScrollDir(int dir);

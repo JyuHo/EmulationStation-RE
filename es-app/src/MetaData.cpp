@@ -23,10 +23,10 @@ MetaDataDecl gameDecls[] = {
 const std::vector<MetaDataDecl> gameMDD(gameDecls, gameDecls + sizeof(gameDecls) / sizeof(gameDecls[0]));
 
 MetaDataDecl folderDecls[] = { 
-	{"name",		MD_STRING,				"", 	false}, 
-	{"desc",		MD_MULTILINE_STRING,	"", 	false},
-	{"image",		MD_IMAGE_PATH,			"", 	false},
-	{"thumbnail",	MD_IMAGE_PATH,			"", 	false},
+	{"name",		MD_STRING,				"", 	false, "", ""}, 
+	{"desc",		MD_MULTILINE_STRING,	"", 	false, "", ""},
+	{"image",		MD_IMAGE_PATH,			"", 	false, "", ""},
+	{"thumbnail",	MD_IMAGE_PATH,			"", 	false, "", ""},
 };
 const std::vector<MetaDataDecl> folderMDD(folderDecls, folderDecls + sizeof(folderDecls) / sizeof(folderDecls[0]));
 

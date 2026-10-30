@@ -47,7 +47,7 @@ class ThemeException : public std::exception
 public:
 	std::string msg;
 
-	virtual const char* what() const throw() { return msg.c_str(); }
+	const char* what() const throw() override { return msg.c_str(); }
 
 	template<typename T>
 	friend ThemeException& operator<<(ThemeException& e, T msg);
@@ -74,7 +74,7 @@ class ThemeExtras : public GuiComponent
 {
 public:
 	ThemeExtras(Window* window) : GuiComponent(window) {};
-	virtual ~ThemeExtras();
+	~ThemeExtras() override;
 
 	// will take ownership of the components within extras (delete them in destructor or when setExtras is called again)
 	void setExtras(const std::vector<GuiComponent*>& extras);

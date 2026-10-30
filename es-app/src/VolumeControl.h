@@ -26,18 +26,18 @@ class VolumeControl
 #elif defined(__linux__)
     static const char * mixerName;
     static const char * mixerCard;
-    int mixerIndex;
-	snd_mixer_t* mixerHandle;
-    snd_mixer_elem_t* mixerElem;
-    snd_mixer_selem_id_t* mixerSelemId;
+    int mixerIndex = 0;
+	snd_mixer_t* mixerHandle = nullptr;
+    snd_mixer_elem_t* mixerElem = nullptr;
+    snd_mixer_selem_id_t* mixerSelemId = nullptr;
 #elif defined(WIN32) || defined(_WIN32)
-	HMIXER mixerHandle;
+	HMIXER mixerHandle = nullptr;
 	MIXERCONTROL mixerControl;
-	IAudioEndpointVolume * endpointVolume;
+	IAudioEndpointVolume * endpointVolume = nullptr;
 #endif
 
-	int originalVolume;
-	int internalVolume;
+	int originalVolume = 0;
+	int internalVolume = 0;
 
 	static std::weak_ptr<VolumeControl> sInstance;
 

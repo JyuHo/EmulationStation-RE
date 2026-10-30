@@ -9,7 +9,7 @@
 #include "components/HelpComponent.h"
 #include "components/ImageComponent.h"
 
-Window::Window() : mNormalizeNextUpdate(false), mFrameTimeElapsed(0), mFrameCountElapsed(0), mAverageDeltaTime(10), 
+Window::Window() : mFrameTimeElapsed(0), mFrameCountElapsed(0), mAverageDeltaTime(10), mNormalizeNextUpdate(false), 
 	mAllowSleep(true), mSleeping(false), mTimeSinceLastInput(0)
 {
 	mHelp = new HelpComponent(this);

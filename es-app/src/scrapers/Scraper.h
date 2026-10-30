@@ -62,7 +62,7 @@ public:
 	ScraperRequest(std::vector<ScraperSearchResult>& resultsWrite);
 
 	// returns "true" once we're done
-	virtual void update() = 0;
+	void update() override = 0;
 	
 protected:
 	std::vector<ScraperSearchResult>& mResults;
@@ -74,7 +74,7 @@ class ScraperHttpRequest : public ScraperRequest
 {
 public:
 	ScraperHttpRequest(std::vector<ScraperSearchResult>& resultsWrite, const std::string& url);
-	virtual void update() override;
+	void update() override;
 
 protected:
 	virtual void process(const std::unique_ptr<HttpReq>& req, std::vector<ScraperSearchResult>& results) = 0;
@@ -89,7 +89,7 @@ class ScraperSearchHandle : public AsyncHandle
 public:
 	ScraperSearchHandle();
 
-	void update();
+	void update() override;
 	inline const std::vector<ScraperSearchResult>& getResults() const { assert(mStatus != ASYNC_IN_PROGRESS); return mResults; }
 
 protected:

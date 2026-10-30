@@ -148,8 +148,7 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "MAIN MEN
 					theme_set->add(it->first, it->first, it == selectedSet);
 				s->addWithLabel("THEME SET", theme_set);
 
-				Window* window = mWindow;
-				s->addSaveFunc([window, theme_set] 
+				s->addSaveFunc([theme_set] 
 				{
 					bool needReload = false;
 					if(Settings::getInstance()->getString("ThemeSet") != theme_set->getSelected())

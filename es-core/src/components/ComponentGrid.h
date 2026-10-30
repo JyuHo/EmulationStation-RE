@@ -27,7 +27,7 @@ class ComponentGrid : public GuiComponent
 {
 public:
 	ComponentGrid(Window* window, const Eigen::Vector2i& gridDimensions);
-	virtual ~ComponentGrid();
+	~ComponentGrid() override;
 
 	bool removeEntry(const std::shared_ptr<GuiComponent>& comp);
 
@@ -64,7 +64,7 @@ public:
 	void onFocusLost() override;
 	void onFocusGained() override;
 
-	virtual std::vector<HelpPrompt> getHelpPrompts() override;
+	std::vector<HelpPrompt> getHelpPrompts() override;
 
 private:
 	class GridEntry

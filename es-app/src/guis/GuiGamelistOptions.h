@@ -9,10 +9,10 @@ class GuiGamelistOptions : public GuiComponent
 {
 public:
 	GuiGamelistOptions(Window* window, SystemData* system);
-	virtual ~GuiGamelistOptions();
+	~GuiGamelistOptions() override;
 
-	virtual bool input(InputConfig* config, Input input) override;
-	virtual std::vector<HelpPrompt> getHelpPrompts() override;
+	bool input(InputConfig* config, Input input) override;
+	std::vector<HelpPrompt> getHelpPrompts() override;
 
 private:
 	void openMetaDataEd();

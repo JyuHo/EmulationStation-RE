@@ -30,7 +30,7 @@ public:
 
 	void setCursor(size_t pos);
 
-	virtual std::vector<HelpPrompt> getHelpPrompts() override;
+	std::vector<HelpPrompt> getHelpPrompts() override;
 
 private:
 	void startEditing();

@@ -16,8 +16,8 @@ public:
 
 	virtual ~TextureResource();
 
-	virtual void unload(std::shared_ptr<ResourceManager>& rm) override;
-	virtual void reload(std::shared_ptr<ResourceManager>& rm) override;
+	void unload(std::shared_ptr<ResourceManager>& rm) override;
+	void reload(std::shared_ptr<ResourceManager>& rm) override;
 	
 	bool isInitialized() const;
 	bool isTiled() const;

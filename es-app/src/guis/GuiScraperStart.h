@@ -23,7 +23,7 @@ public:
 
 	bool input(InputConfig* config, Input input) override;
 
-	virtual std::vector<HelpPrompt> getHelpPrompts() override;
+	std::vector<HelpPrompt> getHelpPrompts() override;
 
 private:
 	void pressedStart();

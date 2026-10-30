@@ -7,11 +7,11 @@ struct NSVGimage;
 class SVGResource : public TextureResource
 {
 public:
-	virtual ~SVGResource();
+	~SVGResource() override;
 
-	virtual void unload(std::shared_ptr<ResourceManager>& rm) override;
+	void unload(std::shared_ptr<ResourceManager>& rm) override;
 	
-	virtual void initFromMemory(const char* image, size_t length) override;
+	void initFromMemory(const char* image, size_t length) override;
 
 	void rasterizeAt(size_t width, size_t height);
 	Eigen::Vector2f getSourceImageSize() const;

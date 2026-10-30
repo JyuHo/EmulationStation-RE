@@ -26,7 +26,7 @@ public:
 	void onFocusGained() override;
 	void onFocusLost() override;
 
-	virtual std::vector<HelpPrompt> getHelpPrompts() override;
+	std::vector<HelpPrompt> getHelpPrompts() override;
 
 private:
 	std::shared_ptr<Font> mFont;

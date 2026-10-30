@@ -6,7 +6,7 @@ class GuiSettings : public GuiComponent
 {
 public:
 	GuiSettings(Window* window, const char* title);
-	virtual ~GuiSettings(); // just calls save();
+	~GuiSettings() override; // just calls save();
 
 	void save();
 	inline void addRow(const ComponentListRow& row) { mMenu.addRow(row); };

@@ -35,7 +35,7 @@ public:
 	void update(int deltaTime) override;
 	void render(const Eigen::Affine3f& parentTrans) override;
 
-	virtual std::vector<HelpPrompt> getHelpPrompts() override;
+	std::vector<HelpPrompt> getHelpPrompts() override;
 private:
 	std::function<void(std::shared_ptr<HttpReq>)> mSuccessFunc;
 	std::function<void()> mCancelFunc;

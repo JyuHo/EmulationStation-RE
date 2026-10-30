@@ -6,7 +6,7 @@
 #include "animations/AnimationController.h"
 #include "ThemeData.h"
 
-GuiComponent::GuiComponent(Window* window) : mWindow(window), mParent(NULL), mOpacity(255), 
+GuiComponent::GuiComponent(Window* window) : mOpacity(255), mWindow(window), mParent(NULL), 
 	mPosition(Eigen::Vector3f::Zero()), mSize(Eigen::Vector2f::Zero()), mTransform(Eigen::Affine3f::Identity())
 {
 	for(unsigned char i = 0; i < MAX_ANIMATIONS; i++)
@@ -245,7 +245,7 @@ bool GuiComponent::finishAnimation(unsigned char slot)
 	if(mAnimationMap[slot])
 	{
 		// skip to animation's end
-		const bool done = mAnimationMap[slot]->update(mAnimationMap[slot]->getAnimation()->getDuration() - mAnimationMap[slot]->getTime());
+		[[maybe_unused]] const bool done = mAnimationMap[slot]->update(mAnimationMap[slot]->getAnimation()->getDuration() - mAnimationMap[slot]->getTime());
 		assert(done);
 
 		delete mAnimationMap[slot]; // will also call finishedCallback
