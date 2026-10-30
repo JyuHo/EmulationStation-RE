@@ -67,6 +67,7 @@ set(CORE_SOURCES
 	src/InputManager.cpp
 	src/Log.cpp
 	src/platform.cpp
+	src/utils/Paths.cpp
 	src/Renderer_draw_gl.cpp
 	src/Renderer_init_sdlgl.cpp
 	src/Settings.cpp
