@@ -5,7 +5,7 @@
 #include <filesystem>
 #include <vector>
 
-Settings* Settings::sInstance = nullptr;
+std::unique_ptr<Settings> Settings::sInstance = nullptr;
 
 // these values are NOT saved to es_settings.xml
 // since they're set through command-line arguments, and not the in-program settings menu
@@ -20,10 +20,10 @@ Settings::Settings()
 
 Settings* Settings::getInstance()
 {
-	if(sInstance == nullptr)
-		sInstance = new Settings();
+	if(!sInstance)
+		sInstance = std::unique_ptr<Settings>(new Settings());
 
-	return sInstance;
+	return sInstance.get();
 }
 
 void Settings::setDefaults()
