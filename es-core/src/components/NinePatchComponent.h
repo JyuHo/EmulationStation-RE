@@ -2,6 +2,7 @@
 
 #include "GuiComponent.h"
 #include "resources/TextureResource.h"
+#include <memory>
 
 // Display an image in a way so that edges don't get too distorted no matter the final size. Useful for UI elements like backgrounds, buttons, etc.
 // This is accomplished by splitting an image into 9 pieces:
@@ -47,8 +48,8 @@ private:
 		Eigen::Vector2f tex;
 	};
 
-	Vertex* mVertices;
-	GLubyte* mColors;
+	std::unique_ptr<Vertex[]> mVertices;
+	std::unique_ptr<GLubyte[]> mColors;
 
 	std::string mPath;
 	unsigned int mEdgeColor;

@@ -18,28 +18,18 @@ NinePatchComponent::NinePatchComponent(
 		buildVertices();
 }
 
-NinePatchComponent::~NinePatchComponent()
-{
-	if(mVertices != nullptr)
-		delete[] mVertices;
-
-	if(mColors != nullptr)
-		delete[] mColors;
-}
+NinePatchComponent::~NinePatchComponent() = default;
 
 void NinePatchComponent::updateColors()
 {
-	Renderer::buildGLColorArray(mColors, mEdgeColor, 6 * 9);
-	Renderer::buildGLColorArray(&mColors[4 * 6 * 4], mCenterColor, 6);
+	Renderer::buildGLColorArray(mColors.get(), mEdgeColor, 6 * 9);
+	Renderer::buildGLColorArray(mColors.get() + 4 * 6 * 4, mCenterColor, 6);
 }
 
 void NinePatchComponent::buildVertices()
 {
-	if(mVertices != nullptr)
-		delete[] mVertices;
-
-	if(mColors != nullptr)
-		delete[] mColors;
+	mVertices.reset();
+	mColors.reset();
 
 	mTexture = TextureResource::get(mPath);
 
@@ -51,8 +41,8 @@ void NinePatchComponent::buildVertices()
 		return;
 	}
 
-	mVertices = new Vertex[6 * 9];
-	mColors = new GLubyte[6 * 9 * 4];
+	mVertices = std::make_unique<Vertex[]>(6 * 9);
+	mColors = std::make_unique<GLubyte[]>(6 * 9 * 4);
 	updateColors();
 
 	const Eigen::Vector2f ts = mTexture->getSize().cast<float>();
@@ -164,7 +154,7 @@ void NinePatchComponent::render(const Eigen::Affine3f& parentTrans)
 
 		glVertexPointer(2, GL_FLOAT, sizeof(Vertex), &mVertices[0].pos);
 		glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), &mVertices[0].tex);
-		glColorPointer(4, GL_UNSIGNED_BYTE, 0, mColors);
+		glColorPointer(4, GL_UNSIGNED_BYTE, 0, mColors.get());
 
 		glDrawArrays(GL_TRIANGLES, 0, 6 * 9);
 
