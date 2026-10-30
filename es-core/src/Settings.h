@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <map>
+#include <memory>
 
 //This is a singleton for storing settings.
 class Settings
@@ -23,7 +24,7 @@ public:
 	void setString(const std::string& name, const std::string& value);
 
 private:
-	static Settings* sInstance;
+	static std::unique_ptr<Settings> sInstance;
 
 	Settings();
 
