@@ -407,7 +407,7 @@ std::string SystemData::getGamelistPath(bool forWrite) const
 	fs::path filePath;
 
 	filePath = mRootFolder->getPath() / "gamelist.xml";
-	if(fs::exists(filePath))
+	if(std::filesystem::exists(filePath))
 		return filePath.generic_string();
 
 	filePath = es::paths::userFile(es::paths::Kind::Data, "gamelists/" + mName + "/gamelist.xml");
