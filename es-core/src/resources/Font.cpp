@@ -410,7 +410,7 @@ FT_Face Font::getFaceForChar(UnicodeChar id)
 			// otherwise, take from fallbackFonts
 			const std::string& path = (i == 0 ? mPath : fallbackFonts.at(i - 1));
 			ResourceData data = ResourceManager::getInstance()->getFileData(path);
-			mFaceCache[i] = std::unique_ptr<FontFace>(new FontFace(std::move(data), mSize));
+			mFaceCache[i] = std::make_unique<FontFace>(std::move(data), mSize);
 			fit = mFaceCache.find(i);
 		}
 
