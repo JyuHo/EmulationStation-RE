@@ -13,7 +13,7 @@
 #include "animations/MoveCameraAnimation.h"
 #include "animations/LambdaAnimation.h"
 
-ViewController* ViewController::sInstance = NULL;
+ViewController* ViewController::sInstance = nullptr;
 
 ViewController* ViewController::get()
 {
@@ -27,8 +27,12 @@ void ViewController::init(Window* window)
 	sInstance = new ViewController(window);
 }
 
-ViewController::ViewController(Window* window)
-	: GuiComponent(window), mCurrentView(nullptr), mCamera(Eigen::Affine3f::Identity()), mFadeOpacity(0), mLockInput(false)
+ViewController::ViewController(Window* window) :
+	GuiComponent(window),
+	mCurrentView(nullptr),
+	mCamera(Eigen::Affine3f::Identity()),
+	mFadeOpacity(0),
+	mLockInput(false)
 {
 	mState.viewing = NOTHING;
 }
@@ -36,7 +40,7 @@ ViewController::ViewController(Window* window)
 ViewController::~ViewController()
 {
 	assert(sInstance == this);
-	sInstance = NULL;
+	sInstance = nullptr;
 }
 
 void ViewController::goToStart()
@@ -107,7 +111,7 @@ void ViewController::goToGameList(SystemData* system)
 void ViewController::playViewTransition()
 {
 	Eigen::Vector3f target(Eigen::Vector3f::Identity());
-	if(mCurrentView) 
+	if(mCurrentView)
 		target = mCurrentView->getPosition();
 
 	// no need to animate, we're not going anywhere (probably goToNextGamelist() or goToPrevGamelist() when there's only 1 system)
@@ -125,7 +129,7 @@ void ViewController::playViewTransition()
 		};
 
 		const static int FADE_DURATION = 240; // fade in/out time
-		const static int FADE_WAIT = 320; // time to wait between in/out
+		const static int FADE_WAIT = 320;	  // time to wait between in/out
 		setAnimation(new LambdaAnimation(fadeFunc, FADE_DURATION), 0, [this, fadeFunc, target] {
 			this->mCamera.translation() = -target;
 			updateHelpPrompts();
@@ -139,10 +143,14 @@ void ViewController::playViewTransition()
 			advanceAnimation(0, FADE_DURATION);
 			advanceAnimation(0, FADE_WAIT);
 			advanceAnimation(0, FADE_DURATION - (int)(mFadeOpacity * FADE_DURATION));
-		}else{
+		}
+		else
+		{
 			advanceAnimation(0, (int)(mFadeOpacity * FADE_DURATION));
 		}
-	}else{
+	}
+	else
+	{
 		// slide
 		setAnimation(new MoveCameraAnimation(mCamera, target));
 		updateHelpPrompts(); // update help prompts immediately
@@ -179,17 +187,17 @@ void ViewController::launch(FileData* game, Eigen::Vector3f center)
 			//mFadeOpacity = lerp<float>(0.0f, 1.0f, t*t*t + 1);
 			mFadeOpacity = lerp<float>(0.0f, 1.0f, t);
 		};
-		setAnimation(new LambdaAnimation(fadeFunc, 800), 0, [this, game, fadeFunc]
-		{
+		setAnimation(new LambdaAnimation(fadeFunc, 800), 0, [this, game, fadeFunc] {
 			game->getSystem()->launchGame(mWindow, game);
 			mLockInput = false;
 			setAnimation(new LambdaAnimation(fadeFunc, 800), 0, nullptr, true);
 			this->onFileChanged(game, FILE_METADATA_CHANGED);
 		});
-	}else{
+	}
+	else
+	{
 		// move camera to zoom in on center + fade out, launch game, come back in
-		setAnimation(new LaunchAnimation(mCamera, mFadeOpacity, center, 1500), 0, [this, origCamera, center, game] 
-		{
+		setAnimation(new LaunchAnimation(mCamera, mFadeOpacity, center, 1500), 0, [this, origCamera, center, game] {
 			game->getSystem()->launchGame(mWindow, game);
 			mCamera = origCamera;
 			mLockInput = false;
@@ -220,12 +228,12 @@ std::shared_ptr<IGameListView> ViewController::getGameListView(SystemData* syste
 			break;
 		}
 	}
-		
+
 	if(detailed)
 		view = std::shared_ptr<IGameListView>(new DetailedGameListView(mWindow, system->getRootFolder()));
 	else
 		view = std::shared_ptr<IGameListView>(new BasicGameListView(mWindow, system->getRootFolder()));
-		
+
 	// uncomment for experimental "image grid" view
 	//view = std::shared_ptr<IGameListView>(new GridGameListView(mWindow, system->getRootFolder()));
 
@@ -252,7 +260,6 @@ std::shared_ptr<SystemView> ViewController::getSystemListView()
 	mSystemListView->setPosition(0, (float)Renderer::getScreenHeight());
 	return mSystemListView;
 }
-
 
 bool ViewController::input(InputConfig* config, Input input)
 {
@@ -289,21 +296,23 @@ void ViewController::render(const Eigen::Affine3f& parentTrans)
 
 	// camera position, position + size
 	Eigen::Vector3f viewStart = trans.inverse().translation();
-	Eigen::Vector3f viewEnd = trans.inverse() * Eigen::Vector3f((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight(), 0);
+	Eigen::Vector3f viewEnd =
+		trans.inverse() * Eigen::Vector3f((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight(), 0);
 
 	// draw systemview
 	getSystemListView()->render(trans);
-	
+
 	// draw gamelists
 	for(auto it = mGameListViews.begin(); it != mGameListViews.end(); it++)
 	{
 		// clipping
 		Eigen::Vector3f guiStart = it->second->getPosition();
-		Eigen::Vector3f guiEnd = it->second->getPosition() + Eigen::Vector3f(it->second->getSize().x(), it->second->getSize().y(), 0);
+		Eigen::Vector3f guiEnd =
+			it->second->getPosition() + Eigen::Vector3f(it->second->getSize().x(), it->second->getSize().y(), 0);
 
-		if(guiEnd.x() >= viewStart.x() && guiEnd.y() >= viewStart.y() &&
-			guiStart.x() <= viewEnd.x() && guiStart.y() <= viewEnd.y())
-				it->second->render(trans);
+		if(guiEnd.x() >= viewStart.x() && guiEnd.y() >= viewStart.y() && guiStart.x() <= viewEnd.x() &&
+			guiStart.y() <= viewEnd.y())
+			it->second->render(trans);
 	}
 
 	if(mWindow->peekGui() == this)
@@ -313,7 +322,8 @@ void ViewController::render(const Eigen::Affine3f& parentTrans)
 	if(mFadeOpacity)
 	{
 		Renderer::setMatrix(parentTrans);
-		Renderer::drawRect(0, 0, Renderer::getScreenWidth(), Renderer::getScreenHeight(), 0x00000000 | (unsigned char)(mFadeOpacity * 255));
+		Renderer::drawRect(0, 0, Renderer::getScreenWidth(), Renderer::getScreenHeight(),
+			0x00000000 | (unsigned char)(mFadeOpacity * 255));
 	}
 }
 
@@ -372,11 +382,14 @@ void ViewController::reloadAll()
 	if(mState.viewing == GAME_LIST)
 	{
 		mCurrentView = getGameListView(mState.getSystem());
-	}else if(mState.viewing == SYSTEM_SELECT)
+	}
+	else if(mState.viewing == SYSTEM_SELECT)
 	{
 		mSystemListView->goToSystem(mState.getSystem(), false);
 		mCurrentView = mSystemListView;
-	}else{
+	}
+	else
+	{
 		goToSystemView(SystemData::sSystemVector.front());
 	}
 
@@ -388,9 +401,9 @@ std::vector<HelpPrompt> ViewController::getHelpPrompts()
 	std::vector<HelpPrompt> prompts;
 	if(!mCurrentView)
 		return prompts;
-	
+
 	prompts = mCurrentView->getHelpPrompts();
-	prompts.push_back(HelpPrompt("start", "menu"));
+	prompts.emplace_back("start", "menu");
 
 	return prompts;
 }

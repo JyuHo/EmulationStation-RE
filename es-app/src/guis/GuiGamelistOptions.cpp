@@ -3,9 +3,8 @@
 #include "views/gamelist/IGameListView.h"
 #include "views/ViewController.h"
 
-GuiGamelistOptions::GuiGamelistOptions(Window* window, SystemData* system) : GuiComponent(window), 
-	mSystem(system), 
-	mMenu(window, "OPTIONS")
+GuiGamelistOptions::GuiGamelistOptions(Window* window, SystemData* system) :
+	GuiComponent(window), mMenu(window, "OPTIONS"), mSystem(system)
 {
 	addChild(&mMenu);
 
@@ -19,7 +18,8 @@ GuiGamelistOptions::GuiGamelistOptions(Window* window, SystemData* system) : Gui
 		mJumpToLetterList->add(std::string(1, c), c, c == curChar);
 
 	ComponentListRow row;
-	row.addElement(std::make_shared<TextComponent>(mWindow, "JUMP TO LETTER", Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
+	row.addElement(
+		std::make_shared<TextComponent>(mWindow, "JUMP TO LETTER", Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
 	row.addElement(mJumpToLetterList, false);
 	row.input_handler = [&](InputConfig* config, Input input) {
 		if(config->isMappedTo("a", input) && input.value)
@@ -47,7 +47,9 @@ GuiGamelistOptions::GuiGamelistOptions(Window* window, SystemData* system) : Gui
 
 	// edit game metadata
 	row.elements.clear();
-	row.addElement(std::make_shared<TextComponent>(mWindow, "EDIT THIS GAME'S METADATA", Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
+	row.addElement(
+		std::make_shared<TextComponent>(mWindow, "EDIT THIS GAME'S METADATA", Font::get(FONT_SIZE_MEDIUM), 0x777777FF),
+		true);
 	row.addElement(makeArrow(mWindow), false);
 	row.makeAcceptInputHandler(std::bind(&GuiGamelistOptions::openMetaDataEd, this));
 	mMenu.addRow(row);
@@ -74,13 +76,15 @@ void GuiGamelistOptions::openMetaDataEd()
 	ScraperSearchParams p;
 	p.game = file;
 	p.system = file->getSystem();
-	mWindow->pushGui(new GuiMetaDataEd(mWindow, &file->metadata, file->metadata.getMDD(), p, file->getPath().filename().string(), 
-		std::bind(&IGameListView::onFileChanged, getGamelist(), file, FILE_METADATA_CHANGED), [this, file] { 
-			boost::filesystem::remove(file->getPath()); //actually delete the file on the filesystem
-			file->getParent()->removeChild(file); //unlink it so list repopulations triggered from onFileChanged won't see it
-			getGamelist()->onFileChanged(file, FILE_REMOVED); //tell the view
-			delete file; //free it
-	}));
+	mWindow->pushGui(
+		new GuiMetaDataEd(mWindow, &file->metadata, file->metadata.getMDD(), p, file->getPath().filename().string(),
+			std::bind(&IGameListView::onFileChanged, getGamelist(), file, FILE_METADATA_CHANGED), [this, file] {
+				boost::filesystem::remove(file->getPath()); //actually delete the file on the filesystem
+				file->getParent()->removeChild(
+					file); //unlink it so list repopulations triggered from onFileChanged won't see it
+				getGamelist()->onFileChanged(file, FILE_REMOVED); //tell the view
+				delete file;									  //free it
+			}));
 }
 
 void GuiGamelistOptions::jumpToLetter()
@@ -90,7 +94,7 @@ void GuiGamelistOptions::jumpToLetter()
 
 	// this is a really shitty way to get a list of files
 	const std::vector<FileData*>& files = gamelist->getCursor()->getParent()->getChildren();
-	
+
 	long min = 0;
 	long max = files.size() - 1;
 	long mid = 0;
@@ -132,7 +136,7 @@ bool GuiGamelistOptions::input(InputConfig* config, Input input)
 std::vector<HelpPrompt> GuiGamelistOptions::getHelpPrompts()
 {
 	auto prompts = mMenu.getHelpPrompts();
-	prompts.push_back(HelpPrompt("b", "close"));
+	prompts.emplace_back("b", "close");
 	return prompts;
 }
 

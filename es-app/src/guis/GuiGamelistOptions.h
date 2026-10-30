@@ -9,23 +9,23 @@ class GuiGamelistOptions : public GuiComponent
 {
 public:
 	GuiGamelistOptions(Window* window, SystemData* system);
-	virtual ~GuiGamelistOptions();
+	~GuiGamelistOptions() override;
 
-	virtual bool input(InputConfig* config, Input input) override;
-	virtual std::vector<HelpPrompt> getHelpPrompts() override;
+	bool input(InputConfig* config, Input input) override;
+	std::vector<HelpPrompt> getHelpPrompts() override;
 
 private:
 	void openMetaDataEd();
 	void jumpToLetter();
-	
+
 	MenuComponent mMenu;
 
-	typedef OptionListComponent<char> LetterList;
+	using LetterList = OptionListComponent<char>;
 	std::shared_ptr<LetterList> mJumpToLetterList;
 
-	typedef OptionListComponent<const FileData::SortType*> SortList;
+	using SortList = OptionListComponent<const FileData::SortType*>;
 	std::shared_ptr<SortList> mListSort;
-	
+
 	SystemData* mSystem;
 	IGameListView* getGamelist();
 };

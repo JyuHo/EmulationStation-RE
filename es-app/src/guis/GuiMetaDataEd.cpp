@@ -16,25 +16,30 @@
 
 using namespace Eigen;
 
-GuiMetaDataEd::GuiMetaDataEd(Window* window, MetaDataList* md, const std::vector<MetaDataDecl>& mdd, ScraperSearchParams scraperParams, 
-	const std::string& header, std::function<void()> saveCallback, std::function<void()> deleteFunc) : GuiComponent(window), 
-	mScraperParams(scraperParams), 
+GuiMetaDataEd::GuiMetaDataEd(Window* window, MetaDataList* md, const std::vector<MetaDataDecl>& mdd,
+	ScraperSearchParams scraperParams, const std::string& header, std::function<void()> saveCallback,
+	std::function<void()> deleteFunc) :
+	GuiComponent(window),
+	mBackground(window, ":/frame.png"),
 
-	mBackground(window, ":/frame.png"), 
 	mGrid(window, Vector2i(1, 3)),
+	mScraperParams(scraperParams),
 
-	mMetaDataDecl(mdd), 
-	mMetaData(md), 
-	mSavedCallback(saveCallback), mDeleteFunc(deleteFunc)
+	mMetaDataDecl(mdd),
+	mMetaData(md),
+	mSavedCallback(saveCallback),
+	mDeleteFunc(deleteFunc)
 {
 	addChild(&mBackground);
 	addChild(&mGrid);
 
 	mHeaderGrid = std::make_shared<ComponentGrid>(mWindow, Vector2i(1, 5));
-	
-	mTitle = std::make_shared<TextComponent>(mWindow, "EDIT METADATA", Font::get(FONT_SIZE_LARGE), 0x555555FF, ALIGN_CENTER);
-	mSubtitle = std::make_shared<TextComponent>(mWindow, strToUpper(scraperParams.game->getPath().filename().generic_string()), 
-		Font::get(FONT_SIZE_SMALL), 0x777777FF, ALIGN_CENTER);
+
+	mTitle =
+		std::make_shared<TextComponent>(mWindow, "EDIT METADATA", Font::get(FONT_SIZE_LARGE), 0x555555FF, ALIGN_CENTER);
+	mSubtitle =
+		std::make_shared<TextComponent>(mWindow, strToUpper(scraperParams.game->getPath().filename().generic_string()),
+			Font::get(FONT_SIZE_SMALL), 0x777777FF, ALIGN_CENTER);
 	mHeaderGrid->setEntry(mTitle, Vector2i(0, 1), false, true);
 	mHeaderGrid->setEntry(mSubtitle, Vector2i(0, 3), false, true);
 
@@ -55,71 +60,71 @@ GuiMetaDataEd::GuiMetaDataEd(Window* window, MetaDataList* md, const std::vector
 		// create ed and add it (and any related components) to mMenu
 		// ed's value will be set below
 		ComponentListRow row;
-		auto lbl = std::make_shared<TextComponent>(mWindow, strToUpper(iter->displayName), Font::get(FONT_SIZE_SMALL), 0x777777FF);
+		auto lbl = std::make_shared<TextComponent>(
+			mWindow, strToUpper(iter->displayName), Font::get(FONT_SIZE_SMALL), 0x777777FF);
 		row.addElement(lbl, true); // label
 
 		switch(iter->type)
 		{
-		case MD_RATING:
-			{
-				ed = std::make_shared<RatingComponent>(window);
-				const float height = lbl->getSize().y() * 0.71f;
-				ed->setSize(0, height);
-				row.addElement(ed, false, true);
+		case MD_RATING: {
+			ed = std::make_shared<RatingComponent>(window);
+			const float height = lbl->getSize().y() * 0.71f;
+			ed->setSize(0, height);
+			row.addElement(ed, false, true);
 
-				auto spacer = std::make_shared<GuiComponent>(mWindow);
-				spacer->setSize(Renderer::getScreenWidth() * 0.0025f, 0);
-				row.addElement(spacer, false);
+			auto spacer = std::make_shared<GuiComponent>(mWindow);
+			spacer->setSize(Renderer::getScreenWidth() * 0.0025f, 0);
+			row.addElement(spacer, false);
 
-				// pass input to the actual RatingComponent instead of the spacer
-				row.input_handler = std::bind(&GuiComponent::input, ed.get(), std::placeholders::_1, std::placeholders::_2);
+			// pass input to the actual RatingComponent instead of the spacer
+			row.input_handler = std::bind(&GuiComponent::input, ed.get(), std::placeholders::_1, std::placeholders::_2);
 
-				break;
-			}
-		case MD_DATE:
-			{
-				ed = std::make_shared<DateTimeComponent>(window);
-				row.addElement(ed, false);
+			break;
+		}
+		case MD_DATE: {
+			ed = std::make_shared<DateTimeComponent>(window);
+			row.addElement(ed, false);
 
-				auto spacer = std::make_shared<GuiComponent>(mWindow);
-				spacer->setSize(Renderer::getScreenWidth() * 0.0025f, 0);
-				row.addElement(spacer, false);
+			auto spacer = std::make_shared<GuiComponent>(mWindow);
+			spacer->setSize(Renderer::getScreenWidth() * 0.0025f, 0);
+			row.addElement(spacer, false);
 
-				// pass input to the actual DateTimeComponent instead of the spacer
-				row.input_handler = std::bind(&GuiComponent::input, ed.get(), std::placeholders::_1, std::placeholders::_2);
+			// pass input to the actual DateTimeComponent instead of the spacer
+			row.input_handler = std::bind(&GuiComponent::input, ed.get(), std::placeholders::_1, std::placeholders::_2);
 
-				break;
-			}
-		case MD_TIME:
-			{
-				ed = std::make_shared<DateTimeComponent>(window, DateTimeComponent::DISP_RELATIVE_TO_NOW);
-				row.addElement(ed, false);
-				break;
-			}
+			break;
+		}
+		case MD_TIME: {
+			ed = std::make_shared<DateTimeComponent>(window, DateTimeComponent::DISP_RELATIVE_TO_NOW);
+			row.addElement(ed, false);
+			break;
+		}
 		case MD_MULTILINE_STRING:
-		default:
-			{
-				// MD_STRING
-				ed = std::make_shared<TextComponent>(window, "", Font::get(FONT_SIZE_SMALL, FONT_PATH_LIGHT), 0x777777FF, ALIGN_RIGHT);
-				row.addElement(ed, true);
-				
-				auto spacer = std::make_shared<GuiComponent>(mWindow);
-				spacer->setSize(Renderer::getScreenWidth() * 0.005f, 0);
-				row.addElement(spacer, false);
+		default: {
+			// MD_STRING
+			ed = std::make_shared<TextComponent>(
+				window, "", Font::get(FONT_SIZE_SMALL, FONT_PATH_LIGHT), 0x777777FF, ALIGN_RIGHT);
+			row.addElement(ed, true);
 
-				auto bracket = std::make_shared<ImageComponent>(mWindow);
-				bracket->setImage(":/arrow.svg");
-				bracket->setResize(Eigen::Vector2f(0, lbl->getFont()->getLetterHeight()));
-				row.addElement(bracket, false);
+			auto spacer = std::make_shared<GuiComponent>(mWindow);
+			spacer->setSize(Renderer::getScreenWidth() * 0.005f, 0);
+			row.addElement(spacer, false);
 
-				bool multiLine = iter->type == MD_MULTILINE_STRING;
-				const std::string title = iter->displayPrompt;
-				auto updateVal = [ed](const std::string& newVal) { ed->setValue(newVal); }; // ok callback (apply new value to ed)
-				row.makeAcceptInputHandler([this, title, ed, updateVal, multiLine] {
-					mWindow->pushGui(new GuiTextEditPopup(mWindow, title, ed->getValue(), updateVal, multiLine));
-				});
-				break;
-			}
+			auto bracket = std::make_shared<ImageComponent>(mWindow);
+			bracket->setImage(":/arrow.svg");
+			bracket->setResize(Eigen::Vector2f(0, lbl->getFont()->getLetterHeight()));
+			row.addElement(bracket, false);
+
+			bool multiLine = iter->type == MD_MULTILINE_STRING;
+			const std::string title = iter->displayPrompt;
+			auto updateVal = [ed](const std::string& newVal) {
+				ed->setValue(newVal);
+			}; // ok callback (apply new value to ed)
+			row.makeAcceptInputHandler([this, title, ed, updateVal, multiLine] {
+				mWindow->pushGui(new GuiTextEditPopup(mWindow, title, ed->getValue(), updateVal, multiLine));
+			});
+			break;
+		}
 		}
 
 		assert(ed);
@@ -128,18 +133,28 @@ GuiMetaDataEd::GuiMetaDataEd(Window* window, MetaDataList* md, const std::vector
 		mEditors.push_back(ed);
 	}
 
-	std::vector< std::shared_ptr<ButtonComponent> > buttons;
+	std::vector<std::shared_ptr<ButtonComponent>> buttons;
 
 	if(!scraperParams.system->hasPlatformId(PlatformIds::PLATFORM_IGNORE))
-		buttons.push_back(std::make_shared<ButtonComponent>(mWindow, "SCRAPE", "scrape", std::bind(&GuiMetaDataEd::fetch, this)));
+		buttons.push_back(
+			std::make_shared<ButtonComponent>(mWindow, "SCRAPE", "scrape", std::bind(&GuiMetaDataEd::fetch, this)));
 
-	buttons.push_back(std::make_shared<ButtonComponent>(mWindow, "SAVE", "save", [&] { save(); delete this; }));
+	buttons.push_back(std::make_shared<ButtonComponent>(mWindow, "SAVE", "save", [&] {
+		save();
+		delete this;
+	}));
 	buttons.push_back(std::make_shared<ButtonComponent>(mWindow, "CANCEL", "cancel", [&] { delete this; }));
 
 	if(mDeleteFunc)
 	{
-		auto deleteFileAndSelf = [&] { mDeleteFunc(); delete this; };
-		auto deleteBtnFunc = [this, deleteFileAndSelf] { mWindow->pushGui(new GuiMsgBox(mWindow, "THIS WILL DELETE A FILE!\nARE YOU SURE?", "YES", deleteFileAndSelf, "NO", nullptr)); };
+		auto deleteFileAndSelf = [&] {
+			mDeleteFunc();
+			delete this;
+		};
+		auto deleteBtnFunc = [this, deleteFileAndSelf] {
+			mWindow->pushGui(new GuiMsgBox(
+				mWindow, "THIS WILL DELETE A FILE!\nARE YOU SURE?", "YES", deleteFileAndSelf, "NO", nullptr));
+		};
 		buttons.push_back(std::make_shared<ButtonComponent>(mWindow, "DELETE", "delete", deleteBtnFunc));
 	}
 
@@ -185,7 +200,8 @@ void GuiMetaDataEd::save()
 
 void GuiMetaDataEd::fetch()
 {
-	GuiGameScraper* scr = new GuiGameScraper(mWindow, mScraperParams, std::bind(&GuiMetaDataEd::fetchDone, this, std::placeholders::_1));
+	GuiGameScraper* scr =
+		new GuiGameScraper(mWindow, mScraperParams, std::bind(&GuiMetaDataEd::fetchDone, this, std::placeholders::_1));
 	mWindow->pushGui(scr);
 }
 
@@ -218,25 +234,32 @@ void GuiMetaDataEd::close(bool closeAllWindows)
 	std::function<void()> closeFunc;
 	if(!closeAllWindows)
 	{
-		closeFunc = [this] { delete this; };
-	}else{
+		closeFunc = [this] {
+			delete this;
+		};
+	}
+	else
+	{
 		Window* window = mWindow;
-		closeFunc = [window, this] {
+		closeFunc = [window] {
 			while(window->peekGui() != ViewController::get())
 				delete window->peekGui();
 		};
 	}
 
-
 	if(dirty)
 	{
 		// changes were made, ask if the user wants to save them
-		mWindow->pushGui(new GuiMsgBox(mWindow, 
-			"SAVE CHANGES?",
-			"YES", [this, closeFunc] { save(); closeFunc(); },
-			"NO", closeFunc
-		));
-	}else{
+		mWindow->pushGui(new GuiMsgBox(
+			mWindow, "SAVE CHANGES?", "YES",
+			[this, closeFunc] {
+				save();
+				closeFunc();
+			},
+			"NO", closeFunc));
+	}
+	else
+	{
 		closeFunc();
 	}
 }
@@ -259,7 +282,7 @@ bool GuiMetaDataEd::input(InputConfig* config, Input input)
 std::vector<HelpPrompt> GuiMetaDataEd::getHelpPrompts()
 {
 	std::vector<HelpPrompt> prompts = mGrid.getHelpPrompts();
-	prompts.push_back(HelpPrompt("b", "back"));
-	prompts.push_back(HelpPrompt("start", "close"));
+	prompts.emplace_back("b", "back");
+	prompts.emplace_back("start", "close");
 	return prompts;
 }

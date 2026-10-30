@@ -25,7 +25,6 @@ std::string strToUpper(const std::string& str)
 	return strToUpper(str.c_str());
 }
 
-
 #if defined(_WIN32) && _MSC_VER < 1800
 float round(float num)
 {
@@ -182,7 +181,8 @@ fs::path makeRelativePath(const fs::path& path, const fs::path& relativeTo, bool
 boost::posix_time::ptime string_to_ptime(const std::string& str, const std::string& fmt)
 {
 	std::istringstream ss(str);
-	ss.imbue(std::locale(std::locale::classic(), new boost::posix_time::time_input_facet(fmt))); //std::locale handles deleting the facet
+	ss.imbue(std::locale(
+		std::locale::classic(), new boost::posix_time::time_input_facet(fmt))); //std::locale handles deleting the facet
 	boost::posix_time::ptime time;
 	ss >> time;
 

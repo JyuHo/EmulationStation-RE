@@ -1,0 +1,4 @@
+# Generated or data-only sources
+es-app/src/MameNameMap.cpp
+data/converted/*
+external/*

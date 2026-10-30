@@ -3,8 +3,7 @@
 #include "Window.h"
 #include "views/ViewController.h"
 
-GridGameListView::GridGameListView(Window* window, FileData* root) : ISimpleGameListView(window, root),
-	mGrid(window)
+GridGameListView::GridGameListView(Window* window, FileData* root) : ISimpleGameListView(window, root), mGrid(window)
 {
 	mGrid.setPosition(0, mSize.y() * 0.2f);
 	mGrid.setSize(mSize.x(), mSize.y() * 0.8f);
@@ -52,8 +51,8 @@ void GridGameListView::launch(FileData* game)
 std::vector<HelpPrompt> GridGameListView::getHelpPrompts()
 {
 	std::vector<HelpPrompt> prompts;
-	prompts.push_back(HelpPrompt("up/down/left/right", "scroll"));
-	prompts.push_back(HelpPrompt("a", "launch"));
-	prompts.push_back(HelpPrompt("b", "back"));
+	prompts.emplace_back("up/down/left/right", "scroll");
+	prompts.emplace_back("a", "launch");
+	prompts.emplace_back("b", "back");
 	return prompts;
 }

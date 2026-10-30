@@ -3,13 +3,18 @@
 #include "Log.h"
 
 #define AUTO_SCROLL_RESET_DELAY 10000 // ms to reset to top after we reach the bottom
-#define AUTO_SCROLL_DELAY 8000 // ms to wait before we start to scroll
-#define AUTO_SCROLL_SPEED 50 // ms between scrolls
+#define AUTO_SCROLL_DELAY 8000		  // ms to wait before we start to scroll
+#define AUTO_SCROLL_SPEED 50		  // ms between scrolls
 
-ScrollableContainer::ScrollableContainer(Window* window) : GuiComponent(window), 
-	mAutoScrollDelay(0), mAutoScrollSpeed(0), mAutoScrollAccumulator(0), mScrollPos(0, 0), mScrollDir(0, 0), mAutoScrollResetAccumulator(0)
-{
-}
+ScrollableContainer::ScrollableContainer(Window* window) :
+	GuiComponent(window),
+	mScrollPos(0, 0),
+	mScrollDir(0, 0),
+	mAutoScrollDelay(0),
+	mAutoScrollSpeed(0),
+	mAutoScrollAccumulator(0),
+	mAutoScrollResetAccumulator(0)
+{}
 
 void ScrollableContainer::render(const Eigen::Affine3f& parentTrans)
 {
@@ -38,7 +43,9 @@ void ScrollableContainer::setAutoScroll(bool autoScroll)
 		mAutoScrollDelay = AUTO_SCROLL_DELAY;
 		mAutoScrollSpeed = AUTO_SCROLL_SPEED;
 		reset();
-	}else{
+	}
+	else
+	{
 		mScrollDir << 0, 0;
 		mAutoScrollDelay = 0;
 		mAutoScrollSpeed = 0;
@@ -62,8 +69,6 @@ void ScrollableContainer::update(int deltaTime)
 	{
 		mAutoScrollAccumulator += deltaTime;
 
-		//scale speed by our width! more text per line = slower scrolling
-		const float widthMod = (680.0f / getSize().x());
 		while(mAutoScrollAccumulator >= mAutoScrollSpeed)
 		{
 			mScrollPos += mScrollDir;
@@ -87,7 +92,8 @@ void ScrollableContainer::update(int deltaTime)
 	if(contentSize.y() < getSize().y())
 	{
 		mScrollPos[1] = 0;
-	}else if(mScrollPos.y() + getSize().y() > contentSize.y())
+	}
+	else if(mScrollPos.y() + getSize().y() > contentSize.y())
 	{
 		mScrollPos[1] = contentSize.y() - getSize().y();
 		mAtEnd = true;

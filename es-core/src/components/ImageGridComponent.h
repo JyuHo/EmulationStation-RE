@@ -10,8 +10,7 @@ struct ImageGridData
 	std::shared_ptr<TextureResource> texture;
 };
 
-template<typename T>
-class ImageGridComponent : public IList<ImageGridData, T>
+template <typename T> class ImageGridComponent : public IList<ImageGridData, T>
 {
 protected:
 	using IList<ImageGridData, T>::mEntries;
@@ -32,7 +31,7 @@ public:
 	ImageGridComponent(Window* window);
 
 	void add(const std::string& name, const std::string& imagePath, const T& obj);
-	
+
 	void onSizeChanged() override;
 
 	bool input(InputConfig* config, Input input) override;
@@ -77,41 +76,41 @@ private:
 	Eigen::Vector2i getGridSize() const
 	{
 		Eigen::Vector2f squareSize = getMaxSquareSize();
-		Eigen::Vector2i gridSize(mSize.x() / (squareSize.x() + getPadding().x()), mSize.y() / (squareSize.y() + getPadding().y()));
+		Eigen::Vector2i gridSize(
+			mSize.x() / (squareSize.x() + getPadding().x()), mSize.y() / (squareSize.y() + getPadding().y()));
 		return gridSize;
 	};
 
 	Eigen::Vector2f getPadding() const { return Eigen::Vector2f(24, 24); }
-	
+
 	void buildImages();
 	void updateImages();
 
-	virtual void onCursorChanged(const CursorState& state);
+	void onCursorChanged(const CursorState& state) override;
 
 	bool mEntriesDirty;
 
 	std::vector<ImageComponent> mImages;
 };
 
-template<typename T>
-ImageGridComponent<T>::ImageGridComponent(Window* window) : IList<ImageGridData, T>(window)
+template <typename T> ImageGridComponent<T>::ImageGridComponent(Window* window) : IList<ImageGridData, T>(window)
 {
 	mEntriesDirty = true;
 }
 
-template<typename T>
+template <typename T>
 void ImageGridComponent<T>::add(const std::string& name, const std::string& imagePath, const T& obj)
 {
 	typename IList<ImageGridData, T>::Entry entry;
 	entry.name = name;
 	entry.object = obj;
-	entry.data.texture = ResourceManager::getInstance()->fileExists(imagePath) ? TextureResource::get(imagePath) : TextureResource::get(":/button.png");
-	static_cast<IList< ImageGridData, T >*>(this)->add(entry);
+	entry.data.texture = ResourceManager::getInstance()->fileExists(imagePath) ? TextureResource::get(imagePath)
+																			   : TextureResource::get(":/button.png");
+	static_cast<IList<ImageGridData, T>*>(this)->add(entry);
 	mEntriesDirty = true;
 }
 
-template<typename T>
-bool ImageGridComponent<T>::input(InputConfig* config, Input input)
+template <typename T> bool ImageGridComponent<T>::input(InputConfig* config, Input input)
 {
 	if(input.value != 0)
 	{
@@ -130,8 +129,11 @@ bool ImageGridComponent<T>::input(InputConfig* config, Input input)
 			listInput(dir.x() + dir.y() * getGridSize().x());
 			return true;
 		}
-	}else{
-		if(config->isMappedTo("up", input) || config->isMappedTo("down", input) || config->isMappedTo("left", input) || config->isMappedTo("right", input))
+	}
+	else
+	{
+		if(config->isMappedTo("up", input) || config->isMappedTo("down", input) || config->isMappedTo("left", input) ||
+			config->isMappedTo("right", input))
 		{
 			stopScrolling();
 		}
@@ -140,14 +142,12 @@ bool ImageGridComponent<T>::input(InputConfig* config, Input input)
 	return GuiComponent::input(config, input);
 }
 
-template<typename T>
-void ImageGridComponent<T>::update(int deltaTime)
+template <typename T> void ImageGridComponent<T>::update(int deltaTime)
 {
 	listUpdate(deltaTime);
 }
 
-template<typename T>
-void ImageGridComponent<T>::render(const Eigen::Affine3f& parentTrans)
+template <typename T> void ImageGridComponent<T>::render(const Eigen::Affine3f& parentTrans)
 {
 	Eigen::Affine3f trans = getTransform() * parentTrans;
 
@@ -166,22 +166,19 @@ void ImageGridComponent<T>::render(const Eigen::Affine3f& parentTrans)
 	GuiComponent::renderChildren(trans);
 }
 
-template<typename T>
-void ImageGridComponent<T>::onCursorChanged(const CursorState& state)
+template <typename T> void ImageGridComponent<T>::onCursorChanged(const CursorState& state)
 {
 	updateImages();
 }
 
-template<typename T>
-void ImageGridComponent<T>::onSizeChanged()
+template <typename T> void ImageGridComponent<T>::onSizeChanged()
 {
 	buildImages();
 	updateImages();
 }
 
 // create and position imagecomponents (mImages)
-template<typename T>
-void ImageGridComponent<T>::buildImages()
+template <typename T> void ImageGridComponent<T>::buildImages()
 {
 	mImages.clear();
 
@@ -190,7 +187,8 @@ void ImageGridComponent<T>::buildImages()
 	Eigen::Vector2f padding = getPadding();
 
 	// attempt to center within our size
-	Eigen::Vector2f totalSize(gridSize.x() * (squareSize.x() + padding.x()), gridSize.y() * (squareSize.y() + padding.y()));
+	Eigen::Vector2f totalSize(
+		gridSize.x() * (squareSize.x() + padding.x()), gridSize.y() * (squareSize.y() + padding.y()));
 	Eigen::Vector2f offset(mSize.x() - totalSize.x(), mSize.y() - totalSize.y());
 	offset /= 2;
 
@@ -201,7 +199,8 @@ void ImageGridComponent<T>::buildImages()
 			mImages.push_back(ImageComponent(mWindow));
 			ImageComponent& image = mImages.at(y * gridSize.x() + x);
 
-			image.setPosition((squareSize.x() + padding.x()) * (x + 0.5f) + offset.x(), (squareSize.y() + padding.y()) * (y + 0.5f) + offset.y());
+			image.setPosition((squareSize.x() + padding.x()) * (x + 0.5f) + offset.x(),
+				(squareSize.y() + padding.y()) * (y + 0.5f) + offset.y());
 			image.setOrigin(0.5f, 0.5f);
 			image.setResize(squareSize.x(), squareSize.y());
 			image.setImage("");
@@ -209,8 +208,7 @@ void ImageGridComponent<T>::buildImages()
 	}
 }
 
-template<typename T>
-void ImageGridComponent<T>::updateImages()
+template <typename T> void ImageGridComponent<T>::updateImages()
 {
 	if(mImages.empty())
 		buildImages();
@@ -223,7 +221,7 @@ void ImageGridComponent<T>::updateImages()
 
 	//if we're at the end put the row as close as we can and no higher
 	if(start + (gridSize.x() * gridSize.y()) >= (int)mEntries.size())
-		start = gridSize.x() * ((int)mEntries.size()/gridSize.x() - gridSize.y() + 1);
+		start = gridSize.x() * ((int)mEntries.size() / gridSize.x() - gridSize.y() + 1);
 
 	if(start < 0)
 		start = 0;
@@ -243,7 +241,9 @@ void ImageGridComponent<T>::updateImages()
 		{
 			image.setColorShift(0xFFFFFFFF);
 			image.setResize(squareSize.x() + getPadding().x() * 0.95f, squareSize.y() + getPadding().y() * 0.95f);
-		}else{
+		}
+		else
+		{
 			image.setColorShift(0xAAAAAABB);
 			image.setResize(squareSize.x(), squareSize.y());
 		}

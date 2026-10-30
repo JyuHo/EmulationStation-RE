@@ -8,6 +8,88 @@
 
 ---
 
+## 0. Passation : état du dépôt et point de reprise
+
+> Section à lire en premier. Elle décrit l'état laissé par le développeur précédent à la
+> fin de la phase 2 et dit exactement où reprendre. **Mets-la à jour à la fin de chaque
+> phase** (c'est la mémoire du projet entre deux agents).
+
+### 0.1 État au moment de la passation
+| Phase | État | PR |
+|-------|------|----|
+| 1 — Build CMake/C++23, CI Arch, FreeImage → stb_image + libwebp | **fusionnée** | #1 |
+| 2 — Zéro avertissement, `-Werror`, clang-format/tidy, tests Catch2, test de fumée, Log | **terminée** (à fusionner si ce n'est pas fait) | #2 |
+| 3 à 12 | à faire | — |
+
+Ce qui existe et que tu dois **réutiliser** (ne le recrée pas) :
+- `CMakePresets.json` : configure/build/test presets `debug` (tests + `-Werror`), `release`,
+  `relwithdebinfo`, `asan`, `clang-debug`.
+- `es-app-lib` : toutes les sources de `es-app` sauf `main.cpp` (cible à lier dans les tests).
+- `tests/unit/*.cpp` (Catch2 v3) et `tests/data/` (fixtures). Ajoute tes tests ici, un
+  fichier par module (`test_<Module>.cpp`), et déclare-les dans `tests/CMakeLists.txt`.
+- `tests/smoke/run.sh <binaire> [secondes] [capture.png]` : test de fumée Xvfb.
+- `Log::write(level, "format {}", args…)` (std::format) pour tout nouveau message ;
+  `LOG(level) << …` reste valable dans le code existant.
+- `ImageIO` (stb_image + libwebp) : `loadFromMemoryRGBA32` (lignes de bas en haut) et
+  `resizeImageFile`.
+- CI `.github/workflows/build.yml` : Arch (`archlinux:base-devel`), GCC et Clang, build
+  `RelWithDebInfo` avec `-Werror`, `ctest`, test de fumée, capture d'écran en artefact.
+
+### 0.2 Point de reprise : phase 3
+Fais les PR dans cet ordre (une PR par ligne, chacune verte avant la suivante) :
+1. **`modernize/phase-3a-xdg-paths`** — module `es::paths` (plan, section 3.A) et
+   remplacement de **tous** les chemins listés dans le plan (section 1.3, point 9),
+   migration par copie depuis `~/.emulationstation`, option `--home` / `ES_HOME`,
+   étape CI « no-hardcoded-paths », tests unitaires des chemins. Mets à jour
+   `tests/smoke/run.sh` pour utiliser `ES_HOME` au lieu de `HOME`, et `Log::getLogPath()`
+   pour `$XDG_STATE_HOME`. Le module utilise déjà `std::filesystem`.
+2. **`modernize/phase-3b-std-filesystem`** — Boost.Filesystem → `std::filesystem`.
+3. **`modernize/phase-3c-std-chrono`** — Boost.DateTime → `std::chrono`, Boost.Assign,
+   Boost.Variant, Boost.Locale ; suppression de `find_package(Boost)`.
+4. **`modernize/phase-3d-ownership`** — reliquat de la phase 2 : `new`/`delete` nus →
+   `std::unique_ptr` (plan, phase 2, « Reporté »).
+
+Les tests existants sont des **tests de caractérisation** : ils fixent le comportement
+actuel. Pendant la phase 3, tu ne changes que les types Boost dans leurs assertions
+(ex. `boost::posix_time::to_iso_string(...)` → `std::format(...)`), jamais les valeurs
+attendues. Si une valeur attendue doit changer, c'est un changement de comportement :
+explique-le dans la PR.
+
+### 0.3 Pièges déjà rencontrés (ne les redécouvre pas)
+- **Paquets Arch** : `freeimage` n'existe plus ; Arch fournit **Eigen 5** (pas de contrainte
+  de version dans `find_package(Eigen3)`, et Eigen 5 n'inclut plus `<cassert>` : inclus
+  toujours ce que tu utilises) ; **Boost 1.89** n'a plus de bibliothèque `boost_system` ;
+  `sdl2-compat` remplace SDL2 (SDL2 au-dessus de SDL3).
+- **pugixml vendored ancien** (`external/pugixml`) : pas de `load_string`, utiliser
+  `load(const char*)`. Le remplacer par le paquet Arch `pugixml` est possible (phase au
+  choix) à condition de garder la compatibilité.
+- **stb** : `stb_image_resize2.h` n'est plus publié dans le dépôt stb ; un redimensionnement
+  par moyenne de zone est déjà écrit dans `ImageIO.cpp`.
+- **clang-format** : le CI n'impose pas le format (les versions de clang-format diffèrent
+  entre Arch et les postes). Formate seulement tes lignes modifiées avec
+  `git clang-format origin/main`. Ne reformate jamais un fichier entier dans un commit
+  qui contient aussi de la logique.
+- **clang-tidy `modernize-loop-convert`** : écarté, il nomme les variables de boucle comme
+  des membres (`mCell`). Ne l'applique pas en masse.
+- **Fusion des PR** : par **merge commit** (pas squash), sinon le hash de
+  `.git-blame-ignore-revs` devient invalide et l'historique des étapes est perdu.
+- **Logs** : format `YYYY-MM-DD HH:MM:SS.mmm [LEVEL] message`. Le test de fumée échoue
+  sur toute ligne `[ERROR]` : n'utilise `LogError` que pour de vraies erreurs.
+- **Lancement de ES sans écran** : sans `es_systems.cfg` valide, ES affiche une erreur et
+  quitte ; le test de fumée en fournit un. Au premier lancement, ES affiche l'écran de
+  configuration de manette (normal sous Xvfb).
+
+### 0.4 Collaboration avec le propriétaire
+- Le propriétaire (GitHub `JyuHo`) relit et **fusionne lui-même** les PR. Ne fusionne pas,
+  n'approuve pas, ne pousse pas sur `main`.
+- Une PR par sous-objectif, en français, avec les sections décrites en section 6, étape 8. Ouvre-la en
+  brouillon dès le premier commit pour que la CI tourne, passe-la « prête » quand la CI est
+  verte et que la description est complète.
+- En fin de phase : mets à jour la section 0 de ce fichier, coche la phase dans le plan,
+  et donne le compte rendu de la section 11.
+
+---
+
 ## 1. Mission
 
 Tu modernises **EmulationStation-RE**, fork de l'EmulationStation d'Aloshi (v2.0.1a, 2015),
@@ -134,11 +216,11 @@ sinon régénère avec l'outil et documente-le.
 ## 5. Conventions de code
 
 ### 5.1 Style
-- Jusqu'à l'ajout de `.clang-format` (phase 2) : imite le fichier que tu modifies
-  (tabulations, accolades sur une nouvelle ligne pour fonctions et classes, `mMember`
-  pour les membres, `sStatic` pour les statiques, `PascalCase` pour les types,
-  `camelCase` pour les fonctions).
-- Après la phase 2 : `clang-format` fait foi ; lance-le sur les fichiers modifiés uniquement.
+- `.clang-format` fait foi (tabulations, accolades sur une nouvelle ligne, largeur 120).
+  Formate uniquement les lignes que tu modifies : `git clang-format origin/main`.
+  Les fichiers listés dans `.clang-format-ignore` (générés ou vendored) ne se formatent pas.
+- Nommage : `mMember` pour les membres, `sStatic` pour les statiques, `PascalCase` pour les
+  types, `camelCase` pour les fonctions, `kConstant` ou `UPPER_CASE` selon le fichier.
 - Commentaires : aussi rares que dans le code environnant ; explique le *pourquoi*, pas le *quoi*.
 - En-têtes : `#pragma once`. Ordre des inclusions : en-tête associé, en-têtes du projet,
   bibliothèques tierces, bibliothèque standard (ou l'ordre déjà présent dans le fichier).
@@ -183,7 +265,7 @@ sinon régénère avec l'outil et documente-le.
    (pas seulement les lignes trouvées par `grep`).
 2. **Inventorier** : liste les fichiers et sites d'appel touchés
    (`grep -rn` exhaustif) et note-les dans la description de la PR.
-3. **Branche** : `modernize/phase-<n>-<sujet-court>` depuis `main` à jour.
+3. **Branche** : `modernize/phase-<n><lettre>-<sujet-court>` depuis `main` à jour (ex. `modernize/phase-3a-xdg-paths`).
 4. **Implémenter par petits commits** compilables. Après chaque fichier ou groupe cohérent :
    `cmake --build --preset debug`.
 5. **Vérifier** (section 8) avec GCC **et** Clang, et avec le preset `asan` dès que tu
@@ -221,28 +303,25 @@ conséquences visibles.
 ## 8. Commandes de vérification
 
 ```bash
-# Dépendances (phase 1 ; adapter selon l'annexe A du plan)
+# Dépendances (état après la phase 2 ; adapter selon l'annexe A du plan)
 sudo pacman -S --needed base-devel cmake ninja clang sdl2-compat boost freetype2 eigen \
-    curl alsa-lib libglvnd mesa libwebp xorg-server-xvfb
+    curl alsa-lib libglvnd mesa libwebp catch2 xorg-server-xvfb imagemagick
 
 # Build GCC et Clang
 cmake --preset debug        && cmake --build --preset debug
 cmake --preset clang-debug  && cmake --build --preset clang-debug
 cmake --preset asan         && cmake --build --preset asan
 
-# Tests (à partir de la phase 2)
-ctest --preset debug --output-on-failure
+# Tests unitaires
+ctest --preset debug
+ctest --preset asan
 
-# Test de fumée sans écran, dans un HOME jetable
-export ES_TEST_HOME="$(mktemp -d)"
-mkdir -p "$ES_TEST_HOME/roms/nes" && touch "$ES_TEST_HOME/roms/nes/test.nes"
-# es_systems.cfg minimal : <systemList><system><name>nes</name><fullname>NES</fullname>
-#   <path>…/roms/nes</path><extension>.nes</extension><command>true</command>
-#   <platform>nes</platform></system></systemList>
-HOME="$ES_TEST_HOME" xvfb-run -a -s '-screen 0 1280x720x24' \
-    timeout 8 ./build/debug/emulationstation --windowed --resolution 1280 720 --debug
-# Attendu : code 124 (tué par timeout, donc pas de crash) et aucune ligne lvl0 dans le log.
-# Capture d'écran pour comparaison visuelle : `import -window root shot.png` (ImageMagick).
+# Test de fumée sans écran (HOME jetable, un système NES ; affiche le log ; PASS/FAIL)
+tests/smoke/run.sh build/debug/emulationstation 6 /tmp/shot.png
+# Regarde la capture : c'est le seul contrôle visuel disponible sans écran.
+
+# Analyse statique (non bloquante)
+cmake --build --preset debug --target es-tidy
 
 # Chemins en dur (à partir de la phase 3)
 ! grep -rnE '"/(etc|usr|opt|home)/|\.emulationstation|getenv\("HOME"\)' \
@@ -258,10 +337,8 @@ cmake --build --preset debug --target es-update-pot
 
 Le plan contient les tâches détaillées ; voici les pièges propres à chaque phase.
 
-**Phase 2 — Hygiène.** Le reformatage `clang-format` est un commit isolé, sans aucun autre
-changement, ajouté à `.git-blame-ignore-revs`. Applique `clang-tidy --fix` par familles de
-règles (un commit par famille) et relis chaque diff : `modernize-use-override` peut
-masquer une signature qui ne surcharge rien (bug réel à corriger, pas à cacher).
+**Phase 2 — Hygiène.** Terminée (voir section 0). Si tu appliques encore `clang-tidy
+--fix`, fais-le par familles de règles (un commit par famille) et relis chaque diff.
 
 **Phase 3 — Boost et XDG.** Commence par `Paths` (3.A) car il utilise déjà
 `std::filesystem`. Les dates des `gamelist.xml` sont au format `YYYYMMDDTHHMMSS` sans

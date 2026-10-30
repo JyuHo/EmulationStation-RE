@@ -30,12 +30,12 @@ public:
 
 	enum Status
 	{
-		REQ_IN_PROGRESS,		//request is in progress
-		REQ_SUCCESS,			//request completed successfully, get it with getContent()
+		REQ_IN_PROGRESS, //request is in progress
+		REQ_SUCCESS,	 //request completed successfully, get it with getContent()
 
-		REQ_IO_ERROR,			//some boost::asio error happened, get it with getErrorMsg()
-		REQ_BAD_STATUS_CODE,	//some invalid HTTP response status code happened (non-200)
-		REQ_INVALID_RESPONSE	//the HTTP response was invalid
+		REQ_IO_ERROR,		 //some boost::asio error happened, get it with getErrorMsg()
+		REQ_BAD_STATUS_CODE, //some invalid HTTP response status code happened (non-200)
+		REQ_INVALID_RESPONSE //the HTTP response was invalid
 	};
 
 	Status status(); //process any received data and return the status afterwards
@@ -44,7 +44,7 @@ public:
 
 	std::string getContent() const; // mStatus must be REQ_SUCCESS
 
-	static std::string urlEncode(const std::string &s);
+	static std::string urlEncode(const std::string& s);
 	static bool isUrl(const std::string& s);
 
 private:

@@ -8,41 +8,41 @@ CURLM* HttpReq::s_multi_handle = curl_multi_init();
 
 std::map<CURL*, HttpReq*> HttpReq::s_requests;
 
-std::string HttpReq::urlEncode(const std::string &s)
+std::string HttpReq::urlEncode(const std::string& s)
 {
-    const std::string unreserved = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.~";
+	const std::string unreserved = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.~";
 
-    std::string escaped="";
-    for(size_t i=0; i<s.length(); i++)
-    {
-        if (unreserved.find_first_of(s[i]) != std::string::npos)
-        {
-            escaped.push_back(s[i]);
-        }
-        else
-        {
-            escaped.append("%");
-            char buf[3];
-            sprintf(buf, "%.2X", (unsigned char)s[i]);
-            escaped.append(buf);
-        }
-    }
-    return escaped;
+	std::string escaped = "";
+	for(size_t i = 0; i < s.length(); i++)
+	{
+		if(unreserved.find_first_of(s[i]) != std::string::npos)
+		{
+			escaped.push_back(s[i]);
+		}
+		else
+		{
+			escaped.append("%");
+			char buf[3];
+			sprintf(buf, "%.2X", (unsigned char)s[i]);
+			escaped.append(buf);
+		}
+	}
+	return escaped;
 }
 
 bool HttpReq::isUrl(const std::string& str)
 {
 	//the worst guess
-	return (!str.empty() && !boost::filesystem::exists(str) && 
-		(str.find("http://") != std::string::npos || str.find("https://") != std::string::npos || str.find("www.") != std::string::npos));
+	return (!str.empty() && !boost::filesystem::exists(str) &&
+		(str.find("http://") != std::string::npos || str.find("https://") != std::string::npos ||
+			str.find("www.") != std::string::npos));
 }
 
-HttpReq::HttpReq(const std::string& url)
-	: mStatus(REQ_IN_PROGRESS), mHandle(NULL)
+HttpReq::HttpReq(const std::string& url) : mHandle(nullptr), mStatus(REQ_IN_PROGRESS)
 {
 	mHandle = curl_easy_init();
 
-	if(mHandle == NULL)
+	if(mHandle == nullptr)
 	{
 		mStatus = REQ_IO_ERROR;
 		onError("curl_easy_init failed");
@@ -118,13 +118,13 @@ HttpReq::Status HttpReq::status()
 
 		int msgs_left;
 		CURLMsg* msg;
-		while(msg = curl_multi_info_read(s_multi_handle, &msgs_left))
+		while((msg = curl_multi_info_read(s_multi_handle, &msgs_left)))
 		{
 			if(msg->msg == CURLMSG_DONE)
 			{
 				HttpReq* req = s_requests[msg->easy_handle];
-				
-				if(req == NULL)
+
+				if(req == nullptr)
 				{
 					LOG(LogError) << "Cannot find easy handle!";
 					continue;
@@ -133,7 +133,9 @@ HttpReq::Status HttpReq::status()
 				if(msg->data.result == CURLE_OK)
 				{
 					req->mStatus = REQ_SUCCESS;
-				}else{
+				}
+				else
+				{
 					req->mStatus = REQ_IO_ERROR;
 					req->onError(curl_easy_strerror(msg->data.result));
 				}

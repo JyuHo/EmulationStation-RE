@@ -11,16 +11,11 @@ std::string inputTypeToString(InputType type)
 {
 	switch(type)
 	{
-	case TYPE_AXIS:
-		return "axis";
-	case TYPE_BUTTON:
-		return "button";
-	case TYPE_HAT:
-		return "hat";
-	case TYPE_KEY:
-		return "key";
-	default:
-		return "error";
+	case TYPE_AXIS: return "axis";
+	case TYPE_BUTTON: return "button";
+	case TYPE_HAT: return "hat";
+	case TYPE_KEY: return "key";
+	default: return "error";
 	}
 }
 
@@ -37,7 +32,6 @@ InputType stringToInputType(const std::string& type)
 	return TYPE_COUNT;
 }
 
-
 std::string toLower(std::string str)
 {
 	for(unsigned int i = 0; i < str.length(); i++)
@@ -49,9 +43,9 @@ std::string toLower(std::string str)
 }
 //end util functions
 
-InputConfig::InputConfig(int deviceId, const std::string& deviceName, const std::string& deviceGUID) : mDeviceId(deviceId), mDeviceName(deviceName), mDeviceGUID(deviceGUID)
-{
-}
+InputConfig::InputConfig(int deviceId, const std::string& deviceName, const std::string& deviceGUID) :
+	mDeviceId(deviceId), mDeviceName(deviceName), mDeviceGUID(deviceGUID)
+{}
 
 void InputConfig::clear()
 {
@@ -92,7 +86,7 @@ bool InputConfig::isMappedTo(const std::string& name, Input input)
 	Input comp;
 	if(!getInputByName(name, &comp))
 		return false;
-	
+
 	if(comp.configured && comp.type == input.type && comp.id == input.id)
 	{
 		if(comp.type == TYPE_HAT)
@@ -103,7 +97,9 @@ bool InputConfig::isMappedTo(const std::string& name, Input input)
 		if(comp.type == TYPE_AXIS)
 		{
 			return input.value == 0 || comp.value == input.value;
-		}else{
+		}
+		else
+		{
 			return true;
 		}
 	}
@@ -137,7 +133,9 @@ std::vector<std::string> InputConfig::getMappedTo(Input input)
 			{
 				if(input.value == 0 || chk.value == input.value)
 					maps.push_back(iterator->first);
-			}else{
+			}
+			else
+			{
 				maps.push_back(iterator->first);
 			}
 		}
@@ -158,7 +156,8 @@ void InputConfig::loadFromXML(pugi::xml_node node)
 
 		if(typeEnum == TYPE_COUNT)
 		{
-			LOG(LogError) << "InputConfig load error - input of type \"" << type << "\" is invalid! Skipping input \"" << name << "\".\n";
+			LOG(LogError) << "InputConfig load error - input of type \"" << type << "\" is invalid! Skipping input \""
+						  << name << "\".\n";
 			continue;
 		}
 
@@ -180,7 +179,9 @@ void InputConfig::writeToXML(pugi::xml_node parent)
 	{
 		cfg.append_attribute("type") = "keyboard";
 		cfg.append_attribute("deviceName") = "Keyboard";
-	}else{
+	}
+	else
+	{
 		cfg.append_attribute("type") = "joystick";
 		cfg.append_attribute("deviceName") = mDeviceName.c_str();
 	}

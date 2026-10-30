@@ -33,7 +33,10 @@ public:
 	inline SearchType getSearchType() const { return mSearchType; }
 
 	// Metadata assets will be resolved before calling the accept callback (e.g. result.mdl's "image" is automatically downloaded and properly set).
-	inline void setAcceptCallback(const std::function<void(const ScraperSearchResult&)>& acceptCallback) { mAcceptCallback = acceptCallback; }
+	inline void setAcceptCallback(const std::function<void(const ScraperSearchResult&)>& acceptCallback)
+	{
+		mAcceptCallback = acceptCallback;
+	}
 	inline void setSkipCallback(const std::function<void()>& skipCallback) { mSkipCallback = skipCallback; };
 	inline void setCancelCallback(const std::function<void()>& cancelCallback) { mCancelCallback = cancelCallback; }
 
@@ -41,7 +44,7 @@ public:
 	void update(int deltaTime) override;
 	void render(const Eigen::Affine3f& parentTrans) override;
 	std::vector<HelpPrompt> getHelpPrompts() override;
-	void onSizeChanged() override;	
+	void onSizeChanged() override;
 	void onFocusGained() override;
 	void onFocusLost() override;
 
@@ -83,9 +86,10 @@ private:
 		std::shared_ptr<GuiComponent> second;
 		bool resize;
 
-		MetaDataPair(const std::shared_ptr<TextComponent>& f, const std::shared_ptr<GuiComponent>& s, bool r = true) : first(f), second(s), resize(r) {};
+		MetaDataPair(const std::shared_ptr<TextComponent>& f, const std::shared_ptr<GuiComponent>& s, bool r = true) :
+			first(f), second(s), resize(r){};
 	};
-	
+
 	std::vector<MetaDataPair> mMD_Pairs;
 
 	SearchType mSearchType;

@@ -10,10 +10,11 @@
 #include "Util.h"
 
 #define SELECTED_SCALE 1.5f
-#define LOGO_PADDING ((logoSize().x() * (SELECTED_SCALE - 1)/2) + (mSize.x() * 0.06f))
+#define LOGO_PADDING ((logoSize().x() * (SELECTED_SCALE - 1) / 2) + (mSize.x() * 0.06f))
 #define BAND_HEIGHT (logoSize().y() * SELECTED_SCALE)
 
-SystemView::SystemView(Window* window) : IList<SystemViewData, SystemData*>(window, LIST_SCROLL_STYLE_SLOW, LIST_ALWAYS_LOOP),
+SystemView::SystemView(Window* window) :
+	IList<SystemViewData, SystemData*>(window, LIST_SCROLL_STYLE_SLOW, LIST_ALWAYS_LOOP),
 	mSystemInfo(window, "SYSTEM INFO", Font::get(FONT_SIZE_SMALL), 0x33333300, ALIGN_CENTER)
 {
 	mCamOffset = 0;
@@ -46,30 +47,28 @@ void SystemView::populate()
 			ImageComponent* logo = new ImageComponent(mWindow);
 			logo->setMaxSize(Eigen::Vector2f(logoSize().x(), logoSize().y()));
 			logo->applyTheme((*it)->getTheme(), "system", "logo", ThemeFlags::PATH);
-			logo->setPosition((logoSize().x() - logo->getSize().x()) / 2, (logoSize().y() - logo->getSize().y()) / 2); // center
+			logo->setPosition(
+				(logoSize().x() - logo->getSize().x()) / 2, (logoSize().y() - logo->getSize().y()) / 2); // center
 			e.data.logo = std::shared_ptr<GuiComponent>(logo);
 
 			ImageComponent* logoSelected = new ImageComponent(mWindow);
-			logoSelected->setMaxSize(Eigen::Vector2f(logoSize().x() * SELECTED_SCALE, logoSize().y() * SELECTED_SCALE * 0.70f));
+			logoSelected->setMaxSize(
+				Eigen::Vector2f(logoSize().x() * SELECTED_SCALE, logoSize().y() * SELECTED_SCALE * 0.70f));
 			logoSelected->applyTheme((*it)->getTheme(), "system", "logo", ThemeFlags::PATH);
-			logoSelected->setPosition((logoSize().x() - logoSelected->getSize().x()) / 2, 
+			logoSelected->setPosition((logoSize().x() - logoSelected->getSize().x()) / 2,
 				(logoSize().y() - logoSelected->getSize().y()) / 2); // center
 			e.data.logoSelected = std::shared_ptr<GuiComponent>(logoSelected);
-		}else{
+		}
+		else
+		{
 			// no logo in theme; use text
-			TextComponent* text = new TextComponent(mWindow, 
-				(*it)->getName(), 
-				Font::get(FONT_SIZE_LARGE), 
-				0x000000FF, 
-				ALIGN_CENTER);
+			TextComponent* text =
+				new TextComponent(mWindow, (*it)->getName(), Font::get(FONT_SIZE_LARGE), 0x000000FF, ALIGN_CENTER);
 			text->setSize(logoSize());
 			e.data.logo = std::shared_ptr<GuiComponent>(text);
 
-			TextComponent* textSelected = new TextComponent(mWindow, 
-				(*it)->getName(), 
-				Font::get((int)(FONT_SIZE_LARGE * SELECTED_SCALE)), 
-				0x000000FF, 
-				ALIGN_CENTER);
+			TextComponent* textSelected = new TextComponent(mWindow, (*it)->getName(),
+				Font::get((int)(FONT_SIZE_LARGE * SELECTED_SCALE)), 0x000000FF, ALIGN_CENTER);
 			textSelected->setSize(logoSize());
 			e.data.logoSelected = std::shared_ptr<GuiComponent>(textSelected);
 		}
@@ -94,7 +93,8 @@ bool SystemView::input(InputConfig* config, Input input)
 {
 	if(input.value != 0)
 	{
-		if(config->getDeviceId() == DEVICE_KEYBOARD && input.value && input.id == SDLK_r && SDL_GetModState() & KMOD_LCTRL && Settings::getInstance()->getBool("Debug"))
+		if(config->getDeviceId() == DEVICE_KEYBOARD && input.value && input.id == SDLK_r &&
+			SDL_GetModState() & KMOD_LCTRL && Settings::getInstance()->getBool("Debug"))
 		{
 			LOG(LogInfo) << " Reloading SystemList view";
 
@@ -122,7 +122,9 @@ bool SystemView::input(InputConfig* config, Input input)
 			ViewController::get()->goToGameList(getSelected());
 			return true;
 		}
-	}else{
+	}
+	else
+	{
 		if(config->isMappedTo("left", input) || config->isMappedTo("right", input))
 			listInput(0);
 	}
@@ -151,13 +153,12 @@ void SystemView::onCursorChanged(const CursorState& state)
 
 	float endPos = target; // directly
 	float dist = abs(endPos - startPos);
-	
+
 	if(abs(target + posMax - startPos) < dist)
 		endPos = target + posMax; // loop around the end (0 -> max)
 	if(abs(target - posMax - startPos) < dist)
 		endPos = target - posMax; // loop around the start (max - 1 -> -1)
 
-	
 	// animate mSystemInfo's opacity (fade out, wait, fade back in)
 
 	cancelAnimation(1);
@@ -166,32 +167,31 @@ void SystemView::onCursorChanged(const CursorState& state)
 	const float infoStartOpacity = mSystemInfo.getOpacity() / 255.f;
 
 	Animation* infoFadeOut = new LambdaAnimation(
-		[infoStartOpacity, this] (float t)
-	{
-		mSystemInfo.setOpacity((unsigned char)(lerp<float>(infoStartOpacity, 0.f, t) * 255));
-	}, (int)(infoStartOpacity * 150));
+		[infoStartOpacity, this](
+			float t) { mSystemInfo.setOpacity((unsigned char)(lerp<float>(infoStartOpacity, 0.f, t) * 255)); },
+		(int)(infoStartOpacity * 150));
 
 	unsigned int gameCount = getSelected()->getGameCount();
 
 	// also change the text after we've fully faded out
-	setAnimation(infoFadeOut, 0, [this, gameCount] {
-		std::stringstream ss;
-		
-		// only display a game count if there are at least 2 games
-		if(gameCount > 1)
-			ss << gameCount << " GAMES AVAILABLE";
+	setAnimation(
+		infoFadeOut, 0,
+		[this, gameCount] {
+			std::stringstream ss;
 
-		mSystemInfo.setText(ss.str()); 
-	}, false, 1);
+			// only display a game count if there are at least 2 games
+			if(gameCount > 1)
+				ss << gameCount << " GAMES AVAILABLE";
+
+			mSystemInfo.setText(ss.str());
+		},
+		false, 1);
 
 	// only display a game count if there are at least 2 games
 	if(gameCount > 1)
 	{
 		Animation* infoFadeIn = new LambdaAnimation(
-			[this](float t)
-		{
-			mSystemInfo.setOpacity((unsigned char)(lerp<float>(0.f, 1.f, t) * 255));
-		}, 300);
+			[this](float t) { mSystemInfo.setOpacity((unsigned char)(lerp<float>(0.f, 1.f, t) * 255)); }, 300);
 
 		// wait 600ms to fade in
 		setAnimation(infoFadeIn, 2000, nullptr, false, 2);
@@ -206,44 +206,44 @@ void SystemView::onCursorChanged(const CursorState& state)
 	{
 		float startExtrasFade = mExtrasFadeOpacity;
 		anim = new LambdaAnimation(
-			[startExtrasFade, startPos, endPos, posMax, this](float t)
-		{
-			t -= 1;
-			float f = lerp<float>(startPos, endPos, t*t*t + 1);
-			if(f < 0)
-				f += posMax;
-			if(f >= posMax)
-				f -= posMax;
+			[startExtrasFade, startPos, endPos, posMax, this](float t) {
+				t -= 1;
+				float f = lerp<float>(startPos, endPos, t * t * t + 1);
+				if(f < 0)
+					f += posMax;
+				if(f >= posMax)
+					f -= posMax;
 
-			this->mCamOffset = f;
+				this->mCamOffset = f;
 
-			t += 1;
-			if(t < 0.3f)
-				this->mExtrasFadeOpacity = lerp<float>(0.0f, 1.0f, t / 0.3f + startExtrasFade);
-			else if(t < 0.7f)
-				this->mExtrasFadeOpacity = 1.0f;
-			else
-				this->mExtrasFadeOpacity = lerp<float>(1.0f, 0.0f, (t - 0.7f) / 0.3f);
+				t += 1;
+				if(t < 0.3f)
+					this->mExtrasFadeOpacity = lerp<float>(0.0f, 1.0f, t / 0.3f + startExtrasFade);
+				else if(t < 0.7f)
+					this->mExtrasFadeOpacity = 1.0f;
+				else
+					this->mExtrasFadeOpacity = lerp<float>(1.0f, 0.0f, (t - 0.7f) / 0.3f);
 
-			if(t > 0.5f)
-				this->mExtrasCamOffset = endPos;
-
-		}, 500);
+				if(t > 0.5f)
+					this->mExtrasCamOffset = endPos;
+			},
+			500);
 	}
-	else{ // slide
+	else
+	{ // slide
 		anim = new LambdaAnimation(
-			[startPos, endPos, posMax, this](float t)
-		{
-			t -= 1;
-			float f = lerp<float>(startPos, endPos, t*t*t + 1);
-			if(f < 0)
-				f += posMax;
-			if(f >= posMax)
-				f -= posMax;
+			[startPos, endPos, posMax, this](float t) {
+				t -= 1;
+				float f = lerp<float>(startPos, endPos, t * t * t + 1);
+				if(f < 0)
+					f += posMax;
+				if(f >= posMax)
+					f -= posMax;
 
-			this->mCamOffset = f;
-			this->mExtrasCamOffset = f;
-		}, 500);
+				this->mCamOffset = f;
+				this->mExtrasCamOffset = f;
+			},
+			500);
 	}
 
 	setAnimation(anim, 0, nullptr, false, 0);
@@ -255,7 +255,7 @@ void SystemView::render(const Eigen::Affine3f& parentTrans)
 		return;
 
 	Eigen::Affine3f trans = getTransform() * parentTrans;
-	
+
 	// draw the list elements (titles, backgrounds, logos)
 	const float logoSizeX = logoSize().x() + LOGO_PADDING;
 
@@ -292,15 +292,15 @@ void SystemView::render(const Eigen::Affine3f& parentTrans)
 	}
 
 	// draw logos
-	float xOff = (mSize.x() - logoSize().x())/2 - (mCamOffset * logoSizeX);
-	float yOff = (mSize.y() - logoSize().y())/2;
+	float xOff = (mSize.x() - logoSize().x()) / 2 - (mCamOffset * logoSizeX);
+	float yOff = (mSize.y() - logoSize().y()) / 2;
 
 	// background behind the logos
 	Renderer::setMatrix(trans);
 	Renderer::drawRect(0.f, (mSize.y() - BAND_HEIGHT) / 2, mSize.x(), BAND_HEIGHT, 0xFFFFFFD8);
 
 	Eigen::Affine3f logoTrans = trans;
-	for(int i = center - logoCount/2; i < center + logoCount/2 + 1; i++)
+	for(int i = center - logoCount / 2; i < center + logoCount / 2 + 1; i++)
 	{
 		int index = i;
 		while(index < 0)
@@ -316,7 +316,9 @@ void SystemView::render(const Eigen::Affine3f& parentTrans)
 			const std::shared_ptr<GuiComponent>& comp = mEntries.at(index).data.logoSelected;
 			comp->setOpacity(0xFF);
 			comp->render(logoTrans);
-		}else{
+		}
+		else
+		{
 			// not selected
 			const std::shared_ptr<GuiComponent>& comp = mEntries.at(index).data.logo;
 			comp->setOpacity(0x80);
@@ -325,15 +327,16 @@ void SystemView::render(const Eigen::Affine3f& parentTrans)
 	}
 
 	Renderer::setMatrix(trans);
-	Renderer::drawRect(mSystemInfo.getPosition().x(), mSystemInfo.getPosition().y() - 1, mSize.x(), mSystemInfo.getSize().y(), 0xDDDDDD00 | (unsigned char)(mSystemInfo.getOpacity() / 255.f * 0xD8));
+	Renderer::drawRect(mSystemInfo.getPosition().x(), mSystemInfo.getPosition().y() - 1, mSize.x(),
+		mSystemInfo.getSize().y(), 0xDDDDDD00 | (unsigned char)(mSystemInfo.getOpacity() / 255.f * 0xD8));
 	mSystemInfo.render(trans);
 }
 
 std::vector<HelpPrompt> SystemView::getHelpPrompts()
 {
 	std::vector<HelpPrompt> prompts;
-	prompts.push_back(HelpPrompt("left/right", "choose"));
-	prompts.push_back(HelpPrompt("a", "select"));
+	prompts.emplace_back("left/right", "choose");
+	prompts.emplace_back("a", "select");
 	return prompts;
 }
 

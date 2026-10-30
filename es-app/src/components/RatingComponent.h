@@ -16,16 +16,18 @@ public:
 	RatingComponent(Window* window);
 
 	std::string getValue() const override;
-	void setValue(const std::string& value) override; // Should be a normalized float (in the range [0..1]) - if it's not, it will be clamped.
+	void setValue(const std::string& value)
+		override; // Should be a normalized float (in the range [0..1]) - if it's not, it will be clamped.
 
 	bool input(InputConfig* config, Input input) override;
-	void render(const Eigen::Affine3f& parentTrans);
+	void render(const Eigen::Affine3f& parentTrans) override;
 
 	void onSizeChanged() override;
 
-	virtual void applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element, unsigned int properties) override;
+	void applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element,
+		unsigned int properties) override;
 
-	virtual std::vector<HelpPrompt> getHelpPrompts() override;
+	std::vector<HelpPrompt> getHelpPrompts() override;
 
 private:
 	void updateVertices();
@@ -41,4 +43,3 @@ private:
 	std::shared_ptr<TextureResource> mFilledTexture;
 	std::shared_ptr<TextureResource> mUnfilledTexture;
 };
-

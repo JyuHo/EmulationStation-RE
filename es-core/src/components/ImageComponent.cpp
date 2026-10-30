@@ -18,19 +18,23 @@ Eigen::Vector2i ImageComponent::getTextureSize() const
 
 Eigen::Vector2f ImageComponent::getCenter() const
 {
-	return Eigen::Vector2f(mPosition.x() - (getSize().x() * mOrigin.x()) + getSize().x() / 2, 
+	return Eigen::Vector2f(mPosition.x() - (getSize().x() * mOrigin.x()) + getSize().x() / 2,
 		mPosition.y() - (getSize().y() * mOrigin.y()) + getSize().y() / 2);
 }
 
-ImageComponent::ImageComponent(Window* window) : GuiComponent(window), 
-	mTargetIsMax(false), mFlipX(false), mFlipY(false), mOrigin(0.0, 0.0), mTargetSize(0, 0), mColorShift(0xFFFFFFFF)
+ImageComponent::ImageComponent(Window* window) :
+	GuiComponent(window),
+	mTargetSize(0, 0),
+	mOrigin(0.0, 0.0),
+	mFlipX(false),
+	mFlipY(false),
+	mTargetIsMax(false),
+	mColorShift(0xFFFFFFFF)
 {
 	updateColors();
 }
 
-ImageComponent::~ImageComponent()
-{
-}
+ImageComponent::~ImageComponent() = default;
 
 void ImageComponent::resize()
 {
@@ -39,17 +43,21 @@ void ImageComponent::resize()
 
 	SVGResource* svg = dynamic_cast<SVGResource*>(mTexture.get());
 
-	const Eigen::Vector2f textureSize = svg ? svg->getSourceImageSize() : Eigen::Vector2f((float)mTexture->getSize().x(), (float)mTexture->getSize().y());
+	const Eigen::Vector2f textureSize = svg
+		? svg->getSourceImageSize()
+		: Eigen::Vector2f((float)mTexture->getSize().x(), (float)mTexture->getSize().y());
 	if(textureSize.isZero())
 		return;
 
 	if(mTexture->isTiled())
 	{
 		mSize = mTargetSize;
-	}else{
+	}
+	else
+	{
 		// SVG rasterization is determined by height (see SVGResource.cpp), and rasterization is done in terms of pixels
 		// if rounding is off enough in the rasterization step (for images with extreme aspect ratios), it can cause cutoff when the aspect ratio breaks
-		// so, we always make sure the resultant height is an integer to make sure cutoff doesn't happen, and scale width from that 
+		// so, we always make sure the resultant height is an integer to make sure cutoff doesn't happen, and scale width from that
 		// (you'll see this scattered throughout the function)
 		// this is probably not the best way, so if you're familiar with this problem and have a better solution, please make a pull request!
 
@@ -58,12 +66,14 @@ void ImageComponent::resize()
 			mSize = textureSize;
 
 			Eigen::Vector2f resizeScale((mTargetSize.x() / mSize.x()), (mTargetSize.y() / mSize.y()));
-			
+
 			if(resizeScale.x() < resizeScale.y())
 			{
 				mSize[0] *= resizeScale.x();
 				mSize[1] *= resizeScale.x();
-			}else{
+			}
+			else
+			{
 				mSize[0] *= resizeScale.y();
 				mSize[1] *= resizeScale.y();
 			}
@@ -71,8 +81,9 @@ void ImageComponent::resize()
 			// for SVG rasterization, always calculate width from rounded height (see comment above)
 			mSize[1] = round(mSize[1]);
 			mSize[0] = (mSize[1] / textureSize.y()) * textureSize.x();
-
-		}else{
+		}
+		else
+		{
 			// if both components are set, we just stretch
 			// if no components are set, we don't resize at all
 			mSize = mTargetSize.isZero() ? textureSize : mTargetSize;
@@ -83,7 +94,8 @@ void ImageComponent::resize()
 			{
 				mSize[1] = round(mTargetSize.y());
 				mSize[0] = (mSize.y() / textureSize.y()) * textureSize.x();
-			}else if(mTargetSize.x() && !mTargetSize.y())
+			}
+			else if(mTargetSize.x() && !mTargetSize.y())
 			{
 				mSize[1] = round((mTargetSize.x() / textureSize.x()) * textureSize.y());
 				mSize[0] = (mSize.y() / textureSize.y()) * textureSize.x();
@@ -121,7 +133,7 @@ void ImageComponent::setImage(const char* path, size_t length, bool tile)
 
 	mTexture = TextureResource::get("", tile);
 	mTexture->initFromMemory(path, length);
-	
+
 	resize();
 }
 
@@ -184,7 +196,7 @@ void ImageComponent::updateVertices()
 	// we go through this mess to make sure everything is properly rounded
 	// if we just round vertices at the end, edge cases occur near sizes of 0.5
 	Eigen::Vector2f topLeft(-mSize.x() * mOrigin.x(), -mSize.y() * mOrigin.y());
-	Eigen::Vector2f bottomRight(mSize.x() * (1 -mOrigin.x()), mSize.y() * (1 - mOrigin.y()));
+	Eigen::Vector2f bottomRight(mSize.x() * (1 - mOrigin.x()), mSize.y() * (1 - mOrigin.y()));
 
 	const float width = round(bottomRight.x() - topLeft.x());
 	const float height = round(bottomRight.y() - topLeft.y());
@@ -207,7 +219,9 @@ void ImageComponent::updateVertices()
 	{
 		px = mSize.x() / getTextureSize().x();
 		py = mSize.y() / getTextureSize().y();
-	}else{
+	}
+	else
+	{
 		px = 1;
 		py = 1;
 	}
@@ -241,7 +255,7 @@ void ImageComponent::render(const Eigen::Affine3f& parentTrans)
 {
 	Eigen::Affine3f trans = roundMatrix(parentTrans * getTransform());
 	Renderer::setMatrix(trans);
-	
+
 	if(mTexture && mOpacity > 0)
 	{
 		if(mTexture->isInitialized())
@@ -269,7 +283,9 @@ void ImageComponent::render(const Eigen::Affine3f& parentTrans)
 
 			glDisable(GL_TEXTURE_2D);
 			glDisable(GL_BLEND);
-		}else{
+		}
+		else
+		{
 			LOG(LogError) << "Image texture is not initialized!";
 			mTexture.reset();
 		}
@@ -283,7 +299,8 @@ bool ImageComponent::hasImage()
 	return (bool)mTexture;
 }
 
-void ImageComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element, unsigned int properties)
+void ImageComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view,
+	const std::string& element, unsigned int properties)
 {
 	using namespace ThemeFlags;
 
@@ -293,8 +310,10 @@ void ImageComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, const s
 		return;
 	}
 
-	Eigen::Vector2f scale = getParent() ? getParent()->getSize() : Eigen::Vector2f((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
-	
+	Eigen::Vector2f scale = getParent()
+		? getParent()->getSize()
+		: Eigen::Vector2f((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
+
 	if(properties & POSITION && elem->has("pos"))
 	{
 		Eigen::Vector2f denormalized = elem->get<Eigen::Vector2f>("pos").cwiseProduct(scale);
@@ -326,6 +345,6 @@ void ImageComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, const s
 std::vector<HelpPrompt> ImageComponent::getHelpPrompts()
 {
 	std::vector<HelpPrompt> ret;
-	ret.push_back(HelpPrompt("a", "select"));
+	ret.emplace_back("a", "select");
 	return ret;
 }

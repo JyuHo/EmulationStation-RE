@@ -6,11 +6,16 @@
 #include "animations/AnimationController.h"
 #include "ThemeData.h"
 
-GuiComponent::GuiComponent(Window* window) : mWindow(window), mParent(NULL), mOpacity(255), 
-	mPosition(Eigen::Vector3f::Zero()), mSize(Eigen::Vector2f::Zero()), mTransform(Eigen::Affine3f::Identity())
+GuiComponent::GuiComponent(Window* window) :
+	mOpacity(255),
+	mWindow(window),
+	mParent(nullptr),
+	mPosition(Eigen::Vector3f::Zero()),
+	mSize(Eigen::Vector2f::Zero()),
+	mTransform(Eigen::Affine3f::Identity())
 {
 	for(unsigned char i = 0; i < MAX_ANIMATIONS; i++)
-		mAnimationMap[i] = NULL;
+		mAnimationMap[i] = nullptr;
 }
 
 GuiComponent::~GuiComponent()
@@ -23,7 +28,7 @@ GuiComponent::~GuiComponent()
 		mParent->removeChild(this);
 
 	for(unsigned int i = 0; i < getChildCount(); i++)
-		getChild(i)->setParent(NULL);
+		getChild(i)->setParent(nullptr);
 }
 
 bool GuiComponent::input(InputConfig* config, Input input)
@@ -95,14 +100,14 @@ Eigen::Vector2f GuiComponent::getSize() const
 
 void GuiComponent::setSize(const Eigen::Vector2f& size)
 {
-    mSize = size;
-    onSizeChanged();
+	mSize = size;
+	onSizeChanged();
 }
 
 void GuiComponent::setSize(float w, float h)
 {
 	mSize << w, h;
-    onSizeChanged();
+	onSizeChanged();
 }
 
 //Children stuff.
@@ -126,7 +131,7 @@ void GuiComponent::removeChild(GuiComponent* cmp)
 		LOG(LogError) << "Tried to remove child from incorrect parent!";
 	}
 
-	cmp->setParent(NULL);
+	cmp->setParent(nullptr);
 
 	for(auto i = mChildren.begin(); i != mChildren.end(); i++)
 	{
@@ -184,9 +189,7 @@ const Eigen::Affine3f& GuiComponent::getTransform()
 	return mTransform;
 }
 
-void GuiComponent::setValue(const std::string& value)
-{
-}
+void GuiComponent::setValue(const std::string& value) {}
 
 std::string GuiComponent::getValue() const
 {
@@ -201,7 +204,8 @@ void GuiComponent::textInput(const char* text)
 	}
 }
 
-void GuiComponent::setAnimation(Animation* anim, int delay, std::function<void()> finishedCallback, bool reverse, unsigned char slot)
+void GuiComponent::setAnimation(
+	Animation* anim, int delay, std::function<void()> finishedCallback, bool reverse, unsigned char slot)
 {
 	assert(slot < MAX_ANIMATIONS);
 
@@ -218,9 +222,11 @@ bool GuiComponent::stopAnimation(unsigned char slot)
 	if(mAnimationMap[slot])
 	{
 		delete mAnimationMap[slot];
-		mAnimationMap[slot] = NULL;
+		mAnimationMap[slot] = nullptr;
 		return true;
-	}else{
+	}
+	else
+	{
 		return false;
 	}
 }
@@ -232,9 +238,11 @@ bool GuiComponent::cancelAnimation(unsigned char slot)
 	{
 		mAnimationMap[slot]->removeFinishedCallback();
 		delete mAnimationMap[slot];
-		mAnimationMap[slot] = NULL;
+		mAnimationMap[slot] = nullptr;
 		return true;
-	}else{
+	}
+	else
+	{
 		return false;
 	}
 }
@@ -245,13 +253,16 @@ bool GuiComponent::finishAnimation(unsigned char slot)
 	if(mAnimationMap[slot])
 	{
 		// skip to animation's end
-		const bool done = mAnimationMap[slot]->update(mAnimationMap[slot]->getAnimation()->getDuration() - mAnimationMap[slot]->getTime());
+		[[maybe_unused]] const bool done = mAnimationMap[slot]->update(
+			mAnimationMap[slot]->getAnimation()->getDuration() - mAnimationMap[slot]->getTime());
 		assert(done);
 
 		delete mAnimationMap[slot]; // will also call finishedCallback
-		mAnimationMap[slot] = NULL;
+		mAnimationMap[slot] = nullptr;
 		return true;
-	}else{
+	}
+	else
+	{
 		return false;
 	}
 }
@@ -265,11 +276,13 @@ bool GuiComponent::advanceAnimation(unsigned char slot, unsigned int time)
 		bool done = anim->update(time);
 		if(done)
 		{
-			mAnimationMap[slot] = NULL;
+			mAnimationMap[slot] = nullptr;
 			delete anim;
 		}
 		return true;
-	}else{
+	}
+	else
+	{
 		return false;
 	}
 }
@@ -288,7 +301,7 @@ void GuiComponent::cancelAllAnimations()
 
 bool GuiComponent::isAnimationPlaying(unsigned char slot) const
 {
-	return mAnimationMap[slot] != NULL;
+	return mAnimationMap[slot] != nullptr;
 }
 
 bool GuiComponent::isAnimationReversed(unsigned char slot) const
@@ -303,9 +316,12 @@ int GuiComponent::getAnimationTime(unsigned char slot) const
 	return mAnimationMap[slot]->getTime();
 }
 
-void GuiComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element, unsigned int properties)
+void GuiComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view,
+	const std::string& element, unsigned int properties)
 {
-	Eigen::Vector2f scale = getParent() ? getParent()->getSize() : Eigen::Vector2f((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
+	Eigen::Vector2f scale = getParent()
+		? getParent()->getSize()
+		: Eigen::Vector2f((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
 
 	const ThemeData::ThemeElement* elem = theme->getElement(view, element, "");
 	if(!elem)

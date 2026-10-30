@@ -37,7 +37,8 @@ int run_scraper_cmdline()
 	};
 
 	int filter_choice;
-	do {
+	do
+	{
 		out << "Select filter for games to be scraped:\n";
 		out << FILTER_MISSING_IMAGES << " - games missing images\n";
 		out << FILTER_ALL << " - all games period, can overwrite existing metadata\n";
@@ -59,7 +60,7 @@ int run_scraper_cmdline()
 
 	std::string system_choice;
 	std::getline(std::cin, system_choice);
-	
+
 	if(system_choice == "y" || system_choice == "Y")
 	{
 		out << "Will scrape all platforms.\n";
@@ -68,14 +69,16 @@ int run_scraper_cmdline()
 			out << "   " << (*i)->getName() << " (" << (*i)->getGameCount() << " games)\n";
 			systems.push_back(*i);
 		}
-
-	}else{
+	}
+	else
+	{
 		std::string sys_name;
 
 		out << "Enter the names of the platforms you would like to scrape, one at a time.\n";
 		out << "Type nothing and press enter when you are ready to continue.\n";
 
-		do {
+		do
+		{
 			for(auto i = SystemData::sSystemVector.begin(); i != SystemData::sSystemVector.end(); i++)
 			{
 				if(std::find(systems.begin(), systems.end(), (*i)) != systems.end())
@@ -87,7 +90,7 @@ int run_scraper_cmdline()
 			}
 
 			std::getline(std::cin, sys_name);
-			
+
 			if(sys_name.empty())
 				break;
 
@@ -121,13 +124,16 @@ int run_scraper_cmdline()
 	std::string manual_mode_str;
 	std::getline(std::cin, manual_mode_str);
 
-	bool manual_mode = false;
+	// TODO(phase 2 follow-up): manual mode is asked for but never implemented.
+	[[maybe_unused]] bool manual_mode = false;
 
 	if(manual_mode_str == "y" || manual_mode_str == "Y")
 	{
 		manual_mode = true;
 		out << "Scraping in manual mode!\n";
-	}else{
+	}
+	else
+	{
 		out << "Scraping in automatic mode!\n";
 	}
 

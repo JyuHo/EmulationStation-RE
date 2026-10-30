@@ -7,21 +7,19 @@
 #include "components/OptionListComponent.h"
 #include "components/SwitchComponent.h"
 
-GuiScraperStart::GuiScraperStart(Window* window) : GuiComponent(window),
-	mMenu(window, "SCRAPE NOW")
+GuiScraperStart::GuiScraperStart(Window* window) : GuiComponent(window), mMenu(window, "SCRAPE NOW")
 {
 	addChild(&mMenu);
 
 	// add filters (with first one selected)
-	mFilters = std::make_shared< OptionListComponent<GameFilterFunc> >(mWindow, "SCRAPE THESE GAMES", false);
-	mFilters->add("All Games", 
-		[](SystemData*, FileData*) -> bool { return true; }, false);
-	mFilters->add("Only missing image", 
-		[](SystemData*, FileData* g) -> bool { return g->metadata.get("image").empty(); }, true);
+	mFilters = std::make_shared<OptionListComponent<GameFilterFunc>>(mWindow, "SCRAPE THESE GAMES", false);
+	mFilters->add("All Games", [](SystemData*, FileData*) -> bool { return true; }, false);
+	mFilters->add(
+		"Only missing image", [](SystemData*, FileData* g) -> bool { return g->metadata.get("image").empty(); }, true);
 	mMenu.addWithLabel("Filter", mFilters);
 
 	//add systems (all with a platformid specified selected)
-	mSystems = std::make_shared< OptionListComponent<SystemData*> >(mWindow, "SCRAPE THESE SYSTEMS", true);
+	mSystems = std::make_shared<OptionListComponent<SystemData*>>(mWindow, "SCRAPE THESE SYSTEMS", true);
 	for(auto it = SystemData::sSystemVector.begin(); it != SystemData::sSystemVector.end(); it++)
 	{
 		if(!(*it)->hasPlatformId(PlatformIds::PLATFORM_IGNORE))
@@ -46,10 +44,10 @@ void GuiScraperStart::pressedStart()
 	{
 		if((*it)->getPlatformIds().empty())
 		{
-			mWindow->pushGui(new GuiMsgBox(mWindow, 
-				strToUpper("Warning: some of your selected systems do not have a platform set. Results may be even more inaccurate than usual!\nContinue anyway?"), 
-				"YES", std::bind(&GuiScraperStart::start, this), 
-				"NO", nullptr));
+			mWindow->pushGui(new GuiMsgBox(mWindow,
+				strToUpper("Warning: some of your selected systems do not have a platform set. Results may be even "
+						   "more inaccurate than usual!\nContinue anyway?"),
+				"YES", std::bind(&GuiScraperStart::start, this), "NO", nullptr));
 			return;
 		}
 	}
@@ -63,9 +61,10 @@ void GuiScraperStart::start()
 
 	if(searches.empty())
 	{
-		mWindow->pushGui(new GuiMsgBox(mWindow,
-			"NO GAMES FIT THAT CRITERIA."));
-	}else{
+		mWindow->pushGui(new GuiMsgBox(mWindow, "NO GAMES FIT THAT CRITERIA."));
+	}
+	else
+	{
 		GuiScraperMulti* gsm = new GuiScraperMulti(mWindow, searches, mApproveResults->getState());
 		mWindow->pushGui(gsm);
 		delete this;
@@ -85,7 +84,7 @@ std::queue<ScraperSearchParams> GuiScraperStart::getSearches(std::vector<SystemD
 				ScraperSearchParams search;
 				search.game = *game;
 				search.system = *sys;
-				
+
 				queue.push(search);
 			}
 		}
@@ -99,7 +98,7 @@ bool GuiScraperStart::input(InputConfig* config, Input input)
 	bool consumed = GuiComponent::input(config, input);
 	if(consumed)
 		return true;
-	
+
 	if(input.value != 0 && config->isMappedTo("b", input))
 	{
 		delete this;
@@ -114,14 +113,13 @@ bool GuiScraperStart::input(InputConfig* config, Input input)
 			delete window->peekGui();
 	}
 
-
 	return false;
 }
 
 std::vector<HelpPrompt> GuiScraperStart::getHelpPrompts()
 {
 	std::vector<HelpPrompt> prompts = mMenu.getHelpPrompts();
-	prompts.push_back(HelpPrompt("b", "back"));
-	prompts.push_back(HelpPrompt("start", "close"));
+	prompts.emplace_back("b", "back");
+	prompts.emplace_back("start", "close");
 	return prompts;
 }

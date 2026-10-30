@@ -1,0 +1,25 @@
+# Static analysis profile. Run with:
+#   run-clang-tidy -p build/debug 'es-(core|app)/src/'
+# or the `es-tidy` CMake target. Findings are not yet enforced in CI.
+Checks: >
+  -*,
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-narrowing-conversions,
+  -bugprone-implicit-widening-of-multiplication-result,
+  cppcoreguidelines-virtual-class-destructor,
+  cppcoreguidelines-slicing,
+  modernize-*,
+  -modernize-use-trailing-return-type,
+  -modernize-avoid-c-arrays,
+  -modernize-use-nodiscard,
+  -modernize-macro-to-enum,
+  performance-*,
+  readability-braces-around-statements,
+  readability-misleading-indentation,
+  readability-redundant-smartptr-get,
+  misc-redundant-expression,
+  misc-unused-using-decls
+HeaderFilterRegex: '.*/es-(core|app)/src/.*'
+WarningsAsErrors: ''
+FormatStyle: file

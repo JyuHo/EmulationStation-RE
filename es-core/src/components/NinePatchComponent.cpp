@@ -5,10 +5,14 @@
 #include "ThemeData.h"
 #include "Util.h"
 
-NinePatchComponent::NinePatchComponent(Window* window, const std::string& path, unsigned int edgeColor, unsigned int centerColor) : GuiComponent(window),
-	mEdgeColor(edgeColor), mCenterColor(centerColor), 
+NinePatchComponent::NinePatchComponent(
+	Window* window, const std::string& path, unsigned int edgeColor, unsigned int centerColor) :
+	GuiComponent(window),
+	mVertices(nullptr),
+	mColors(nullptr),
 	mPath(path),
-	mVertices(NULL), mColors(NULL)
+	mEdgeColor(edgeColor),
+	mCenterColor(centerColor)
 {
 	if(!mPath.empty())
 		buildVertices();
@@ -16,10 +20,10 @@ NinePatchComponent::NinePatchComponent(Window* window, const std::string& path, 
 
 NinePatchComponent::~NinePatchComponent()
 {
-	if (mVertices != NULL)
+	if(mVertices != nullptr)
 		delete[] mVertices;
 
-	if (mColors != NULL)
+	if(mColors != nullptr)
 		delete[] mColors;
 }
 
@@ -31,18 +35,18 @@ void NinePatchComponent::updateColors()
 
 void NinePatchComponent::buildVertices()
 {
-	if(mVertices != NULL)
+	if(mVertices != nullptr)
 		delete[] mVertices;
 
-	if(mColors != NULL)
+	if(mColors != nullptr)
 		delete[] mColors;
 
 	mTexture = TextureResource::get(mPath);
 
 	if(mTexture->getSize() == Eigen::Vector2i::Zero())
 	{
-		mVertices = NULL;
-		mColors = NULL;
+		mVertices = nullptr;
+		mColors = nullptr;
 		LOG(LogWarning) << "NinePatchComponent missing texture!";
 		return;
 	}
@@ -55,13 +59,13 @@ void NinePatchComponent::buildVertices()
 
 	//coordinates on the image in pixels, top left origin
 	const Eigen::Vector2f pieceCoords[9] = {
-		Eigen::Vector2f(0,  0),
+		Eigen::Vector2f(0, 0),
 		Eigen::Vector2f(16, 0),
 		Eigen::Vector2f(32, 0),
-		Eigen::Vector2f(0,  16),
+		Eigen::Vector2f(0, 16),
 		Eigen::Vector2f(16, 16),
 		Eigen::Vector2f(32, 16),
-		Eigen::Vector2f(0,  32),
+		Eigen::Vector2f(0, 32),
 		Eigen::Vector2f(16, 32),
 		Eigen::Vector2f(32, 32),
 	};
@@ -77,17 +81,17 @@ void NinePatchComponent::buildVertices()
 	//if(borderHeight < pieceSizes.y())
 	//	borderHeight = pieceSizes.y();
 
-	mVertices[0 * 6].pos = pieceCoords[0]; //top left
-	mVertices[1 * 6].pos = pieceCoords[1]; //top middle
+	mVertices[0 * 6].pos = pieceCoords[0];									 //top left
+	mVertices[1 * 6].pos = pieceCoords[1];									 //top middle
 	mVertices[2 * 6].pos = pieceCoords[1] + Eigen::Vector2f(borderWidth, 0); //top right
 
 	mVertices[3 * 6].pos = mVertices[0 * 6].pos + Eigen::Vector2f(0, pieceSizes.y()); //mid left
 	mVertices[4 * 6].pos = mVertices[3 * 6].pos + Eigen::Vector2f(pieceSizes.x(), 0); //mid middle
-	mVertices[5 * 6].pos = mVertices[4 * 6].pos + Eigen::Vector2f(borderWidth, 0); //mid right
+	mVertices[5 * 6].pos = mVertices[4 * 6].pos + Eigen::Vector2f(borderWidth, 0);	  //mid right
 
-	mVertices[6 * 6].pos = mVertices[3 * 6].pos + Eigen::Vector2f(0, borderHeight); //bot left
+	mVertices[6 * 6].pos = mVertices[3 * 6].pos + Eigen::Vector2f(0, borderHeight);	  //bot left
 	mVertices[7 * 6].pos = mVertices[6 * 6].pos + Eigen::Vector2f(pieceSizes.x(), 0); //bot middle
-	mVertices[8 * 6].pos = mVertices[7 * 6].pos + Eigen::Vector2f(borderWidth, 0); //bot right
+	mVertices[8 * 6].pos = mVertices[7 * 6].pos + Eigen::Vector2f(borderWidth, 0);	  //bot right
 
 	int v = 0;
 	for(int slice = 0; slice < 9; slice++)
@@ -122,7 +126,8 @@ void NinePatchComponent::buildVertices()
 		//texture coordinates
 		//the y = (1 - y) is to deal with texture coordinates having a bottom left corner origin vs. verticies having a top left origin
 		mVertices[v + 0].tex << pieceCoords[slice].x() / ts.x(), 1 - (pieceCoords[slice].y() / ts.y());
-		mVertices[v + 1].tex << (pieceCoords[slice].x() + pieceSizes.x()) / ts.x(), 1 - ((pieceCoords[slice].y() + pieceSizes.y()) / ts.y());
+		mVertices[v + 1].tex << (pieceCoords[slice].x() + pieceSizes.x()) / ts.x(),
+			1 - ((pieceCoords[slice].y() + pieceSizes.y()) / ts.y());
 		mVertices[v + 2].tex << mVertices[v + 0].tex.x(), mVertices[v + 1].tex.y();
 
 		mVertices[v + 3].tex << mVertices[v + 1].tex.x(), mVertices[v + 0].tex.y();
@@ -133,7 +138,7 @@ void NinePatchComponent::buildVertices()
 	}
 
 	// round vertices
-	for(int i = 0; i < 6*9; i++)
+	for(int i = 0; i < 6 * 9; i++)
 	{
 		mVertices[i].pos = roundVector(mVertices[i].pos);
 	}
@@ -142,8 +147,8 @@ void NinePatchComponent::buildVertices()
 void NinePatchComponent::render(const Eigen::Affine3f& parentTrans)
 {
 	Eigen::Affine3f trans = roundMatrix(parentTrans * getTransform());
-	
-	if(mTexture && mVertices != NULL)
+
+	if(mTexture && mVertices != nullptr)
 	{
 		Renderer::setMatrix(trans);
 
@@ -212,7 +217,8 @@ void NinePatchComponent::setCenterColor(unsigned int centerColor)
 	updateColors();
 }
 
-void NinePatchComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element, unsigned int properties)
+void NinePatchComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view,
+	const std::string& element, unsigned int properties)
 {
 	GuiComponent::applyTheme(theme, view, element, properties);
 

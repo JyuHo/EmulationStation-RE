@@ -6,8 +6,7 @@
 #include "SystemData.h"
 #include "Settings.h"
 
-BasicGameListView::BasicGameListView(Window* window, FileData* root)
-	: ISimpleGameListView(window, root), mList(window)
+BasicGameListView::BasicGameListView(Window* window, FileData* root) : ISimpleGameListView(window, root), mList(window)
 {
 	mList.setSize(mSize.x(), mSize.y() * 0.8f);
 	mList.setPosition(0, mSize.y() * 0.2f);
@@ -69,7 +68,7 @@ void BasicGameListView::setCursor(FileData* cursor)
 				tmp.push(ptr);
 				ptr = ptr->getParent();
 			}
-			
+
 			// flip the stack and put it in mCursorStack
 			mCursorStack = std::stack<FileData*>();
 			while(!tmp.empty())
@@ -91,10 +90,10 @@ std::vector<HelpPrompt> BasicGameListView::getHelpPrompts()
 	std::vector<HelpPrompt> prompts;
 
 	if(Settings::getInstance()->getBool("QuickSystemSelect"))
-		prompts.push_back(HelpPrompt("left/right", "system"));
-	prompts.push_back(HelpPrompt("up/down", "choose"));
-	prompts.push_back(HelpPrompt("a", "launch"));
-	prompts.push_back(HelpPrompt("b", "back"));
-	prompts.push_back(HelpPrompt("select", "options"));
+		prompts.emplace_back("left/right", "system");
+	prompts.emplace_back("up/down", "choose");
+	prompts.emplace_back("a", "launch");
+	prompts.emplace_back("b", "back");
+	prompts.emplace_back("select", "options");
 	return prompts;
 }

@@ -45,7 +45,7 @@ bool GuiSettings::input(InputConfig* config, Input input)
 			delete window->peekGui();
 		return true;
 	}
-	
+
 	return GuiComponent::input(config, input);
 }
 
@@ -53,8 +53,8 @@ std::vector<HelpPrompt> GuiSettings::getHelpPrompts()
 {
 	std::vector<HelpPrompt> prompts = mMenu.getHelpPrompts();
 
-	prompts.push_back(HelpPrompt("b", "back"));
-	prompts.push_back(HelpPrompt("start", "close"));
+	prompts.emplace_back("b", "back");
+	prompts.emplace_back("start", "close");
 
 	return prompts;
 }

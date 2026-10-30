@@ -59,7 +59,16 @@ cmake --build build
 
 In-source builds (`cmake .`) are no longer supported.
 
-Useful CMake options: `ES_WARNINGS_AS_ERRORS`, `ES_ENABLE_SANITIZERS`, `ES_ENABLE_LTO`.
+Useful CMake options: `ES_BUILD_TESTS`, `ES_WARNINGS_AS_ERRORS`, `ES_ENABLE_SANITIZERS`, `ES_ENABLE_LTO`.
+
+**Tests** (needs `catch2`, and `xorg-server-xvfb` for the smoke test):
+```bash
+cmake --preset debug && cmake --build --preset debug
+ctest --preset debug
+tests/smoke/run.sh build/debug/emulationstation
+```
+
+Contributors and coding agents: read [PROMPT.md](PROMPT.md) first.
 
 Configuring
 ===========

@@ -7,13 +7,14 @@
 class GuiGameScraper : public GuiComponent
 {
 public:
-	GuiGameScraper(Window* window, ScraperSearchParams params, std::function<void(const ScraperSearchResult&)> doneFunc);
+	GuiGameScraper(
+		Window* window, ScraperSearchParams params, std::function<void(const ScraperSearchResult&)> doneFunc);
 
 	void onSizeChanged() override;
 
 	bool input(InputConfig* config, Input input) override;
-	void update(int deltaTime);
-	virtual std::vector<HelpPrompt> getHelpPrompts() override;
+	void update(int deltaTime) override;
+	std::vector<HelpPrompt> getHelpPrompts() override;
 
 private:
 	bool mClose;

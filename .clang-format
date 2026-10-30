@@ -1,0 +1,42 @@
+# Matches the existing EmulationStation style (tabs, Allman braces for
+# functions and types, attached braces for control statements).
+# The whole code base has NOT been reformatted yet: only format the lines you
+# touch (`git clang-format`), a one-shot reformat is planned as its own commit.
+BasedOnStyle: LLVM
+Language: Cpp
+Standard: c++20
+UseTab: Always
+TabWidth: 4
+IndentWidth: 4
+ContinuationIndentWidth: 4
+ColumnLimit: 120
+AccessModifierOffset: -4
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass: true
+  AfterStruct: true
+  AfterUnion: true
+  AfterEnum: true
+  AfterFunction: true
+  AfterNamespace: false
+  AfterControlStatement: Always
+  BeforeElse: true
+  BeforeCatch: true
+  SplitEmptyFunction: false
+SpaceBeforeParens: Never
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+PointerAlignment: Left
+SortIncludes: Never
+IncludeBlocks: Preserve
+FixNamespaceComments: true
+ReflowComments: false
+AlignAfterOpenBracket: DontAlign
+AlignOperands: DontAlign
+BreakConstructorInitializers: AfterColon
+ConstructorInitializerIndentWidth: 4
+PackConstructorInitializers: NextLine
+AllowShortBlocksOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortLambdasOnASingleLine: Inline

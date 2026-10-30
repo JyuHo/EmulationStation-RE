@@ -47,7 +47,6 @@ set(ES_HEADERS
 set(ES_SOURCES
     src/FileData.cpp
     src/FileSorts.cpp
-    src/main.cpp
     src/MameNameMap.cpp
     src/MetaData.cpp
     src/PlatformId.cpp
@@ -87,10 +86,14 @@ set(ES_SOURCES
 )
 
 #-------------------------------------------------------------------------------
-add_executable(emulationstation ${ES_SOURCES} ${ES_HEADERS})
+# Everything but main() lives in a library so that tests can link against it.
+add_library(es-app-lib STATIC ${ES_SOURCES} ${ES_HEADERS})
+target_include_directories(es-app-lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_link_libraries(es-app-lib PUBLIC es-core)
+es_set_warnings(es-app-lib)
 
-target_include_directories(emulationstation PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
-target_link_libraries(emulationstation PRIVATE es-core)
+add_executable(emulationstation src/main.cpp)
+target_link_libraries(emulationstation PRIVATE es-app-lib)
 es_set_warnings(emulationstation)
 
 #-------------------------------------------------------------------------------

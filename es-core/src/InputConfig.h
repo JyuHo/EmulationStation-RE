@@ -38,8 +38,7 @@ public:
 	}
 
 	Input(int dev, InputType t, int i, int val, bool conf) : device(dev), type(t), id(i), value(val), configured(conf)
-	{
-	}
+	{}
 
 	std::string getHatDir(int val)
 	{
@@ -59,21 +58,11 @@ public:
 		std::stringstream stream;
 		switch(type)
 		{
-			case TYPE_BUTTON:
-				stream << "Button " << id;
-				break;
-			case TYPE_AXIS:
-				stream << "Axis " << id << (value > 0 ? "+" : "-");
-				break;
-			case TYPE_HAT:
-				stream << "Hat " << id << " " << getHatDir(value);
-				break;
-			case TYPE_KEY:
-				stream << "Key " << SDL_GetKeyName((SDL_Keycode)id);
-				break;
-			default:
-				stream << "Input to string error";
-				break;
+		case TYPE_BUTTON: stream << "Button " << id; break;
+		case TYPE_AXIS: stream << "Axis " << id << (value > 0 ? "+" : "-"); break;
+		case TYPE_HAT: stream << "Hat " << id << " " << getHatDir(value); break;
+		case TYPE_KEY: stream << "Key " << SDL_GetKeyName((SDL_Keycode)id); break;
+		default: stream << "Input to string error"; break;
 		}
 
 		return stream.str();

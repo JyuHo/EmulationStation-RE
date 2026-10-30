@@ -6,10 +6,9 @@
 #include "components/MenuComponent.h"
 #include <queue>
 
-typedef std::function<bool(SystemData*, FileData*)> GameFilterFunc;
+using GameFilterFunc = std::function<bool(SystemData*, FileData*)>;
 
-template<typename T>
-class OptionListComponent;
+template <typename T> class OptionListComponent;
 
 class SwitchComponent;
 
@@ -23,15 +22,15 @@ public:
 
 	bool input(InputConfig* config, Input input) override;
 
-	virtual std::vector<HelpPrompt> getHelpPrompts() override;
+	std::vector<HelpPrompt> getHelpPrompts() override;
 
 private:
 	void pressedStart();
 	void start();
 	std::queue<ScraperSearchParams> getSearches(std::vector<SystemData*> systems, GameFilterFunc selector);
 
-	std::shared_ptr< OptionListComponent<GameFilterFunc> > mFilters;
-	std::shared_ptr< OptionListComponent<SystemData*> > mSystems;
+	std::shared_ptr<OptionListComponent<GameFilterFunc>> mFilters;
+	std::shared_ptr<OptionListComponent<SystemData*>> mSystems;
 	std::shared_ptr<SwitchComponent> mApproveResults;
 
 	MenuComponent mMenu;

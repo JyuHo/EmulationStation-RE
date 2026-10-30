@@ -21,7 +21,7 @@ struct ScraperSearchParams
 
 struct ScraperSearchResult
 {
-	ScraperSearchResult() : mdl(GAME_METADATA) {};
+	ScraperSearchResult() : mdl(GAME_METADATA){};
 
 	MetaDataList mdl;
 	std::string imageUrl;
@@ -45,15 +45,14 @@ struct ScraperSearchResult
 
 // We could do this if we used threads.  Right now ES doesn't because I'm pretty sure I'll fuck it up,
 // and I'm not sure of the performance of threads on the Pi (single-core ARM).
-// We could also do this if we used coroutines.  
-// I can't find a really good cross-platform coroutine library (x86/64/ARM Linux + Windows), 
+// We could also do this if we used coroutines.
+// I can't find a really good cross-platform coroutine library (x86/64/ARM Linux + Windows),
 // and I don't want to spend more time chasing libraries than just writing it the long way once.
 
 // So, I did it the "long" way.
 // ScraperSearchHandle - one logical search, e.g. "search for mario"
 // ScraperRequest - encapsulates some sort of asynchronous request that will ultimately return some results
 // ScraperHttpRequest - implementation of ScraperRequest that waits on an HttpReq, then processes it with some processing function.
-
 
 // a scraper search gathers results from (potentially multiple) ScraperRequests
 class ScraperRequest : public AsyncHandle
@@ -62,19 +61,18 @@ public:
 	ScraperRequest(std::vector<ScraperSearchResult>& resultsWrite);
 
 	// returns "true" once we're done
-	virtual void update() = 0;
-	
+	void update() override = 0;
+
 protected:
 	std::vector<ScraperSearchResult>& mResults;
 };
-
 
 // a single HTTP request that needs to be processed to get the results
 class ScraperHttpRequest : public ScraperRequest
 {
 public:
 	ScraperHttpRequest(std::vector<ScraperSearchResult>& resultsWrite, const std::string& url);
-	virtual void update() override;
+	void update() override;
 
 protected:
 	virtual void process(const std::unique_ptr<HttpReq>& req, std::vector<ScraperSearchResult>& results) = 0;
@@ -89,13 +87,17 @@ class ScraperSearchHandle : public AsyncHandle
 public:
 	ScraperSearchHandle();
 
-	void update();
-	inline const std::vector<ScraperSearchResult>& getResults() const { assert(mStatus != ASYNC_IN_PROGRESS); return mResults; }
+	void update() override;
+	inline const std::vector<ScraperSearchResult>& getResults() const
+	{
+		assert(mStatus != ASYNC_IN_PROGRESS);
+		return mResults;
+	}
 
 protected:
 	friend std::unique_ptr<ScraperSearchHandle> startScraperSearch(const ScraperSearchParams& params);
 
-	std::queue< std::unique_ptr<ScraperRequest> > mRequestQueue;
+	std::queue<std::unique_ptr<ScraperRequest>> mRequestQueue;
 	std::vector<ScraperSearchResult> mResults;
 };
 
@@ -105,11 +107,10 @@ std::unique_ptr<ScraperSearchHandle> startScraperSearch(const ScraperSearchParam
 // returns a list of valid scraper names
 std::vector<std::string> getScraperList();
 
-typedef void (*generate_scraper_requests_func)(const ScraperSearchParams& params, std::queue< std::unique_ptr<ScraperRequest> >& requests, std::vector<ScraperSearchResult>& results);
+using generate_scraper_requests_func = void (*)(
+	const ScraperSearchParams&, std::queue<std::unique_ptr<ScraperRequest>>&, std::vector<ScraperSearchResult>&);
 
 // -------------------------------------------------------------------------
-
-
 
 // Meta data asset downloading stuff.
 class MDResolveHandle : public AsyncHandle
@@ -118,12 +119,16 @@ public:
 	MDResolveHandle(const ScraperSearchResult& result, const ScraperSearchParams& search);
 
 	void update() override;
-	inline const ScraperSearchResult& getResult() const { assert(mStatus == ASYNC_DONE); return mResult; }
+	inline const ScraperSearchResult& getResult() const
+	{
+		assert(mStatus == ASYNC_DONE);
+		return mResult;
+	}
 
 private:
 	ScraperSearchResult mResult;
 
-	typedef std::pair< std::unique_ptr<AsyncHandle>, std::function<void()> > ResolvePair;
+	using ResolvePair = std::pair<std::unique_ptr<AsyncHandle>, std::function<void()>>;
 	std::vector<ResolvePair> mFuncs;
 };
 
@@ -149,7 +154,8 @@ std::string getSaveAsPath(const ScraperSearchParams& params, const std::string& 
 std::unique_ptr<ImageDownloadHandle> downloadImageAsync(const std::string& url, const std::string& saveAs);
 
 // Resolves all metadata assets that need to be downloaded.
-std::unique_ptr<MDResolveHandle> resolveMetaDataAssets(const ScraperSearchResult& result, const ScraperSearchParams& search);
+std::unique_ptr<MDResolveHandle> resolveMetaDataAssets(
+	const ScraperSearchResult& result, const ScraperSearchParams& search);
 
 //You can pass 0 for maxWidth or maxHeight to automatically keep the aspect ratio.
 //Will overwrite the image at [path] with the new resized one.

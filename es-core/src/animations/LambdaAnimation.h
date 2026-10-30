@@ -10,10 +10,7 @@ public:
 
 	int getDuration() const override { return mDuration; }
 
-	void apply(float t) override
-	{
-		mFunction(t);
-	}
+	void apply(float t) override { mFunction(t); }
 
 private:
 	std::function<void(float t)> mFunction;

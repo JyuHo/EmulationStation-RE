@@ -24,7 +24,7 @@ enum ListLoopType
 
 struct ScrollTier
 {
-	int length; // how long we stay on this level before going to the next
+	int length;		 // how long we stay on this level before going to the next
 	int scrollDelay; // how long between scrolls
 };
 
@@ -35,21 +35,13 @@ struct ScrollTierList
 };
 
 // default scroll tiers
-const ScrollTier QUICK_SCROLL_TIERS[] = {
-	{500, 500},
-	{5000, 114},
-	{0, 8}
-};
-const ScrollTierList LIST_SCROLL_STYLE_QUICK = { 3, QUICK_SCROLL_TIERS };
+const ScrollTier QUICK_SCROLL_TIERS[] = {{500, 500}, {5000, 114}, {0, 8}};
+const ScrollTierList LIST_SCROLL_STYLE_QUICK = {3, QUICK_SCROLL_TIERS};
 
-const ScrollTier SLOW_SCROLL_TIERS[] = {
-	{500, 500},
-	{0, 150}
-};
-const ScrollTierList LIST_SCROLL_STYLE_SLOW = { 2, SLOW_SCROLL_TIERS };
+const ScrollTier SLOW_SCROLL_TIERS[] = {{500, 500}, {0, 150}};
+const ScrollTierList LIST_SCROLL_STYLE_SLOW = {2, SLOW_SCROLL_TIERS};
 
-template <typename EntryData, typename UserData>
-class IList : public GuiComponent
+template <typename EntryData, typename UserData> class IList : public GuiComponent
 {
 public:
 	struct Entry
@@ -77,17 +69,18 @@ protected:
 	const ListLoopType mLoopType;
 
 	std::vector<Entry> mEntries;
-	
+
 public:
-	IList(Window* window, const ScrollTierList& tierList = LIST_SCROLL_STYLE_QUICK, const ListLoopType& loopType = LIST_PAUSE_AT_END) : GuiComponent(window), 
-		mGradient(window), mTierList(tierList), mLoopType(loopType)
+	IList(Window* window, const ScrollTierList& tierList = LIST_SCROLL_STYLE_QUICK,
+		const ListLoopType& loopType = LIST_PAUSE_AT_END) :
+		GuiComponent(window), mGradient(window), mTierList(tierList), mLoopType(loopType)
 	{
 		mCursor = 0;
 		mScrollTier = 0;
 		mScrollVelocity = 0;
 		mScrollTierAccumulator = 0;
 		mScrollCursorAccumulator = 0;
-		
+
 		mTitleOverlayOpacity = 0x00;
 		mTitleOverlayColor = 0xFFFFFF00;
 		mGradient.setResize((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
@@ -95,10 +88,7 @@ public:
 		mTitleOverlayFont = Font::get(FONT_SIZE_LARGE);
 	}
 
-	bool isScrolling() const
-	{
-		return (mScrollVelocity != 0 && mScrollTier > 0);
-	}
+	bool isScrolling() const { return (mScrollVelocity != 0 && mScrollTier > 0); }
 
 	void stopScrolling()
 	{
@@ -148,12 +138,9 @@ public:
 
 		return false;
 	}
-	
+
 	// entry management
-	void add(const Entry& e)
-	{
-		mEntries.push_back(e);
-	}
+	void add(const Entry& e) { mEntries.push_back(e); }
 
 	bool remove(const UserData& obj)
 	{
@@ -183,7 +170,6 @@ protected:
 		mEntries.erase(it);
 	}
 
-
 	bool listInput(int velocity) // a velocity of 0 = stop scrolling
 	{
 		// generate an onCursorChanged event in the stopped state when the user lets go of the key
@@ -203,8 +189,9 @@ protected:
 	void listUpdate(int deltaTime)
 	{
 		// update the title overlay opacity
-		const int dir = (mScrollTier >= mTierList.count - 1) ? 1 : -1; // fade in if scroll tier is >= 1, otherwise fade out
-		int op = mTitleOverlayOpacity + deltaTime*dir; // we just do a 1-to-1 time -> opacity, no scaling
+		const int dir =
+			(mScrollTier >= mTierList.count - 1) ? 1 : -1; // fade in if scroll tier is >= 1, otherwise fade out
+		int op = mTitleOverlayOpacity + deltaTime * dir;   // we just do a 1-to-1 time -> opacity, no scaling
 		if(op >= 255)
 			mTitleOverlayOpacity = 255;
 		else if(op <= 0)
@@ -250,7 +237,7 @@ protected:
 		Eigen::Vector2f off = mTitleOverlayFont->sizeText(text);
 		off[0] = (Renderer::getScreenWidth() - off.x()) * 0.5f;
 		off[1] = (Renderer::getScreenHeight() - off.y()) * 0.5f;
-		
+
 		Eigen::Affine3f identTrans = Eigen::Affine3f::Identity();
 
 		mGradient.setOpacity(mTitleOverlayOpacity);
@@ -272,21 +259,23 @@ protected:
 		// stop at the end if we've been holding down the button for a long time or
 		// we're scrolling faster than one item at a time (e.g. page up/down)
 		// otherwise, loop around
-		if((mLoopType == LIST_PAUSE_AT_END && (mScrollTier > 0 || absAmt > 1)) ||
-			mLoopType == LIST_NEVER_LOOP)
+		if((mLoopType == LIST_PAUSE_AT_END && (mScrollTier > 0 || absAmt > 1)) || mLoopType == LIST_NEVER_LOOP)
 		{
 			if(cursor < 0)
 			{
 				cursor = 0;
 				mScrollVelocity = 0;
 				mScrollTier = 0;
-			}else if(cursor >= size())
+			}
+			else if(cursor >= size())
 			{
 				cursor = size() - 1;
 				mScrollVelocity = 0;
 				mScrollTier = 0;
 			}
-		}else{
+		}
+		else
+		{
 			while(cursor < 0)
 				cursor += size();
 			while(cursor >= size())

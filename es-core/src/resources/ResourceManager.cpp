@@ -6,14 +6,15 @@
 
 namespace fs = boost::filesystem;
 
-auto array_deleter = [](unsigned char* p) { delete[] p; };
-auto nop_deleter = [](unsigned char* p) { };
+auto array_deleter = [](unsigned char* p) {
+	delete[] p;
+};
+auto nop_deleter = [](unsigned char* p) {
+};
 
 std::shared_ptr<ResourceManager> ResourceManager::sInstance = nullptr;
 
-ResourceManager::ResourceManager()
-{
-}
+ResourceManager::ResourceManager() = default;
 
 std::shared_ptr<ResourceManager>& ResourceManager::getInstance()
 {
@@ -26,15 +27,14 @@ std::shared_ptr<ResourceManager>& ResourceManager::getInstance()
 const ResourceData ResourceManager::getFileData(const std::string& path) const
 {
 	//check if its embedded
-	
+
 	if(res2hMap.find(path) != res2hMap.end())
 	{
 		//it is
 		Res2hEntry embeddedEntry = res2hMap.find(path)->second;
-		ResourceData data = { 
-			std::shared_ptr<unsigned char>(const_cast<unsigned char*>(embeddedEntry.data), nop_deleter), 
-			embeddedEntry.size
-		};
+		ResourceData data = {
+			std::shared_ptr<unsigned char>(const_cast<unsigned char*>(embeddedEntry.data), nop_deleter),
+			embeddedEntry.size};
 		return data;
 	}
 
@@ -42,9 +42,11 @@ const ResourceData ResourceManager::getFileData(const std::string& path) const
 	if(!fs::exists(path))
 	{
 		//if the file doesn't exist, return an "empty" ResourceData
-		ResourceData data = {NULL, 0};
+		ResourceData data = {nullptr, 0};
 		return data;
-	}else{
+	}
+	else
+	{
 		ResourceData data = loadFile(path);
 		return data;
 	}
@@ -85,7 +87,9 @@ void ResourceManager::unloadAll()
 		{
 			iter->lock()->unload(sInstance);
 			iter++;
-		}else{
+		}
+		else
+		{
 			iter = mReloadables.erase(iter);
 		}
 	}
@@ -100,7 +104,9 @@ void ResourceManager::reloadAll()
 		{
 			iter->lock()->reload(sInstance);
 			iter++;
-		}else{
+		}
+		else
+		{
 			iter = mReloadables.erase(iter);
 		}
 	}

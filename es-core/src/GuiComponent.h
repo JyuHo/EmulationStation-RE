@@ -11,7 +11,7 @@ class AnimationController;
 class ThemeData;
 class Font;
 
-typedef std::pair<const char*, const char*> HelpPrompt;
+using HelpPrompt = std::pair<const char*, const char*>;
 
 class GuiComponent
 {
@@ -42,10 +42,10 @@ public:
 	virtual void onPositionChanged() {};
 
 	Eigen::Vector2f getSize() const;
-    void setSize(const Eigen::Vector2f& size);
-    void setSize(float w, float h);
-    virtual void onSizeChanged() {};
-	
+	void setSize(const Eigen::Vector2f& size);
+	void setSize(float w, float h);
+	virtual void onSizeChanged() {};
+
 	void setParent(GuiComponent* parent);
 	GuiComponent* getParent() const;
 
@@ -59,11 +59,15 @@ public:
 	bool isAnimationPlaying(unsigned char slot) const;
 	bool isAnimationReversed(unsigned char slot) const;
 	int getAnimationTime(unsigned char slot) const;
-	void setAnimation(Animation* animation, int delay = 0, std::function<void()> finishedCallback = nullptr, bool reverse = false, unsigned char slot = 0);
+	void setAnimation(Animation* animation, int delay = 0, std::function<void()> finishedCallback = nullptr,
+		bool reverse = false, unsigned char slot = 0);
 	bool stopAnimation(unsigned char slot);
-	bool cancelAnimation(unsigned char slot); // Like stopAnimation, but doesn't call finishedCallback - only removes the animation, leaving things in their current state.  Returns true if successful (an animation was in this slot).
-	bool finishAnimation(unsigned char slot); // Calls update(1.f) and finishedCallback, then deletes the animation - basically skips to the end.  Returns true if successful (an animation was in this slot).
-	bool advanceAnimation(unsigned char slot, unsigned int time); // Returns true if successful (an animation was in this slot).
+	bool cancelAnimation(unsigned char
+			slot); // Like stopAnimation, but doesn't call finishedCallback - only removes the animation, leaving things in their current state.  Returns true if successful (an animation was in this slot).
+	bool finishAnimation(unsigned char
+			slot); // Calls update(1.f) and finishedCallback, then deletes the animation - basically skips to the end.  Returns true if successful (an animation was in this slot).
+	bool advanceAnimation(
+		unsigned char slot, unsigned int time); // Returns true if successful (an animation was in this slot).
 	void stopAllAnimations();
 	void cancelAllAnimations();
 
@@ -80,19 +84,20 @@ public:
 
 	// Default implementation just handles <pos> and <size> tags as normalized float pairs.
 	// You probably want to keep this behavior for any derived classes as well as add your own.
-	virtual void applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element, unsigned int properties);
+	virtual void applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view,
+		const std::string& element, unsigned int properties);
 
 	// Returns a list of help prompts.
 	virtual std::vector<HelpPrompt> getHelpPrompts() { return std::vector<HelpPrompt>(); };
 
 	// Called whenever help prompts change.
 	void updateHelpPrompts();
-	
+
 	virtual HelpStyle getHelpStyle();
 
 protected:
 	void renderChildren(const Eigen::Affine3f& transform) const;
-	void updateSelf(int deltaTime); // updates animations
+	void updateSelf(int deltaTime);		// updates animations
 	void updateChildren(int deltaTime); // updates animations
 
 	unsigned char mOpacity;

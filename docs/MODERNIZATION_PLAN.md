@@ -12,7 +12,7 @@
 | Phase | Sujet | Dépend de | Taille estimée |
 |------:|-------|-----------|----------------|
 | 1 | Build moderne : CMake 3.25+, C++23, presets, CI Arch ; FreeImage → stb_image + libwebp | — | S (fait, PR #1) |
-| 2 | Hygiène C++23 et outillage (clang-format, clang-tidy, tests, logs) | 1 | M |
+| 2 | Hygiène C++23 et outillage (clang-format, clang-tidy, tests, logs) | 1 | M (fait, PR #2) |
 | 3 | Suppression de Boost + module de chemins **XDG** (std::filesystem, std::chrono, std::variant) | 2 | M |
 | 4 | Remplacement d'Eigen par une petite bibliothèque mathématique (glm) | 2 | M |
 | 5 | Migration SDL2 → SDL3 (fenêtre, événements, manettes, audio) | 3, 4 | L |
@@ -173,45 +173,59 @@ utilise une moyenne par zone écrite dans `ImageIO.cpp` (suffisant pour des vign
 
 ---
 
-## Phase 2 — Hygiène C++23 et outillage
+## Phase 2 — Hygiène C++23 et outillage (PR #2)
 
 **Objectif** : rendre le code sûr à modifier en masse dans les phases suivantes.
 
-### Tâches
-1. **Formatage** : ajouter `.clang-format` reproduisant le style existant (tabulations,
-   accolades Allman pour fonctions/classes, largeur 120). Reformater en **un seul commit
-   dédié** (`style: apply clang-format`), puis ajouter son hash à `.git-blame-ignore-revs`.
-2. **Analyse statique** : `.clang-tidy` avec `modernize-*`, `bugprone-*`,
-   `performance-*`, `readability-braces-around-statements`, `cppcoreguidelines-virtual-class-destructor`
-   (exclure `modernize-use-trailing-return-type`, `readability-identifier-length`,
-   `cppcoreguidelines-avoid-magic-numbers`). Cible CMake `es-tidy` optionnelle.
-3. **Avertissements** : corriger tout ce que GCC 14 et Clang 18 signalent avec
-   `-Wall -Wextra` (notamment `override` manquants, `dangling-else`, `overloaded-virtual`,
-   affectation dans `HttpReq.cpp:120`). Puis activer `ES_WARNINGS_AS_ERRORS` en CI.
-4. **Modernisations mécaniques** (clang-tidy `--fix`, relu à la main) :
-   `override`, `nullptr`, `using` au lieu de `typedef`, `= default`, boucles `for` sur
-   plages, `emplace_back`, `#pragma once` partout, `enum` → `enum class` quand l'énumération
-   n'est pas utilisée comme masque de bits.
-5. **Propriété mémoire** : recenser les `new`/`delete` nus (`grep -rn "new \|delete "`)
-   et les remplacer par `std::unique_ptr`/`std::make_unique` ; `Window::pushGui`/`GuiComponent`
-   gardent la sémantique actuelle mais documentent qui possède quoi.
-6. **Journalisation** : réécrire `Log` (`es-core/src/Log.{h,cpp}`) avec `std::format`,
-   niveaux `Error/Warning/Info/Debug`, macro `LOG(level)` conservée pour compatibilité,
-   sortie fichier `es_log.txt` (emplacement fourni par `Paths` à partir de la phase 3.A ;
-   d'ici là, chemin actuel inchangé) + `stderr` en mode `--debug`.
-   Pas de dépendance externe (spdlog possible mais non nécessaire).
-7. **Tests** : ajouter `tests/` avec **Catch2 v3** (paquet Arch `catch2`), option CMake
-   `ES_BUILD_TESTS` (ON en CI), `enable_testing()` + `catch_discover_tests`. Premiers tests :
-   `Util` (chemins, chaînes), `MetaDataList`, parsing de `gamelist.xml`, parsing de thèmes
-   sur des fixtures `tests/data/`.
-8. **Test de fumée graphique en CI** : lancer l'application sous `xvfb-run` avec un
-   `es_systems.cfg` minimal (voir `tests/smoke/`), tuer après 5 s, échouer si le log contient
-   `lvl0` (erreur) ou si le processus s'arrête avant.
+### Fait
+1. **Formatage** : `.clang-format` (tabulations, accolades sur nouvelle ligne, largeur 120,
+   commentaires non reformatés) et `.clang-format-ignore` (`MameNameMap.cpp`,
+   `data/converted/`, `external/`). Code reformaté dans le commit isolé
+   `style: apply clang-format…`, listé dans `.git-blame-ignore-revs`
+   (`git config blame.ignoreRevsFile .git-blame-ignore-revs`). **Fusionner la PR par
+   « merge commit »** (pas « squash ») pour que ce hash reste valide.
+2. **Analyse statique** : `.clang-tidy` (bugprone, modernize, performance, quelques
+   readability) et cible CMake `es-tidy` (si `run-clang-tidy` est installé). Non bloquant en CI.
+3. **Avertissements** : zéro avertissement GCC 14 et Clang 18 dans `es-core`, `es-app`
+   et `tests` ; `ES_WARNINGS_AS_ERRORS=ON` en CI et dans le preset `debug`.
+   Corrections notables : macro `LOG()` devenue une seule instruction (plus de
+   `dangling-else`), **bug réel** de priorité dans `FileData::getCleanName`
+   (`a && b || c` déréférençait un système nul), `override` partout, ordre des
+   listes d'initialisation, `SliderComponent` ne masque plus `GuiComponent::setValue`.
+4. **Modernisations mécaniques** (clang-tidy, relues) : `nullptr`, `using`, `= default`,
+   `emplace_back`, littéraux booléens. `modernize-loop-convert` a été **écarté** : il
+   nomme les variables de boucle comme des membres (`mCell`), ce qui trompe le lecteur.
+5. **Journalisation** : `Log` réécrit (`std::format`, horodatage, mutex, niveaux
+   `ERROR/WARN/INFO/DEBUG`). Format de ligne : `YYYY-MM-DD HH:MM:SS.mmm [LEVEL] message`.
+   `LOG(level) << …` conservé ; `Log::write(level, "fmt {}", args…)` pour le code nouveau.
+   Un message émis avant `Log::open()` part sur `stderr` au lieu d'être perdu.
+6. **Tests** : Catch2 v3, option `ES_BUILD_TESTS` (ON dans les presets `debug`,
+   `asan`, `relwithdebinfo`, `clang-debug` et en CI), `testPresets`. Les sources de
+   `es-app` (sauf `main.cpp`) forment la bibliothèque `es-app-lib` pour être testables.
+   13 tests dans `tests/unit/` : `ImageIO` (PNG, WebP, rejet, redimensionnement),
+   `Util` (majuscules, `resolvePath`, `makeRelativePath`, `string_to_ptime`),
+   `MetaDataList` (valeurs par défaut, **aller-retour XML exact**, chemins relatifs),
+   `ThemeData` (chargement d'un thème v3, rejets). Ce sont des **tests de
+   caractérisation** : les phases 3 et 4 doivent les garder verts (en adaptant seulement
+   les types Boost/Eigen dans les assertions).
+7. **Test de fumée** : `tests/smoke/run.sh <binaire> [secondes] [capture.png]` lance ES
+   sous Xvfb avec un `HOME` jetable et un système NES, échoue si ES s'arrête seul, si
+   aucun log n'est écrit ou si une ligne `[ERROR]` apparaît. En CI, la capture d'écran
+   est publiée comme artefact (`smoke-gcc`, `smoke-clang`).
+
+### Reporté (à faire en début de phase 3 par l'agent suivant)
+- **Propriété mémoire** (ex-tâche 5) : 93 `new` et 83 `delete` nus restent, dont 19
+  `pushGui(new …)`. À traiter **module par module** avec `std::unique_ptr` en documentant
+  la propriété (`Window` possède les `GuiComponent` empilés ; les enfants ajoutés par
+  `addChild` ne sont **pas** possédés par leur parent). Vérifier chaque étape avec le
+  preset `asan` et le test de fumée.
+- `enum` → `enum class` (non fait : plusieurs énumérations servent de masques de bits
+  ou d'index ; à faire au cas par cas).
 
 ### Critères d'acceptation
-- Zéro avertissement GCC/Clang dans `es-core` et `es-app` ; `-Werror` actif en CI.
-- `ctest --preset debug` vert en CI.
-- Aucun changement de comportement visible.
+- Zéro avertissement GCC/Clang dans `es-core` et `es-app` ; `-Werror` actif en CI. ✓
+- `ctest --preset debug` vert en CI. ✓
+- Aucun changement de comportement visible (seul le format des lignes de log change). ✓
 
 ---
 
@@ -688,7 +702,7 @@ prioritaires dans `$XDG_DATA_HOME/emulationstation/locale/`).
 | Phase | Paquets (`pacman -S --needed`) |
 |-------|--------------------------------|
 | 1 | `base-devel cmake ninja clang sdl2-compat boost freetype2 eigen curl alsa-lib libglvnd mesa libwebp` |
-| 2 | + `catch2 xorg-server-xvfb` |
+| 2 | + `catch2 xorg-server-xvfb imagemagick` (tests, test de fumée, capture) |
 | 3 | − `boost`, + `fontconfig` |
 | 4 | − `eigen`, + `glm` |
 | 5 | − `sdl2-compat`, + `sdl3` |
@@ -700,7 +714,8 @@ prioritaires dans `$XDG_DATA_HOME/emulationstation/locale/`).
 
 ```bash
 cmake --preset debug && cmake --build --preset debug
-ctest --preset debug                         # à partir de la phase 2
+ctest --preset debug
+tests/smoke/run.sh build/debug/emulationstation 6 shot.png
 cmake --preset asan && cmake --build --preset asan
 cmake --build --preset debug --target es-update-pot   # à partir de la phase 10
 ./build/debug/emulationstation --windowed --resolution 1280 720 --debug

@@ -10,12 +10,12 @@ class DetailedGameListView : public BasicGameListView
 public:
 	DetailedGameListView(Window* window, FileData* root);
 
-	virtual void onThemeChanged(const std::shared_ptr<ThemeData>& theme) override;
+	void onThemeChanged(const std::shared_ptr<ThemeData>& theme) override;
 
-	virtual const char* getName() const override { return "detailed"; }
+	const char* getName() const override { return "detailed"; }
 
 protected:
-	virtual void launch(FileData* game) override;
+	void launch(FileData* game) override;
 
 private:
 	void updateInfoPanel();
@@ -25,7 +25,8 @@ private:
 
 	ImageComponent mImage;
 
-	TextComponent mLblRating, mLblReleaseDate, mLblDeveloper, mLblPublisher, mLblGenre, mLblPlayers, mLblLastPlayed, mLblPlayCount;
+	TextComponent mLblRating, mLblReleaseDate, mLblDeveloper, mLblPublisher, mLblGenre, mLblPlayers, mLblLastPlayed,
+		mLblPlayCount;
 
 	RatingComponent mRating;
 	DateTimeComponent mReleaseDate;
