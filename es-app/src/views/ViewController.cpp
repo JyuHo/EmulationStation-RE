@@ -230,9 +230,9 @@ std::shared_ptr<IGameListView> ViewController::getGameListView(SystemData* syste
 	}
 
 	if(detailed)
-		view = std::shared_ptr<IGameListView>(new DetailedGameListView(mWindow, system->getRootFolder()));
+		view = std::make_shared<DetailedGameListView>(mWindow, system->getRootFolder());
 	else
-		view = std::shared_ptr<IGameListView>(new BasicGameListView(mWindow, system->getRootFolder()));
+		view = std::make_shared<BasicGameListView>(mWindow, system->getRootFolder());
 
 	// uncomment for experimental "image grid" view
 	//view = std::shared_ptr<IGameListView>(new GridGameListView(mWindow, system->getRootFolder()));
@@ -255,7 +255,7 @@ std::shared_ptr<SystemView> ViewController::getSystemListView()
 	if(mSystemListView)
 		return mSystemListView;
 
-	mSystemListView = std::shared_ptr<SystemView>(new SystemView(mWindow));
+	mSystemListView = std::make_shared<SystemView>(mWindow);
 	addChild(mSystemListView.get());
 	mSystemListView->setPosition(0, (float)Renderer::getScreenHeight());
 	return mSystemListView;
