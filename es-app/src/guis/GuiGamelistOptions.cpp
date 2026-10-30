@@ -79,7 +79,7 @@ void GuiGamelistOptions::openMetaDataEd()
 	mWindow->pushGui(
 		new GuiMetaDataEd(mWindow, &file->metadata, file->metadata.getMDD(), p, file->getPath().filename().string(),
 			std::bind(&IGameListView::onFileChanged, getGamelist(), file, FILE_METADATA_CHANGED), [this, file] {
-				boost::filesystem::remove(file->getPath()); //actually delete the file on the filesystem
+				std::filesystem::remove(file->getPath()); //actually delete the file on the filesystem
 				file->getParent()->removeChild(
 					file); //unlink it so list repopulations triggered from onFileChanged won't see it
 				getGamelist()->onFileChanged(file, FILE_REMOVED); //tell the view

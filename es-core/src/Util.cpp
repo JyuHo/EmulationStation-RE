@@ -2,7 +2,7 @@
 #include "resources/ResourceManager.h"
 #include "platform.h"
 
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 
 std::string strToUpper(const char* from)
 {
@@ -66,10 +66,10 @@ Eigen::Vector2f roundVector(const Eigen::Vector2f& vec)
 // embedded resources, e.g. ":/font.ttf", need to be properly handled too
 std::string getCanonicalPath(const std::string& path)
 {
-	if(path.empty() || !boost::filesystem::exists(path))
+	if(path.empty() || !std::filesystem::exists(path))
 		return path;
 
-	return boost::filesystem::canonical(path).generic_string();
+	return std::filesystem::canonical(path).generic_string();
 }
 
 // expands "./my/path.sfc" to "[relativeTo]/my/path.sfc"
@@ -123,7 +123,7 @@ fs::path removeCommonPath(const fs::path& path, const fs::path& relativeTo, bool
 	// find point of divergence
 	auto itr_path = p.begin();
 	auto itr_relative_to = r.begin();
-	while(*itr_path == *itr_relative_to && itr_path != p.end() && itr_relative_to != r.end())
+	while(itr_path != p.end() && itr_relative_to != r.end() && *itr_path == *itr_relative_to)
 	{
 		++itr_path;
 		++itr_relative_to;

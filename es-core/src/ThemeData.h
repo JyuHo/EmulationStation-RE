@@ -6,7 +6,7 @@
 #include <map>
 #include <deque>
 #include <string>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <boost/variant.hpp>
 #include <Eigen/Dense>
 #include "pugixml/pugixml.hpp"
@@ -49,7 +49,7 @@ public:
 
 	template <typename T> friend ThemeException& operator<<(ThemeException& e, T msg);
 
-	inline void setFiles(const std::deque<boost::filesystem::path>& deque)
+	inline void setFiles(const std::deque<std::filesystem::path>& deque)
 	{
 		*this << "from theme \"" << deque.front().string() << "\"\n";
 		for(auto it = deque.begin() + 1; it != deque.end(); it++)
@@ -81,10 +81,10 @@ private:
 
 struct ThemeSet
 {
-	boost::filesystem::path path;
+	std::filesystem::path path;
 
 	inline std::string getName() const { return path.stem().string(); }
-	inline boost::filesystem::path getThemePath(const std::string& system) const { return path / system / "theme.xml"; }
+	inline std::filesystem::path getThemePath(const std::string& system) const { return path / system / "theme.xml"; }
 };
 
 class ThemeData
@@ -137,12 +137,12 @@ public:
 	static const std::shared_ptr<ThemeData>& getDefault();
 
 	static std::map<std::string, ThemeSet> getThemeSets();
-	static boost::filesystem::path getThemeFromCurrentSet(const std::string& system);
+	static std::filesystem::path getThemeFromCurrentSet(const std::string& system);
 
 private:
 	static std::map<std::string, std::map<std::string, ElementPropertyType>> sElementMap;
 
-	std::deque<boost::filesystem::path> mPaths;
+	std::deque<std::filesystem::path> mPaths;
 	float mVersion;
 
 	void parseIncludes(const pugi::xml_node& themeRoot);

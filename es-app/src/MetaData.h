@@ -5,7 +5,7 @@
 #include <map>
 #include "GuiComponent.h"
 #include <boost/date_time.hpp>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 enum MetaDataType
 {
@@ -44,8 +44,8 @@ class MetaDataList
 {
 public:
 	static MetaDataList createFromXML(
-		MetaDataListType type, pugi::xml_node node, const boost::filesystem::path& relativeTo);
-	void appendToXML(pugi::xml_node parent, bool ignoreDefaults, const boost::filesystem::path& relativeTo) const;
+		MetaDataListType type, pugi::xml_node node, const std::filesystem::path& relativeTo);
+	void appendToXML(pugi::xml_node parent, bool ignoreDefaults, const std::filesystem::path& relativeTo) const;
 
 	MetaDataList(MetaDataListType type);
 

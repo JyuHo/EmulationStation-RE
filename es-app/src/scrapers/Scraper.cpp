@@ -2,7 +2,7 @@
 #include "Log.h"
 #include "Settings.h"
 #include "ImageIO.h"
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <boost/assign.hpp>
 
 #include "GamesDBScraper.h"
@@ -216,13 +216,13 @@ std::string getSaveAsPath(const ScraperSearchParams& params, const std::string& 
 
 	std::string path = getHomePath() + "/.emulationstation/downloaded_images/";
 
-	if(!boost::filesystem::exists(path))
-		boost::filesystem::create_directory(path);
+	if(!std::filesystem::exists(path))
+		std::filesystem::create_directory(path);
 
 	path += subdirectory + "/";
 
-	if(!boost::filesystem::exists(path))
-		boost::filesystem::create_directory(path);
+	if(!std::filesystem::exists(path))
+		std::filesystem::create_directory(path);
 
 	size_t dot = url.find_last_of('.');
 	std::string ext;

@@ -1,6 +1,6 @@
 #include "platform.h"
 #include <stdlib.h>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <iostream>
 
 #ifdef WIN32
@@ -37,7 +37,7 @@ std::string getHomePath()
 #endif
 
 	// convert path to generic directory seperators
-	boost::filesystem::path genericPath(homePath);
+	std::filesystem::path genericPath(homePath);
 	return genericPath.generic_string();
 }
 

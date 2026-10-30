@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <string>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include "MetaData.h"
 
 class SystemData;
@@ -32,12 +32,12 @@ std::string removeParenthesis(const std::string& str);
 class FileData
 {
 public:
-	FileData(FileType type, const boost::filesystem::path& path, SystemData* system);
+	FileData(FileType type, const std::filesystem::path& path, SystemData* system);
 	virtual ~FileData();
 
 	inline const std::string& getName() const { return metadata.get("name"); }
 	inline FileType getType() const { return mType; }
-	inline const boost::filesystem::path& getPath() const { return mPath; }
+	inline const std::filesystem::path& getPath() const { return mPath; }
 	inline FileData* getParent() const { return mParent; }
 	inline const std::vector<FileData*>& getChildren() const { return mChildren; }
 	inline SystemData* getSystem() const { return mSystem; }
@@ -71,7 +71,7 @@ public:
 
 private:
 	FileType mType;
-	boost::filesystem::path mPath;
+	std::filesystem::path mPath;
 	SystemData* mSystem;
 	FileData* mParent;
 	std::vector<FileData*> mChildren;

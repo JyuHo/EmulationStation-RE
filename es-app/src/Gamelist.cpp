@@ -1,14 +1,14 @@
 #include "Gamelist.h"
 #include "SystemData.h"
 #include "pugixml/pugixml.hpp"
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include "Log.h"
 #include "Settings.h"
 #include "Util.h"
 
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 
-FileData* findOrCreateFile(SystemData* system, const boost::filesystem::path& path, FileType type)
+FileData* findOrCreateFile(SystemData* system, const std::filesystem::path& path, FileType type)
 {
 	// first, verify that path is within the system's root folder
 	FileData* root = system->getRootFolder();
@@ -81,7 +81,7 @@ void parseGamelist(SystemData* system)
 {
 	std::string xmlpath = system->getGamelistPath(false);
 
-	if(!boost::filesystem::exists(xmlpath))
+	if(!std::filesystem::exists(xmlpath))
 		return;
 
 	LOG(LogInfo) << "Parsing XML file \"" << xmlpath << "\"...";
@@ -114,7 +114,7 @@ void parseGamelist(SystemData* system)
 		{
 			fs::path path = resolvePath(fileNode.child("path").text().get(), relativeTo, false);
 
-			if(!boost::filesystem::exists(path))
+			if(!std::filesystem::exists(path))
 			{
 				LOG(LogWarning) << "File \"" << path << "\" does not exist! Ignoring.";
 				continue;
@@ -178,7 +178,7 @@ void updateGamelist(SystemData* system)
 	pugi::xml_node root;
 	std::string xmlReadPath = system->getGamelistPath(false);
 
-	if(boost::filesystem::exists(xmlReadPath))
+	if(std::filesystem::exists(xmlReadPath))
 	{
 		//parse an existing file first
 		pugi::xml_parse_result result = doc.load_file(xmlReadPath.c_str());
@@ -245,8 +245,8 @@ void updateGamelist(SystemData* system)
 		//now write the file
 
 		//make sure the folders leading up to this path exist (or the write will fail)
-		boost::filesystem::path xmlWritePath(system->getGamelistPath(true));
-		boost::filesystem::create_directories(xmlWritePath.parent_path());
+		std::filesystem::path xmlWritePath(system->getGamelistPath(true));
+		std::filesystem::create_directories(xmlWritePath.parent_path());
 
 		if(!doc.save_file(xmlWritePath.c_str()))
 		{

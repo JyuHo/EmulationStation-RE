@@ -5,7 +5,7 @@
 #include "Window.h"
 #include "Log.h"
 #include "pugixml/pugixml.hpp"
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include "platform.h"
 
 #define KEYBOARD_GUID_STRING "-1"
@@ -21,7 +21,7 @@
 // 4. Joystick GUID - this is some squashed version of joystick vendor, version, and a bunch of other device-specific things.
 //    It should remain the same across runs of the program/system restarts/device reordering and is what I use to identify which joystick to load.
 
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 
 InputManager* InputManager::mInstance = nullptr;
 
