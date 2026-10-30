@@ -23,8 +23,7 @@
 #define CHECKED_PATH ":/checkbox_checked.svg"
 #define UNCHECKED_PATH ":/checkbox_unchecked.svg"
 
-template<typename T>
-class OptionListComponent : public GuiComponent
+template <typename T> class OptionListComponent : public GuiComponent
 {
 private:
 	struct OptionListData
@@ -41,8 +40,8 @@ private:
 		OptionListComponent<T>* mParent;
 
 	public:
-		OptionListPopup(Window* window, OptionListComponent<T>* parent, const std::string& title) : GuiComponent(window),
-			mMenu(window, title.c_str()), mParent(parent)
+		OptionListPopup(Window* window, OptionListComponent<T>* parent, const std::string& title) :
+			GuiComponent(window), mMenu(window, title.c_str()), mParent(parent)
 		{
 			auto font = Font::get(FONT_SIZE_MEDIUM);
 			ComponentListRow row;
@@ -67,8 +66,7 @@ private:
 
 					// input handler
 					// update checkbox state & selected value
-					row.makeAcceptInputHandler([this, &e, checkbox]
-					{
+					row.makeAcceptInputHandler([this, &e, checkbox] {
 						e.selected = !e.selected;
 						checkbox->setImage(e.selected ? CHECKED_PATH : UNCHECKED_PATH);
 						mParent->onSelectedChanged();
@@ -76,11 +74,12 @@ private:
 
 					// for select all/none
 					checkboxes.push_back(checkbox.get());
-				}else{
+				}
+				else
+				{
 					// input handler for non-multiselect
 					// update selected value and close
-					row.makeAcceptInputHandler([this, &e]
-					{
+					row.makeAcceptInputHandler([this, &e] {
 						mParent->mEntries.at(mParent->getSelectedId()).selected = false;
 						e.selected = true;
 						mParent->onSelectedChanged();
@@ -115,7 +114,8 @@ private:
 				});
 			}
 
-			mMenu.setPosition((Renderer::getScreenWidth() - mMenu.getSize().x()) / 2, Renderer::getScreenHeight() * 0.15f);
+			mMenu.setPosition(
+				(Renderer::getScreenWidth() - mMenu.getSize().x()) / 2, Renderer::getScreenHeight() * 0.15f);
 			addChild(&mMenu);
 		}
 
@@ -139,8 +139,13 @@ private:
 	};
 
 public:
-	OptionListComponent(Window* window, const std::string& name, bool multiSelect = false) : GuiComponent(window), mMultiSelect(multiSelect), mName(name), 
-		 mText(window), mLeftArrow(window), mRightArrow(window)
+	OptionListComponent(Window* window, const std::string& name, bool multiSelect = false) :
+		GuiComponent(window),
+		mMultiSelect(multiSelect),
+		mName(name),
+		mText(window),
+		mLeftArrow(window),
+		mRightArrow(window)
 	{
 		auto font = Font::get(FONT_SIZE_MEDIUM, FONT_PATH_LIGHT);
 		mText.setFont(font);
@@ -152,7 +157,9 @@ public:
 		{
 			mRightArrow.setImage(":/arrow.svg");
 			addChild(&mRightArrow);
-		}else{
+		}
+		else
+		{
 			mLeftArrow.setImage(":/option_arrow.svg");
 			mLeftArrow.setFlipX(true);
 			addChild(&mLeftArrow);
@@ -177,8 +184,10 @@ public:
 
 		// position
 		mLeftArrow.setPosition(0, (mSize.y() - mLeftArrow.getSize().y()) / 2);
-		mText.setPosition(mLeftArrow.getPosition().x() + mLeftArrow.getSize().x(), (mSize.y() - mText.getSize().y()) / 2);
-		mRightArrow.setPosition(mText.getPosition().x() + mText.getSize().x(), (mSize.y() - mRightArrow.getSize().y()) / 2);
+		mText.setPosition(
+			mLeftArrow.getPosition().x() + mLeftArrow.getSize().x(), (mSize.y() - mText.getSize().y()) / 2);
+		mRightArrow.setPosition(
+			mText.getPosition().x() + mText.getSize().x(), (mSize.y() - mRightArrow.getSize().y()) / 2);
 	}
 
 	bool input(InputConfig* config, Input input) override
@@ -204,8 +213,8 @@ public:
 					mEntries.at(next).selected = true;
 					onSelectedChanged();
 					return true;
-
-				}else if(config->isMappedTo("right", input))
+				}
+				else if(config->isMappedTo("right", input))
 				{
 					// move selection to next
 					unsigned int i = getSelectedId();
@@ -214,7 +223,6 @@ public:
 					mEntries.at(next).selected = true;
 					onSelectedChanged();
 					return true;
-
 				}
 			}
 		}
@@ -266,10 +274,7 @@ private:
 		return 0;
 	}
 
-	void open()
-	{
-		mWindow->pushGui(new OptionListPopup(mWindow, this, mName));
-	}
+	void open() { mWindow->pushGui(new OptionListPopup(mWindow, this, mName)); }
 
 	void onSelectedChanged()
 	{
@@ -283,7 +288,9 @@ private:
 			setSize(mText.getSize().x() + mRightArrow.getSize().x() + 24, mText.getSize().y());
 			if(mParent) // hack since theres no "on child size changed" callback atm...
 				mParent->onSizeChanged();
-		}else{
+		}
+		else
+		{
 			// display currently selected + l/r cursors
 			for(auto it = mEntries.begin(); it != mEntries.end(); it++)
 			{
@@ -291,7 +298,8 @@ private:
 				{
 					mText.setText(strToUpper(it->name));
 					mText.setSize(0, mText.getSize().y());
-					setSize(mText.getSize().x() + mLeftArrow.getSize().x() + mRightArrow.getSize().x() + 24, mText.getSize().y());
+					setSize(mText.getSize().x() + mLeftArrow.getSize().x() + mRightArrow.getSize().x() + 24,
+						mText.getSize().y());
 					if(mParent) // hack since theres no "on child size changed" callback atm...
 						mParent->onSizeChanged();
 					break;
@@ -305,7 +313,7 @@ private:
 		std::vector<HelpPrompt> prompts;
 		if(!mMultiSelect)
 			prompts.push_back(HelpPrompt("left/right", "change"));
-		
+
 		prompts.push_back(HelpPrompt("a", "select"));
 		return prompts;
 	}

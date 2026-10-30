@@ -13,17 +13,17 @@ public:
 	//Minimum value (far left of the slider), maximum value (far right of the slider), increment size (how much just pressing L/R moves by), unit to display (optional).
 	SliderComponent(Window* window, float min, float max, float increment, const std::string& suffix = "");
 
-	using GuiComponent::setValue;
 	using GuiComponent::getValue;
+	using GuiComponent::setValue;
 	void setValue(float val);
 	float getValue();
 
 	bool input(InputConfig* config, Input input) override;
 	void update(int deltaTime) override;
 	void render(const Eigen::Affine3f& parentTrans) override;
-	
+
 	void onSizeChanged() override;
-	
+
 	std::vector<HelpPrompt> getHelpPrompts() override;
 
 private:

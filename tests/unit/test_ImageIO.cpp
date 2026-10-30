@@ -11,40 +11,53 @@
 #include <iterator>
 #include <vector>
 
-namespace
+namespace {
+// 2x2 RGBA image, top row red, bottom row blue.
+std::vector<unsigned char> makePixels()
 {
-	// 2x2 RGBA image, top row red, bottom row blue.
-	std::vector<unsigned char> makePixels()
-	{
-		return {
-			255, 0, 0, 255,   255, 0, 0, 255,
-			0, 0, 255, 255,   0, 0, 255, 255,
-		};
-	}
-
-	void appendToVector(void* context, void* data, int size)
-	{
-		auto* out = static_cast<std::vector<unsigned char>*>(context);
-		auto* bytes = static_cast<unsigned char*>(data);
-		out->insert(out->end(), bytes, bytes + size);
-	}
-
-	std::vector<unsigned char> encodePng(int w, int h, const std::vector<unsigned char>& px)
-	{
-		std::vector<unsigned char> out;
-		stbi_write_png_to_func(appendToVector, &out, w, h, 4, px.data(), w * 4);
-		return out;
-	}
-
-	std::vector<unsigned char> encodeWebpLossless(int w, int h, const std::vector<unsigned char>& px)
-	{
-		uint8_t* data = nullptr;
-		const size_t size = WebPEncodeLosslessRGBA(px.data(), w, h, w * 4, &data);
-		std::vector<unsigned char> out(data, data + size);
-		WebPFree(data);
-		return out;
-	}
+	return {
+		255,
+		0,
+		0,
+		255,
+		255,
+		0,
+		0,
+		255,
+		0,
+		0,
+		255,
+		255,
+		0,
+		0,
+		255,
+		255,
+	};
 }
+
+void appendToVector(void* context, void* data, int size)
+{
+	auto* out = static_cast<std::vector<unsigned char>*>(context);
+	auto* bytes = static_cast<unsigned char*>(data);
+	out->insert(out->end(), bytes, bytes + size);
+}
+
+std::vector<unsigned char> encodePng(int w, int h, const std::vector<unsigned char>& px)
+{
+	std::vector<unsigned char> out;
+	stbi_write_png_to_func(appendToVector, &out, w, h, 4, px.data(), w * 4);
+	return out;
+}
+
+std::vector<unsigned char> encodeWebpLossless(int w, int h, const std::vector<unsigned char>& px)
+{
+	uint8_t* data = nullptr;
+	const size_t size = WebPEncodeLosslessRGBA(px.data(), w, h, w * 4, &data);
+	std::vector<unsigned char> out(data, data + size);
+	WebPFree(data);
+	return out;
+}
+} // namespace
 
 TEST_CASE("ImageIO decodes PNG bottom-up", "[ImageIO]")
 {
@@ -76,7 +89,7 @@ TEST_CASE("ImageIO decodes lossless WebP bottom-up", "[ImageIO]")
 
 TEST_CASE("ImageIO rejects garbage", "[ImageIO]")
 {
-	const unsigned char junk[] = { 1, 2, 3, 4, 5, 6, 7, 8 };
+	const unsigned char junk[] = {1, 2, 3, 4, 5, 6, 7, 8};
 	size_t w = 1, h = 1;
 	const auto px = ImageIO::loadFromMemoryRGBA32(junk, sizeof(junk), w, h);
 	CHECK(px.empty());

@@ -6,12 +6,11 @@
 
 #include "platform.h"
 
-namespace
-{
-	LogLevel sReportingLevel = LogInfo;
-	std::FILE* sFile = nullptr;
-	std::mutex sMutex;
-}
+namespace {
+LogLevel sReportingLevel = LogInfo;
+std::FILE* sFile = nullptr;
+std::mutex sMutex;
+} // namespace
 
 LogLevel Log::getReportingLevel()
 {

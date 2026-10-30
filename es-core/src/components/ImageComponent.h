@@ -58,9 +58,11 @@ public:
 
 	void render(const Eigen::Affine3f& parentTrans) override;
 
-	void applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element, unsigned int properties) override;
+	void applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element,
+		unsigned int properties) override;
 
 	std::vector<HelpPrompt> getHelpPrompts() override;
+
 private:
 	Eigen::Vector2f mTargetSize;
 	Eigen::Vector2f mOrigin;
@@ -77,7 +79,7 @@ private:
 		Eigen::Vector2f tex;
 	} mVertices[6];
 
-	GLubyte mColors[6*4];
+	GLubyte mColors[6 * 4];
 
 	void updateVertices();
 	void updateColors();

@@ -8,9 +8,8 @@
 #include "GamesDBScraper.h"
 #include "TheArchiveScraper.h"
 
-const std::map<std::string, generate_scraper_requests_func> scraper_request_funcs = boost::assign::map_list_of
-	("TheGamesDB", &thegamesdb_generate_scraper_requests)
-	("TheArchive", &thearchive_generate_scraper_requests);
+const std::map<std::string, generate_scraper_requests_func> scraper_request_funcs = boost::assign::map_list_of(
+	"TheGamesDB", &thegamesdb_generate_scraper_requests)("TheArchive", &thearchive_generate_scraper_requests);
 
 std::unique_ptr<ScraperSearchHandle> startScraperSearch(const ScraperSearchParams& params)
 {
@@ -78,17 +77,12 @@ void ScraperSearchHandle::update()
 	}
 }
 
-
-
 // ScraperRequest
-ScraperRequest::ScraperRequest(std::vector<ScraperSearchResult>& resultsWrite) : mResults(resultsWrite)
-{
-}
-
+ScraperRequest::ScraperRequest(std::vector<ScraperSearchResult>& resultsWrite) : mResults(resultsWrite) {}
 
 // ScraperHttpRequest
-ScraperHttpRequest::ScraperHttpRequest(std::vector<ScraperSearchResult>& resultsWrite, const std::string& url) 
-	: ScraperRequest(resultsWrite)
+ScraperHttpRequest::ScraperHttpRequest(std::vector<ScraperSearchResult>& resultsWrite, const std::string& url) :
+	ScraperRequest(resultsWrite)
 {
 	setStatus(ASYNC_IN_PROGRESS);
 	mReq = std::unique_ptr<HttpReq>(new HttpReq(url));
@@ -113,10 +107,10 @@ void ScraperHttpRequest::update()
 	setError(mReq->getErrorMsg());
 }
 
-
 // metadata resolving stuff
 
-std::unique_ptr<MDResolveHandle> resolveMetaDataAssets(const ScraperSearchResult& result, const ScraperSearchParams& search)
+std::unique_ptr<MDResolveHandle> resolveMetaDataAssets(
+	const ScraperSearchResult& result, const ScraperSearchParams& search)
 {
 	return std::unique_ptr<MDResolveHandle>(new MDResolveHandle(result, search));
 }
@@ -126,8 +120,7 @@ MDResolveHandle::MDResolveHandle(const ScraperSearchResult& result, const Scrape
 	if(!result.imageUrl.empty())
 	{
 		std::string imgPath = getSaveAsPath(search, "image", result.imageUrl);
-		mFuncs.push_back(ResolvePair(downloadImageAsync(result.imageUrl, imgPath), [this, imgPath]
-		{
+		mFuncs.push_back(ResolvePair(downloadImageAsync(result.imageUrl, imgPath), [this, imgPath] {
 			mResult.mdl.set("image", imgPath);
 			mResult.imageUrl = "";
 		}));
@@ -138,7 +131,7 @@ void MDResolveHandle::update()
 {
 	if(mStatus == ASYNC_DONE || mStatus == ASYNC_ERROR)
 		return;
-	
+
 	auto it = mFuncs.begin();
 	while(it != mFuncs.end())
 	{
@@ -146,7 +139,8 @@ void MDResolveHandle::update()
 		{
 			setError(it->first->getStatusString());
 			return;
-		}else if(it->first->status() == ASYNC_DONE)
+		}
+		else if(it->first->status() == ASYNC_DONE)
 		{
 			it->second();
 			it = mFuncs.erase(it);
@@ -161,14 +155,13 @@ void MDResolveHandle::update()
 
 std::unique_ptr<ImageDownloadHandle> downloadImageAsync(const std::string& url, const std::string& saveAs)
 {
-	return std::unique_ptr<ImageDownloadHandle>(new ImageDownloadHandle(url, saveAs, 
+	return std::unique_ptr<ImageDownloadHandle>(new ImageDownloadHandle(url, saveAs,
 		Settings::getInstance()->getInt("ScraperResizeWidth"), Settings::getInstance()->getInt("ScraperResizeHeight")));
 }
 
-ImageDownloadHandle::ImageDownloadHandle(const std::string& url, const std::string& path, int maxWidth, int maxHeight) : 
+ImageDownloadHandle::ImageDownloadHandle(const std::string& url, const std::string& path, int maxWidth, int maxHeight) :
 	mReq(new HttpReq(url)), mSavePath(path), mMaxWidth(maxWidth), mMaxHeight(maxHeight)
-{
-}
+{}
 
 void ImageDownloadHandle::update()
 {

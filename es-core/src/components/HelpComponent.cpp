@@ -12,26 +12,17 @@
 #define OFFSET_Y 12 // move the entire thing up by this amount (px)
 
 #define ICON_TEXT_SPACING 8 // space between [icon] and [text] (px)
-#define ENTRY_SPACING 16 // space between [text] and next [icon] (px)
+#define ENTRY_SPACING 16	// space between [text] and next [icon] (px)
 
 using namespace Eigen;
 
-static const std::map<std::string, const char*> ICON_PATH_MAP = boost::assign::map_list_of
-	("up/down", ":/help/dpad_updown.svg")
-	("left/right", ":/help/dpad_leftright.svg")
-	("up/down/left/right", ":/help/dpad_all.svg")
-	("a", ":/help/button_a.svg")
-	("b", ":/help/button_b.svg")
-	("x", ":/help/button_x.svg")
-	("y", ":/help/button_y.svg")
-	("l", ":/help/button_l.svg")
-	("r", ":/help/button_r.svg")
-	("start", ":/help/button_start.svg")
-	("select", ":/help/button_select.svg");
+static const std::map<std::string, const char*> ICON_PATH_MAP =
+	boost::assign::map_list_of("up/down", ":/help/dpad_updown.svg")("left/right", ":/help/dpad_leftright.svg")(
+		"up/down/left/right", ":/help/dpad_all.svg")("a", ":/help/button_a.svg")("b", ":/help/button_b.svg")(
+		"x", ":/help/button_x.svg")("y", ":/help/button_y.svg")("l", ":/help/button_l.svg")("r", ":/help/button_r.svg")(
+		"start", ":/help/button_start.svg")("select", ":/help/button_select.svg");
 
-HelpComponent::HelpComponent(Window* window) : GuiComponent(window)
-{
-}
+HelpComponent::HelpComponent(Window* window) : GuiComponent(window) {}
 
 void HelpComponent::clearPrompts()
 {
@@ -63,9 +54,9 @@ void HelpComponent::updateGrid()
 
 	mGrid = std::make_shared<ComponentGrid>(mWindow, Vector2i(mPrompts.size() * 4, 1));
 	// [icon] [spacer1] [text] [spacer2]
-	
-	std::vector< std::shared_ptr<ImageComponent> > icons;
-	std::vector< std::shared_ptr<TextComponent> > labels;
+
+	std::vector<std::shared_ptr<ImageComponent>> icons;
+	std::vector<std::shared_ptr<TextComponent>> labels;
 
 	float width = 0;
 	const float height = round(font->getLetterHeight() * 1.25f);
@@ -86,7 +77,7 @@ void HelpComponent::updateGrid()
 	mGrid->setSize(width, height);
 	for(unsigned int i = 0; i < icons.size(); i++)
 	{
-		const int col = i*4;
+		const int col = i * 4;
 		mGrid->setColWidthPerc(col, icons.at(i)->getSize().x() / width);
 		mGrid->setColWidthPerc(col + 1, ICON_TEXT_SPACING / width);
 		mGrid->setColWidthPerc(col + 2, labels.at(i)->getSize().x() / width);
@@ -104,7 +95,7 @@ std::shared_ptr<TextureResource> HelpComponent::getIconTexture(const char* name)
 	auto it = mIconCache.find(name);
 	if(it != mIconCache.end())
 		return it->second;
-	
+
 	auto pathLookup = ICON_PATH_MAP.find(name);
 	if(pathLookup == ICON_PATH_MAP.end())
 	{
@@ -113,7 +104,8 @@ std::shared_ptr<TextureResource> HelpComponent::getIconTexture(const char* name)
 	}
 	if(!ResourceManager::getInstance()->fileExists(pathLookup->second))
 	{
-		LOG(LogError) << "Help icon \"" << name << "\" - corresponding image file \"" << pathLookup->second << "\" misisng!";
+		LOG(LogError) << "Help icon \"" << name << "\" - corresponding image file \"" << pathLookup->second
+					  << "\" misisng!";
 		return nullptr;
 	}
 
@@ -135,7 +127,7 @@ void HelpComponent::setOpacity(unsigned char opacity)
 void HelpComponent::render(const Eigen::Affine3f& parentTrans)
 {
 	Eigen::Affine3f trans = parentTrans * getTransform();
-	
+
 	if(mGrid)
 		mGrid->render(trans);
 }

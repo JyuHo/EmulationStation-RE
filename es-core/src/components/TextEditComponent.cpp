@@ -11,13 +11,18 @@
 #define CURSOR_REPEAT_START_DELAY 500
 #define CURSOR_REPEAT_SPEED 28 // lower is faster
 
-TextEditComponent::TextEditComponent(Window* window) : GuiComponent(window),
-	mFocused(false), mEditing(false), 
-	mCursor(0), mCursorRepeatDir(0), mScrollOffset(0.0f, 0.0f), mBox(window, ":/textinput_ninepatch.png"), 
+TextEditComponent::TextEditComponent(Window* window) :
+	GuiComponent(window),
+	mFocused(false),
+	mEditing(false),
+	mCursor(0),
+	mCursorRepeatDir(0),
+	mScrollOffset(0.0f, 0.0f),
+	mBox(window, ":/textinput_ninepatch.png"),
 	mFont(Font::get(FONT_SIZE_MEDIUM, FONT_PATH_LIGHT))
 {
 	addChild(&mBox);
-	
+
 	onFocusLost();
 
 	setSize(256, mFont->getHeight() + TEXT_PADDING_VERT);
@@ -65,7 +70,9 @@ void TextEditComponent::textInput(const char* text)
 				mText.erase(mText.begin() + newCursor, mText.begin() + mCursor);
 				mCursor = newCursor;
 			}
-		}else{
+		}
+		else
+		{
 			mText.insert(mCursor, text);
 			mCursor += strlen(text);
 		}
@@ -112,14 +119,17 @@ bool TextEditComponent::input(InputConfig* config, Input input)
 			if(isMultiline())
 			{
 				textInput("\n");
-			}else{
+			}
+			else
+			{
 				stopEditing();
 			}
 
 			return true;
 		}
 
-		if((config->getDeviceId() == DEVICE_KEYBOARD && input.id == SDLK_ESCAPE) || (config->getDeviceId() != DEVICE_KEYBOARD && config->isMappedTo("b", input)))
+		if((config->getDeviceId() == DEVICE_KEYBOARD && input.id == SDLK_ESCAPE) ||
+			(config->getDeviceId() != DEVICE_KEYBOARD && config->isMappedTo("b", input)))
 		{
 			stopEditing();
 			return true;
@@ -128,10 +138,12 @@ bool TextEditComponent::input(InputConfig* config, Input input)
 		if(config->isMappedTo("up", input))
 		{
 			// TODO
-		}else if(config->isMappedTo("down", input))
+		}
+		else if(config->isMappedTo("down", input))
 		{
 			// TODO
-		}else if(config->isMappedTo("left", input) || config->isMappedTo("right", input))
+		}
+		else if(config->isMappedTo("left", input) || config->isMappedTo("right", input))
 		{
 			mCursorRepeatDir = config->isMappedTo("left", input) ? -1 : 1;
 			mCursorRepeatTimer = -(CURSOR_REPEAT_START_DELAY - CURSOR_REPEAT_SPEED);
@@ -193,22 +205,26 @@ void TextEditComponent::onCursorChanged()
 {
 	if(isMultiline())
 	{
-		Eigen::Vector2f textSize = mFont->getWrappedTextCursorOffset(mText, getTextAreaSize().x(), mCursor); 
+		Eigen::Vector2f textSize = mFont->getWrappedTextCursorOffset(mText, getTextAreaSize().x(), mCursor);
 
 		if(mScrollOffset.y() + getTextAreaSize().y() < textSize.y() + mFont->getHeight()) //need to scroll down?
 		{
 			mScrollOffset[1] = textSize.y() - getTextAreaSize().y() + mFont->getHeight();
-		}else if(mScrollOffset.y() > textSize.y()) //need to scroll up?
+		}
+		else if(mScrollOffset.y() > textSize.y()) //need to scroll up?
 		{
 			mScrollOffset[1] = textSize.y();
 		}
-	}else{
+	}
+	else
+	{
 		Eigen::Vector2f cursorPos = mFont->sizeText(mText.substr(0, mCursor));
 
 		if(mScrollOffset.x() + getTextAreaSize().x() < cursorPos.x())
 		{
 			mScrollOffset[0] = cursorPos.x() - getTextAreaSize().x();
-		}else if(mScrollOffset.x() > cursorPos.x())
+		}
+		else if(mScrollOffset.x() > cursorPos.x())
 		{
 			mScrollOffset[0] = cursorPos.x();
 		}
@@ -225,7 +241,8 @@ void TextEditComponent::render(const Eigen::Affine3f& parentTrans)
 	trans.translation() += Eigen::Vector3f(getTextAreaPos().x(), getTextAreaPos().y(), 0);
 
 	Eigen::Vector2i clipPos((int)trans.translation().x(), (int)trans.translation().y());
-	Eigen::Vector3f dimScaled = trans * Eigen::Vector3f(getTextAreaSize().x(), getTextAreaSize().y(), 0); // use "text area" size for clipping
+	Eigen::Vector3f dimScaled =
+		trans * Eigen::Vector3f(getTextAreaSize().x(), getTextAreaSize().y(), 0); // use "text area" size for clipping
 	Eigen::Vector2i clipDim((int)dimScaled.x() - trans.translation().x(), (int)dimScaled.y() - trans.translation().y());
 	Renderer::pushClipRect(clipPos, clipDim);
 
@@ -249,13 +266,16 @@ void TextEditComponent::render(const Eigen::Affine3f& parentTrans)
 		if(isMultiline())
 		{
 			cursorPos = mFont->getWrappedTextCursorOffset(mText, getTextAreaSize().x(), mCursor);
-		}else{
+		}
+		else
+		{
 			cursorPos = mFont->sizeText(mText.substr(0, mCursor));
 			cursorPos[1] = 0;
 		}
 
 		float cursorHeight = mFont->getHeight() * 0.8f;
-		Renderer::drawRect(cursorPos.x(), cursorPos.y() + (mFont->getHeight() - cursorHeight) / 2, 2.0f, cursorHeight, 0x000000FF);
+		Renderer::drawRect(
+			cursorPos.x(), cursorPos.y() + (mFont->getHeight() - cursorHeight) / 2, 2.0f, cursorHeight, 0x000000FF);
 	}
 }
 
@@ -281,7 +301,9 @@ std::vector<HelpPrompt> TextEditComponent::getHelpPrompts()
 	{
 		prompts.push_back(HelpPrompt("up/down/left/right", "move cursor"));
 		prompts.push_back(HelpPrompt("b", "stop editing"));
-	}else{
+	}
+	else
+	{
 		prompts.push_back(HelpPrompt("a", "edit"));
 	}
 	return prompts;

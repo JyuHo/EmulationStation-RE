@@ -10,7 +10,7 @@ public:
 	~SVGResource() override;
 
 	void unload(std::shared_ptr<ResourceManager>& rm) override;
-	
+
 	void initFromMemory(const char* image, size_t length) override;
 
 	void rasterizeAt(size_t width, size_t height);

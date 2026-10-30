@@ -5,8 +5,8 @@
 
 static const std::string LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-GuiFastSelect::GuiFastSelect(Window* window, IGameListView* gamelist) : GuiComponent(window), 
-	mBackground(window), mSortText(window), mLetterText(window), mGameList(gamelist)
+GuiFastSelect::GuiFastSelect(Window* window, IGameListView* gamelist) :
+	GuiComponent(window), mBackground(window), mSortText(window), mLetterText(window), mGameList(gamelist)
 {
 	setPosition(Renderer::getScreenWidth() * 0.2f, Renderer::getScreenHeight() * 0.2f);
 	setSize(Renderer::getScreenWidth() * 0.6f, Renderer::getScreenHeight() * 0.6f);
@@ -62,7 +62,8 @@ bool GuiFastSelect::input(InputConfig* config, Input input)
 			setScrollDir(0);
 
 		return true;
-	}else if(config->isMappedTo("down", input))
+	}
+	else if(config->isMappedTo("down", input))
 	{
 		if(input.value != 0)
 			setScrollDir(1);
@@ -70,12 +71,14 @@ bool GuiFastSelect::input(InputConfig* config, Input input)
 			setScrollDir(0);
 
 		return true;
-	}else if(config->isMappedTo("left", input) && input.value != 0)
+	}
+	else if(config->isMappedTo("left", input) && input.value != 0)
 	{
 		mSortId = (mSortId + 1) % FileSorts::SortTypes.size();
 		updateSortText();
 		return true;
-	}else if(config->isMappedTo("right", input) && input.value != 0)
+	}
+	else if(config->isMappedTo("right", input) && input.value != 0)
 	{
 		mSortId--;
 		if(mSortId < 0)
@@ -154,7 +157,8 @@ void GuiFastSelect::updateGameListCursor()
 		char check = (*it)->getName().empty() ? 'A' : (*it)->getName()[0];
 
 		// if there's an exact match or we've passed it, set the cursor to this one
-		if(check == LETTERS[mLetterId] || (sort.ascending && check > LETTERS[mLetterId]) || (!sort.ascending && check < LETTERS[mLetterId]))
+		if(check == LETTERS[mLetterId] || (sort.ascending && check > LETTERS[mLetterId]) ||
+			(!sort.ascending && check < LETTERS[mLetterId]))
 		{
 			mGameList->setCursor(*it);
 			break;

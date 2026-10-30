@@ -44,5 +44,5 @@ private:
 
 	ResourceData loadFile(const std::string& path) const;
 
-	std::list< std::weak_ptr<IReloadable> > mReloadables;
+	std::list<std::weak_ptr<IReloadable>> mReloadables;
 };

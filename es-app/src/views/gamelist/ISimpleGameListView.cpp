@@ -5,14 +5,14 @@
 #include "Sound.h"
 #include "Settings.h"
 
-ISimpleGameListView::ISimpleGameListView(Window* window, FileData* root) : IGameListView(window, root),
-	mHeaderText(window), mHeaderImage(window), mBackground(window), mThemeExtras(window)
+ISimpleGameListView::ISimpleGameListView(Window* window, FileData* root) :
+	IGameListView(window, root), mHeaderText(window), mHeaderImage(window), mBackground(window), mThemeExtras(window)
 {
 	mHeaderText.setText("Logo Text");
 	mHeaderText.setSize(mSize.x(), 0);
 	mHeaderText.setPosition(0, 0);
 	mHeaderText.setAlignment(ALIGN_CENTER);
-	
+
 	mHeaderImage.setResize(0, mSize.y() * 0.185f);
 	mHeaderImage.setOrigin(0.5f, 0.0f);
 	mHeaderImage.setPosition(mSize.x() / 2, 0);
@@ -36,7 +36,9 @@ void ISimpleGameListView::onThemeChanged(const std::shared_ptr<ThemeData>& theme
 	{
 		removeChild(&mHeaderText);
 		addChild(&mHeaderImage);
-	}else{
+	}
+	else
+	{
 		addChild(&mHeaderText);
 		removeChild(&mHeaderImage);
 	}
@@ -62,7 +64,9 @@ bool ISimpleGameListView::input(InputConfig* config, Input input)
 			{
 				Sound::getFromTheme(getTheme(), getName(), "launch")->play();
 				launch(cursor);
-			}else{
+			}
+			else
+			{
 				// it's a folder
 				if(cursor->getChildren().size() > 0)
 				{
@@ -70,9 +74,10 @@ bool ISimpleGameListView::input(InputConfig* config, Input input)
 					populateList(cursor->getChildren());
 				}
 			}
-				
+
 			return true;
-		}else if(config->isMappedTo("b", input))
+		}
+		else if(config->isMappedTo("b", input))
 		{
 			if(mCursorStack.size())
 			{
@@ -80,13 +85,16 @@ bool ISimpleGameListView::input(InputConfig* config, Input input)
 				setCursor(mCursorStack.top());
 				mCursorStack.pop();
 				Sound::getFromTheme(getTheme(), getName(), "back")->play();
-			}else{
+			}
+			else
+			{
 				onFocusLost();
 				ViewController::get()->goToSystemView(getCursor()->getSystem());
 			}
 
 			return true;
-		}else if(config->isMappedTo("right", input))
+		}
+		else if(config->isMappedTo("right", input))
 		{
 			if(Settings::getInstance()->getBool("QuickSystemSelect"))
 			{
@@ -94,7 +102,8 @@ bool ISimpleGameListView::input(InputConfig* config, Input input)
 				ViewController::get()->goToNextGameList();
 				return true;
 			}
-		}else if(config->isMappedTo("left", input))
+		}
+		else if(config->isMappedTo("left", input))
 		{
 			if(Settings::getInstance()->getBool("QuickSystemSelect"))
 			{

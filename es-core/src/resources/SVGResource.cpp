@@ -60,7 +60,8 @@ void SVGResource::rasterizeAt(size_t width, size_t height)
 	{
 		// auto scale width to keep aspect
 		width = (size_t)round((height / mSVGImage->height) * mSVGImage->width);
-	}else if(height == 0)
+	}
+	else if(height == 0)
 	{
 		// auto scale height to keep aspect
 		height = (size_t)round((width / mSVGImage->width) * mSVGImage->height);

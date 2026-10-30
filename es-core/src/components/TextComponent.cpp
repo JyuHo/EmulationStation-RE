@@ -6,14 +6,25 @@
 #include "Util.h"
 #include "Settings.h"
 
-TextComponent::TextComponent(Window* window) : GuiComponent(window), 
-	mColor(0x000000FF), mFont(Font::get(FONT_SIZE_MEDIUM)), mUppercase(false), mAutoCalcExtent(true, true), mAlignment(ALIGN_LEFT), mLineSpacing(1.5f)
-{
-}
+TextComponent::TextComponent(Window* window) :
+	GuiComponent(window),
+	mColor(0x000000FF),
+	mFont(Font::get(FONT_SIZE_MEDIUM)),
+	mUppercase(false),
+	mAutoCalcExtent(true, true),
+	mAlignment(ALIGN_LEFT),
+	mLineSpacing(1.5f)
+{}
 
-TextComponent::TextComponent(Window* window, const std::string& text, const std::shared_ptr<Font>& font, unsigned int color, Alignment align,
-	Eigen::Vector3f pos, Eigen::Vector2f size) : GuiComponent(window), 
-	mColor(0x000000FF), mFont(NULL), mUppercase(false), mAutoCalcExtent(true, true), mAlignment(align), mLineSpacing(1.5f)
+TextComponent::TextComponent(Window* window, const std::string& text, const std::shared_ptr<Font>& font,
+	unsigned int color, Alignment align, Eigen::Vector3f pos, Eigen::Vector2f size) :
+	GuiComponent(window),
+	mColor(0x000000FF),
+	mFont(NULL),
+	mUppercase(false),
+	mAutoCalcExtent(true, true),
+	mAlignment(align),
+	mLineSpacing(1.5f)
 {
 	setFont(font);
 	setColor(color);
@@ -90,7 +101,7 @@ void TextComponent::render(const Eigen::Affine3f& parentTrans)
 			Renderer::setMatrix(trans);
 			Renderer::drawRect(0.f, 0.f, mSize.x(), mSize.y(), 0xFF000033);
 		}
-		
+
 		trans.translate(off);
 		trans = roundMatrix(trans);
 		Renderer::setMatrix(trans);
@@ -104,10 +115,12 @@ void TextComponent::render(const Eigen::Affine3f& parentTrans)
 				Renderer::drawRect(0.0f, 0.0f, mTextCache->metrics.size.x(), mTextCache->metrics.size.y(), 0x00000033);
 				break;
 			case ALIGN_CENTER:
-				Renderer::drawRect((mSize.x() - mTextCache->metrics.size.x()) / 2.0f, 0.0f, mTextCache->metrics.size.x(), mTextCache->metrics.size.y(), 0x00000033);
+				Renderer::drawRect((mSize.x() - mTextCache->metrics.size.x()) / 2.0f, 0.0f,
+					mTextCache->metrics.size.x(), mTextCache->metrics.size.y(), 0x00000033);
 				break;
 			case ALIGN_RIGHT:
-				Renderer::drawRect(mSize.x() - mTextCache->metrics.size.x(), 0.0f, mTextCache->metrics.size.x(), mTextCache->metrics.size.y(), 0x00000033);
+				Renderer::drawRect(mSize.x() - mTextCache->metrics.size.x(), 0.0f, mTextCache->metrics.size.x(),
+					mTextCache->metrics.size.y(), 0x00000033);
 				break;
 			}
 		}
@@ -123,7 +136,9 @@ void TextComponent::calculateExtent()
 	if(mAutoCalcExtent.x())
 	{
 		mSize = mFont->sizeText(mUppercase ? strToUpper(mText) : mText, mLineSpacing);
-	}else{
+	}
+	else
+	{
 		if(mAutoCalcExtent.y())
 		{
 			mSize[1] = mFont->sizeWrappedText(mUppercase ? strToUpper(mText) : mText, getSize().x(), mLineSpacing).y();
@@ -144,13 +159,14 @@ void TextComponent::onTextChanged()
 	std::string text = mUppercase ? strToUpper(mText) : mText;
 
 	std::shared_ptr<Font> f = mFont;
-	const bool isMultiline = (mSize.y() == 0 || mSize.y() > f->getHeight()*1.2f);
+	const bool isMultiline = (mSize.y() == 0 || mSize.y() > f->getHeight() * 1.2f);
 
 	bool addAbbrev = false;
 	if(!isMultiline)
 	{
 		size_t newline = text.find('\n');
-		text = text.substr(0, newline); // single line of text - stop at the first newline since it'll mess everything up
+		text =
+			text.substr(0, newline); // single line of text - stop at the first newline since it'll mess everything up
 		addAbbrev = newline != std::string::npos;
 	}
 
@@ -170,9 +186,13 @@ void TextComponent::onTextChanged()
 
 		text.append(abbrev);
 
-		mTextCache = std::shared_ptr<TextCache>(f->buildTextCache(text, Eigen::Vector2f(0, 0), (mColor >> 8 << 8) | mOpacity, mSize.x(), mAlignment, mLineSpacing));
-	}else{
-		mTextCache = std::shared_ptr<TextCache>(f->buildTextCache(f->wrapText(text, mSize.x()), Eigen::Vector2f(0, 0), (mColor >> 8 << 8) | mOpacity, mSize.x(), mAlignment, mLineSpacing));
+		mTextCache = std::shared_ptr<TextCache>(f->buildTextCache(
+			text, Eigen::Vector2f(0, 0), (mColor >> 8 << 8) | mOpacity, mSize.x(), mAlignment, mLineSpacing));
+	}
+	else
+	{
+		mTextCache = std::shared_ptr<TextCache>(f->buildTextCache(f->wrapText(text, mSize.x()), Eigen::Vector2f(0, 0),
+			(mColor >> 8 << 8) | mOpacity, mSize.x(), mAlignment, mLineSpacing));
 	}
 }
 
@@ -206,7 +226,8 @@ std::string TextComponent::getValue() const
 	return mText;
 }
 
-void TextComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element, unsigned int properties)
+void TextComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view,
+	const std::string& element, unsigned int properties)
 {
 	GuiComponent::applyTheme(theme, view, element, properties);
 

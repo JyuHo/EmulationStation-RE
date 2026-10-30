@@ -4,12 +4,15 @@
 #include "Util.h"
 #include "Log.h"
 
-ButtonComponent::ButtonComponent(Window* window, const std::string& text, const std::string& helpText, const std::function<void()>& func) : GuiComponent(window),
+ButtonComponent::ButtonComponent(
+	Window* window, const std::string& text, const std::string& helpText, const std::function<void()>& func) :
+	GuiComponent(window),
 	mFont(Font::get(FONT_SIZE_MEDIUM)),
-	mFocused(false), 
-	mEnabled(true), 
-	mTextColorFocused(0xFFFFFFFF), 
-	mTextColorUnfocused(0x777777FF), mBox(window, ":/button.png")
+	mFocused(false),
+	mEnabled(true),
+	mTextColorFocused(0xFFFFFFFF),
+	mTextColorUnfocused(0x777777FF),
+	mBox(window, ":/button.png")
 {
 	setPressedFunc(func);
 	setText(text, helpText);
@@ -42,7 +45,7 @@ void ButtonComponent::setText(const std::string& text, const std::string& helpTe
 {
 	mText = strToUpper(text);
 	mHelpText = helpText;
-	
+
 	mTextCache = std::unique_ptr<TextCache>(mFont->buildTextCache(mText, 0, 0, getCurTextColor()));
 
 	float minWidth = mFont->sizeText("DELETE").x() + 12;
@@ -87,12 +90,13 @@ void ButtonComponent::updateImage()
 void ButtonComponent::render(const Eigen::Affine3f& parentTrans)
 {
 	Eigen::Affine3f trans = roundMatrix(parentTrans * getTransform());
-	
+
 	mBox.render(trans);
 
 	if(mTextCache)
 	{
-		Eigen::Vector3f centerOffset((mSize.x() - mTextCache->metrics.size.x()) / 2, (mSize.y() - mTextCache->metrics.size.y()) / 2, 0);
+		Eigen::Vector3f centerOffset(
+			(mSize.x() - mTextCache->metrics.size.x()) / 2, (mSize.y() - mTextCache->metrics.size.y()) / 2, 0);
 		centerOffset = roundVector(centerOffset);
 		trans = trans.translate(centerOffset);
 

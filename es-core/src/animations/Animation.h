@@ -10,7 +10,6 @@ public:
 	virtual void apply(float t) = 0;
 };
 
-
 // useful helper/interpolation functions
 inline float clamp(float min, float max, float val)
 {
@@ -26,14 +25,13 @@ inline float clamp(float min, float max, float val)
 inline float smoothStep(float edge0, float edge1, float x)
 {
 	// Scale, and clamp x to 0..1 range
-	x = clamp(0, 1, (x - edge0)/(edge1 - edge0));
-        
+	x = clamp(0, 1, (x - edge0) / (edge1 - edge0));
+
 	// Evaluate polynomial
-	return x*x*x*(x*(x*6 - 15) + 10);
+	return x * x * x * (x * (x * 6 - 15) + 10);
 }
 
-template<typename T>
-T lerp(const T& start, const T& end, float t)
+template <typename T> T lerp(const T& start, const T& end, float t)
 {
 	if(t <= 0.0f)
 		return start;

@@ -15,8 +15,9 @@ class TextComponent : public GuiComponent
 {
 public:
 	TextComponent(Window* window);
-	TextComponent(Window* window, const std::string& text, const std::shared_ptr<Font>& font, unsigned int color = 0x000000FF, Alignment align = ALIGN_LEFT,
-		Eigen::Vector3f pos = Eigen::Vector3f::Zero(), Eigen::Vector2f size = Eigen::Vector2f::Zero());
+	TextComponent(Window* window, const std::string& text, const std::shared_ptr<Font>& font,
+		unsigned int color = 0x000000FF, Alignment align = ALIGN_LEFT, Eigen::Vector3f pos = Eigen::Vector3f::Zero(),
+		Eigen::Vector2f size = Eigen::Vector2f::Zero());
 
 	void setFont(const std::shared_ptr<Font>& font);
 	void setUppercase(bool uppercase);
@@ -33,10 +34,11 @@ public:
 
 	unsigned char getOpacity() const override;
 	void setOpacity(unsigned char opacity) override;
-	
+
 	inline std::shared_ptr<Font> getFont() const { return mFont; }
 
-	void applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element, unsigned int properties) override;
+	void applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element,
+		unsigned int properties) override;
 
 private:
 	void calculateExtent();

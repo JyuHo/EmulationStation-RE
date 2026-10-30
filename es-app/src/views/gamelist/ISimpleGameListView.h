@@ -17,7 +17,7 @@ public:
 	// NOTE: FILE_SORTED is only reported for the topmost FileData, where the sort started.
 	//       Since sorts are recursive, that FileData's children probably changed too.
 	void onFileChanged(FileData* file, FileChangeType change) override;
-	
+
 	// Called whenever the theme changes.
 	void onThemeChanged(const std::shared_ptr<ThemeData>& theme) override;
 
@@ -33,7 +33,7 @@ protected:
 	TextComponent mHeaderText;
 	ImageComponent mHeaderImage;
 	ImageComponent mBackground;
-	
+
 	ThemeExtras mThemeExtras;
 
 	std::stack<FileData*> mCursorStack;

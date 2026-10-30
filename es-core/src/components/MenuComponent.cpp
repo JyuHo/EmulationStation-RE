@@ -8,9 +8,9 @@
 
 using namespace Eigen;
 
-MenuComponent::MenuComponent(Window* window, const char* title, const std::shared_ptr<Font>& titleFont) : GuiComponent(window), 
-	mBackground(window), mGrid(window, Vector2i(1, 3))
-{	
+MenuComponent::MenuComponent(Window* window, const char* title, const std::shared_ptr<Font>& titleFont) :
+	GuiComponent(window), mBackground(window), mGrid(window, Vector2i(1, 3))
+{
 	addChild(&mBackground);
 	addChild(&mGrid);
 
@@ -41,7 +41,8 @@ void MenuComponent::setTitle(const char* title, const std::shared_ptr<Font>& fon
 
 float MenuComponent::getButtonGridHeight() const
 {
-	return (mButtonGrid ? mButtonGrid->getSize().y() : Font::get(FONT_SIZE_MEDIUM)->getHeight() + BUTTON_GRID_VERT_PADDING);
+	return (
+		mButtonGrid ? mButtonGrid->getSize().y() : Font::get(FONT_SIZE_MEDIUM)->getHeight() + BUTTON_GRID_VERT_PADDING);
 }
 
 void MenuComponent::updateSize()
@@ -73,11 +74,12 @@ void MenuComponent::onSizeChanged()
 	// update grid row/col sizes
 	mGrid.setRowHeightPerc(0, TITLE_HEIGHT / mSize.y());
 	mGrid.setRowHeightPerc(2, getButtonGridHeight() / mSize.y());
-	
+
 	mGrid.setSize(mSize);
 }
 
-void MenuComponent::addButton(const std::string& name, const std::string& helpText, const std::function<void()>& callback)
+void MenuComponent::addButton(
+	const std::string& name, const std::string& helpText, const std::function<void()>& callback)
 {
 	mButtons.push_back(std::make_shared<ButtonComponent>(mWindow, strToUpper(name), helpText, callback));
 	updateGrid();
@@ -103,7 +105,8 @@ std::vector<HelpPrompt> MenuComponent::getHelpPrompts()
 	return mGrid.getHelpPrompts();
 }
 
-std::shared_ptr<ComponentGrid> makeButtonGrid(Window* window, const std::vector< std::shared_ptr<ButtonComponent> >& buttons)
+std::shared_ptr<ComponentGrid> makeButtonGrid(
+	Window* window, const std::vector<std::shared_ptr<ButtonComponent>>& buttons)
 {
 	std::shared_ptr<ComponentGrid> buttonGrid = std::make_shared<ComponentGrid>(window, Vector2i(buttons.size(), 2));
 
@@ -117,9 +120,10 @@ std::shared_ptr<ComponentGrid> makeButtonGrid(Window* window, const std::vector<
 	{
 		buttonGrid->setColWidthPerc(i, (buttons.at(i)->getSize().x() + BUTTON_GRID_HORIZ_PADDING) / buttonGridWidth);
 	}
-	
+
 	buttonGrid->setSize(buttonGridWidth, buttons.at(0)->getSize().y() + BUTTON_GRID_VERT_PADDING + 2);
-	buttonGrid->setRowHeightPerc(1, 2 / buttonGrid->getSize().y()); // spacer row to deal with dropshadow to make buttons look centered
+	buttonGrid->setRowHeightPerc(
+		1, 2 / buttonGrid->getSize().y()); // spacer row to deal with dropshadow to make buttons look centered
 
 	return buttonGrid;
 }

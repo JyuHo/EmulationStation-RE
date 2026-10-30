@@ -16,7 +16,7 @@
 //    It can change even if the device is the same, and is only used to open joysticks (required to receive SDL events).
 // 2. SDL_JoystickID - this is an ID for each joystick that is supposed to remain consistent between plugging and unplugging.
 //    ES doesn't care if it does, though.
-// 3. "Device ID" - this is something I made up and is what InputConfig's getDeviceID() returns.  
+// 3. "Device ID" - this is something I made up and is what InputConfig's getDeviceID() returns.
 //    This is actually just an SDL_JoystickID (also called instance ID), but -1 means "keyboard" instead of "error."
 // 4. Joystick GUID - this is some squashed version of joystick vendor, version, and a bunch of other device-specific things.
 //    It should remain the same across runs of the program/system restarts/device reordering and is what I use to identify which joystick to load.
@@ -25,9 +25,7 @@ namespace fs = boost::filesystem;
 
 InputManager* InputManager::mInstance = NULL;
 
-InputManager::InputManager() : mKeyboardInputConfig(NULL)
-{
-}
+InputManager::InputManager() : mKeyboardInputConfig(NULL) {}
 
 InputManager::~InputManager()
 {
@@ -47,7 +45,7 @@ void InputManager::init()
 	if(initialized())
 		deinit();
 
-	SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, 
+	SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS,
 		Settings::getInstance()->getBool("BackgroundJoystickInput") ? "1" : "0");
 	SDL_InitSubSystem(SDL_INIT_JOYSTICK);
 	SDL_JoystickEventState(SDL_ENABLE);
@@ -66,7 +64,7 @@ void InputManager::init()
 void InputManager::addJoystickByDeviceIndex(int id)
 {
 	assert(id >= 0 && id < SDL_NumJoysticks());
-	
+
 	// open joystick & add to our list
 	SDL_Joystick* joy = SDL_JoystickOpen(id);
 	assert(joy);
@@ -82,9 +80,13 @@ void InputManager::addJoystickByDeviceIndex(int id)
 	mInputConfigs[joyId] = new InputConfig(joyId, SDL_JoystickName(joy), guid);
 	if(!loadInputConfig(mInputConfigs[joyId]))
 	{
-		LOG(LogInfo) << "Added unconfigured joystick " << SDL_JoystickName(joy) << " (GUID: " << guid << ", instance ID: " << joyId << ", device index: " << id << ").";
-	}else{
-		LOG(LogInfo) << "Added known joystick " << SDL_JoystickName(joy) << " (instance ID: " << joyId << ", device index: " << id << ")";
+		LOG(LogInfo) << "Added unconfigured joystick " << SDL_JoystickName(joy) << " (GUID: " << guid
+					 << ", instance ID: " << joyId << ", device index: " << id << ").";
+	}
+	else
+	{
+		LOG(LogInfo) << "Added known joystick " << SDL_JoystickName(joy) << " (instance ID: " << joyId
+					 << ", device index: " << id << ")";
 	}
 
 	// set up the prevAxisValues
@@ -113,7 +115,9 @@ void InputManager::removeJoystickByJoystickID(SDL_JoystickID joyId)
 	{
 		SDL_JoystickClose(joyIt->second);
 		mJoysticks.erase(joyIt);
-	}else{
+	}
+	else
+	{
 		LOG(LogError) << "Could not find joystick to close (instance ID: " << joyId << ")";
 	}
 }
@@ -151,7 +155,10 @@ void InputManager::deinit()
 	SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
 }
 
-int InputManager::getNumJoysticks() { return mJoysticks.size(); }
+int InputManager::getNumJoysticks()
+{
+	return mJoysticks.size();
+}
 int InputManager::getButtonCountByDevice(SDL_JoystickID id)
 {
 	if(id == DEVICE_KEYBOARD)
@@ -180,13 +187,13 @@ bool InputManager::parseEvent(const SDL_Event& ev, Window* window)
 			int normValue;
 			if(abs(ev.jaxis.value) <= DEADZONE)
 				normValue = 0;
+			else if(ev.jaxis.value > 0)
+				normValue = 1;
 			else
-				if(ev.jaxis.value > 0)
-					normValue = 1;
-				else
-					normValue = -1;
+				normValue = -1;
 
-			window->input(getInputConfigByDevice(ev.jaxis.which), Input(ev.jaxis.which, TYPE_AXIS, ev.jaxis.axis, normValue, false));
+			window->input(getInputConfigByDevice(ev.jaxis.which),
+				Input(ev.jaxis.which, TYPE_AXIS, ev.jaxis.axis, normValue, false));
 			causedEvent = true;
 		}
 
@@ -195,11 +202,13 @@ bool InputManager::parseEvent(const SDL_Event& ev, Window* window)
 
 	case SDL_JOYBUTTONDOWN:
 	case SDL_JOYBUTTONUP:
-		window->input(getInputConfigByDevice(ev.jbutton.which), Input(ev.jbutton.which, TYPE_BUTTON, ev.jbutton.button, ev.jbutton.state == SDL_PRESSED, false));
+		window->input(getInputConfigByDevice(ev.jbutton.which),
+			Input(ev.jbutton.which, TYPE_BUTTON, ev.jbutton.button, ev.jbutton.state == SDL_PRESSED, false));
 		return true;
 
 	case SDL_JOYHATMOTION:
-		window->input(getInputConfigByDevice(ev.jhat.which), Input(ev.jhat.which, TYPE_HAT, ev.jhat.hat, ev.jhat.value, false));
+		window->input(
+			getInputConfigByDevice(ev.jhat.which), Input(ev.jhat.which, TYPE_HAT, ev.jhat.hat, ev.jhat.value, false));
 		return true;
 
 	case SDL_KEYDOWN:
@@ -219,16 +228,16 @@ bool InputManager::parseEvent(const SDL_Event& ev, Window* window)
 			return false;
 		}
 
-		window->input(getInputConfigByDevice(DEVICE_KEYBOARD), Input(DEVICE_KEYBOARD, TYPE_KEY, ev.key.keysym.sym, 1, false));
+		window->input(
+			getInputConfigByDevice(DEVICE_KEYBOARD), Input(DEVICE_KEYBOARD, TYPE_KEY, ev.key.keysym.sym, 1, false));
 		return true;
 
 	case SDL_KEYUP:
-		window->input(getInputConfigByDevice(DEVICE_KEYBOARD), Input(DEVICE_KEYBOARD, TYPE_KEY, ev.key.keysym.sym, 0, false));
+		window->input(
+			getInputConfigByDevice(DEVICE_KEYBOARD), Input(DEVICE_KEYBOARD, TYPE_KEY, ev.key.keysym.sym, 0, false));
 		return true;
 
-	case SDL_TEXTINPUT:
-		window->textInput(ev.text.text);
-		break;
+	case SDL_TEXTINPUT: window->textInput(ev.text.text); break;
 
 	case SDL_JOYDEVICEADDED:
 		addJoystickByDeviceIndex(ev.jdevice.which); // ev.jdevice.which is a device index
@@ -247,7 +256,7 @@ bool InputManager::loadInputConfig(InputConfig* config)
 	std::string path = getConfigPath();
 	if(!fs::exists(path))
 		return false;
-	
+
 	pugi::xml_document doc;
 	pugi::xml_parse_result res = doc.load_file(path.c_str());
 
@@ -261,7 +270,8 @@ bool InputManager::loadInputConfig(InputConfig* config)
 	if(!root)
 		return false;
 
-	pugi::xml_node configNode = root.find_child_by_attribute("inputConfig", "deviceGUID", config->getDeviceGUIDString().c_str());
+	pugi::xml_node configNode =
+		root.find_child_by_attribute("inputConfig", "deviceGUID", config->getDeviceGUIDString().c_str());
 	if(!configNode)
 		configNode = root.find_child_by_attribute("inputConfig", "deviceName", config->getDeviceName().c_str());
 	if(!configNode)
@@ -307,12 +317,15 @@ void InputManager::writeDeviceConfig(InputConfig* config)
 		if(!result)
 		{
 			LOG(LogError) << "Error parsing input config: " << result.description();
-		}else{
+		}
+		else
+		{
 			// successfully loaded, delete the old entry if it exists
 			pugi::xml_node root = doc.child("inputList");
 			if(root)
 			{
-				pugi::xml_node oldEntry = root.find_child_by_attribute("inputConfig", "deviceGUID", config->getDeviceGUIDString().c_str());
+				pugi::xml_node oldEntry =
+					root.find_child_by_attribute("inputConfig", "deviceGUID", config->getDeviceGUIDString().c_str());
 				if(oldEntry)
 					root.remove_child(oldEntry);
 				oldEntry = root.find_child_by_attribute("inputConfig", "deviceName", config->getDeviceName().c_str());

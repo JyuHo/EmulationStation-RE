@@ -13,7 +13,9 @@ class IGameListView : public GuiComponent
 {
 public:
 	IGameListView(Window* window, FileData* root) : GuiComponent(window), mRoot(root)
-		{ setSize((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight()); }
+	{
+		setSize((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
+	}
 
 	~IGameListView() override {}
 
@@ -21,7 +23,7 @@ public:
 	// NOTE: FILE_SORTED is only reported for the topmost FileData, where the sort started.
 	//       Since sorts are recursive, that FileData's children probably changed too.
 	virtual void onFileChanged(FileData* file, FileChangeType change) = 0;
-	
+
 	// Called whenever the theme changes.
 	virtual void onThemeChanged(const std::shared_ptr<ThemeData>& theme) = 0;
 
@@ -36,6 +38,7 @@ public:
 	virtual const char* getName() const = 0;
 
 	HelpStyle getHelpStyle() override;
+
 protected:
 	FileData* mRoot;
 	std::shared_ptr<ThemeData> mTheme;

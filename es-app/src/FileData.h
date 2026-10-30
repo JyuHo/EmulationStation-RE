@@ -9,7 +9,7 @@ class SystemData;
 
 enum FileType
 {
-	GAME = 1,   // Cannot have children.
+	GAME = 1, // Cannot have children.
 	FOLDER = 2
 };
 
@@ -41,12 +41,12 @@ public:
 	inline FileData* getParent() const { return mParent; }
 	inline const std::vector<FileData*>& getChildren() const { return mChildren; }
 	inline SystemData* getSystem() const { return mSystem; }
-	
+
 	virtual const std::string& getThumbnailPath() const;
 
 	std::vector<FileData*> getFilesRecursive(unsigned int typeMask) const;
 
-	void addChild(FileData* file); // Error if mType != FOLDER
+	void addChild(FileData* file);	  // Error if mType != FOLDER
 	void removeChild(FileData* file); //Error if mType != FOLDER
 
 	// Returns our best guess at the "real" name for this file (will strip parenthesis and attempt to perform MAME name translation)
@@ -59,8 +59,9 @@ public:
 		bool ascending;
 		std::string description;
 
-		SortType(ComparisonFunction* sortFunction, bool sortAscending, const std::string & sortDescription) 
-			: comparisonFunction(sortFunction), ascending(sortAscending), description(sortDescription) {}
+		SortType(ComparisonFunction* sortFunction, bool sortAscending, const std::string& sortDescription) :
+			comparisonFunction(sortFunction), ascending(sortAscending), description(sortDescription)
+		{}
 	};
 
 	void sort(ComparisonFunction& comparator, bool ascending = true);

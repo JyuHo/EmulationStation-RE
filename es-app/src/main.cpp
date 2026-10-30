@@ -43,35 +43,44 @@ bool parseArgs(int argc, char* argv[], unsigned int* width, unsigned int* height
 			*width = atoi(argv[i + 1]);
 			*height = atoi(argv[i + 2]);
 			i += 2; // skip the argument value
-		}else if(strcmp(argv[i], "--gamelist-only") == 0)
+		}
+		else if(strcmp(argv[i], "--gamelist-only") == 0)
 		{
 			Settings::getInstance()->setBool("ParseGamelistOnly", true);
-		}else if(strcmp(argv[i], "--ignore-gamelist") == 0)
+		}
+		else if(strcmp(argv[i], "--ignore-gamelist") == 0)
 		{
 			Settings::getInstance()->setBool("IgnoreGamelist", true);
-		}else if(strcmp(argv[i], "--draw-framerate") == 0)
+		}
+		else if(strcmp(argv[i], "--draw-framerate") == 0)
 		{
 			Settings::getInstance()->setBool("DrawFramerate", true);
-		}else if(strcmp(argv[i], "--no-exit") == 0)
+		}
+		else if(strcmp(argv[i], "--no-exit") == 0)
 		{
 			Settings::getInstance()->setBool("ShowExit", false);
-		}else if(strcmp(argv[i], "--debug") == 0)
+		}
+		else if(strcmp(argv[i], "--debug") == 0)
 		{
 			Settings::getInstance()->setBool("Debug", true);
 			Settings::getInstance()->setBool("HideConsole", false);
 			Log::setReportingLevel(LogDebug);
-		}else if(strcmp(argv[i], "--windowed") == 0)
+		}
+		else if(strcmp(argv[i], "--windowed") == 0)
 		{
 			Settings::getInstance()->setBool("Windowed", true);
-		}else if(strcmp(argv[i], "--vsync") == 0)
+		}
+		else if(strcmp(argv[i], "--vsync") == 0)
 		{
 			bool vsync = (strcmp(argv[i + 1], "on") == 0 || strcmp(argv[i + 1], "1") == 0) ? true : false;
 			Settings::getInstance()->setBool("VSync", vsync);
 			i++; // skip vsync value
-		}else if(strcmp(argv[i], "--scrape") == 0)
+		}
+		else if(strcmp(argv[i], "--scrape") == 0)
 		{
 			scrape_cmdline = true;
-		}else if(strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
+		}
+		else if(strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
 		{
 #ifdef WIN32
 			// This is a bit of a hack, but otherwise output will go to nowhere
@@ -81,22 +90,23 @@ bool parseArgs(int argc, char* argv[], unsigned int* width, unsigned int* height
 			AttachConsole(ATTACH_PARENT_PROCESS);
 			freopen("CONOUT$", "wb", stdout);
 #endif
-			std::cout << 
-				"EmulationStation, a graphical front-end for ROM browsing.\n"
-				"Written by Alec \"Aloshi\" Lofquist.\n"
-				"Version " << PROGRAM_VERSION_STRING << ", built " << PROGRAM_BUILT_STRING << "\n\n"
-				"Command line arguments:\n"
-				"--resolution [width] [height]	try and force a particular resolution\n"
-				"--gamelist-only			skip automatic game search, only read from gamelist.xml\n"
-				"--ignore-gamelist		ignore the gamelist (useful for troubleshooting)\n"
-				"--draw-framerate		display the framerate\n"
-				"--no-exit			don't show the exit option in the menu\n"
-				"--debug				more logging, show console on Windows\n"
-				"--scrape			scrape using command line interface\n"
-				"--windowed			not fullscreen, should be used with --resolution\n"
-				"--vsync [1/on or 0/off]		turn vsync on or off (default is on)\n"
-				"--help, -h			summon a sentient, angry tuba\n\n"
-				"More information available in README.md.\n";
+			std::cout << "EmulationStation, a graphical front-end for ROM browsing.\n"
+						 "Written by Alec \"Aloshi\" Lofquist.\n"
+						 "Version "
+					  << PROGRAM_VERSION_STRING << ", built " << PROGRAM_BUILT_STRING
+					  << "\n\n"
+						 "Command line arguments:\n"
+						 "--resolution [width] [height]	try and force a particular resolution\n"
+						 "--gamelist-only			skip automatic game search, only read from gamelist.xml\n"
+						 "--ignore-gamelist		ignore the gamelist (useful for troubleshooting)\n"
+						 "--draw-framerate		display the framerate\n"
+						 "--no-exit			don't show the exit option in the menu\n"
+						 "--debug				more logging, show console on Windows\n"
+						 "--scrape			scrape using command line interface\n"
+						 "--windowed			not fullscreen, should be used with --resolution\n"
+						 "--vsync [1/on or 0/off]		turn vsync on or off (default is on)\n"
+						 "--help, -h			summon a sentient, angry tuba\n\n"
+						 "More information available in README.md.\n";
 			return false; //exit after printing help
 		}
 	}
@@ -123,7 +133,7 @@ bool verifyHomeFolderExists()
 	return true;
 }
 
-// Returns true if everything is OK, 
+// Returns true if everything is OK,
 bool loadSystemConfigFile(const char** errorString)
 {
 	*errorString = NULL;
@@ -131,18 +141,20 @@ bool loadSystemConfigFile(const char** errorString)
 	if(!SystemData::loadConfig())
 	{
 		LOG(LogError) << "Error while parsing systems configuration file!";
-		*errorString = "IT LOOKS LIKE YOUR SYSTEMS CONFIGURATION FILE HAS NOT BEEN SET UP OR IS INVALID. YOU'LL NEED TO DO THIS BY HAND, UNFORTUNATELY.\n\n"
-			"VISIT EMULATIONSTATION.ORG FOR MORE INFORMATION.";
+		*errorString = "IT LOOKS LIKE YOUR SYSTEMS CONFIGURATION FILE HAS NOT BEEN SET UP OR IS INVALID. YOU'LL NEED "
+					   "TO DO THIS BY HAND, UNFORTUNATELY.\n\n"
+					   "VISIT EMULATIONSTATION.ORG FOR MORE INFORMATION.";
 		return false;
 	}
 
 	if(SystemData::sSystemVector.size() == 0)
 	{
-		LOG(LogError) << "No systems found! Does at least one system have a game present? (check that extensions match!)\n(Also, make sure you've updated your es_systems.cfg for XML!)";
+		LOG(LogError) << "No systems found! Does at least one system have a game present? (check that extensions "
+						 "match!)\n(Also, make sure you've updated your es_systems.cfg for XML!)";
 		*errorString = "WE CAN'T FIND ANY SYSTEMS!\n"
-			"CHECK THAT YOUR PATHS ARE CORRECT IN THE SYSTEMS CONFIGURATION FILE, "
-			"AND YOUR GAME DIRECTORY HAS AT LEAST ONE GAME WITH THE CORRECT EXTENSION.\n\n"
-			"VISIT EMULATIONSTATION.ORG FOR MORE INFORMATION.";
+					   "CHECK THAT YOUR PATHS ARE CORRECT IN THE SYSTEMS CONFIGURATION FILE, "
+					   "AND YOUR GAME DIRECTORY HAS AT LEAST ONE GAME WITH THE CORRECT EXTENSION.\n\n"
+					   "VISIT EMULATIONSTATION.ORG FOR MORE INFORMATION.";
 		return false;
 	}
 
@@ -166,11 +178,11 @@ int main(int argc, char* argv[])
 	if(!parseArgs(argc, argv, &width, &height))
 		return 0;
 
-	// only show the console on Windows if HideConsole is false
+		// only show the console on Windows if HideConsole is false
 #ifdef WIN32
 	// MSVC has a "SubSystem" option, with two primary options: "WINDOWS" and "CONSOLE".
-	// In "WINDOWS" mode, no console is automatically created for us.  This is good, 
-	// because we can choose to only create the console window if the user explicitly 
+	// In "WINDOWS" mode, no console is automatically created for us.  This is good,
+	// because we can choose to only create the console window if the user explicitly
 	// asks for it, preventing it from flashing open and then closing.
 	// In "CONSOLE" mode, a console is always automatically created for us before we
 	// enter main. In this case, we can only hide the console after the fact, which
@@ -189,10 +201,12 @@ int main(int argc, char* argv[])
 			freopen("CONOUT$", "wb", stdout);
 			freopen("CONOUT$", "wb", stderr);
 		}
-	}else{
+	}
+	else
+	{
 		// we want to hide the console
 		// if we're compiled with the "WINDOWS" subsystem, this is already done.
-		// if we're compiled with the "CONSOLE" subsystem, a console is already created; 
+		// if we're compiled with the "CONSOLE" subsystem, a console is already created;
 		// it'll flash open, but we hide it nearly immediately
 		if(GetConsoleWindow()) // should only pass in "CONSOLE" mode
 			ShowWindow(GetConsoleWindow(), SW_HIDE);
@@ -224,7 +238,8 @@ int main(int argc, char* argv[])
 
 		std::string glExts = (const char*)glGetString(GL_EXTENSIONS);
 		LOG(LogInfo) << "Checking available OpenGL extensions...";
-		LOG(LogInfo) << " ARB_texture_non_power_of_two: " << (glExts.find("ARB_texture_non_power_of_two") != std::string::npos ? "ok" : "MISSING");
+		LOG(LogInfo) << " ARB_texture_non_power_of_two: "
+					 << (glExts.find("ARB_texture_non_power_of_two") != std::string::npos ? "ok" : "MISSING");
 
 		window.renderLoadingScreen();
 	}
@@ -242,13 +257,11 @@ int main(int argc, char* argv[])
 		}
 
 		// we can't handle es_systems.cfg file problems inside ES itself, so display the error message then quit
-		window.pushGui(new GuiMsgBox(&window,
-			errorMsg,
-			"QUIT", [] { 
-				SDL_Event* quit = new SDL_Event();
-				quit->type = SDL_QUIT;
-				SDL_PushEvent(quit);
-			}));
+		window.pushGui(new GuiMsgBox(&window, errorMsg, "QUIT", [] {
+			SDL_Event* quit = new SDL_Event();
+			quit->type = SDL_QUIT;
+			SDL_PushEvent(quit);
+		}));
 	}
 
 	//run the command line scraper then quit
@@ -270,7 +283,9 @@ int main(int argc, char* argv[])
 		if(fs::exists(InputManager::getConfigPath()) && InputManager::getInstance()->getNumConfiguredDevices() > 0)
 		{
 			ViewController::get()->goToStart();
-		}else{
+		}
+		else
+		{
 			window.pushGui(new GuiDetectDevice(&window, true, [] { ViewController::get()->goToStart(); }));
 		}
 	}
@@ -288,28 +303,25 @@ int main(int argc, char* argv[])
 		{
 			switch(event.type)
 			{
-				case SDL_JOYHATMOTION:
-				case SDL_JOYBUTTONDOWN:
-				case SDL_JOYBUTTONUP:
-				case SDL_KEYDOWN:
-				case SDL_KEYUP:
-				case SDL_JOYAXISMOTION:
-				case SDL_TEXTINPUT:
-				case SDL_TEXTEDITING:
-				case SDL_JOYDEVICEADDED:
-				case SDL_JOYDEVICEREMOVED:
-					InputManager::getInstance()->parseEvent(event, &window);
-					break;
-				case SDL_QUIT:
-					running = false;
-					break;
+			case SDL_JOYHATMOTION:
+			case SDL_JOYBUTTONDOWN:
+			case SDL_JOYBUTTONUP:
+			case SDL_KEYDOWN:
+			case SDL_KEYUP:
+			case SDL_JOYAXISMOTION:
+			case SDL_TEXTINPUT:
+			case SDL_TEXTEDITING:
+			case SDL_JOYDEVICEADDED:
+			case SDL_JOYDEVICEREMOVED: InputManager::getInstance()->parseEvent(event, &window); break;
+			case SDL_QUIT: running = false; break;
 			}
 		}
 
 		if(window.isSleeping())
 		{
 			lastTime = SDL_GetTicks();
-			SDL_Delay(1); // this doesn't need to be accurate, we're just giving up our CPU time until something wakes us up
+			SDL_Delay(
+				1); // this doesn't need to be accurate, we're just giving up our CPU time until something wakes us up
 			continue;
 		}
 

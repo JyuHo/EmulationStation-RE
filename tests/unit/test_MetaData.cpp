@@ -7,15 +7,14 @@
 
 #include <sstream>
 
-namespace
+namespace {
+std::string toString(const pugi::xml_node& node)
 {
-	std::string toString(const pugi::xml_node& node)
-	{
-		std::ostringstream out;
-		node.print(out, "", pugi::format_raw);
-		return out.str();
-	}
+	std::ostringstream out;
+	node.print(out, "", pugi::format_raw);
+	return out.str();
 }
+} // namespace
 
 TEST_CASE("Game metadata defaults", "[MetaData]")
 {
@@ -28,16 +27,15 @@ TEST_CASE("Game metadata defaults", "[MetaData]")
 
 TEST_CASE("Game metadata XML round trip", "[MetaData]")
 {
-	const char* xml =
-		"<game>"
-		"<name>Super Test Bros.</name>"
-		"<desc>A game.</desc>"
-		"<rating>0.8</rating>"
-		"<releasedate>19850913T000000</releasedate>"
-		"<developer>Nintendo</developer>"
-		"<players>2</players>"
-		"<playcount>3</playcount>"
-		"</game>";
+	const char* xml = "<game>"
+					  "<name>Super Test Bros.</name>"
+					  "<desc>A game.</desc>"
+					  "<rating>0.8</rating>"
+					  "<releasedate>19850913T000000</releasedate>"
+					  "<developer>Nintendo</developer>"
+					  "<players>2</players>"
+					  "<playcount>3</playcount>"
+					  "</game>";
 
 	pugi::xml_document in;
 	REQUIRE(in.load(xml));

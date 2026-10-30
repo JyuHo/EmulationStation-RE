@@ -9,16 +9,8 @@ Settings* Settings::sInstance = NULL;
 
 // these values are NOT saved to es_settings.xml
 // since they're set through command-line arguments, and not the in-program settings menu
-std::vector<const char*> settings_dont_save = boost::assign::list_of
-	("Debug")
-	("DebugGrid")
-	("DebugText")
-	("ParseGamelistOnly")
-	("ShowExit")
-	("Windowed")
-	("VSync")
-	("HideConsole")
-	("IgnoreGamelist");
+std::vector<const char*> settings_dont_save = boost::assign::list_of("Debug")("DebugGrid")("DebugText")(
+	"ParseGamelistOnly")("ShowExit")("Windowed")("VSync")("HideConsole")("IgnoreGamelist");
 
 Settings::Settings()
 {
@@ -46,7 +38,7 @@ void Settings::setDefaults()
 	mBoolMap["Windowed"] = false;
 
 #ifdef _RPI_
-	// don't enable VSync by default on the Pi, since it already 
+	// don't enable VSync by default on the Pi, since it already
 	// has trouble trying to render things at 60fps in certain menus
 	mBoolMap["VSync"] = false;
 #else
@@ -64,7 +56,7 @@ void Settings::setDefaults()
 	mBoolMap["DebugGrid"] = false;
 	mBoolMap["DebugText"] = false;
 
-	mIntMap["ScreenSaverTime"] = 5*60*1000; // 5 minutes
+	mIntMap["ScreenSaverTime"] = 5 * 60 * 1000; // 5 minutes
 	mIntMap["ScraperResizeWidth"] = 400;
 	mIntMap["ScraperResizeHeight"] = 0;
 
@@ -74,8 +66,7 @@ void Settings::setDefaults()
 	mStringMap["Scraper"] = "TheGamesDB";
 }
 
-template <typename K, typename V>
-void saveMap(pugi::xml_document& doc, std::map<K, V>& map, const char* type)
+template <typename K, typename V> void saveMap(pugi::xml_document& doc, std::map<K, V>& map, const char* type)
 {
 	for(auto iter = map.begin(); iter != map.end(); iter++)
 	{
@@ -136,18 +127,19 @@ void Settings::loadFile()
 }
 
 //Print a warning message if the setting we're trying to get doesn't already exist in the map, then return the value in the map.
-#define SETTINGS_GETSET(type, mapName, getMethodName, setMethodName) type Settings::getMethodName(const std::string& name) \
-{ \
-	if(mapName.find(name) == mapName.end()) \
-	{ \
-		LOG(LogError) << "Tried to use unset setting " << name << "!"; \
-	} \
-	return mapName[name]; \
-} \
-void Settings::setMethodName(const std::string& name, type value) \
-{ \
-	mapName[name] = value; \
-}
+#define SETTINGS_GETSET(type, mapName, getMethodName, setMethodName)                                                   \
+	type Settings::getMethodName(const std::string& name)                                                              \
+	{                                                                                                                  \
+		if(mapName.find(name) == mapName.end())                                                                        \
+		{                                                                                                              \
+			LOG(LogError) << "Tried to use unset setting " << name << "!";                                             \
+		}                                                                                                              \
+		return mapName[name];                                                                                          \
+	}                                                                                                                  \
+	void Settings::setMethodName(const std::string& name, type value)                                                  \
+	{                                                                                                                  \
+		mapName[name] = value;                                                                                         \
+	}
 
 SETTINGS_GETSET(bool, mBoolMap, getBool, setBool);
 SETTINGS_GETSET(int, mIntMap, getInt, setInt);

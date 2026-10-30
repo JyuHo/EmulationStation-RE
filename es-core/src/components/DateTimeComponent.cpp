@@ -4,9 +4,16 @@
 #include "Log.h"
 #include "Util.h"
 
-DateTimeComponent::DateTimeComponent(Window* window, DisplayMode dispMode) : GuiComponent(window), 
-	mEditing(false), mEditIndex(0), mDisplayMode(dispMode), mRelativeUpdateAccumulator(0), 
-	mColor(0x777777FF), mFont(Font::get(FONT_SIZE_SMALL, FONT_PATH_LIGHT)), mUppercase(false), mAutoSize(true)
+DateTimeComponent::DateTimeComponent(Window* window, DisplayMode dispMode) :
+	GuiComponent(window),
+	mEditing(false),
+	mEditIndex(0),
+	mDisplayMode(dispMode),
+	mRelativeUpdateAccumulator(0),
+	mColor(0x777777FF),
+	mFont(Font::get(FONT_SIZE_SMALL, FONT_PATH_LIGHT)),
+	mUppercase(false),
+	mAutoSize(true)
 {
 	updateTextCache();
 }
@@ -71,8 +78,8 @@ bool DateTimeComponent::input(InputConfig* config, Input input)
 					new_tm.tm_mon = 11;
 				else if(new_tm.tm_mon < 0)
 					new_tm.tm_mon = 0;
-				
-			}else if(mEditIndex == 1)
+			}
+			else if(mEditIndex == 1)
 			{
 				new_tm.tm_mday += incDir;
 				int days_in_month = mTime.date().end_of_month().day().as_number();
@@ -80,8 +87,8 @@ bool DateTimeComponent::input(InputConfig* config, Input input)
 					new_tm.tm_mday = days_in_month;
 				else if(new_tm.tm_mday < 1)
 					new_tm.tm_mday = 1;
-
-			}else if(mEditIndex == 2)
+			}
+			else if(mEditIndex == 2)
 			{
 				new_tm.tm_year += incDir;
 				if(new_tm.tm_year < 0)
@@ -89,12 +96,13 @@ bool DateTimeComponent::input(InputConfig* config, Input input)
 			}
 
 			//validate day
-			int days_in_month = boost::gregorian::date(new_tm.tm_year + 1900, new_tm.tm_mon + 1, 1).end_of_month().day().as_number();
+			int days_in_month =
+				boost::gregorian::date(new_tm.tm_year + 1900, new_tm.tm_mon + 1, 1).end_of_month().day().as_number();
 			if(new_tm.tm_mday > days_in_month)
 				new_tm.tm_mday = days_in_month;
 
 			mTime = boost::posix_time::ptime_from_tm(new_tm);
-			
+
 			updateTextCache();
 			return true;
 		}
@@ -106,7 +114,7 @@ bool DateTimeComponent::input(InputConfig* config, Input input)
 				mEditIndex--;
 			return true;
 		}
-		
+
 		if(config->isMappedTo("left", input))
 		{
 			mEditIndex--;
@@ -156,7 +164,7 @@ void DateTimeComponent::render(const Eigen::Affine3f& parentTrans)
 		{
 			if(mEditIndex >= 0 && (unsigned int)mEditIndex < mCursorBoxes.size())
 			{
-				Renderer::drawRect((int)mCursorBoxes[mEditIndex][0], (int)mCursorBoxes[mEditIndex][1], 
+				Renderer::drawRect((int)mCursorBoxes[mEditIndex][0], (int)mCursorBoxes[mEditIndex][1],
 					(int)mCursorBoxes[mEditIndex][2], (int)mCursorBoxes[mEditIndex][3], 0x00000022);
 			}
 		}
@@ -193,38 +201,33 @@ std::string DateTimeComponent::getDisplayString(DisplayMode mode) const
 	std::string fmt;
 	switch(mode)
 	{
-	case DISP_DATE:
-		fmt = "%m/%d/%Y";
-		break;
-	case DISP_DATE_TIME:
-		fmt = "%m/%d/%Y %H:%M:%S";
-		break;
-	case DISP_RELATIVE_TO_NOW:
-		{
-			//relative time
-			using namespace boost::posix_time;
+	case DISP_DATE: fmt = "%m/%d/%Y"; break;
+	case DISP_DATE_TIME: fmt = "%m/%d/%Y %H:%M:%S"; break;
+	case DISP_RELATIVE_TO_NOW: {
+		//relative time
+		using namespace boost::posix_time;
 
-			if(mTime == not_a_date_time)
-				return "never";
+		if(mTime == not_a_date_time)
+			return "never";
 
-			ptime now = second_clock::universal_time();
-			time_duration dur = now - mTime;
+		ptime now = second_clock::universal_time();
+		time_duration dur = now - mTime;
 
-			if(dur < seconds(2))
-				return "just now";
-			if(dur < seconds(60))
-				return std::to_string((long long)dur.seconds()) + " secs ago";
-			if(dur < minutes(60))
-				return std::to_string((long long)dur.minutes()) + " min" + (dur < minutes(2) ? "" : "s") + " ago";
-			if(dur < hours(24))
-				return std::to_string((long long)dur.hours()) + " hour" + (dur < hours(2) ? "" : "s") + " ago";
+		if(dur < seconds(2))
+			return "just now";
+		if(dur < seconds(60))
+			return std::to_string((long long)dur.seconds()) + " secs ago";
+		if(dur < minutes(60))
+			return std::to_string((long long)dur.minutes()) + " min" + (dur < minutes(2) ? "" : "s") + " ago";
+		if(dur < hours(24))
+			return std::to_string((long long)dur.hours()) + " hour" + (dur < hours(2) ? "" : "s") + " ago";
 
-			long long days = (long long)(dur.hours() / 24);
-			return std::to_string(days) + " day" + (days < 2 ? "" : "s") + " ago";
-		}
-		break;
+		long long days = (long long)(dur.hours() / 24);
+		return std::to_string(days) + " day" + (days < 2 ? "" : "s") + " ago";
 	}
-	
+	break;
+	}
+
 	if(mTime == boost::posix_time::not_a_date_time)
 		return "unknown";
 
@@ -314,14 +317,15 @@ void DateTimeComponent::setUppercase(bool uppercase)
 	updateTextCache();
 }
 
-void DateTimeComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element, unsigned int properties)
+void DateTimeComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view,
+	const std::string& element, unsigned int properties)
 {
 	const ThemeData::ThemeElement* elem = theme->getElement(view, element, "datetime");
 	if(!elem)
 		return;
 
 	// We set mAutoSize BEFORE calling GuiComponent::applyTheme because it calls
-	// setSize(), which will call updateTextCache(), which will reset mSize if 
+	// setSize(), which will call updateTextCache(), which will reset mSize if
 	// mAutoSize == true, ignoring the theme's value.
 	if(properties & ThemeFlags::SIZE)
 		mAutoSize = !elem->has("size");

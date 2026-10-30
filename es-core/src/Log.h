@@ -5,13 +5,19 @@
 #include <string>
 #include <string_view>
 
-enum LogLevel { LogError, LogWarning, LogInfo, LogDebug };
+enum LogLevel
+{
+	LogError,
+	LogWarning,
+	LogInfo,
+	LogDebug
+};
 
 // Stream-style logging, kept for the existing code base:
 //     LOG(LogWarning) << "Could not load " << path;
 // Expands to a single statement so it is safe inside unbraced if/else.
-#define LOG(level) \
-for(bool _esLogEnabled = (level) <= Log::getReportingLevel(); _esLogEnabled; _esLogEnabled = false) \
+#define LOG(level)                                                                                                     \
+	for(bool _esLogEnabled = (level) <= Log::getReportingLevel(); _esLogEnabled; _esLogEnabled = false)                \
 	Log().get(level)
 
 // std::format-style logging, preferred in new code:
@@ -22,8 +28,7 @@ public:
 	~Log();
 	std::ostringstream& get(LogLevel level = LogInfo);
 
-	template<typename... Args>
-	static void write(LogLevel level, std::format_string<Args...> fmt, Args&&... args)
+	template <typename... Args> static void write(LogLevel level, std::format_string<Args...> fmt, Args&&... args)
 	{
 		if(level > getReportingLevel())
 			return;

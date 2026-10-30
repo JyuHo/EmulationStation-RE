@@ -17,8 +17,9 @@ std::vector<SystemData*> SystemData::sSystemVector;
 
 namespace fs = boost::filesystem;
 
-SystemData::SystemData(const std::string& name, const std::string& fullName, const std::string& startPath, const std::vector<std::string>& extensions, 
-	const std::string& command, const std::vector<PlatformIds::PlatformId>& platformIds, const std::string& themeFolder)
+SystemData::SystemData(const std::string& name, const std::string& fullName, const std::string& startPath,
+	const std::vector<std::string>& extensions, const std::string& command,
+	const std::vector<PlatformIds::PlatformId>& platformIds, const std::string& themeFolder)
 {
 	mName = name;
 	mFullName = fullName;
@@ -61,13 +62,12 @@ SystemData::~SystemData()
 	delete mRootFolder;
 }
 
-
 std::string strreplace(std::string str, const std::string& replace, const std::string& with)
 {
 	size_t pos;
 	while((pos = str.find(replace)) != std::string::npos)
 		str = str.replace(pos, replace.length(), with.c_str(), with.length());
-	
+
 	return str;
 }
 
@@ -88,7 +88,8 @@ std::string escapePath(const boost::filesystem::path& path)
 	{
 		char c;
 		unsigned int charNum = 0;
-		do {
+		do
+		{
 			c = invalidChars[charNum];
 			if(pathStr[i] == c)
 			{
@@ -181,7 +182,7 @@ void SystemData::populateFolder(FileData* folder)
 		//this is a little complicated because we allow a list of extensions to be defined (delimited with a space)
 		//we first get the extension of the file itself:
 		extension = filePath.extension().string();
-		
+
 		//fyi, folders *can* also match the extension and be added as games - this is mostly just to support higan
 		//see issue #75: https://github.com/Aloshi/EmulationStation/issues/75
 
@@ -281,7 +282,7 @@ bool SystemData::loadConfig()
 		{
 			const char* str = it->c_str();
 			PlatformIds::PlatformId platformId = PlatformIds::getPlatformId(str);
-			
+
 			if(platformId == PlatformIds::PLATFORM_IGNORE)
 			{
 				// when platform is ignore, do not allow other platforms
@@ -292,7 +293,8 @@ bool SystemData::loadConfig()
 
 			// if there appears to be an actual platform ID supplied but it didn't match the list, warn
 			if(str != NULL && str[0] != '\0' && platformId == PlatformIds::PLATFORM_UNKNOWN)
-				LOG(LogWarning) << "  Unknown platform for system \"" << name << "\" (platform \"" << str << "\" from list \"" << platformList << "\")";
+				LOG(LogWarning) << "  Unknown platform for system \"" << name << "\" (platform \"" << str
+								<< "\" from list \"" << platformList << "\")";
 			else if(platformId != PlatformIds::PLATFORM_UNKNOWN)
 				platformIds.push_back(platformId);
 		}
@@ -316,7 +318,9 @@ bool SystemData::loadConfig()
 		{
 			LOG(LogWarning) << "System \"" << name << "\" has no games! Ignoring it.";
 			delete newSys;
-		}else{
+		}
+		else
+		{
 			sSystemVector.push_back(newSys);
 		}
 	}
@@ -341,22 +345,28 @@ void SystemData::writeExampleConfig(const std::string& path)
 			"		<!-- A \"pretty\" name, displayed in menus and such. -->\n"
 			"		<fullname>Nintendo Entertainment System</fullname>\n"
 			"\n"
-			"		<!-- The path to start searching for ROMs in. '~' will be expanded to $HOME on Linux or %HOMEPATH% on Windows. -->\n"
+			"		<!-- The path to start searching for ROMs in. '~' will be expanded to $HOME on Linux or %HOMEPATH% "
+			"on Windows. -->\n"
 			"		<path>~/roms/nes</path>\n"
 			"\n"
-			"		<!-- A list of extensions to search for, delimited by any of the whitespace characters (\", \\r\\n\\t\").\n"
+			"		<!-- A list of extensions to search for, delimited by any of the whitespace characters (\", "
+			"\\r\\n\\t\").\n"
 			"		You MUST include the period at the start of the extension! It's also case sensitive. -->\n"
 			"		<extension>.nes .NES</extension>\n"
 			"\n"
-			"		<!-- The shell command executed when a game is selected. A few special tags are replaced if found in a command:\n"
+			"		<!-- The shell command executed when a game is selected. A few special tags are replaced if found "
+			"in a command:\n"
 			"		%ROM% is replaced by a bash-special-character-escaped absolute path to the ROM.\n"
-			"		%BASENAME% is replaced by the \"base\" name of the ROM.  For example, \"/foo/bar.rom\" would have a basename of \"bar\". Useful for MAME.\n"
+			"		%BASENAME% is replaced by the \"base\" name of the ROM.  For example, \"/foo/bar.rom\" would have "
+			"a basename of \"bar\". Useful for MAME.\n"
 			"		%ROM_RAW% is the raw, unescaped path to the ROM. -->\n"
 			"		<command>retroarch -L ~/cores/libretro-fceumm.so %ROM%</command>\n"
 			"\n"
-			"		<!-- The platform to use when scraping. You can see the full list of accepted platforms in src/PlatformIds.cpp.\n"
+			"		<!-- The platform to use when scraping. You can see the full list of accepted platforms in "
+			"src/PlatformIds.cpp.\n"
 			"		It's case sensitive, but everything is lowercase. This tag is optional.\n"
-			"		You can use multiple platforms too, delimited with any of the whitespace characters (\", \\r\\n\\t\"), eg: \"genesis, megadrive\" -->\n"
+			"		You can use multiple platforms too, delimited with any of the whitespace characters (\", "
+			"\\r\\n\\t\"), eg: \"genesis, megadrive\" -->\n"
 			"		<platform>nes</platform>\n"
 			"\n"
 			"		<!-- The theme to load from the current theme set.  See THEMES.md for more information.\n"
@@ -442,7 +452,8 @@ void SystemData::loadTheme()
 	try
 	{
 		mTheme->loadFile(path);
-	} catch(ThemeException& e)
+	}
+	catch(ThemeException& e)
 	{
 		LOG(LogError) << e.what();
 		mTheme = std::make_shared<ThemeData>(); // reset to empty

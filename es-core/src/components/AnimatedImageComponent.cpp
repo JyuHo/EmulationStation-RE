@@ -2,9 +2,7 @@
 #include <cassert>
 #include "Log.h"
 
-AnimatedImageComponent::AnimatedImageComponent(Window* window) : GuiComponent(window), mEnabled(false)
-{
-}
+AnimatedImageComponent::AnimatedImageComponent(Window* window) : GuiComponent(window), mEnabled(false) {}
 
 void AnimatedImageComponent::load(const AnimationDef* def)
 {
@@ -23,7 +21,7 @@ void AnimatedImageComponent::load(const AnimationDef* def)
 		auto img = std::unique_ptr<ImageComponent>(new ImageComponent(mWindow));
 		img->setResize(mSize.x(), mSize.y());
 		img->setImage(std::string(def->frames[i].path), false);
-		
+
 		mFrames.push_back(ImageFrame(std::move(img), def->frames[i].time));
 	}
 
@@ -65,7 +63,9 @@ void AnimatedImageComponent::update(int deltaTime)
 			{
 				// restart
 				mCurrentFrame = 0;
-			}else{
+			}
+			else
+			{
 				// done, stop at last frame
 				mCurrentFrame--;
 				mEnabled = false;

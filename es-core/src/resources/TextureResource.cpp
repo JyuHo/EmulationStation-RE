@@ -8,13 +8,12 @@
 #include "Util.h"
 #include "resources/SVGResource.h"
 
-std::map< TextureResource::TextureKeyType, std::weak_ptr<TextureResource> > TextureResource::sTextureMap;
-std::list< std::weak_ptr<TextureResource> > TextureResource::sTextureList;
+std::map<TextureResource::TextureKeyType, std::weak_ptr<TextureResource>> TextureResource::sTextureMap;
+std::list<std::weak_ptr<TextureResource>> TextureResource::sTextureList;
 
-TextureResource::TextureResource(const std::string& path, bool tile) : 
+TextureResource::TextureResource(const std::string& path, bool tile) :
 	mTextureSize(Eigen::Vector2i::Zero()), mPath(path), mTile(tile), mTextureID(0)
-{
-}
+{}
 
 TextureResource::~TextureResource()
 {
@@ -60,11 +59,13 @@ void TextureResource::initFromPixels(const unsigned char* dataRGBA, size_t width
 void TextureResource::initFromMemory(const char* data, size_t length)
 {
 	size_t width, height;
-	std::vector<unsigned char> imageRGBA = ImageIO::loadFromMemoryRGBA32((const unsigned char*)(data), length, width, height);
+	std::vector<unsigned char> imageRGBA =
+		ImageIO::loadFromMemoryRGBA32((const unsigned char*)(data), length, width, height);
 
 	if(imageRGBA.size() == 0)
 	{
-		LOG(LogError) << "Could not initialize texture from memory, invalid data!  (file path: " << mPath << ", data ptr: " << (size_t)data << ", reported size: " << length << ")";
+		LOG(LogError) << "Could not initialize texture from memory, invalid data!  (file path: " << mPath
+					  << ", data ptr: " << (size_t)data << ", reported size: " << length << ")";
 		return;
 	}
 
@@ -97,7 +98,6 @@ void TextureResource::bind() const
 	else
 		LOG(LogError) << "Tried to bind uninitialized texture!";
 }
-
 
 std::shared_ptr<TextureResource> TextureResource::get(const std::string& path, bool tile)
 {
@@ -133,7 +133,9 @@ std::shared_ptr<TextureResource> TextureResource::get(const std::string& path, b
 		rm->addReloadable(tex);
 		tex->reload(rm);
 		return tex;
-	}else{
+	}
+	else
+	{
 		// normal texture
 		tex = std::shared_ptr<TextureResource>(new TextureResource(key.first, tile));
 		sTextureMap[key] = std::weak_ptr<TextureResource>(tex);

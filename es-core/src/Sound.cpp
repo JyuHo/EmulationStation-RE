@@ -4,7 +4,7 @@
 #include "Settings.h"
 #include "ThemeData.h"
 
-std::map< std::string, std::shared_ptr<Sound> > Sound::sMap;
+std::map<std::string, std::shared_ptr<Sound>> Sound::sMap;
 
 std::shared_ptr<Sound> Sound::get(const std::string& path)
 {
@@ -18,7 +18,8 @@ std::shared_ptr<Sound> Sound::get(const std::string& path)
 	return sound;
 }
 
-std::shared_ptr<Sound> Sound::getFromTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element)
+std::shared_ptr<Sound> Sound::getFromTheme(
+	const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element)
 {
 	LOG(LogInfo) << " req sound [" << view << "." << element << "]";
 
@@ -32,7 +33,7 @@ std::shared_ptr<Sound> Sound::getFromTheme(const std::shared_ptr<ThemeData>& the
 	return get(elem->get<std::string>("path"));
 }
 
-Sound::Sound(const std::string & path) : mSampleData(NULL), mSamplePos(0), mSampleLength(0), playing(false)
+Sound::Sound(const std::string& path) : mSampleData(NULL), mSamplePos(0), mSampleLength(0), playing(false)
 {
 	loadFile(path);
 }
@@ -42,7 +43,7 @@ Sound::~Sound()
 	deinit();
 }
 
-void Sound::loadFile(const std::string & path)
+void Sound::loadFile(const std::string& path)
 {
 	mPath = path;
 	init();
@@ -58,25 +59,30 @@ void Sound::init()
 
 	//load wav file via SDL
 	SDL_AudioSpec wave;
-	Uint8 * data = NULL;
-    Uint32 dlen = 0;
-	if (SDL_LoadWAV(mPath.c_str(), &wave, &data, &dlen) == NULL) {
-		LOG(LogError) << "Error loading sound \"" << mPath << "\"!\n" << "	" << SDL_GetError();
+	Uint8* data = NULL;
+	Uint32 dlen = 0;
+	if(SDL_LoadWAV(mPath.c_str(), &wave, &data, &dlen) == NULL)
+	{
+		LOG(LogError) << "Error loading sound \"" << mPath << "\"!\n"
+					  << "	" << SDL_GetError();
 		return;
 	}
 	//build conversion buffer
 	SDL_AudioCVT cvt;
-    SDL_BuildAudioCVT(&cvt, wave.format, wave.channels, wave.freq, AUDIO_S16, 2, 44100);
+	SDL_BuildAudioCVT(&cvt, wave.format, wave.channels, wave.freq, AUDIO_S16, 2, 44100);
 	//copy data to conversion buffer
 	cvt.len = dlen;
-    cvt.buf = new Uint8[cvt.len * cvt.len_mult];
-    memcpy(cvt.buf, data, dlen);
+	cvt.buf = new Uint8[cvt.len * cvt.len_mult];
+	memcpy(cvt.buf, data, dlen);
 	//convert buffer to stereo, 16bit, 44.1kHz
-    if (SDL_ConvertAudio(&cvt) < 0) {
-		LOG(LogError) << "Error converting sound \"" << mPath << "\" to 44.1kHz, 16bit, stereo format!\n" << "	" << SDL_GetError();
+	if(SDL_ConvertAudio(&cvt) < 0)
+	{
+		LOG(LogError) << "Error converting sound \"" << mPath << "\" to 44.1kHz, 16bit, stereo format!\n"
+					  << "	" << SDL_GetError();
 		delete[] cvt.buf;
 	}
-	else {
+	else
+	{
 		//worked. set up member data
 		SDL_LockAudio();
 		mSampleData = cvt.buf;
@@ -88,7 +94,7 @@ void Sound::init()
 		SDL_UnlockAudio();
 	}
 	//free wav data now
-    SDL_FreeWAV(data);
+	SDL_FreeWAV(data);
 }
 
 void Sound::deinit()
@@ -115,11 +121,10 @@ void Sound::play()
 		return;
 
 	SDL_LockAudio();
-	if (playing)
+	if(playing)
 	{
 		//replay from start. rewind the sample to the beginning
 		mSamplePos = 0;
-		
 	}
 	else
 	{
@@ -145,7 +150,7 @@ void Sound::stop()
 	SDL_UnlockAudio();
 }
 
-const Uint8 * Sound::getData() const
+const Uint8* Sound::getData() const
 {
 	return mSampleData;
 }
@@ -158,7 +163,8 @@ Uint32 Sound::getPosition() const
 void Sound::setPosition(Uint32 newPosition)
 {
 	mSamplePos = newPosition;
-	if (mSamplePos >= mSampleLength) {
+	if(mSamplePos >= mSampleLength)
+	{
 		//got to or beyond the end of the sample. stop playing
 		playing = false;
 		mSamplePos = 0;
