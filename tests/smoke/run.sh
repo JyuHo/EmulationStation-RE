@@ -1,13 +1,4 @@
 #!/usr/bin/env bash
-# Smoke test: start EmulationStation under Xvfb with a throw-away home folder
-# and a one-system configuration, let it run a few seconds, then make sure it
-# neither crashed nor logged an error.
-#
-# Usage: tests/smoke/run.sh <path/to/emulationstation> [seconds] [screenshot.png]
-# Requires: xvfb-run (xorg-server-xvfb). Optional: ImageMagick `import` for the screenshot.
-#
-# NOTE: until the XDG paths module exists (phase 3.A), ES reads and writes
-# $HOME/.emulationstation, so HOME is redirected. Afterwards, switch to ES_HOME.
 set -euo pipefail
 
 binary="$(realpath "$1")"
@@ -17,9 +8,9 @@ screenshot="${3:-}"
 home="$(mktemp -d)"
 trap 'rm -rf "$home"' EXIT
 
-mkdir -p "$home/.emulationstation" "$home/roms/nes"
+mkdir -p "$home/config/emulationstation" "$home/data/emulationstation" "$home/state/emulationstation" "$home/cache/emulationstation" "$home/roms/nes"
 touch "$home/roms/nes/Test Game.nes"
-cat > "$home/.emulationstation/es_systems.cfg" <<XML
+cat > "$home/config/emulationstation/es_systems.cfg" <<XML
 <systemList>
 	<system>
 		<name>nes</name>
@@ -33,7 +24,7 @@ cat > "$home/.emulationstation/es_systems.cfg" <<XML
 XML
 
 status=0
-HOME="$home" xvfb-run -a -s '-screen 0 1280x720x24' bash -c '
+ES_HOME="$home" xvfb-run -a -s '-screen 0 1280x720x24' bash -c '
 	"$1" --windowed --resolution 1280 720 &
 	pid=$!
 	sleep "$2"
@@ -42,7 +33,7 @@ HOME="$home" xvfb-run -a -s '-screen 0 1280x720x24' bash -c '
 	kill "$pid"; wait "$pid" || true
 ' _ "$binary" "$seconds" "$screenshot" || status=$?
 
-log="$home/.emulationstation/es_log.txt"
+log="$home/state/emulationstation/es_log.txt"
 echo "----- es_log.txt -----"
 cat "$log" 2>/dev/null || echo "(no log written)"
 echo "----------------------"
