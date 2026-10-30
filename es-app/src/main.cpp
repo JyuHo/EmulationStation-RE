@@ -16,6 +16,8 @@
 #include "Window.h"
 #include "EmulationStation.h"
 #include "Settings.h"
+#include "utils/Paths.h"
+#include <cstdlib>
 #include "ScraperCmdLine.h"
 #include <sstream>
 #include <boost/locale.hpp>
@@ -116,20 +118,14 @@ bool parseArgs(int argc, char* argv[], unsigned int* width, unsigned int* height
 
 bool verifyHomeFolderExists()
 {
-	//make sure the config directory exists
-	std::string home = getHomePath();
-	std::string configDir = home + "/.emulationstation";
-	if(!fs::exists(configDir))
-	{
-		std::cout << "Creating config directory \"" << configDir << "\"\n";
-		fs::create_directory(configDir);
-		if(!fs::exists(configDir))
-		{
-			std::cerr << "Config directory could not be created!\n";
-			return false;
-		}
-	}
+	const char* envHome = std::getenv("ES_HOME");
+	if(envHome && *envHome)
+		es::paths::setHome(envHome);
 
+	es::paths::userDir(es::paths::Kind::Config);
+	es::paths::userDir(es::paths::Kind::Data);
+	es::paths::userDir(es::paths::Kind::State);
+	es::paths::userDir(es::paths::Kind::Cache);
 	return true;
 }
 
