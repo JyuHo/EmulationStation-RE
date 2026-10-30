@@ -1,0 +1,19 @@
+# Build trees
+/build/
+/out/
+CMakeUserPresets.json
+compile_commands.json
+
+# Legacy in-source build leftovers
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.a
+/emulationstation
+
+# Editors / tooling
+.cache/
+.vscode/
+.idea/
+*.swp

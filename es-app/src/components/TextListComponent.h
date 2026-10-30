@@ -1,6 +1,7 @@
 #pragma once
 
 #include "components/IList.h"
+#include <cassert>
 #include "Renderer.h"
 #include "resources/Font.h"
 #include "InputManager.h"
@@ -31,7 +32,7 @@ protected:
 	using IList<TextListData, T>::getTransform;
 	using IList<TextListData, T>::mSize;
 	using IList<TextListData, T>::mCursor;
-	using IList<TextListData, T>::Entry;
+	using typename IList<TextListData, T>::Entry;
 
 public:
 	using IList<TextListData, T>::size;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "components/NinePatchComponent.h"
+#include <cassert>
 #include "components/ComponentList.h"
 #include "components/TextComponent.h"
 #include "components/ComponentGrid.h"

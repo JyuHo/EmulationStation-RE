@@ -1,7 +1,7 @@
 #include "scrapers/Scraper.h"
 #include "Log.h"
 #include "Settings.h"
-#include <FreeImage.h>
+#include "ImageIO.h"
 #include <boost/filesystem.hpp>
 #include <boost/assign.hpp>
 
@@ -213,59 +213,7 @@ void ImageDownloadHandle::update()
 //you can pass 0 for width or height to keep aspect ratio
 bool resizeImage(const std::string& path, int maxWidth, int maxHeight)
 {
-	// nothing to do
-	if(maxWidth == 0 && maxHeight == 0)
-		return true;
-
-	FREE_IMAGE_FORMAT format = FIF_UNKNOWN;
-	FIBITMAP* image = NULL;
-	
-	//detect the filetype
-	format = FreeImage_GetFileType(path.c_str(), 0);
-	if(format == FIF_UNKNOWN)
-		format = FreeImage_GetFIFFromFilename(path.c_str());
-	if(format == FIF_UNKNOWN)
-	{
-		LOG(LogError) << "Error - could not detect filetype for image \"" << path << "\"!";
-		return false;
-	}
-
-	//make sure we can read this filetype first, then load it
-	if(FreeImage_FIFSupportsReading(format))
-	{
-		image = FreeImage_Load(format, path.c_str());
-	}else{
-		LOG(LogError) << "Error - file format reading not supported for image \"" << path << "\"!";
-		return false;
-	}
-
-	float width = (float)FreeImage_GetWidth(image);
-	float height = (float)FreeImage_GetHeight(image);
-
-	if(maxWidth == 0)
-	{
-		maxWidth = (int)((maxHeight / height) * width);
-	}else if(maxHeight == 0)
-	{
-		maxHeight = (int)((maxWidth / width) * height);
-	}
-
-	FIBITMAP* imageRescaled = FreeImage_Rescale(image, maxWidth, maxHeight, FILTER_BILINEAR);
-	FreeImage_Unload(image);
-
-	if(imageRescaled == NULL)
-	{
-		LOG(LogError) << "Could not resize image! (not enough memory? invalid bitdepth?)";
-		return false;
-	}
-
-	bool saved = FreeImage_Save(format, imageRescaled, path.c_str());
-	FreeImage_Unload(imageRescaled);
-
-	if(!saved)
-		LOG(LogError) << "Failed to save resized image!";
-
-	return saved;
+	return ImageIO::resizeImageFile(path, maxWidth, maxHeight);
 }
 
 std::string getSaveAsPath(const ScraperSearchParams& params, const std::string& suffix, const std::string& url)

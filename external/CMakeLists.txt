@@ -1,5 +1,6 @@
-# set up the external libraries that aren't popular enough to be found on most 
-# package managers are included with the project (in the 'external' folder)
+# Third-party libraries vendored in-tree (not packaged on most distributions).
+# They are built without the project warning set.
 
-add_subdirectory("nanosvg")
-add_subdirectory("pugixml")
+add_subdirectory(nanosvg)
+add_subdirectory(pugixml)
+add_subdirectory(stb)

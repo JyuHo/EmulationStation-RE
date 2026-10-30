@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <cassert>
 #include <vector>
 #include <memory>
 #include "GuiComponent.h"

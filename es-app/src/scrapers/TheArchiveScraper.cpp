@@ -1,4 +1,5 @@
 #include "TheArchiveScraper.h"
+#include <cassert>
 #include "Log.h"
 #include "pugixml/pugixml.hpp"
 

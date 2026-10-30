@@ -1,4 +1,5 @@
 #include "SVGResource.h"
+#include <cassert>
 #include "nanosvg/nanosvg.h"
 #include "nanosvg/nanosvgrast.h"
 #include "Log.h"

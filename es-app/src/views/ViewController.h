@@ -1,6 +1,7 @@
 #pragma once
 
 #include "views/gamelist/IGameListView.h"
+#include <cassert>
 #include "views/SystemView.h"
 
 class SystemData;
