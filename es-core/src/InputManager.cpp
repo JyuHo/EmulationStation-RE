@@ -91,8 +91,8 @@ void InputManager::addJoystickByDeviceIndex(int id)
 
 	// set up the prevAxisValues
 	int numAxes = SDL_JoystickNumAxes(joy);
-	mPrevAxisValues[joyId] = new int[numAxes];
-	std::fill(mPrevAxisValues[joyId], mPrevAxisValues[joyId] + numAxes, 0); //initialize array to 0
+	mPrevAxisValues[joyId] = std::make_unique<int[]>(numAxes);
+	std::fill(mPrevAxisValues[joyId].get(), mPrevAxisValues[joyId].get() + numAxes, 0); //initialize array to 0
 }
 
 void InputManager::removeJoystickByJoystickID(SDL_JoystickID joyId)
@@ -101,7 +101,6 @@ void InputManager::removeJoystickByJoystickID(SDL_JoystickID joyId)
 
 	// delete old prevAxisValues
 	auto axisIt = mPrevAxisValues.find(joyId);
-	delete[] axisIt->second;
 	mPrevAxisValues.erase(axisIt);
 
 	// delete old InputConfig
@@ -139,10 +138,6 @@ void InputManager::deinit()
 	}
 	mInputConfigs.clear();
 
-	for(auto iter = mPrevAxisValues.begin(); iter != mPrevAxisValues.end(); iter++)
-	{
-		delete[] iter->second;
-	}
 	mPrevAxisValues.clear();
 
 	if(mKeyboardInputConfig != nullptr)
