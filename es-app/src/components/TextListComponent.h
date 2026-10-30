@@ -1,6 +1,7 @@
 #pragma once
 
 #include "components/IList.h"
+#include <cassert>
 #include "Renderer.h"
 #include "resources/Font.h"
 #include "InputManager.h"

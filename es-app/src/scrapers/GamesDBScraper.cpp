@@ -1,4 +1,5 @@
 #include "scrapers/GamesDBScraper.h"
+#include <cassert>
 #include "Log.h"
 #include "pugixml/pugixml.hpp"
 #include "MetaData.h"

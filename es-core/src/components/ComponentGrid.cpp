@@ -1,4 +1,5 @@
 #include "components/ComponentGrid.h"
+#include <cassert>
 #include <string_view>
 #include "Log.h"
 #include "Renderer.h"

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cassert>
 #include "HttpReq.h"
 #include "Log.h"
 #include <boost/filesystem.hpp>

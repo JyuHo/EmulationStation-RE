@@ -1,4 +1,5 @@
 #include "views/gamelist/DetailedGameListView.h"
+#include <cassert>
 #include "views/ViewController.h"
 #include "Window.h"
 #include "animations/LambdaAnimation.h"

@@ -1,4 +1,5 @@
 #include "GuiComponent.h"
+#include <cassert>
 #include "Window.h"
 #include "Log.h"
 #include "Renderer.h"

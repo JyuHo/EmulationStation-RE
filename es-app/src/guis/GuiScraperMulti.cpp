@@ -1,4 +1,5 @@
 #include "guis/GuiScraperMulti.h"
+#include <cassert>
 #include "Renderer.h"
 #include "Log.h"
 #include "views/ViewController.h"

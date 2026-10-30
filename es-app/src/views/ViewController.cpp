@@ -1,4 +1,5 @@
 #include "views/ViewController.h"
+#include <cassert>
 #include "Log.h"
 #include "SystemData.h"
 #include "Settings.h"

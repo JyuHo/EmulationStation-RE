@@ -1,4 +1,5 @@
 #include "InputManager.h"
+#include <cassert>
 #include "InputConfig.h"
 #include "Settings.h"
 #include "Window.h"

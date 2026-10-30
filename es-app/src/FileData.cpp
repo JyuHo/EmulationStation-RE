@@ -1,4 +1,5 @@
 #include "FileData.h"
+#include <cassert>
 #include "SystemData.h"
 
 namespace fs = boost::filesystem;

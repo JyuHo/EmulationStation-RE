@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GuiComponent.h"
+#include <cassert>
 #include "resources/Font.h"
 #include "Renderer.h"
 #include "Window.h"

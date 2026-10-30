@@ -1,4 +1,5 @@
 #include "guis/GuiMetaDataEd.h"
+#include <cassert>
 #include "Renderer.h"
 #include "Log.h"
 #include "components/AsyncReqComponent.h"

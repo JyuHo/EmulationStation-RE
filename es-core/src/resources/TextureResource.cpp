@@ -1,4 +1,5 @@
 #include "resources/TextureResource.h"
+#include <cassert>
 #include "Log.h"
 #include "platform.h"
 #include GLHEADER

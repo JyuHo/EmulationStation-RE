@@ -1,6 +1,7 @@
 #pragma once
 
 #include "MetaData.h"
+#include <cassert>
 #include "SystemData.h"
 #include "HttpReq.h"
 #include "AsyncHandle.h"
