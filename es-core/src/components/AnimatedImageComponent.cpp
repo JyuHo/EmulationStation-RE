@@ -18,7 +18,7 @@ void AnimatedImageComponent::load(const AnimationDef* def)
 			continue;
 		}
 
-		auto img = std::unique_ptr<ImageComponent>(new ImageComponent(mWindow));
+		auto img = std::make_unique<ImageComponent>(mWindow);
 		img->setResize(mSize.x(), mSize.y());
 		img->setImage(std::string(def->frames[i].path), false);
 
