@@ -193,7 +193,7 @@ void DetailedGameListView::updateInfoPanel()
 	FileData* file = (mList.size() == 0 || mList.isScrolling()) ? NULL : mList.getSelected();
 
 	bool fadingOut;
-	if(file == NULL)
+	if(file == nullptr)
 	{
 		//mImage.setImage("");
 		//mDescription.setText("");

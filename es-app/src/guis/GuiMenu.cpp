@@ -107,8 +107,8 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "MAIN MEN
 		auto screensaver_behavior =
 			std::make_shared<OptionListComponent<std::string>>(mWindow, "TRANSITION STYLE", false);
 		std::vector<std::string> screensavers;
-		screensavers.push_back("dim");
-		screensavers.push_back("black");
+		screensavers.emplace_back("dim");
+		screensavers.emplace_back("black");
 		for(auto it = screensavers.begin(); it != screensavers.end(); it++)
 			screensaver_behavior->add(*it, *it, Settings::getInstance()->getString("ScreenSaverBehavior") == *it);
 		s->addWithLabel("SCREENSAVER BEHAVIOR", screensaver_behavior);
@@ -139,8 +139,8 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "MAIN MEN
 		// transition style
 		auto transition_style = std::make_shared<OptionListComponent<std::string>>(mWindow, "TRANSITION STYLE", false);
 		std::vector<std::string> transitions;
-		transitions.push_back("fade");
-		transitions.push_back("slide");
+		transitions.emplace_back("fade");
+		transitions.emplace_back("slide");
 		for(auto it = transitions.begin(); it != transitions.end(); it++)
 			transition_style->add(*it, *it, Settings::getInstance()->getString("TransitionStyle") == *it);
 		s->addWithLabel("TRANSITION STYLE", transition_style);
@@ -290,8 +290,8 @@ bool GuiMenu::input(InputConfig* config, Input input)
 std::vector<HelpPrompt> GuiMenu::getHelpPrompts()
 {
 	std::vector<HelpPrompt> prompts;
-	prompts.push_back(HelpPrompt("up/down", "choose"));
-	prompts.push_back(HelpPrompt("a", "select"));
-	prompts.push_back(HelpPrompt("start", "close"));
+	prompts.emplace_back("up/down", "choose");
+	prompts.emplace_back("a", "select");
+	prompts.emplace_back("start", "close");
 	return prompts;
 }

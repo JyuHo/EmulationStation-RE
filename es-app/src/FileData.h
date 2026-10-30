@@ -52,7 +52,7 @@ public:
 	// Returns our best guess at the "real" name for this file (will strip parenthesis and attempt to perform MAME name translation)
 	std::string getCleanName() const;
 
-	typedef bool ComparisonFunction(const FileData* a, const FileData* b);
+	using ComparisonFunction = bool(const FileData*, const FileData*);
 	struct SortType
 	{
 		ComparisonFunction* comparisonFunction;

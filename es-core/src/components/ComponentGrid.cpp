@@ -176,23 +176,23 @@ void ComponentGrid::updateSeparators()
 
 		if(it->border & BORDER_TOP || drawAll)
 		{
-			mLines.push_back(Vert(pos.x(), pos.y()));
-			mLines.push_back(Vert(pos.x() + size.x(), pos.y()));
+			mLines.emplace_back(pos.x(), pos.y());
+			mLines.emplace_back(pos.x() + size.x(), pos.y());
 		}
 		if(it->border & BORDER_BOTTOM || drawAll)
 		{
-			mLines.push_back(Vert(pos.x(), pos.y() + size.y()));
-			mLines.push_back(Vert(pos.x() + size.x(), mLines.back().y));
+			mLines.emplace_back(pos.x(), pos.y() + size.y());
+			mLines.emplace_back(pos.x() + size.x(), mLines.back().y);
 		}
 		if(it->border & BORDER_LEFT || drawAll)
 		{
-			mLines.push_back(Vert(pos.x(), pos.y()));
-			mLines.push_back(Vert(pos.x(), pos.y() + size.y()));
+			mLines.emplace_back(pos.x(), pos.y());
+			mLines.emplace_back(pos.x(), pos.y() + size.y());
 		}
 		if(it->border & BORDER_RIGHT || drawAll)
 		{
-			mLines.push_back(Vert(pos.x() + size.x(), pos.y()));
-			mLines.push_back(Vert(mLines.back().x, pos.y() + size.y()));
+			mLines.emplace_back(pos.x() + size.x(), pos.y());
+			mLines.emplace_back(mLines.back().x, pos.y() + size.y());
 		}
 	}
 
@@ -223,7 +223,7 @@ ComponentGrid::GridEntry* ComponentGrid::getCellAt(int x, int y)
 			return &(*it);
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 bool ComponentGrid::input(InputConfig* config, Input input)
@@ -341,7 +341,7 @@ void ComponentGrid::onFocusGained()
 bool ComponentGrid::cursorValid()
 {
 	GridEntry* e = getCellAt(mCursor);
-	return (e != NULL && e->canFocus);
+	return (e != nullptr && e->canFocus);
 }
 
 void ComponentGrid::update(int deltaTime)
@@ -385,7 +385,7 @@ void ComponentGrid::render(const Eigen::Affine3f& parentTrans)
 void ComponentGrid::textInput(const char* text)
 {
 	GridEntry* selectedEntry = getCellAt(mCursor);
-	if(selectedEntry != NULL && selectedEntry->canFocus)
+	if(selectedEntry != nullptr && selectedEntry->canFocus)
 		selectedEntry->component->textInput(text);
 }
 
@@ -447,11 +447,11 @@ std::vector<HelpPrompt> ComponentGrid::getHelpPrompts()
 	}
 
 	if(canScrollHoriz && canScrollVert)
-		prompts.push_back(HelpPrompt("up/down/left/right", "choose"));
+		prompts.emplace_back("up/down/left/right", "choose");
 	else if(canScrollHoriz)
-		prompts.push_back(HelpPrompt("left/right", "choose"));
+		prompts.emplace_back("left/right", "choose");
 	else if(canScrollVert)
-		prompts.push_back(HelpPrompt("up/down", "choose"));
+		prompts.emplace_back("up/down", "choose");
 
 	return prompts;
 }

@@ -23,9 +23,9 @@
 
 namespace fs = boost::filesystem;
 
-InputManager* InputManager::mInstance = NULL;
+InputManager* InputManager::mInstance = nullptr;
 
-InputManager::InputManager() : mKeyboardInputConfig(NULL) {}
+InputManager::InputManager() : mKeyboardInputConfig(nullptr) {}
 
 InputManager::~InputManager()
 {
@@ -145,10 +145,10 @@ void InputManager::deinit()
 	}
 	mPrevAxisValues.clear();
 
-	if(mKeyboardInputConfig != NULL)
+	if(mKeyboardInputConfig != nullptr)
 	{
 		delete mKeyboardInputConfig;
-		mKeyboardInputConfig = NULL;
+		mKeyboardInputConfig = nullptr;
 	}
 
 	SDL_JoystickEventState(SDL_DISABLE);
@@ -352,7 +352,7 @@ std::string InputManager::getConfigPath()
 
 bool InputManager::initialized() const
 {
-	return mKeyboardInputConfig != NULL;
+	return mKeyboardInputConfig != nullptr;
 }
 
 int InputManager::getNumConfiguredDevices()

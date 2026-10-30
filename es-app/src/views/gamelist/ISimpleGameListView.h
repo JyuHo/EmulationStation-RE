@@ -11,7 +11,7 @@ class ISimpleGameListView : public IGameListView
 {
 public:
 	ISimpleGameListView(Window* window, FileData* root);
-	~ISimpleGameListView() override {}
+	~ISimpleGameListView() override = default;
 
 	// Called when a new file is added, a file is removed, a file's metadata changes, or a file's children are sorted.
 	// NOTE: FILE_SORTED is only reported for the topmost FileData, where the sort started.

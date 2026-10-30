@@ -12,7 +12,7 @@ class AsyncHandle
 {
 public:
 	AsyncHandle() : mStatus(ASYNC_IN_PROGRESS){};
-	virtual ~AsyncHandle(){};
+	virtual ~AsyncHandle() = default;
 
 	virtual void update() = 0;
 

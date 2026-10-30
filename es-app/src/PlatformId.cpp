@@ -36,7 +36,7 @@ const char* PlatformNames[PLATFORM_COUNT + 1] = {"unknown", // nothing set
 
 PlatformId getPlatformId(const char* str)
 {
-	if(str == NULL)
+	if(str == nullptr)
 		return PLATFORM_UNKNOWN;
 
 	for(unsigned int i = 1; i < PLATFORM_COUNT; i++)
@@ -57,7 +57,7 @@ const char* getCleanMameName(const char* from)
 {
 	const char** mameNames = mameNameToRealName;
 
-	while(*mameNames != NULL && strcmp(from, *mameNames) != 0)
+	while(*mameNames != nullptr && strcmp(from, *mameNames) != 0)
 		mameNames += 2;
 
 	if(*mameNames)

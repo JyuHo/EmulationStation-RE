@@ -18,7 +18,7 @@ class TextCache;
 #define FONT_PATH_LIGHT ":/opensans_hebrew_condensed_light.ttf"
 #define FONT_PATH_REGULAR ":/opensans_hebrew_condensed_regular.ttf"
 
-typedef unsigned long UnicodeChar;
+using UnicodeChar = unsigned long;
 
 enum Alignment
 {

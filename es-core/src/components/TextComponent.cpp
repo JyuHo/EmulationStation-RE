@@ -20,7 +20,7 @@ TextComponent::TextComponent(Window* window, const std::string& text, const std:
 	unsigned int color, Alignment align, Eigen::Vector3f pos, Eigen::Vector2f size) :
 	GuiComponent(window),
 	mColor(0x000000FF),
-	mFont(NULL),
+	mFont(nullptr),
 	mUppercase(false),
 	mAutoCalcExtent(true, true),
 	mAlignment(align),

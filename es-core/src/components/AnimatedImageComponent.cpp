@@ -12,7 +12,7 @@ void AnimatedImageComponent::load(const AnimationDef* def)
 
 	for(size_t i = 0; i < def->frameCount; i++)
 	{
-		if(def->frames[i].path != NULL && !ResourceManager::getInstance()->fileExists(def->frames[i].path))
+		if(def->frames[i].path != nullptr && !ResourceManager::getInstance()->fileExists(def->frames[i].path))
 		{
 			LOG(LogError) << "Missing animation frame " << i << " (\"" << def->frames[i].path << "\")";
 			continue;
@@ -22,7 +22,7 @@ void AnimatedImageComponent::load(const AnimationDef* def)
 		img->setResize(mSize.x(), mSize.y());
 		img->setImage(std::string(def->frames[i].path), false);
 
-		mFrames.push_back(ImageFrame(std::move(img), def->frames[i].time));
+		mFrames.emplace_back(std::move(img), def->frames[i].time);
 	}
 
 	mLoop = def->loop;

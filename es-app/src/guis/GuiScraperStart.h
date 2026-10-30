@@ -6,7 +6,7 @@
 #include "components/MenuComponent.h"
 #include <queue>
 
-typedef std::function<bool(SystemData*, FileData*)> GameFilterFunc;
+using GameFilterFunc = std::function<bool(SystemData*, FileData*)>;
 
 template <typename T> class OptionListComponent;
 

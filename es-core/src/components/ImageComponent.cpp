@@ -34,7 +34,7 @@ ImageComponent::ImageComponent(Window* window) :
 	updateColors();
 }
 
-ImageComponent::~ImageComponent() {}
+ImageComponent::~ImageComponent() = default;
 
 void ImageComponent::resize()
 {
@@ -345,6 +345,6 @@ void ImageComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, const s
 std::vector<HelpPrompt> ImageComponent::getHelpPrompts()
 {
 	std::vector<HelpPrompt> ret;
-	ret.push_back(HelpPrompt("a", "select"));
+	ret.emplace_back("a", "select");
 	return ret;
 }

@@ -275,19 +275,19 @@ void DateTimeComponent::updateTextCache()
 	Eigen::Vector2f start(0, 0);
 	Eigen::Vector2f end = font->sizeText(dispString.substr(0, 2));
 	Eigen::Vector2f diff = end - start;
-	mCursorBoxes.push_back(Eigen::Vector4f(start[0], start[1], diff[0], diff[1]));
+	mCursorBoxes.emplace_back(start[0], start[1], diff[0], diff[1]);
 
 	//day
 	start[0] = font->sizeText(dispString.substr(0, 3)).x();
 	end = font->sizeText(dispString.substr(0, 5));
 	diff = end - start;
-	mCursorBoxes.push_back(Eigen::Vector4f(start[0], start[1], diff[0], diff[1]));
+	mCursorBoxes.emplace_back(start[0], start[1], diff[0], diff[1]);
 
 	//year
 	start[0] = font->sizeText(dispString.substr(0, 6)).x();
 	end = font->sizeText(dispString.substr(0, 10));
 	diff = end - start;
-	mCursorBoxes.push_back(Eigen::Vector4f(start[0], start[1], diff[0], diff[1]));
+	mCursorBoxes.emplace_back(start[0], start[1], diff[0], diff[1]);
 
 	//if mode == DISP_DATE_TIME do times too but I don't wanna do the logic for editing times because no one will ever use it so screw it
 }

@@ -14,7 +14,7 @@
 // This is a work around for some ambiguity that is introduced in C++11 that boost::assign::map_list_of leave open.
 // We use makeMap(actualmap) to implicitly convert the boost::assign::map_list_of's return type to ElementMapType.
 // Problem exists with gcc 4.7 and Boost 1.51.  Works fine with MSVC2010 without this hack.
-typedef std::map<std::string, ThemeData::ElementPropertyType> ElementMapType;
+using ElementMapType = std::map<std::string, ThemeData::ElementPropertyType>;
 template <typename T> ElementMapType makeMap(const T& mapInit)
 {
 	ElementMapType m = mapInit;
@@ -98,7 +98,7 @@ ThemeData::ThemeData()
 
 void ThemeData::loadFile(const std::string& path)
 {
-	mPaths.push_back(path);
+	mPaths.emplace_back(path);
 
 	ThemeException error;
 	error.setFiles(mPaths);
@@ -146,7 +146,7 @@ void ThemeData::parseIncludes(const pugi::xml_node& root)
 
 		error << "    from included file \"" << relPath << "\":\n    ";
 
-		mPaths.push_back(path);
+		mPaths.emplace_back(path);
 
 		pugi::xml_document includeDoc;
 		pugi::xml_parse_result result = includeDoc.load_file(path.c_str());
@@ -289,17 +289,17 @@ const ThemeData::ThemeElement* ThemeData::getElement(
 {
 	auto viewIt = mViews.find(view);
 	if(viewIt == mViews.end())
-		return NULL; // not found
+		return nullptr; // not found
 
 	auto elemIt = viewIt->second.elements.find(element);
 	if(elemIt == viewIt->second.elements.end())
-		return NULL;
+		return nullptr;
 
 	if(elemIt->second.type != expectedType && !expectedType.empty())
 	{
 		LOG(LogWarning) << " requested mismatched theme type for [" << view << "." << element << "] - expected \""
 						<< expectedType << "\", got \"" << elemIt->second.type << "\"";
-		return NULL;
+		return nullptr;
 	}
 
 	return &elemIt->second;
@@ -344,7 +344,7 @@ std::vector<GuiComponent*> ThemeData::makeExtras(
 		ThemeElement& elem = viewIt->second.elements.at(*it);
 		if(elem.extra)
 		{
-			GuiComponent* comp = NULL;
+			GuiComponent* comp = nullptr;
 			const std::string& t = elem.type;
 			if(t == "image")
 				comp = new ImageComponent(window);

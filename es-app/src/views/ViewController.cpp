@@ -13,7 +13,7 @@
 #include "animations/MoveCameraAnimation.h"
 #include "animations/LambdaAnimation.h"
 
-ViewController* ViewController::sInstance = NULL;
+ViewController* ViewController::sInstance = nullptr;
 
 ViewController* ViewController::get()
 {
@@ -40,7 +40,7 @@ ViewController::ViewController(Window* window) :
 ViewController::~ViewController()
 {
 	assert(sInstance == this);
-	sInstance = NULL;
+	sInstance = nullptr;
 }
 
 void ViewController::goToStart()
@@ -403,7 +403,7 @@ std::vector<HelpPrompt> ViewController::getHelpPrompts()
 		return prompts;
 
 	prompts = mCurrentView->getHelpPrompts();
-	prompts.push_back(HelpPrompt("start", "menu"));
+	prompts.emplace_back("start", "menu");
 
 	return prompts;
 }

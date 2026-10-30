@@ -120,10 +120,10 @@ MDResolveHandle::MDResolveHandle(const ScraperSearchResult& result, const Scrape
 	if(!result.imageUrl.empty())
 	{
 		std::string imgPath = getSaveAsPath(search, "image", result.imageUrl);
-		mFuncs.push_back(ResolvePair(downloadImageAsync(result.imageUrl, imgPath), [this, imgPath] {
+		mFuncs.emplace_back(downloadImageAsync(result.imageUrl, imgPath), [this, imgPath] {
 			mResult.mdl.set("image", imgPath);
 			mResult.imageUrl = "";
-		}));
+		});
 	}
 }
 

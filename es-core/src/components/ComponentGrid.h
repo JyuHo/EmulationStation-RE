@@ -88,7 +88,7 @@ private:
 			unsigned int b = GridFlags::BORDER_NONE) :
 			pos(p), dim(d), component(cmp), canFocus(f), resize(r), updateType(u), border(b){};
 
-		operator bool() const { return component != NULL; }
+		operator bool() const { return component != nullptr; }
 	};
 
 	float* mRowHeights;

@@ -44,7 +44,7 @@ protected:
 private:
 	GLuint mTextureID;
 
-	typedef std::pair<std::string, bool> TextureKeyType;
+	using TextureKeyType = std::pair<std::string, bool>;
 	static std::map<TextureKeyType, std::weak_ptr<TextureResource>>
 		sTextureMap; // map of textures, used to prevent duplicate textures
 

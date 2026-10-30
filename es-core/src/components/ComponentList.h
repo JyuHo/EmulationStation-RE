@@ -26,7 +26,7 @@ struct ComponentListRow
 	inline void addElement(
 		const std::shared_ptr<GuiComponent>& component, bool resize_width, bool invert_when_selected = true)
 	{
-		elements.push_back(ComponentListElement(component, resize_width, invert_when_selected));
+		elements.emplace_back(component, resize_width, invert_when_selected);
 	}
 
 	// Utility method for making an input handler for "when the users presses A on this, do func."

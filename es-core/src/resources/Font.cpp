@@ -8,7 +8,7 @@
 #include "Log.h"
 #include "Util.h"
 
-FT_Library Font::sLibrary = NULL;
+FT_Library Font::sLibrary = nullptr;
 
 int Font::getSize() const
 {
@@ -152,7 +152,7 @@ void Font::initLibrary()
 	assert(sLibrary == NULL);
 	if(FT_Init_FreeType(&sLibrary))
 	{
-		sLibrary = NULL;
+		sLibrary = nullptr;
 		LOG(LogError) << "Error initializing FreeType!";
 	}
 }
@@ -303,7 +303,7 @@ void Font::FontTexture::initTexture()
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, textureSize.x(), textureSize.y(), 0, GL_ALPHA, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, textureSize.x(), textureSize.y(), 0, GL_ALPHA, GL_UNSIGNED_BYTE, nullptr);
 }
 
 void Font::FontTexture::deinitTexture()
@@ -329,7 +329,7 @@ void Font::getTextureForNewGlyph(const Eigen::Vector2i& glyphSize, FontTexture*&
 
 	// current textures are full,
 	// make a new one
-	mTextures.push_back(FontTexture());
+	mTextures.emplace_back();
 	tex_out = &mTextures.back();
 	tex_out->initTexture();
 
@@ -338,7 +338,7 @@ void Font::getTextureForNewGlyph(const Eigen::Vector2i& glyphSize, FontTexture*&
 	{
 		LOG(LogError) << "Glyph too big to fit on a new texture (glyph size > " << tex_out->textureSize.x() << ", "
 					  << tex_out->textureSize.y() << ")!";
-		tex_out = NULL;
+		tex_out = nullptr;
 	}
 }
 
@@ -386,7 +386,7 @@ std::vector<std::string> getFallbackFontPaths()
 	for(unsigned int i = 0; i < sizeof(paths) / sizeof(paths[0]); i++)
 	{
 		if(ResourceManager::getInstance()->fileExists(paths[i]))
-			fontPaths.push_back(paths[i]);
+			fontPaths.emplace_back(paths[i]);
 	}
 
 	fontPaths.shrink_to_fit();
@@ -439,7 +439,7 @@ Font::Glyph* Font::getGlyph(UnicodeChar id)
 	if(!face)
 	{
 		LOG(LogError) << "Could not find appropriate font face for character " << id << " for font " << mPath;
-		return NULL;
+		return nullptr;
 	}
 
 	FT_GlyphSlot g = face->glyph;
@@ -448,21 +448,21 @@ Font::Glyph* Font::getGlyph(UnicodeChar id)
 	{
 		LOG(LogError) << "Could not find glyph for character " << id << " for font " << mPath << ", size " << mSize
 					  << "!";
-		return NULL;
+		return nullptr;
 	}
 
 	Eigen::Vector2i glyphSize(g->bitmap.width, g->bitmap.rows);
 
-	FontTexture* tex = NULL;
+	FontTexture* tex = nullptr;
 	Eigen::Vector2i cursor;
 	getTextureForNewGlyph(glyphSize, tex, cursor);
 
 	// getTextureForNewGlyph can fail if the glyph is bigger than the max texture size (absurdly large font size)
-	if(tex == NULL)
+	if(tex == nullptr)
 	{
 		LOG(LogError) << "Could not create glyph for character " << id << " for font " << mPath << ", size " << mSize
 					  << " (no suitable texture found)!";
-		return NULL;
+		return nullptr;
 	}
 
 	// create glyph
@@ -526,7 +526,7 @@ void Font::rebuildTextures()
 
 void Font::renderTextCache(TextCache* cache)
 {
-	if(cache == NULL)
+	if(cache == nullptr)
 	{
 		LOG(LogError) << "Attempted to draw NULL TextCache!";
 		return;
@@ -760,7 +760,7 @@ TextCache* Font::buildTextCache(const std::string& text, Eigen::Vector2f offset,
 		}
 
 		glyph = getGlyph(character);
-		if(glyph == NULL)
+		if(glyph == nullptr)
 			continue;
 
 		std::vector<TextCache::Vertex>& verts = vertMap[glyph->texture];

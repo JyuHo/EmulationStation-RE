@@ -16,7 +16,7 @@ using namespace Eigen;
 GuiDetectDevice::GuiDetectDevice(Window* window, bool firstRun, const std::function<void()>& doneCallback) :
 	GuiComponent(window), mFirstRun(firstRun), mBackground(window, ":/frame.png"), mGrid(window, Vector2i(1, 5))
 {
-	mHoldingConfig = NULL;
+	mHoldingConfig = nullptr;
 	mHoldTime = 0;
 	mDoneCallback = doneCallback;
 
@@ -82,7 +82,7 @@ bool GuiDetectDevice::input(InputConfig* config, Input input)
 
 	if(input.type == TYPE_BUTTON || input.type == TYPE_KEY)
 	{
-		if(input.value && mHoldingConfig == NULL)
+		if(input.value && mHoldingConfig == nullptr)
 		{
 			// started holding
 			mHoldingConfig = config;
@@ -92,7 +92,7 @@ bool GuiDetectDevice::input(InputConfig* config, Input input)
 		else if(!input.value && mHoldingConfig == config)
 		{
 			// cancel
-			mHoldingConfig = NULL;
+			mHoldingConfig = nullptr;
 			mDeviceHeld->setText("");
 		}
 	}

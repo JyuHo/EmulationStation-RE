@@ -8,7 +8,7 @@
 
 #define DPI 96
 
-SVGResource::SVGResource(const std::string& path, bool tile) : TextureResource(path, tile), mSVGImage(NULL)
+SVGResource::SVGResource(const std::string& path, bool tile) : TextureResource(path, tile), mSVGImage(nullptr)
 {
 	mLastWidth = 0;
 	mLastHeight = 0;
@@ -99,5 +99,5 @@ void SVGResource::deinitSVG()
 	if(mSVGImage)
 		nsvgDelete(mSVGImage);
 
-	mSVGImage = NULL;
+	mSVGImage = nullptr;
 }

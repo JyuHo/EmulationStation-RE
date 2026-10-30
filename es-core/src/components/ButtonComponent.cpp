@@ -120,6 +120,6 @@ unsigned int ButtonComponent::getCurTextColor() const
 std::vector<HelpPrompt> ButtonComponent::getHelpPrompts()
 {
 	std::vector<HelpPrompt> prompts;
-	prompts.push_back(HelpPrompt("a", mHelpText.empty() ? mText.c_str() : mHelpText.c_str()));
+	prompts.emplace_back("a", mHelpText.empty() ? mText.c_str() : mHelpText.c_str());
 	return prompts;
 }

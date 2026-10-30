@@ -52,17 +52,12 @@ ScraperSearchComponent::ScraperSearchComponent(Window* window, SearchType type) 
 	mMD_Genre = std::make_shared<TextComponent>(mWindow, "", font, mdColor);
 	mMD_Players = std::make_shared<TextComponent>(mWindow, "", font, mdColor);
 
-	mMD_Pairs.push_back(
-		MetaDataPair(std::make_shared<TextComponent>(mWindow, "RATING:", font, mdLblColor), mMD_Rating, false));
-	mMD_Pairs.push_back(
-		MetaDataPair(std::make_shared<TextComponent>(mWindow, "RELEASED:", font, mdLblColor), mMD_ReleaseDate));
-	mMD_Pairs.push_back(
-		MetaDataPair(std::make_shared<TextComponent>(mWindow, "DEVELOPER:", font, mdLblColor), mMD_Developer));
-	mMD_Pairs.push_back(
-		MetaDataPair(std::make_shared<TextComponent>(mWindow, "PUBLISHER:", font, mdLblColor), mMD_Publisher));
-	mMD_Pairs.push_back(MetaDataPair(std::make_shared<TextComponent>(mWindow, "GENRE:", font, mdLblColor), mMD_Genre));
-	mMD_Pairs.push_back(
-		MetaDataPair(std::make_shared<TextComponent>(mWindow, "PLAYERS:", font, mdLblColor), mMD_Players));
+	mMD_Pairs.emplace_back(std::make_shared<TextComponent>(mWindow, "RATING:", font, mdLblColor), mMD_Rating, false);
+	mMD_Pairs.emplace_back(std::make_shared<TextComponent>(mWindow, "RELEASED:", font, mdLblColor), mMD_ReleaseDate);
+	mMD_Pairs.emplace_back(std::make_shared<TextComponent>(mWindow, "DEVELOPER:", font, mdLblColor), mMD_Developer);
+	mMD_Pairs.emplace_back(std::make_shared<TextComponent>(mWindow, "PUBLISHER:", font, mdLblColor), mMD_Publisher);
+	mMD_Pairs.emplace_back(std::make_shared<TextComponent>(mWindow, "GENRE:", font, mdLblColor), mMD_Genre);
+	mMD_Pairs.emplace_back(std::make_shared<TextComponent>(mWindow, "PLAYERS:", font, mdLblColor), mMD_Players);
 
 	mMD_Grid = std::make_shared<ComponentGrid>(mWindow, Vector2i(2, mMD_Pairs.size() * 2 - 1));
 	unsigned int i = 0;
@@ -487,7 +482,7 @@ std::vector<HelpPrompt> ScraperSearchComponent::getHelpPrompts()
 {
 	std::vector<HelpPrompt> prompts = mGrid.getHelpPrompts();
 	if(getSelectedIndex() != -1)
-		prompts.push_back(HelpPrompt("a", "accept result"));
+		prompts.emplace_back("a", "accept result");
 
 	return prompts;
 }

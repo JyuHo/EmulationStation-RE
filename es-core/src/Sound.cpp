@@ -33,7 +33,7 @@ std::shared_ptr<Sound> Sound::getFromTheme(
 	return get(elem->get<std::string>("path"));
 }
 
-Sound::Sound(const std::string& path) : mSampleData(NULL), mSamplePos(0), mSampleLength(0), playing(false)
+Sound::Sound(const std::string& path) : mSampleData(nullptr), mSamplePos(0), mSampleLength(0), playing(false)
 {
 	loadFile(path);
 }
@@ -51,7 +51,7 @@ void Sound::loadFile(const std::string& path)
 
 void Sound::init()
 {
-	if(mSampleData != NULL)
+	if(mSampleData != nullptr)
 		deinit();
 
 	if(mPath.empty())
@@ -59,9 +59,9 @@ void Sound::init()
 
 	//load wav file via SDL
 	SDL_AudioSpec wave;
-	Uint8* data = NULL;
+	Uint8* data = nullptr;
 	Uint32 dlen = 0;
-	if(SDL_LoadWAV(mPath.c_str(), &wave, &data, &dlen) == NULL)
+	if(SDL_LoadWAV(mPath.c_str(), &wave, &data, &dlen) == nullptr)
 	{
 		LOG(LogError) << "Error loading sound \"" << mPath << "\"!\n"
 					  << "	" << SDL_GetError();
@@ -101,11 +101,11 @@ void Sound::deinit()
 {
 	playing = false;
 
-	if(mSampleData != NULL)
+	if(mSampleData != nullptr)
 	{
 		SDL_LockAudio();
 		delete[] mSampleData;
-		mSampleData = NULL;
+		mSampleData = nullptr;
 		mSampleLength = 0;
 		mSamplePos = 0;
 		SDL_UnlockAudio();
@@ -114,7 +114,7 @@ void Sound::deinit()
 
 void Sound::play()
 {
-	if(mSampleData == NULL)
+	if(mSampleData == nullptr)
 		return;
 
 	if(!Settings::getInstance()->getBool("EnableSounds"))

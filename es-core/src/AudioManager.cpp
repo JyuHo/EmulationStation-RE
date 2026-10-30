@@ -93,10 +93,10 @@ void AudioManager::init()
 	sAudioFormat.channels = 2;
 	sAudioFormat.samples = 1024;
 	sAudioFormat.callback = mixAudio;
-	sAudioFormat.userdata = NULL;
+	sAudioFormat.userdata = nullptr;
 
 	//Open the audio device and pause
-	if(SDL_OpenAudio(&sAudioFormat, NULL) < 0)
+	if(SDL_OpenAudio(&sAudioFormat, nullptr) < 0)
 	{
 		LOG(LogError) << "AudioManager Error - Unable to open SDL audio: " << SDL_GetError() << std::endl;
 	}

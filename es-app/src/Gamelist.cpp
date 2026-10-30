@@ -18,7 +18,7 @@ FileData* findOrCreateFile(SystemData* system, const boost::filesystem::path& pa
 	if(!contains)
 	{
 		LOG(LogError) << "File path \"" << path << "\" is outside system path \"" << system->getStartPath() << "\"";
-		return NULL;
+		return nullptr;
 	}
 
 	auto path_it = relative.begin();
@@ -47,7 +47,7 @@ FileData* findOrCreateFile(SystemData* system, const boost::filesystem::path& pa
 			if(type == FOLDER)
 			{
 				LOG(LogWarning) << "gameList: folder doesn't already exist, won't create";
-				return NULL;
+				return nullptr;
 			}
 
 			FileData* file = new FileData(type, path, system);
@@ -62,7 +62,7 @@ FileData* findOrCreateFile(SystemData* system, const boost::filesystem::path& pa
 			if(type == FOLDER)
 			{
 				LOG(LogWarning) << "gameList: folder doesn't already exist, won't create";
-				return NULL;
+				return nullptr;
 			}
 
 			// create missing folder
@@ -74,7 +74,7 @@ FileData* findOrCreateFile(SystemData* system, const boost::filesystem::path& pa
 		path_it++;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 void parseGamelist(SystemData* system)

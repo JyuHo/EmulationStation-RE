@@ -136,7 +136,7 @@ bool GuiGamelistOptions::input(InputConfig* config, Input input)
 std::vector<HelpPrompt> GuiGamelistOptions::getHelpPrompts()
 {
 	auto prompts = mMenu.getHelpPrompts();
-	prompts.push_back(HelpPrompt("b", "close"));
+	prompts.emplace_back("b", "close");
 	return prompts;
 }
 

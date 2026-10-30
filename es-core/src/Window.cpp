@@ -59,7 +59,7 @@ void Window::removeGui(GuiComponent* gui)
 GuiComponent* Window::peekGui()
 {
 	if(mGuiStack.size() == 0)
-		return NULL;
+		return nullptr;
 
 	return mGuiStack.back();
 }
@@ -316,12 +316,12 @@ void Window::setHelpPrompts(const std::vector<HelpPrompt>& prompts, const HelpSt
 	// sort prompts so it goes [dpad_all] [dpad_u/d] [dpad_l/r] [a/b/x/y/l/r] [start/select]
 	std::sort(addPrompts.begin(), addPrompts.end(), [](const HelpPrompt& a, const HelpPrompt& b) -> bool {
 		static const char* map[] = {
-			"up/down/left/right", "up/down", "left/right", "a", "b", "x", "y", "l", "r", "start", "select", NULL};
+			"up/down/left/right", "up/down", "left/right", "a", "b", "x", "y", "l", "r", "start", "select", nullptr};
 
 		int i = 0;
 		int aVal = 0;
 		int bVal = 0;
-		while(map[i] != NULL)
+		while(map[i] != nullptr)
 		{
 			if(a.first == map[i])
 				aVal = i;

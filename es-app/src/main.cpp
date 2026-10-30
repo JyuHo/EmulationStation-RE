@@ -136,7 +136,7 @@ bool verifyHomeFolderExists()
 // Returns true if everything is OK,
 bool loadSystemConfigFile(const char** errorString)
 {
-	*errorString = NULL;
+	*errorString = nullptr;
 
 	if(!SystemData::loadConfig())
 	{
@@ -244,11 +244,11 @@ int main(int argc, char* argv[])
 		window.renderLoadingScreen();
 	}
 
-	const char* errorMsg = NULL;
+	const char* errorMsg = nullptr;
 	if(!loadSystemConfigFile(&errorMsg))
 	{
 		// something went terribly wrong
-		if(errorMsg == NULL)
+		if(errorMsg == nullptr)
 		{
 			LOG(LogError) << "Unknown error occured while parsing system config file.";
 			if(!scrape_cmdline)
@@ -278,7 +278,7 @@ int main(int argc, char* argv[])
 	ViewController::get()->preload();
 
 	//choose which GUI to open depending on if an input configuration already exists
-	if(errorMsg == NULL)
+	if(errorMsg == nullptr)
 	{
 		if(fs::exists(InputManager::getConfigPath()) && InputManager::getInstance()->getNumConfiguredDevices() > 0)
 		{

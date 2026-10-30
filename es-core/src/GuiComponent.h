@@ -11,7 +11,7 @@ class AnimationController;
 class ThemeData;
 class Font;
 
-typedef std::pair<const char*, const char*> HelpPrompt;
+using HelpPrompt = std::pair<const char*, const char*>;
 
 class GuiComponent
 {

@@ -14,7 +14,7 @@ auto nop_deleter = [](unsigned char* p) {
 
 std::shared_ptr<ResourceManager> ResourceManager::sInstance = nullptr;
 
-ResourceManager::ResourceManager() {}
+ResourceManager::ResourceManager() = default;
 
 std::shared_ptr<ResourceManager>& ResourceManager::getInstance()
 {
@@ -42,7 +42,7 @@ const ResourceData ResourceManager::getFileData(const std::string& path) const
 	if(!fs::exists(path))
 	{
 		//if the file doesn't exist, return an "empty" ResourceData
-		ResourceData data = {NULL, 0};
+		ResourceData data = {nullptr, 0};
 		return data;
 	}
 	else

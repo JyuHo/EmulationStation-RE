@@ -78,7 +78,7 @@ void VolumeControl::init()
 			{
 				LOG(LogDebug) << "VolumeControl::init() - Attached to default card";
 				//ok. register simple element class
-				if(snd_mixer_selem_register(mixerHandle, NULL, NULL) >= 0)
+				if(snd_mixer_selem_register(mixerHandle, nullptr, nullptr) >= 0)
 				{
 					LOG(LogDebug) << "VolumeControl::init() - Registered simple element class";
 					//ok. load registered elements

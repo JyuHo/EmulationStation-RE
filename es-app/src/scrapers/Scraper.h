@@ -107,8 +107,8 @@ std::unique_ptr<ScraperSearchHandle> startScraperSearch(const ScraperSearchParam
 // returns a list of valid scraper names
 std::vector<std::string> getScraperList();
 
-typedef void (*generate_scraper_requests_func)(const ScraperSearchParams& params,
-	std::queue<std::unique_ptr<ScraperRequest>>& requests, std::vector<ScraperSearchResult>& results);
+using generate_scraper_requests_func = void (*)(
+	const ScraperSearchParams&, std::queue<std::unique_ptr<ScraperRequest>>&, std::vector<ScraperSearchResult>&);
 
 // -------------------------------------------------------------------------
 
@@ -128,7 +128,7 @@ public:
 private:
 	ScraperSearchResult mResult;
 
-	typedef std::pair<std::unique_ptr<AsyncHandle>, std::function<void()>> ResolvePair;
+	using ResolvePair = std::pair<std::unique_ptr<AsyncHandle>, std::function<void()>>;
 	std::vector<ResolvePair> mFuncs;
 };
 

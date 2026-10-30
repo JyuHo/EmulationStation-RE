@@ -7,7 +7,12 @@
 
 NinePatchComponent::NinePatchComponent(
 	Window* window, const std::string& path, unsigned int edgeColor, unsigned int centerColor) :
-	GuiComponent(window), mVertices(NULL), mColors(NULL), mPath(path), mEdgeColor(edgeColor), mCenterColor(centerColor)
+	GuiComponent(window),
+	mVertices(nullptr),
+	mColors(nullptr),
+	mPath(path),
+	mEdgeColor(edgeColor),
+	mCenterColor(centerColor)
 {
 	if(!mPath.empty())
 		buildVertices();
@@ -15,10 +20,10 @@ NinePatchComponent::NinePatchComponent(
 
 NinePatchComponent::~NinePatchComponent()
 {
-	if(mVertices != NULL)
+	if(mVertices != nullptr)
 		delete[] mVertices;
 
-	if(mColors != NULL)
+	if(mColors != nullptr)
 		delete[] mColors;
 }
 
@@ -30,18 +35,18 @@ void NinePatchComponent::updateColors()
 
 void NinePatchComponent::buildVertices()
 {
-	if(mVertices != NULL)
+	if(mVertices != nullptr)
 		delete[] mVertices;
 
-	if(mColors != NULL)
+	if(mColors != nullptr)
 		delete[] mColors;
 
 	mTexture = TextureResource::get(mPath);
 
 	if(mTexture->getSize() == Eigen::Vector2i::Zero())
 	{
-		mVertices = NULL;
-		mColors = NULL;
+		mVertices = nullptr;
+		mColors = nullptr;
 		LOG(LogWarning) << "NinePatchComponent missing texture!";
 		return;
 	}
@@ -143,7 +148,7 @@ void NinePatchComponent::render(const Eigen::Affine3f& parentTrans)
 {
 	Eigen::Affine3f trans = roundMatrix(parentTrans * getTransform());
 
-	if(mTexture && mVertices != NULL)
+	if(mTexture && mVertices != nullptr)
 	{
 		Renderer::setMatrix(trans);
 
