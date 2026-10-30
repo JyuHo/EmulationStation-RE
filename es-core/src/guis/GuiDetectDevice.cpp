@@ -111,7 +111,7 @@ void GuiDetectDevice::update(int deltaTime)
 		if(mHoldTime <= 0)
 		{
 			// picked one!
-			mWindow->pushGui(new GuiInputConfig(mWindow, mHoldingConfig, true, mDoneCallback));
+			mWindow->pushGui(std::make_unique<GuiInputConfig>(mWindow, mHoldingConfig, true, mDoneCallback));
 			delete this;
 		}
 	}

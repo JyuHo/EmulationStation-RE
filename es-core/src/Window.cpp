@@ -18,33 +18,30 @@ Window::Window() :
 	mSleeping(false),
 	mTimeSinceLastInput(0)
 {
-	mHelp = new HelpComponent(this);
-	mBackgroundOverlay = new ImageComponent(this);
+	mHelp = std::make_unique<HelpComponent>(this);
+	mBackgroundOverlay = std::make_unique<ImageComponent>(this);
 	mBackgroundOverlay->setImage(":/scroll_gradient.png");
 }
 
 Window::~Window()
 {
-	delete mBackgroundOverlay;
-
 	// delete all our GUIs
 	while(peekGui())
-		delete peekGui();
-
-	delete mHelp;
+		removeGui(peekGui());
 }
 
-void Window::pushGui(GuiComponent* gui)
+void Window::pushGui(std::unique_ptr<GuiComponent> gui)
 {
-	mGuiStack.push_back(gui);
-	gui->updateHelpPrompts();
+	GuiComponent* raw = gui.get();
+	mGuiStack.push_back(std::move(gui));
+	raw->updateHelpPrompts();
 }
 
 void Window::removeGui(GuiComponent* gui)
 {
 	for(auto i = mGuiStack.begin(); i != mGuiStack.end(); i++)
 	{
-		if(*i == gui)
+		if(i->get() == gui)
 		{
 			i = mGuiStack.erase(i);
 
@@ -61,7 +58,7 @@ GuiComponent* Window::peekGui()
 	if(mGuiStack.size() == 0)
 		return nullptr;
 
-	return mGuiStack.back();
+	return mGuiStack.back().get();
 }
 
 bool Window::init(unsigned int width, unsigned int height)

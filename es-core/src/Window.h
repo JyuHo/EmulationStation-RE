@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GuiComponent.h"
+#include <memory>
 #include <vector>
 #include "resources/Font.h"
 #include "InputManager.h"
@@ -14,7 +15,7 @@ public:
 	Window();
 	~Window();
 
-	void pushGui(GuiComponent* gui);
+	void pushGui(std::unique_ptr<GuiComponent> gui);
 	void removeGui(GuiComponent* gui);
 	GuiComponent* peekGui();
 
@@ -41,10 +42,10 @@ private:
 	void onSleep();
 	void onWake();
 
-	HelpComponent* mHelp;
-	ImageComponent* mBackgroundOverlay;
+	std::unique_ptr<HelpComponent> mHelp;
+	std::unique_ptr<ImageComponent> mBackgroundOverlay;
 
-	std::vector<GuiComponent*> mGuiStack;
+	std::vector<std::unique_ptr<GuiComponent>> mGuiStack;
 
 	std::vector<std::shared_ptr<Font>> mDefaultFonts;
 

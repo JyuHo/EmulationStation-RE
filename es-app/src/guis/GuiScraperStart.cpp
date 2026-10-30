@@ -44,7 +44,7 @@ void GuiScraperStart::pressedStart()
 	{
 		if((*it)->getPlatformIds().empty())
 		{
-			mWindow->pushGui(new GuiMsgBox(mWindow,
+			mWindow->pushGui(std::make_unique<GuiMsgBox>(mWindow,
 				strToUpper("Warning: some of your selected systems do not have a platform set. Results may be even "
 						   "more inaccurate than usual!\nContinue anyway?"),
 				"YES", std::bind(&GuiScraperStart::start, this), "NO", nullptr));
@@ -61,12 +61,12 @@ void GuiScraperStart::start()
 
 	if(searches.empty())
 	{
-		mWindow->pushGui(new GuiMsgBox(mWindow, "NO GAMES FIT THAT CRITERIA."));
+		mWindow->pushGui(std::make_unique<GuiMsgBox>(mWindow, "NO GAMES FIT THAT CRITERIA."));
 	}
 	else
 	{
-		GuiScraperMulti* gsm = new GuiScraperMulti(mWindow, searches, mApproveResults->getState());
-		mWindow->pushGui(gsm);
+		auto gsm = std::make_unique<GuiScraperMulti>(mWindow, searches, mApproveResults->getState());
+		mWindow->pushGui(std::move(gsm));
 		delete this;
 	}
 }

@@ -274,7 +274,7 @@ private:
 		return 0;
 	}
 
-	void open() { mWindow->pushGui(new OptionListPopup(mWindow, this, mName)); }
+	void open() { mWindow->pushGui(std::make_unique<OptionListPopup>(mWindow, this, mName)); }
 
 	void onSelectedChanged()
 	{

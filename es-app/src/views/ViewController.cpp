@@ -270,7 +270,7 @@ bool ViewController::input(InputConfig* config, Input input)
 	if(config->isMappedTo("start", input) && input.value != 0)
 	{
 		// open menu
-		mWindow->pushGui(new GuiMenu(mWindow));
+		mWindow->pushGui(std::make_unique<GuiMenu>(mWindow));
 		return true;
 	}
 

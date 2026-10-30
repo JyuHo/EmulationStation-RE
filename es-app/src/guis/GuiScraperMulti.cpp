@@ -149,7 +149,7 @@ void GuiScraperMulti::finish()
 			ss << "\n" << mTotalSkipped << " GAME" << ((mTotalSkipped > 1) ? "S" : "") << " SKIPPED.";
 	}
 
-	mWindow->pushGui(new GuiMsgBox(mWindow, ss.str(), "OK", [&] { delete this; }));
+	mWindow->pushGui(std::make_unique<GuiMsgBox>(mWindow, ss.str(), "OK", [&] { delete this; }));
 }
 
 std::vector<HelpPrompt> GuiScraperMulti::getHelpPrompts()
