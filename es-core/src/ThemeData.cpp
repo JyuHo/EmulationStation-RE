@@ -75,7 +75,7 @@ std::string resolvePath(const char* in, const fs::path& relative)
 
 	fs::path relPath = relative.parent_path();
 
-	boost::filesystem::path path(in);
+	std::filesystem::path path(in);
 
 	// we use boost filesystem here instead of just string checks because
 	// some directories could theoretically start with ~ or .

@@ -37,7 +37,7 @@ std::string getHomePath()
 #endif
 
 	// convert path to generic directory seperators
-	boost::filesystem::path genericPath(homePath);
+	std::filesystem::path genericPath(homePath);
 	return genericPath.generic_string();
 }
 

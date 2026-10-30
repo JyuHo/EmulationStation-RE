@@ -169,7 +169,7 @@ int main(int argc, char* argv[])
 	unsigned int height = 0;
 
 	std::locale::global(boost::locale::generator().generate(""));
-	boost::filesystem::path::imbue(std::locale());
+	std::filesystem::path::imbue(std::locale());
 
 	if(!parseArgs(argc, argv, &width, &height))
 		return 0;

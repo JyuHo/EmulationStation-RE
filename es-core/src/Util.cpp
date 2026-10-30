@@ -66,10 +66,10 @@ Eigen::Vector2f roundVector(const Eigen::Vector2f& vec)
 // embedded resources, e.g. ":/font.ttf", need to be properly handled too
 std::string getCanonicalPath(const std::string& path)
 {
-	if(path.empty() || !boost::filesystem::exists(path))
+	if(path.empty() || !std::filesystem::exists(path))
 		return path;
 
-	return boost::filesystem::canonical(path).generic_string();
+	return std::filesystem::canonical(path).generic_string();
 }
 
 // expands "./my/path.sfc" to "[relativeTo]/my/path.sfc"

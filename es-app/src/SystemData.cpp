@@ -75,7 +75,7 @@ std::string strreplace(std::string str, const std::string& replace, const std::s
 // plaform-specific escape path function
 // on windows: just puts the path in quotes
 // everything else: assume bash and escape special characters with backslashes
-std::string escapePath(const boost::filesystem::path& path)
+std::string escapePath(const std::filesystem::path& path)
 {
 #ifdef WIN32
 	// windows escapes stuff by just putting everything in quotes
@@ -311,7 +311,7 @@ bool SystemData::loadConfig()
 		}
 
 		//convert path to generic directory seperators
-		boost::filesystem::path genericPath(path);
+		std::filesystem::path genericPath(path);
 		path = genericPath.generic_string();
 
 		SystemData* newSys = new SystemData(name, fullname, path, extensions, cmd, platformIds, themeFolder);

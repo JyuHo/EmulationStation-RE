@@ -33,7 +33,7 @@ std::string HttpReq::urlEncode(const std::string& s)
 bool HttpReq::isUrl(const std::string& str)
 {
 	//the worst guess
-	return (!str.empty() && !boost::filesystem::exists(str) &&
+	return (!str.empty() && !std::filesystem::exists(str) &&
 		(str.find("http://") != std::string::npos || str.find("https://") != std::string::npos ||
 			str.find("www.") != std::string::npos));
 }

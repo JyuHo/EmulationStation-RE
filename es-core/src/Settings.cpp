@@ -105,7 +105,7 @@ void Settings::loadFile()
 {
 	const std::string path = getHomePath() + "/.emulationstation/es_settings.cfg";
 
-	if(!boost::filesystem::exists(path))
+	if(!std::filesystem::exists(path))
 		return;
 
 	pugi::xml_document doc;
