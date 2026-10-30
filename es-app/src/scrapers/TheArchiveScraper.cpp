@@ -15,7 +15,7 @@ void thearchive_generate_scraper_requests(const ScraperSearchParams& params,
 	path += HttpReq::urlEncode(cleanName);
 	//platform TODO, should use some params.system get method
 
-	requests.push(std::unique_ptr<ScraperRequest>(new TheArchiveRequest(results, path)));
+	requests.push(std::make_unique<TheArchiveRequest>(results, path));
 }
 
 void TheArchiveRequest::process(const std::unique_ptr<HttpReq>& req, std::vector<ScraperSearchResult>& results)
