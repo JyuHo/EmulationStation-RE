@@ -55,7 +55,7 @@ if [ ! -s "$log" ]; then
 	echo "FAIL: no log written"
 	exit 1
 fi
-if grep -q '^lvl0:' "$log"; then
+if grep -q ' \[ERROR\] ' "$log"; then
 	echo "FAIL: errors were logged"
 	exit 1
 fi
