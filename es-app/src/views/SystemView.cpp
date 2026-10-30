@@ -44,37 +44,36 @@ void SystemView::populate()
 		// make logo
 		if(theme->getElement("system", "logo", "image"))
 		{
-			ImageComponent* logo = new ImageComponent(mWindow);
+			auto logo = std::make_shared<ImageComponent>(mWindow);
 			logo->setMaxSize(Eigen::Vector2f(logoSize().x(), logoSize().y()));
 			logo->applyTheme((*it)->getTheme(), "system", "logo", ThemeFlags::PATH);
 			logo->setPosition(
 				(logoSize().x() - logo->getSize().x()) / 2, (logoSize().y() - logo->getSize().y()) / 2); // center
-			e.data.logo = std::shared_ptr<GuiComponent>(logo);
+			e.data.logo = logo;
 
-			ImageComponent* logoSelected = new ImageComponent(mWindow);
+			auto logoSelected = std::make_shared<ImageComponent>(mWindow);
 			logoSelected->setMaxSize(
 				Eigen::Vector2f(logoSize().x() * SELECTED_SCALE, logoSize().y() * SELECTED_SCALE * 0.70f));
 			logoSelected->applyTheme((*it)->getTheme(), "system", "logo", ThemeFlags::PATH);
 			logoSelected->setPosition((logoSize().x() - logoSelected->getSize().x()) / 2,
 				(logoSize().y() - logoSelected->getSize().y()) / 2); // center
-			e.data.logoSelected = std::shared_ptr<GuiComponent>(logoSelected);
+			e.data.logoSelected = logoSelected;
 		}
 		else
 		{
 			// no logo in theme; use text
-			TextComponent* text =
-				new TextComponent(mWindow, (*it)->getName(), Font::get(FONT_SIZE_LARGE), 0x000000FF, ALIGN_CENTER);
+			auto text = std::make_shared<TextComponent>(mWindow, (*it)->getName(), Font::get(FONT_SIZE_LARGE), 0x000000FF, ALIGN_CENTER);
 			text->setSize(logoSize());
-			e.data.logo = std::shared_ptr<GuiComponent>(text);
+			e.data.logo = text;
 
-			TextComponent* textSelected = new TextComponent(mWindow, (*it)->getName(),
+			auto textSelected = std::make_shared<TextComponent>(mWindow, (*it)->getName(),
 				Font::get((int)(FONT_SIZE_LARGE * SELECTED_SCALE)), 0x000000FF, ALIGN_CENTER);
 			textSelected->setSize(logoSize());
-			e.data.logoSelected = std::shared_ptr<GuiComponent>(textSelected);
+			e.data.logoSelected = textSelected;
 		}
 
 		// make background extras
-		e.data.backgroundExtras = std::shared_ptr<ThemeExtras>(new ThemeExtras(mWindow));
+		e.data.backgroundExtras = std::make_shared<ThemeExtras>(mWindow);
 		e.data.backgroundExtras->setExtras(ThemeData::makeExtras((*it)->getTheme(), "system", mWindow));
 
 		this->add(e);
