@@ -12,8 +12,8 @@
 
 > Section à lire en premier. Elle décrit l'état réel du dépôt et dit exactement où
 > reprendre. **Mets-la à jour à la fin de chaque phase** (c'est la mémoire du projet entre
-> deux agents). Dernière mise à jour : audit du 31/10/2026 ([`docs/AUDIT.md`](docs/AUDIT.md)),
-> `main` au commit `d2e1339`.
+> deux agents). Dernière mise à jour : 31/10/2026, fin de la phase 3, `main` au commit
+> `8abbd70` (fusion de la PR #28). Audit précédent : [`docs/AUDIT.md`](docs/AUDIT.md).
 
 ### 0.1 État au moment de la passation
 | Phase | État | PR |
@@ -25,7 +25,8 @@
 | 3.C — `std::chrono`, Assign, Variant, Locale ; Boost supprimé | **fusionnée** (locale numérique corrigée en 3.E) | #5 |
 | 3.D — Propriété mémoire (`unique_ptr`) | **terminée** pour cette phase (reste : arbre `FileData`/`SystemData`, `delete this` des GUI) | #6–#23, #26, #27 |
 | 3.E — Finitions de la phase 3 (issues de l'audit) | **terminée** : XDG (#25), job `asan` (#26), locale numérique et restes Windows (#28) | #25, #26, #28 |
-| 4 à 12 | à faire | — |
+| **4 — Eigen → glm** | **prochaine étape** (voir 0.2) | — |
+| 5 à 12 | à faire | — |
 
 Toutes les PR ont été fusionnées par **merge commit** : le commit de reformatage
 `4b943d7` est dans l'historique et `.git-blame-ignore-revs` est valide.
@@ -34,7 +35,8 @@ Ce qui existe et que tu dois **réutiliser** (ne le recrée pas) :
 - `CMakePresets.json` : configure/build/test presets `debug` (tests + `-Werror`), `release`,
   `relwithdebinfo`, `asan`, `clang-debug`.
 - `es-app-lib` : toutes les sources de `es-app` sauf `main.cpp` (cible à lier dans les tests).
-- `tests/unit/*.cpp` (Catch2 v3, 21 cas) et `tests/data/` (fixtures). Ajoute tes tests ici,
+- `tests/unit/*.cpp` (Catch2 v3, 25 cas : `ImageIO`, `MetaData`, `ThemeData`, `Paths`,
+  `Util`, `Window`, `Locale`) et `tests/data/` (fixtures). Ajoute tes tests ici,
   un fichier par module (`test_<Module>.cpp`), et déclare-les dans `tests/CMakeLists.txt`.
 - `tests/smoke/run.sh <binaire> [secondes] [capture.png]` : test de fumée Xvfb ; il
   utilise `ES_HOME` et un `HOME` jetable, et échoue si un fichier est écrit hors de `ES_HOME`.
@@ -49,24 +51,42 @@ Ce qui existe et que tu dois **réutiliser** (ne le recrée pas) :
   `$XDG_STATE_HOME/emulationstation/es_log.txt`.
 - `ImageIO` (stb_image + libwebp) : `loadFromMemoryRGBA32` (lignes de bas en haut) et
   `resizeImageFile`.
+- `Util.h` : `applyUserLocale()` (seul appel à `setlocale`), `parseFloat`/`parseInt`
+  (`std::from_chars`, valeur de repli) pour tout nombre lu dans un fichier.
+- `Window` possède les GUI empilées (`pushGui(std::unique_ptr<GuiComponent>)`).
 - `Util.h` : `string_to_ptime` renvoie `std::optional<std::chrono::sys_seconds>` ;
   les dates de `gamelist.xml` (`YYYYMMDDTHHMMSS`) sont traitées comme UTC.
 - CI `.github/workflows/build.yml` : Arch (`archlinux:base-devel`), GCC et Clang, build
   `RelWithDebInfo` avec `-Werror`, `ctest`, test de fumée, capture d'écran en artefact.
-  Étape « No hardcoded paths » avant la compilation. Boost n'est plus installé.
+  Étapes « No hardcoded paths » et « No Windows or embedded leftovers » avant la
+  compilation. Job « ASan + UBSan » (preset `asan`, tests et test de fumée, fuites de
+  libdbus ignorées par `tests/smoke/lsan.supp`). La locale `fr_FR.UTF-8` est générée
+  dans le conteneur pour `test_Locale`. Boost n'est plus installé.
 
-### 0.2 Point de reprise : phase 4
-La phase 3 est terminée. Le détail des points 3.E est dans le plan, section « 3.E Finitions
-de la phase 3 ».
-1. ~~`modernize/phase-3e-xdg-complete`~~ — fait (PR #25).
-2. ~~`modernize/phase-3e-numeric-locale`~~ — fait (PR #28) : `applyUserLocale()` garde
-   `LC_NUMERIC` à `"C"`, `parseFloat`/`parseInt` (`Util.h`, `std::from_chars`), test sous
-   `fr_FR.UTF-8`.
-3. ~~`ci/asan`~~ — fait (PR #26).
-4. ~~`chore/remove-windows-leftovers`~~ — fait (PR #28) : fichiers Windows supprimés, blocs
-   `WIN32`/`__APPLE__`/`_RPI_`/GLES retirés, réglage `HideConsole` supprimé, étape CI
-   « No Windows or embedded leftovers ».
-5. **Prochaine étape : phase 4** (Eigen → glm), branche `modernize/phase-4a-…`.
+### 0.2 Point de reprise : phase 4 (Eigen → glm)
+La phase 3 est terminée (PR #3 à #28, détail des points 3.E dans le plan). Commence la
+phase 4 en suivant le plan, section « Phase 4 — Remplacement d'Eigen », et les pièges de la
+section 9 de ce fichier.
+
+Inventaire au commit `8abbd70` (refais-le avant de commencer) : 70 fichiers de
+`es-core/src`, `es-app/src` et `tests` utilisent Eigen, avec environ 166 `Vector2f`,
+104 `Affine3f`, 89 `Vector2i`, 69 `Vector3f`, 4 `Vector4i`, 1 `Vector4f`. Méthodes
+utilisées : `translation()` (35), `data()` (25), `translate()` (12), `cwiseProduct()` (6),
+`inverse()` (2), `scale()` (1). Aucun `pretranslate`/`prescale`. Eigen apparaît aussi dans
+`CMakeLists.txt` (`find_package(Eigen3)`), `es-core/CMakeLists.txt` (`Eigen3::Eigen`,
+`EIGEN_DONT_ALIGN`) et les paquets de la CI (`eigen`).
+
+Découpage proposé (une PR par ligne, chacune verte avant la suivante) :
+1. **`modernize/phase-4a-math-header`** — paquet `glm` dans la CI et `find_package(glm)`,
+   `es-core/src/math/Math.h` (inclut glm, alias de transition), tests unitaires des
+   opérations utilisées (composition de transformations, `roundMatrix`, `roundVector`),
+   et **captures de référence** prises avec le code Eigen actuel (test de fumée,
+   écran d'accueil, liste de jeux, menu) pour comparer ensuite.
+2. **`modernize/phase-4b-glm-core`** — migration de `es-core` (Renderer, composants,
+   `GuiComponent`, `Util`, polices).
+3. **`modernize/phase-4c-glm-app`** — migration de `es-app` et des tests ; retrait d'Eigen
+   de CMake et de la CI ; suppression des alias de transition si plus rien ne s'en sert.
+   Comparaison des captures avec les références (critère de la phase).
 
 Reliquat de 3.D, sans série dédiée : traite-le quand une phase réécrit le module.
 - `new` restants : uniquement dans des pointeurs intelligents pour des constructeurs privés
@@ -214,7 +234,7 @@ es-app/                   exécutable `emulationstation`
 data/                     ressources embarquées : resources/ (sources), converted/ (C++ générés), Resources.h
 external/                 code tiers vendored : nanosvg, pugixml, stb
 tests/                    unit/ (Catch2), data/ (fixtures), smoke/run.sh (test de fumée Xvfb)
-.github/workflows/        build.yml (CI Arch GCC/Clang)
+.github/workflows/        build.yml (CI Arch : GCC, Clang, ASan + UBSan)
 docs/                     MODERNIZATION_PLAN.md, AUDIT.md (+ THEMES.md, I18N.md à créer)
 PROMPT.md                 ce fichier
 ```
@@ -367,7 +387,7 @@ conséquences visibles.
 ## 8. Commandes de vérification
 
 ```bash
-# Dépendances (état après la phase 3.C ; adapter selon l'annexe A du plan)
+# Dépendances (état après la phase 3 ; adapter selon l'annexe A du plan)
 sudo pacman -S --needed base-devel cmake ninja clang sdl2-compat freetype2 fontconfig eigen \
     curl alsa-lib libglvnd mesa libwebp catch2 xorg-server-xvfb imagemagick
 
@@ -387,9 +407,13 @@ tests/smoke/run.sh build/debug/emulationstation 6 /tmp/shot.png
 # Analyse statique (non bloquante)
 cmake --build --preset debug --target es-tidy
 
-# Chemins en dur (à partir de la phase 3)
-! grep -rnE '"/(etc|usr|opt|home)/|\.emulationstation|getenv\("HOME"\)' \
-    es-core/src es-app/src --exclude=Paths.cpp
+# Chemins en dur et restes d'autres plateformes (mêmes commandes que la CI)
+! grep -rnE '"/(etc|usr|opt|home)/|\.emulationstation|getenv\("HOME"\)|getHomePath' \
+    es-core/src es-app/src --exclude=Paths.cpp --exclude=Paths.h
+! grep -rnE '\b_?WIN32\b|__APPLE__|_RPI_|USE_OPENGL_ES|_MSC_VER' es-core/src es-app/src tests
+
+# Locale française (test_Locale est ignoré si elle manque)
+sudo sed -i 's/^#fr_FR.UTF-8/fr_FR.UTF-8/' /etc/locale.gen && sudo locale-gen
 
 # Traductions (à partir de la phase 10)
 cmake --build --preset debug --target es-update-pot
