@@ -25,7 +25,7 @@ jobs:
         run: |
           pacman -Syu --noconfirm --needed \
             git cmake ninja clang \
-            sdl2-compat boost freetype2 eigen curl alsa-lib libglvnd mesa libwebp \
+            sdl2-compat freetype2 eigen curl alsa-lib libglvnd mesa libwebp \
             catch2 xorg-server-xvfb imagemagick
 
       - uses: actions/checkout@v5

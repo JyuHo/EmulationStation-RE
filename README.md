@@ -1,212 +1,279 @@
-EmulationStation
-================
+# EmulationStation-RE
 
-A cross-platform graphical front-end for emulators with controller navigation.
+[![Build](https://github.com/JyuHo/EmulationStation-RE/actions/workflows/build.yml/badge.svg)](https://github.com/JyuHo/EmulationStation-RE/actions/workflows/build.yml)
 
-Project website: http://emulationstation.org
+Interface graphique de lancement d'émulateurs, pilotable entièrement à la manette.
+EmulationStation-RE est un fork de l'[EmulationStation](https://github.com/Aloshi/EmulationStation)
+d'Alec « Aloshi » Lofquist (v2.0.1a, 2015), en cours de **modernisation complète** pour
+Linux.
 
-**Raspberry Pi users:**
-A cool guy named petrockblog made a script which automatically installs many emulators and ES. It also includes options for configuring your RPi and setting it up to boot directly into ES. You can find it here: https://github.com/petrockblog/RetroPie-Setup
+> **État : en développement.** L'application compile et démarre, mais la migration est en
+> cours (phase 3 sur 12). Les emplacements des fichiers de configuration changent pendant
+> cette phase : lisez la section [Fichiers et emplacements](#fichiers-et-emplacements)
+> avant de l'utiliser avec une configuration existante.
 
-Download
-========
+## Sommaire
 
-Download a pre-compiled version at [emulationstation.org](http://emulationstation.org#download).
+- [Objectifs](#objectifs)
+- [Avancement](#avancement)
+- [Compilation](#compilation)
+- [Lancement](#lancement)
+- [Fichiers et emplacements](#fichiers-et-emplacements)
+- [Configurer les systèmes](#configurer-les-systèmes-es_systemscfg)
+- [Manettes et clavier](#manettes-et-clavier)
+- [Listes de jeux et scraping](#listes-de-jeux-et-scraping)
+- [Thèmes](#thèmes)
+- [Tests et qualité](#tests-et-qualité)
+- [Contribuer](#contribuer)
+- [Licence et crédits](#licence-et-crédits)
 
+## Objectifs
 
-I found a bug! I have a problem!
-================================
+| Domaine | Cible |
+|---------|-------|
+| Plateforme | Linux x86_64 uniquement, **Arch Linux / CachyOS** |
+| Langage | **C++23**, sans avertissement avec GCC 14+ et Clang 18+ |
+| Build | CMake ≥ 3.25, Ninja, presets |
+| Fenêtre, entrées, audio | **SDL3** (manettes via `SDL_Gamepad`) |
+| Rendu | **OpenGL 3.3 core** à shaders |
+| Images | **stb_image** + **libwebp** (+ nanosvg pour le SVG) |
+| Vidéo et musique | **FFmpeg** |
+| JSON | **nlohmann/json**, réservé au scraping (les fichiers XML existants restent en XML) |
+| Thèmes | modèle **Recalbox 10**, compatibilité avec le format Aloshi v3 |
+| Traductions | catalogues **gettext** `.pot` / `.po` / `.mo` |
+| Fichiers | spécification **XDG Base Directory**, aucun chemin en dur |
 
-- First, try to check the [issue list](https://github.com/Aloshi/EmulationStation/issues?state=open) for some entries that might match your problem.  Make sure to check closed issues too!
+Raspberry Pi, Windows, macOS et OpenGL ES ne sont plus pris en charge.
 
-- If you're running EmulationStation on a on Raspberry Pi and have problems with config file changes not taking effect, content missing after editing, etc., check if your SD card is corrupted (see issues [#78](https://github.com/Aloshi/EmulationStation/issues/78) and [#107](https://github.com/Aloshi/EmulationStation/issues/107)). You can do this with free tools like [h2testw](http://www.heise.de/download/h2testw.html) or [F3](http://oss.digirati.com.br/f3/).
+## Avancement
 
-- Try to update to the latest version of EmulationStation using git (you might need to delete your `es_input.cfg` and `es_settings.cfg` after that to reset them to default values):
+| Phase | Sujet | État |
+|------:|-------|------|
+| 1 | CMake moderne, C++23, CI Arch, FreeImage → stb_image + libwebp | fait (PR #1) |
+| 2 | Zéro avertissement, `-Werror`, clang-format/tidy, tests Catch2, test de fumée, journal | fait (PR #2) |
+| 3 | Suppression de Boost, chemins XDG, propriété mémoire | **en cours** (PR #3 à #23) : Boost supprimé, XDG partiel |
+| 4 | Eigen → glm | à faire |
+| 5 | SDL2 → SDL3 | à faire |
+| 6 | Rendu OpenGL 3.3 core | à faire |
+| 7 | Images animées, chargement asynchrone, cache | à faire |
+| 8 | Audio (sons, musique de fond) | à faire |
+| 9 | Vidéo avec FFmpeg | à faire |
+| 10 | Traductions gettext | à faire |
+| 11 | Thèmes Recalbox 10 | à faire |
+| 12 | Paquet Arch, installation, session kiosque | à faire |
+
+Détails : [plan de modernisation](docs/MODERNIZATION_PLAN.md) et
+[dernier audit](docs/AUDIT.md).
+
+## Compilation
+
+### Dépendances (Arch Linux / CachyOS)
+
 ```bash
-cd YourEmulationStationDirectory
-git pull
-cmake .
-make
+sudo pacman -S --needed base-devel cmake ninja clang \
+    sdl2-compat freetype2 eigen curl alsa-lib libglvnd mesa libwebp
+# Pour les tests :
+sudo pacman -S --needed catch2 xorg-server-xvfb imagemagick
 ```
 
-- If your problem still isn't gone, the best way to report a bug is to post an issue on GitHub. Try to post the simplest steps possible to reproduce the bug. Include files you think might be related (except for ROMs, of course). If you haven't re-run ES since the crash, the log file `~/.emulationstation/es_log.txt` is also helpful.
+stb, pugixml et nanosvg sont fournis dans `external/`. Boost n'est plus nécessaire.
 
-Building
-========
+### Avec les presets (recommandé)
 
-EmulationStation-RE targets **Linux x86_64 (Arch Linux / CachyOS)** and requires a
-C++23 compiler (GCC 14+ or Clang 18+) and CMake 3.25+.
-
-The modernisation roadmap is described in [docs/MODERNIZATION_PLAN.md](docs/MODERNIZATION_PLAN.md).
-
-**Dependencies on Arch Linux / CachyOS:**
 ```bash
-sudo pacman -S --needed base-devel cmake ninja sdl2-compat boost freetype2 eigen curl alsa-lib libglvnd libwebp
-```
-
-**Build:**
-```bash
-cmake --preset release          # or: debug, relwithdebinfo, asan, clang-debug
+cmake --preset release
 cmake --build --preset release
 ./build/release/emulationstation --windowed --resolution 1280 720
 ```
 
-Without presets:
+| Preset | Usage |
+|--------|-------|
+| `debug` | développement : tests activés, avertissements bloquants (`-Werror`) |
+| `release` | binaire optimisé |
+| `relwithdebinfo` | optimisé avec symboles, tests activés (la CI y ajoute `-Werror`) |
+| `asan` | AddressSanitizer + UndefinedBehaviorSanitizer, tests activés |
+| `clang-debug` | comme `debug`, compilé avec Clang |
+
+### Sans presets
+
 ```bash
 cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ```
 
-In-source builds (`cmake .`) are no longer supported.
+Les builds dans l'arbre source (`cmake .`) sont refusés.
 
-Useful CMake options: `ES_BUILD_TESTS`, `ES_WARNINGS_AS_ERRORS`, `ES_ENABLE_SANITIZERS`, `ES_ENABLE_LTO`.
+### Options CMake
 
-**Tests** (needs `catch2`, and `xorg-server-xvfb` for the smoke test):
+| Option | Défaut | Effet |
+|--------|--------|-------|
+| `ES_BUILD_TESTS` | `OFF` | compile les tests unitaires (Catch2 v3 requis) |
+| `ES_WARNINGS_AS_ERRORS` | `OFF` | transforme les avertissements en erreurs |
+| `ES_ENABLE_SANITIZERS` | `OFF` | active ASan et UBSan |
+| `ES_ENABLE_LTO` | `OFF` | optimisation à l'édition de liens (builds Release) |
+
+`cmake --install build` installe pour l'instant uniquement le binaire ; l'installation
+des ressources et le paquet Arch arrivent en phase 12.
+
+## Lancement
+
 ```bash
-cmake --preset debug && cmake --build --preset debug
-ctest --preset debug
-tests/smoke/run.sh build/debug/emulationstation
+emulationstation [options]
 ```
 
-Contributors and coding agents: read [PROMPT.md](PROMPT.md) first.
+| Option | Effet |
+|--------|-------|
+| `--resolution <largeur> <hauteur>` | force une résolution |
+| `--windowed` | fenêtre au lieu du plein écran (à combiner avec `--resolution`) |
+| `--vsync <1\|on\|0\|off>` | active ou désactive la synchronisation verticale (activée par défaut) |
+| `--gamelist-only` | ne parcourt pas les dossiers de ROMs, lit uniquement les `gamelist.xml` |
+| `--ignore-gamelist` | ignore les `gamelist.xml` (dépannage) |
+| `--draw-framerate` | affiche le nombre d'images par seconde |
+| `--no-exit` | masque l'entrée « Quitter » du menu |
+| `--debug` | journal plus détaillé |
+| `--scrape` | scraper en ligne de commande (services actuellement hors ligne, voir plus bas) |
+| `--help`, `-h` | aide |
 
-Configuring
-===========
+Variable d'environnement **`ES_HOME=<dossier>`** : mode portable. Les dossiers gérés par
+le module XDG sont alors `<dossier>/{config,data,state,cache}/emulationstation/`
+(voir la limite ci-dessous). Une option `--home` équivalente est prévue.
 
-**~/.emulationstation/es_systems.cfg:**
-When first run, an example systems configuration file will be created at `~/.emulationstation/es_systems.cfg`.  `~` is `$HOME` on Linux, and `%HOMEPATH%` on Windows.  This example has some comments explaining how to write the configuration file. See the "Writing an es_systems.cfg" section for more information.
+**F4** quitte l'application à tout moment.
 
-**Keep in mind you'll have to set up your emulator separately from EmulationStation!**
+## Fichiers et emplacements
 
-**~/.emulationstation/es_input.cfg:**
-When you first start EmulationStation, you will be prompted to configure an input device. The process is thus:
+Le projet passe de `~/.emulationstation/` aux dossiers XDG. La transition n'est pas
+terminée : aujourd'hui les fichiers sont répartis ainsi.
 
-1. Hold a button on the device you want to configure.  This includes the keyboard.
+| Fichier | Emplacement actuel |
+|---------|--------------------|
+| `es_systems.cfg` | `$XDG_CONFIG_HOME/emulationstation/` (par défaut `~/.config/emulationstation/`), puis `$XDG_CONFIG_DIRS/emulationstation/` (par défaut `/etc/xdg/emulationstation/`) |
+| `gamelist.xml` | dossier de ROMs du système, puis `$XDG_DATA_HOME/emulationstation/gamelists/<système>/` (par défaut `~/.local/share/...`), puis `$XDG_DATA_DIRS` |
+| `es_log.txt` | `$XDG_STATE_HOME/emulationstation/` (par défaut `~/.local/state/emulationstation/`) |
+| `es_settings.cfg`, `es_input.cfg` | `~/.emulationstation/` *(passage en XDG prévu)* |
+| `es_theme_default.xml`, `themes/` | `~/.emulationstation/` et `/etc/emulationstation/themes/` *(passage en XDG prévu)* |
+| images téléchargées par le scraper | `~/.emulationstation/downloaded_images/` *(passage en XDG prévu)* |
 
-2. Press the buttons as they appear in the list.  Some inputs can be skipped by holding any button down for a few seconds (e.g. page up/page down).
+> **Vous aviez déjà `~/.emulationstation/es_systems.cfg` ?** La migration automatique
+> n'est pas encore active. Copiez le fichier vous-même :
+> `mkdir -p ~/.config/emulationstation && cp ~/.emulationstation/es_systems.cfg ~/.config/emulationstation/`.
+> Sinon ES écrit un fichier d'exemple au nouvel emplacement et s'arrête.
 
-3. You can review your mappings by pressing up and down, making any changes by pressing A.
+À terme (phase 3.E), tout passera par les dossiers XDG, `~/.emulationstation/` sera copié
+(jamais déplacé ni supprimé) au premier lancement, et `ES_HOME` couvrira tous les fichiers.
 
-4. Choose "SAVE" to save this device and close the input configuration screen.
+## Configurer les systèmes (`es_systems.cfg`)
 
-The new configuration will be added to the `~/.emulationstation/es_input.cfg` file.
-
-**Both new and old devices can be (re)configured at any time by pressing the Start button and choosing "CONFIGURE INPUT".**  From here, you may unplug the device you used to open the menu and plug in a new one, if necessary.  New devices will be appended to the existing input configuration file, so your old devices will remain configured.
-
-**If your controller stops working, you can delete the `~/.emulationstation/es_input.cfg` file to make the input configuration screen re-appear on next run.**
-
-
-You can use `--help` or `-h` to view a list of command-line options. Briefly outlined here:
-```
---resolution [width] [height]	- try and force a particular resolution
---gamelist-only		- only display games defined in a gamelist.xml file.
---ignore-gamelist	- do not parse any gamelist.xml files.
---draw-framerate	- draw the framerate.
---no-exit		- do not display 'exit' in the ES menu.
---debug			- show the console window on Windows, do slightly more logging
---windowed	- run ES in a window, works best in conjunction with --resolution [w] [h].
---vsync [1/on or 0/off]	- turn vsync on or off (default is on).
---scrape	- run the interactive command-line metadata scraper.
-```
-
-As long as ES hasn't frozen, you can always press F4 to close the application.
-
-
-Writing an es_systems.cfg
-=========================
-
-Complete configuration instructions at [emulationstation.org](http://emulationstation.org/gettingstarted.html#config).
-
-The `es_systems.cfg` file contains the system configuration data for EmulationStation, written in XML.  This tells EmulationStation what systems you have, what platform they correspond to (for scraping), and where the games are located.
-
-ES will check two places for an es_systems.cfg file, in the following order, stopping after it finds one that works:
-* `~/.emulationstation/es_systems.cfg`
-* `/etc/emulationstation/es_systems.cfg`
-
-The order EmulationStation displays systems reflects the order you define them in.
-
-**NOTE:** A system *must* have at least one game present in its "path" directory, or ES will ignore it! If no valid systems are found, ES will report an error and quit!
-
-Here's an example es_systems.cfg:
+`es_systems.cfg` (XML) décrit vos systèmes : nom, dossier des ROMs, extensions et
+commande de lancement. Au premier lancement sans ce fichier, ES écrit un exemple commenté
+dans `~/.config/emulationstation/es_systems.cfg` puis s'arrête. **Les émulateurs
+s'installent et se configurent séparément.**
 
 ```xml
-<!-- This is the EmulationStation Systems configuration file.
-All systems must be contained within the <systemList> tag.-->
-
 <systemList>
-	<!-- Here's an example system to get you started. -->
 	<system>
-		<!-- A short name, used internally. -->
+		<!-- Nom court, utilisé en interne et pour choisir le thème. -->
 		<name>snes</name>
-
-		<!-- A "pretty" name, displayed in the menus and such. This one is optional. -->
+		<!-- Nom affiché (facultatif). -->
 		<fullname>Super Nintendo Entertainment System</fullname>
-
-		<!-- The path to start searching for ROMs in. '~' will be expanded to $HOME or %HOMEPATH%, depending on platform.
-		All subdirectories (and non-recursive links) will be included. -->
+		<!-- Dossier des ROMs, sous-dossiers compris. « ~ » est remplacé par $HOME. -->
 		<path>~/roms/snes</path>
-
-		<!-- A list of extensions to search for, delimited by any of the whitespace characters (", \r\n\t").
-		You MUST include the period at the start of the extension! It's also case sensitive. -->
+		<!-- Extensions séparées par des espaces, point inclus, sensibles à la casse. -->
 		<extension>.smc .sfc .SMC .SFC</extension>
-
-		<!-- The shell command executed when a game is selected. A few special tags are replaced if found in a command, like %ROM% (see below). -->
-		<command>snesemulator %ROM%</command>
-		<!-- This example would run the bash command "snesemulator /home/user/roms/snes/Super\ Mario\ World.sfc". -->
-
-		<!-- The platform(s) to use when scraping. You can see the full list of accepted platforms in src/PlatformIds.cpp.
-		It's case sensitive, but everything is lowercase. This tag is optional.
-		You can use multiple platforms too, delimited with any of the whitespace characters (", \r\n\t"), eg: "genesis, megadrive" -->
+		<!-- Commande shell lancée pour un jeu. -->
+		<command>retroarch -L /usr/lib/libretro/snes9x_libretro.so %ROM%</command>
+		<!-- Plateforme(s) pour le scraping (facultatif, voir es-app/src/PlatformId.cpp). -->
 		<platform>snes</platform>
-
-		<!-- The theme to load from the current theme set. See THEMES.md for more information.
-		This tag is optional; if not set, it will use the value of <name>. -->
+		<!-- Thème à utiliser (facultatif, <name> par défaut). -->
 		<theme>snes</theme>
 	</system>
 </systemList>
 ```
 
-The following "tags" are replaced by ES in launch commands:
+Remplacements disponibles dans `<command>` :
 
-`%ROM%`		- Replaced with absolute path to the selected ROM, with most Bash special characters escaped with a backslash.
+| Balise | Remplacée par |
+|--------|---------------|
+| `%ROM%` | chemin absolu de la ROM, caractères spéciaux du shell échappés |
+| `%ROM_RAW%` | chemin absolu de la ROM, non échappé (à mettre entre guillemets) |
+| `%BASENAME%` | nom de la ROM sans dossier ni extension (`/foo/bar.rom` → `bar`) |
 
-`%BASENAME%`	- Replaced with the "base" name of the path to the selected ROM. For example, a path of "/foo/bar.rom", this tag would be "bar". This tag is useful for setting up AdvanceMAME.
+Les systèmes apparaissent dans l'ordre du fichier. Un système sans aucun jeu dans son
+dossier est ignoré ; si aucun système n'est valide, ES affiche une erreur et s'arrête.
 
-`%ROM_RAW%`	- Replaced with the unescaped, absolute path to the selected ROM.  If your emulator is picky about paths, you might want to use this instead of %ROM%, but enclosed in quotes.
+## Manettes et clavier
 
-See [SYSTEMS.md](SYSTEMS.md) for some live examples in EmulationStation.
+Au premier lancement, ES demande de configurer un périphérique :
 
-gamelist.xml
-============
+1. maintenez un bouton du périphérique à configurer (le clavier compte aussi) ;
+2. appuyez sur les boutons demandés ; maintenir un bouton quelques secondes passe une entrée facultative ;
+3. vérifiez avec haut/bas, corrigez avec A, puis choisissez « SAVE ».
 
-The gamelist.xml file for a system defines metadata for games, such as a name, image (like a screenshot or box art), description, release date, and rating.
+La configuration est enregistrée dans `es_input.cfg`. On peut la refaire à tout moment
+depuis le menu (Start → « CONFIGURE INPUT »). Si une manette ne répond plus, supprimez
+`es_input.cfg` pour relancer l'assistant. La reconnaissance automatique des manettes par
+SDL3 arrive en phase 5 ; l'assistant restera disponible en repli.
 
-If at least one game in a system has an image specified, ES will use the detailed view for that system (which displays metadata alongside the game list).
+## Listes de jeux et scraping
 
-*You can use ES's [scraping](http://en.wikipedia.org/wiki/Web_scraping) tools to avoid creating a gamelist.xml by hand.*  There are two ways to run the scraper:
+`gamelist.xml` (XML) contient les métadonnées des jeux : nom, description, image, date,
+note, etc. Dès qu'un jeu d'un système a une image, ES utilise la vue détaillée.
+Les métadonnées s'éditent dans ES : sélectionnez un jeu, appuyez sur Select, puis
+« EDIT THIS GAME'S METADATA ». Les fichiers existants restent lisibles et une réécriture
+sans modification produit un fichier identique.
 
-* **If you want to scrape multiple games:** press start to open the menu and choose the "SCRAPER" option.  Adjust your settings and press "SCRAPE NOW".
-* **If you just want to scrape one game:** find the game on the game list in ES and press select.  Choose "EDIT THIS GAME'S METADATA" and then press the "SCRAPE" button at the bottom of the metadata editor.
+Les scrapers d'origine (TheGamesDB legacy et TheArchive) interrogent des services
+**fermés** : le scraping ne fonctionne pas actuellement. Un scraper ScreenScraper, avec
+analyse JSON par nlohmann/json, est prévu.
 
-You can also edit metadata within ES by using the metadata editor - just find the game you wish to edit on the gamelist, press Select, and choose "EDIT THIS GAME'S METADATA."
+## Thèmes
 
-A command-line version of the scraper is also provided - just run emulationstation with `--scrape` *(currently broken)*.
+Le moteur actuel lit les thèmes au format Aloshi v3 (`formatVersion` 3, vues `system`,
+`basic`, `detailed`, `grid`), cherchés dans `~/.emulationstation/themes/` et
+`/etc/emulationstation/themes/`. Sans thème, l'interface est minimale.
+Le format des thèmes Recalbox 10 (options de thème, variables, vidéo, menus thémés)
+arrive en phase 11, avec sa documentation dans `docs/THEMES.md`.
 
-The switch `--ignore-gamelist` can be used to ignore the gamelist and force ES to use the non-detailed view.
+## Tests et qualité
 
-If you're writing a tool to generate or parse gamelist.xml files, you should check out [GAMELISTS.md](GAMELISTS.md) for more detailed documentation.
+```bash
+cmake --preset debug && cmake --build --preset debug
+ctest --preset debug                                   # tests unitaires Catch2
+tests/smoke/run.sh build/debug/emulationstation 6 /tmp/capture.png   # test de fumée sous Xvfb
+cmake --preset asan && cmake --build --preset asan && ctest --preset asan
+cmake --build --preset debug --target es-tidy          # clang-tidy (si run-clang-tidy est installé)
+```
 
+La CI GitHub Actions compile avec GCC et Clang dans un conteneur `archlinux:base-devel`,
+avec `-Werror`, puis lance les tests unitaires et le test de fumée (la capture d'écran est
+publiée en artefact).
 
-Themes
-======
+Le code suit `.clang-format` ; ne formatez que les lignes modifiées
+(`git clang-format origin/main`). Pour que `git blame` ignore le commit de reformatage :
 
-By default, EmulationStation looks pretty ugly. You can fix that. If you want to know more about making your own themes (or editing existing ones), read [THEMES.md](THEMES.md)!
+```bash
+git config blame.ignoreRevsFile .git-blame-ignore-revs
+```
 
-I've put some themes up for download on my EmulationStation webpage: http://aloshi.com/emulationstation#themes
+## Contribuer
 
-If you're using RetroPie, you should already have a nice set of themes automatically installed!
+Avant toute contribution, humaine ou par un agent, lisez dans l'ordre :
 
+1. [`PROMPT.md`](PROMPT.md) : règles, conventions et point de reprise (section 0) ;
+2. [`docs/MODERNIZATION_PLAN.md`](docs/MODERNIZATION_PLAN.md) : tâches et critères de chaque phase ;
+3. [`docs/AUDIT.md`](docs/AUDIT.md) : état réel du dépôt au dernier audit.
 
--Alec "Aloshi" Lofquist
-http://www.aloshi.com
-http://www.emulationstation.org
+En bref : une branche `modernize/phase-<n><lettre>-<sujet>` et une PR en français par
+sous-objectif, CI verte avec GCC et Clang, aucun chemin en dur, aucune dépendance hors des
+dépôts officiels Arch, rien poussé directement sur `main`, et fusion par **merge commit**
+(jamais « squash »).
+
+## Licence et crédits
+
+Licence MIT, voir [`LICENSE.md`](LICENSE.md). Code d'origine © 2014 Alec Lofquist.
+
+Bibliothèques fournies dans `external/` : [stb](https://github.com/nothings/stb)
+(domaine public / MIT), [pugixml](https://pugixml.org/) (MIT),
+[nanosvg](https://github.com/memononen/nanosvg) (zlib).
+Recalbox et Batocera servent de références fonctionnelles pour les thèmes et les
+traductions ; leur code n'est pas repris.

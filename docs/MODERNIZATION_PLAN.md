@@ -4,6 +4,7 @@
 > phase de travail avec ses tâches, les fichiers concernés, ses critères d'acceptation
 > et ses risques. Les phases sont ordonnées : chacune suppose les précédentes terminées.
 > Un agent (humain ou IA) qui reprend le travail doit lire aussi [`PROMPT.md`](../PROMPT.md).
+> Le dernier audit de l'état réel du dépôt est dans [`AUDIT.md`](AUDIT.md) (31/10/2026).
 
 ---
 
@@ -13,7 +14,7 @@
 |------:|-------|-----------|----------------|
 | 1 | Build moderne : CMake 3.25+, C++23, presets, CI Arch ; FreeImage → stb_image + libwebp | — | S (fait, PR #1) |
 | 2 | Hygiène C++23 et outillage (clang-format, clang-tidy, tests, logs) | 1 | M (fait, PR #2) |
-| 3 | Suppression de Boost + module de chemins **XDG** (std::filesystem, std::chrono, std::variant) | 2 | M |
+| 3 | Suppression de Boost + module de chemins **XDG** (std::filesystem, std::chrono, std::variant) | 2 | M (**en cours**, PR #3 à #23 : 3.B et 3.C faits, 3.A et 3.D partiels, 3.E à faire) |
 | 4 | Remplacement d'Eigen par une petite bibliothèque mathématique (glm) | 2 | M |
 | 5 | Migration SDL2 → SDL3 (fenêtre, événements, manettes, audio) | 3, 4 | L |
 | 6 | Nouveau moteur de rendu OpenGL 3.3 core à shaders | 5 | L |
@@ -319,9 +320,9 @@ Gamelist,MetaData,ScraperCmdLine}.*`, `es-app/src/scrapers/*`, `es-app/src/guis/
 - Une gamelist existante est relue puis réécrite **à l'identique** (test de non-régression
   sur fixture).
 
----
+### 3.D Propriété mémoire (reliquat de la phase 2)
 
-### Jalons 3.D (propriété) — PR par module
+Jalons livrés, une PR par module :
 - #6 `Window` possède les GUI empilés via `unique_ptr`
 - #7 `ViewController` : `make_shared`
 - #8 `FontFace` : `make_unique`
@@ -344,7 +345,66 @@ Gamelist,MetaData,ScraperCmdLine}.*`, `es-app/src/scrapers/*`, `es-app/src/guis/
 Reste (constructeurs privés/protégés ou propriété complexe) : singletons
 `InputManager`, `AudioManager`, `ResourceManager`, `Sound`, `VolumeControl`,
 `ViewController`, `TextureResource`, `Font` (constructeur), `ThemeData` extras,
-`InputManager` (`InputConfig`, `SDL_Event`). À traiter par phase dédiée.
+`InputManager` (`InputConfig`, `SDL_Event`). Environ 36 `new` et 70 `delete` nus
+restent (audit du 31/10/2026). Ils seront traités dans les phases qui réécrivent ces
+modules (5 pour les entrées et l'audio, 6 pour les textures et les polices) plutôt que
+par une série dédiée ; le code nouveau reste sans `new`/`delete` nu. Pour ce type de
+travail, regrouper plusieurs modules voisins dans une même PR (< ~1 500 lignes) au lieu
+d'une PR par fichier.
+
+### État de la phase 3 (audit du 31/10/2026, détails dans [`AUDIT.md`](AUDIT.md))
+
+| Sous-phase | PR | État |
+|------------|----|------|
+| 3.A Module XDG | #3 | **Partiel** : `es::paths` existe et sert au log, à `es_systems.cfg` et aux gamelists ; le reste des chemins, l'appel de la migration, `--home`, le préfixe d'installation, les tests et l'étape CI manquent. |
+| 3.B `std::filesystem` | #4 | Fait. |
+| 3.C `std::chrono`, Assign, Variant, Locale | #5 | Fait ; `find_package(Boost)` supprimé. Risque sur la locale numérique, voir 3.E. |
+| 3.D Propriété mémoire | #6 à #23 | Partiel (voir ci-dessus) ; la suite est rattachée aux phases 5 et 6. |
+| 3.E Finitions | — | **À faire avant la phase 4.** |
+
+### 3.E Finitions de la phase 3 (issues de l'audit)
+
+Une PR par point, dans cet ordre :
+
+1. **`modernize/phase-3e-xdg-complete`** — terminer 3.A selon la section 3.A ci-dessus :
+   - faire passer par `es::paths` : `Settings.cpp` (`es_settings.cfg`, Config),
+     `InputManager.cpp` (`es_input.cfg`, Config), `ThemeData.cpp` (`es_theme_default.xml`,
+     Config ; `themes/` via `userDir(Data)` puis `systemDirs(Data)`), `Scraper.cpp`
+     (`downloaded_images/`, Data), et l'expansion de `~` (`Util.cpp`, `SystemData.cpp`,
+     `ThemeData.cpp`) via `expandUser` ; supprimer `getHomePath()` (et `platform.cpp`
+     s'il devient vide) ; supprimer les replis tapés en dur de
+     `SystemData::getConfigPath` et `getGamelistPath` (renvoyer le chemin utilisateur) ;
+   - appeler `es::paths::migrateFromLegacy()` au démarrage (après `ES_HOME`/`--home`,
+     avant `Log::open()` et `Settings`) et la compléter : copie récursive de `themes/`,
+     `gamelists/`, `downloaded_images/` ; aucun fichier XDG existant écrasé ; journal de
+     chaque copie ; marqueur `MIGRATED_TO_XDG.txt` écrit une seule fois ;
+   - `Paths.cpp` : repli `getpwuid`, création des dossiers en `0700`, découpage de
+     `XDG_*_DIRS` factorisé, préfixe d'installation par `configure_file`
+     (`Paths.config.h.in`, `CMAKE_INSTALL_FULL_DATADIR`/`SYSCONFDIR`) et
+     `<exe>/../share/emulationstation` ; formatage `clang-format` du fichier ;
+   - option `--home <dossier>` (même effet que `ES_HOME`), affichée dans `--help` ;
+   - police de repli via **fontconfig** (`FcFontMatch`, paquet `fontconfig`) ;
+   - `tests/unit/test_Paths.cpp` : variables XDG définies/vides/relatives, `ES_HOME`,
+     `expandUser`, `find` (utilisateur avant système), migration sur un faux `$HOME` ;
+   - étape CI « no-hardcoded-paths » (commande de la section 3.A) ;
+   - `tests/smoke/run.sh` : échouer si un fichier est créé hors de `ES_HOME`.
+2. **`modernize/phase-3e-numeric-locale`** — `setlocale(LC_ALL, "")` suivi de
+   `setlocale(LC_NUMERIC, "C")` ; `atof`/`stof` remplacés par `std::from_chars` dans
+   `ThemeData.cpp`, `MetaData.cpp`, `RatingComponent.cpp` et tout autre site trouvé par
+   `grep -rnE 'atof|atoi|stof|stoi|strtof|sscanf'` ; test unitaire sous
+   `fr_FR.UTF-8` (ignoré proprement si la locale n'est pas générée).
+3. **`ci/asan`** — ajouter un job CI `asan` (preset `asan`, `ctest`, test de fumée).
+   Le retrait de `boost` de la CI a été fait avec l'audit.
+4. **`chore/remove-windows-leftovers`** — supprimer `es-app/src/EmulationStation.rc`,
+   `EmulationStation.aps`, `data/es_icon.ico` (une icône PNG/SVG arrivera en phase 12)
+   et les blocs `#ifdef WIN32`/GLES restants.
+
+Critères d'acceptation complets de la phase 3 : ceux listés plus haut, plus l'étape CI
+« no-hardcoded-paths » verte, le job `asan` vert, le test de locale vert, et un
+utilisateur qui possède `~/.emulationstation/` retrouve ses systèmes, réglages,
+manettes et thèmes au premier lancement.
+
+---
 
 ## Phase 4 — Remplacement d'Eigen
 
@@ -728,7 +788,7 @@ prioritaires dans `$XDG_DATA_HOME/emulationstation/locale/`).
 |-------|--------------------------------|
 | 1 | `base-devel cmake ninja clang sdl2-compat boost freetype2 eigen curl alsa-lib libglvnd mesa libwebp` |
 | 2 | + `catch2 xorg-server-xvfb imagemagick` (tests, test de fumée, capture) |
-| 3 | − `boost`, + `fontconfig` |
+| 3 | − `boost` (fait), + `fontconfig` (3.E) |
 | 4 | − `eigen`, + `glm` |
 | 5 | − `sdl2-compat`, + `sdl3` |
 | 8-9 | + `ffmpeg` (et `libva` pour VA-API) |
