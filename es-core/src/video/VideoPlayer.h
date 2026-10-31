@@ -24,6 +24,10 @@ public:
 	// Advance by deltaTime (ms). Returns true if a new frame is available.
 	bool update(int deltaTime);
 
+	void pause();
+	void resume();
+	void stop();
+
 	// Current frame as RGBA (bottom-up). Empty if none.
 	const std::vector<unsigned char>& frame() const { return mFrame; }
 	int width() const { return mWidth; }
@@ -37,6 +41,7 @@ private:
 	int mAudioStream = -1;
 	double mFrameRate = 30.0;
 	double mAccumulator = 0.0;
+	bool mPaused = false;
 	std::vector<unsigned char> mFrame;
 	int mWidth = 0;
 	int mHeight = 0;

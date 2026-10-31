@@ -95,8 +95,28 @@ void VideoPlayer::close()
 	mAccumulator = 0;
 }
 
+void VideoPlayer::pause()
+{
+	mPaused = true;
+	if(mAudioStreamSDL)
+		SDL_PauseAudioStreamDevice(mAudioStreamSDL);
+}
+
+void VideoPlayer::resume()
+{
+	mPaused = false;
+	if(mAudioStreamSDL)
+		SDL_ResumeAudioStreamDevice(mAudioStreamSDL);
+}
+
+void VideoPlayer::stop()
+{
+	close();
+}
+
 bool VideoPlayer::update(int deltaTime)
 {
+	if(mPaused) return false;
 	if(!mFormat || !mCodec) return false;
 	mAccumulator += deltaTime;
 	double frameTime = 1000.0 / mFrameRate;
