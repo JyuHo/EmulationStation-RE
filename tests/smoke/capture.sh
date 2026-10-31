@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Scripted screenshots for visual regression checks (phase 4: Eigen -> glm).
+# Scripted screenshots for visual regression checks.
 #
 # Usage: tests/smoke/capture.sh <emulationstation binary> <output directory>
 #

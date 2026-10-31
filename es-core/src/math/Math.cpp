@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-// std::round, not glm::round: halves go away from zero, as in the Eigen version.
+// std::round, not glm::round: halves go away from zero.
 glm::mat4& roundMatrix(glm::mat4& mat)
 {
 	mat[3].x = std::round(mat[3].x);
