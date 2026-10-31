@@ -159,3 +159,22 @@ TEST_CASE("I18n::init loads the catalog of the Language setting", "[I18n]")
 	es::paths::clearHome();
 	fs::remove_all(home);
 }
+
+TEST_CASE("I18n loads a catalog from ES_HOME and translates", "[I18n]")
+{
+	es::paths::setHome(fs::temp_directory_path() / "es-i18n-home");
+	const auto home = fs::temp_directory_path() / "es-i18n-home";
+	fs::remove_all(home);
+	fs::create_directories(home / "data" / "emulationstation" / "locale" / "fr" / "LC_MESSAGES");
+	// copy fixture .mo
+	fs::copy_file(fs::path(ES_TEST_DATA_DIR) / "i18n" / "fr.mo",
+		home / "data" / "emulationstation" / "locale" / "fr" / "LC_MESSAGES" / "emulationstation2.mo",
+		fs::copy_options::overwrite_existing);
+
+	es::paths::setHome(home);
+	I18n::init("fr");
+	CHECK(I18n::translate("GAME SETTINGS") == "PARAMÈTRES DES JEUX");
+	I18n::shutdown();
+	es::paths::clearHome();
+	fs::remove_all(home);
+}

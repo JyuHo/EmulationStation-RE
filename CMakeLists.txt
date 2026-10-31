@@ -65,12 +65,72 @@ find_package(SDL3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(CURL REQUIRED)
 find_package(ALSA REQUIRED)
+find_package(Gettext REQUIRED)
+find_program(XGETTEXT_EXECUTABLE xgettext REQUIRED)
+find_program(MSGMERGE_EXECUTABLE msgmerge REQUIRED)
+find_program(MSGFMT_EXECUTABLE msgfmt REQUIRED)
 
 #-------------------------------------------------------------------------------
 # Components
 add_subdirectory(external)
 add_subdirectory(es-core)
 add_subdirectory(es-app)
+
+# --- Internationalisation (phase 10) ---
+file(GLOB_RECURSE ES_I18N_SOURCES
+	${CMAKE_CURRENT_SOURCE_DIR}/es-core/src/*.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/es-core/src/*.h
+	${CMAKE_CURRENT_SOURCE_DIR}/es-app/src/*.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/es-app/src/*.h
+)
+
+add_custom_target(es-update-pot
+	COMMAND ${XGETTEXT_EXECUTABLE}
+		--language=C++
+		--from-code=UTF-8
+		--keyword=_
+		--keyword=_N:1,2
+		--keyword=_P:1c,2
+		--keyword=_U
+		--add-comments=TRANSLATORS:
+		--package-name=emulationstation-re
+		-o ${CMAKE_CURRENT_SOURCE_DIR}/locale/emulationstation2.pot
+		${ES_I18N_SOURCES}
+	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+	COMMENT "Updating locale/emulationstation2.pot"
+)
+
+file(GLOB_RECURSE ES_PO_FILES ${CMAKE_CURRENT_SOURCE_DIR}/locale/lang/*/LC_MESSAGES/*.po)
+foreach(po ${ES_PO_FILES})
+	get_filename_component(lang_dir ${po} DIRECTORY)
+	get_filename_component(lc_dir ${lang_dir} DIRECTORY)
+	get_filename_component(lang_name ${lc_dir} NAME)
+	set(mo ${CMAKE_BINARY_DIR}/locale/${lang_name}/LC_MESSAGES/emulationstation2.mo)
+	add_custom_command(
+		OUTPUT ${mo}
+		COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/locale/${lang_name}/LC_MESSAGES
+		COMMAND ${MSGFMT_EXECUTABLE} --check -o ${mo} ${po}
+		DEPENDS ${po}
+		COMMENT "Compiling ${po}"
+	)
+	list(APPEND ES_MO_FILES ${mo})
+endforeach()
+if(ES_MO_FILES)
+	add_custom_target(es-compile-mo ALL DEPENDS ${ES_MO_FILES})
+endif()
+
+foreach(po ${ES_PO_FILES})
+	get_filename_component(lang_dir ${po} DIRECTORY)
+	get_filename_component(lc_dir ${lang_dir} DIRECTORY)
+	get_filename_component(lang_name ${lc_dir} NAME)
+	install(FILES ${CMAKE_BINARY_DIR}/locale/${lang_name}/LC_MESSAGES/emulationstation2.mo
+		DESTINATION ${CMAKE_INSTALL_DATADIR}/emulationstation/locale/${lang_name}/LC_MESSAGES)
+endforeach()
+
+# es-update-po target
+add_custom_target(es-update-po
+	COMMAND ${CMAKE_COMMAND} -E echo "Run msgmerge manually for each .po"
+)
 
 if(ES_BUILD_TESTS)
     enable_testing()
