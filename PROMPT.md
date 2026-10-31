@@ -12,8 +12,8 @@
 
 > Section à lire en premier. Elle décrit l'état réel du dépôt et dit exactement où
 > reprendre. **Mets-la à jour à la fin de chaque phase** (c'est la mémoire du projet entre
-> deux agents). Dernière mise à jour : 31/10/2026, fin de la phase 3, `main` au commit
-> `8abbd70` (fusion de la PR #28). Audit précédent : [`docs/AUDIT.md`](docs/AUDIT.md).
+> deux agents). Dernière mise à jour : 31/10/2026, fin de la phase 4 (PR #30 à #32, à
+> fusionner dans cet ordre). Audit précédent : [`docs/AUDIT.md`](docs/AUDIT.md).
 
 ### 0.1 État au moment de la passation
 | Phase | État | PR |
@@ -25,8 +25,9 @@
 | 3.C — `std::chrono`, Assign, Variant, Locale ; Boost supprimé | **fusionnée** (locale numérique corrigée en 3.E) | #5 |
 | 3.D — Propriété mémoire (`unique_ptr`) | **terminée** pour cette phase (reste : arbre `FileData`/`SystemData`, `delete this` des GUI) | #6–#23, #26, #27 |
 | 3.E — Finitions de la phase 3 (issues de l'audit) | **terminée** : XDG (#25), job `asan` (#26), locale numérique et restes Windows (#28) | #25, #26, #28 |
-| **4 — Eigen → glm** | **prochaine étape** (voir 0.2) | — |
-| 5 à 12 | à faire | — |
+| 4 — Eigen → glm | **terminée** : glm, `math/Math.h`, captures identiques au pixel près, Eigen retiré ; correctif des chemins `./` des thèmes | #30, #31, #32 |
+| **5 — SDL2 → SDL3** | **prochaine étape** (voir 0.2) | — |
+| 6 à 12 | à faire | — |
 
 Toutes les PR ont été fusionnées par **merge commit** : le commit de reformatage
 `4b943d7` est dans l'historique et `.git-blame-ignore-revs` est valide.
@@ -35,11 +36,19 @@ Ce qui existe et que tu dois **réutiliser** (ne le recrée pas) :
 - `CMakePresets.json` : configure/build/test presets `debug` (tests + `-Werror`), `release`,
   `relwithdebinfo`, `asan`, `clang-debug`.
 - `es-app-lib` : toutes les sources de `es-app` sauf `main.cpp` (cible à lier dans les tests).
-- `tests/unit/*.cpp` (Catch2 v3, 25 cas : `ImageIO`, `MetaData`, `ThemeData`, `Paths`,
-  `Util`, `Window`, `Locale`) et `tests/data/` (fixtures). Ajoute tes tests ici,
+- `tests/unit/*.cpp` (Catch2 v3, 32 cas : `ImageIO`, `MetaData`, `ThemeData`, `Paths`,
+  `Util`, `Window`, `Locale`, `Math`) et `tests/data/` (fixtures). Ajoute tes tests ici,
   un fichier par module (`test_<Module>.cpp`), et déclare-les dans `tests/CMakeLists.txt`.
 - `tests/smoke/run.sh <binaire> [secondes] [capture.png]` : test de fumée Xvfb ; il
   utilise `ES_HOME` et un `HOME` jetable, et échoue si un fichier est écrit hors de `ES_HOME`.
+- `tests/smoke/capture.sh <binaire> <dossier>` : 6 captures scriptées (xdotool, clavier,
+  fixture `tests/data/capture/` : deux systèmes, thème avec logos SVG, liste détaillée,
+  menus), reproductibles au pixel près ; `tests/smoke/compare.sh <réf> <nouveau> [fuzz]
+  [pixels]` les compare. Le job CI « Screenshots vs base branch » le fait pour chaque PR
+  (base contre PR, même runner) ; une PR qui change le rendu exprès porte l'étiquette
+  `rendu-modifié`. Étends le scénario (`capture.sh`) quand tu touches un écran non couvert.
+- `es-core/src/math/Math.h` : types glm (`glm::vec2`, `glm::ivec2`, `glm::mat4`…) et aides
+  `getTranslation`, `setTranslation`, `transformPoint`, `roundMatrix`, `roundVector`.
 - `es::paths` (`es-core/src/utils/Paths.{h,cpp}`) : **seul** endroit qui connaît des
   chemins. `homeDir`, `userDir` (crée en `0700`), `userFile`, `systemDirs` (XDG, puis
   préfixe d'installation généré par `Paths.config.h.in`, puis `<exe>/../share`), `find`,
@@ -61,33 +70,28 @@ Ce qui existe et que tu dois **réutiliser** (ne le recrée pas) :
   Étapes « No hardcoded paths » et « No Windows or embedded leftovers » avant la
   compilation. Job « ASan + UBSan » (preset `asan`, tests et test de fumée, fuites de
   libdbus ignorées par `tests/smoke/lsan.supp`). La locale `fr_FR.UTF-8` est générée
-  dans le conteneur pour `test_Locale`. Boost n'est plus installé.
+  dans le conteneur pour `test_Locale`. Boost et Eigen ne sont plus installés. Job
+  « Screenshots vs base branch » (PR seulement) : captures de la base et de la PR comparées.
 
-### 0.2 Point de reprise : phase 4 (Eigen → glm)
-La phase 3 est terminée (PR #3 à #28, détail des points 3.E dans le plan). Commence la
-phase 4 en suivant le plan, section « Phase 4 — Remplacement d'Eigen », et les pièges de la
-section 9 de ce fichier.
+### 0.2 Point de reprise : phase 5 (SDL2 → SDL3)
+La phase 4 est terminée (PR #30 à #32). Commence la phase 5 en suivant le plan, section
+« Phase 5 — Migration SDL2 → SDL3 », la section 9 de ce fichier et
+`docs/README-migration.md` du dépôt SDL.
 
-Inventaire au commit `8abbd70` (refais-le avant de commencer) : 70 fichiers de
-`es-core/src`, `es-app/src` et `tests` utilisent Eigen, avec environ 166 `Vector2f`,
-104 `Affine3f`, 89 `Vector2i`, 69 `Vector3f`, 4 `Vector4i`, 1 `Vector4f`. Méthodes
-utilisées : `translation()` (35), `data()` (25), `translate()` (12), `cwiseProduct()` (6),
-`inverse()` (2), `scale()` (1). Aucun `pretranslate`/`prescale`. Eigen apparaît aussi dans
-`CMakeLists.txt` (`find_package(Eigen3)`), `es-core/CMakeLists.txt` (`Eigen3::Eigen`,
-`EIGEN_DONT_ALIGN`) et les paquets de la CI (`eigen`).
+Inventaire à la fin de la phase 4 (refais-le avant de commencer) : 17 fichiers de
+`es-core/src` et `es-app/src` utilisent SDL, avec 96 symboles `SDL_*` distincts. Points
+lourds : `SDL_JoystickID` (10, `InputManager`, `main.cpp`), audio par rappel
+(`SDL_AudioSpec`, `SDL_LockAudio`/`SDL_UnlockAudio`, `SDL_PauseAudio` dans
+`AudioManager`/`Sound`), `SDL_GL_SetAttribute` / `SDL_GL_SetSwapInterval`
+(`Renderer_init_sdlgl.cpp`), événements clavier et texte (`InputManager`,
+`TextEditComponent`). Paquet Arch : `sdl3` remplace `sdl2-compat` (CI, README, annexe A).
 
-Découpage proposé (une PR par ligne, chacune verte avant la suivante) :
-1. **`modernize/phase-4a-math-header`** — paquet `glm` dans la CI et `find_package(glm)`,
-   `es-core/src/math/Math.h` (glm et aides `getTranslation`, `setTranslation`,
-   `transformPoint`, `roundMatrix`, `roundVector`), tests d'équivalence Eigen/glm
-   (`tests/unit/test_Math.cpp`), script de captures `tests/smoke/capture.sh` et
-   `compare.sh`, correctif des chemins `./` des thèmes. PR #30.
-2. **`modernize/phase-4b-glm-core`** — migration de tout le code (`es-core`, `es-app`,
-   tests) vers glm en une fois : les types traversent l'API, les deux modules ne peuvent
-   pas compiler séparément (écart avec le plan, expliqué dans le plan). Retrait d'Eigen
-   de CMake et de la CI ; job CI « Screenshots vs base branch » (critère de la phase).
-3. **`modernize/phase-4c-glm-app`** — clôture : section 0 de ce fichier, plan coché,
-   paquet `eigen` retiré du job de captures une fois la 4b fusionnée.
+Découpage suggéré (à confirmer après lecture du guide de migration) : 5a fenêtre,
+contexte GL et événements ; 5b manettes (`SDL_Gamepad`, repli `es_input.cfg`) ; 5c audio.
+Si les étapes ne compilent pas séparément (SDL2 et SDL3 ne cohabitent pas dans un même
+binaire), fais comme en phase 4 : une PR de préparation (tests, scénario de captures),
+une PR de migration, une PR de clôture. Le job de captures ne couvre que le rendu ;
+teste les manettes et l'audio à part (`xdotool` ne simule pas de manette).
 
 Reliquat de 3.D, sans série dédiée : traite-le quand une phase réécrit le module.
 - `new` restants : uniquement dans des pointeurs intelligents pour des constructeurs privés
@@ -104,9 +108,20 @@ actuel. Tu n'en changes les valeurs attendues que pour un changement de comporte
 voulu, expliqué dans la PR.
 
 ### 0.3 Pièges déjà rencontrés (ne les redécouvre pas)
-- **Paquets Arch** : `freeimage` n'existe plus ; Arch fournit **Eigen 5** (pas de contrainte
-  de version dans `find_package(Eigen3)`, et Eigen 5 n'inclut plus `<cassert>` : inclus
-  toujours ce que tu utilises) ; `sdl2-compat` remplace SDL2 (SDL2 au-dessus de SDL3).
+- **Paquets Arch** : `freeimage` n'existe plus ; `sdl2-compat` remplace SDL2 (SDL2
+  au-dessus de SDL3). Inclus toujours ce que tu utilises : Eigen apportait `<functional>`
+  à plusieurs en-têtes sans qu'ils l'incluent, son retrait l'a montré.
+- **glm** : `GLM_FORCE_CTOR_INIT` et `GLM_FORCE_EXPLICIT_CTOR` sont des définitions
+  publiques d'`es-core` (ne les redéfinis pas ailleurs). Conversion `ivec2` → `vec2` :
+  `glm::vec2(v)`. `glm::translate`/`glm::scale` post-multiplient. Point sur un `mat4` :
+  `transformPoint`, pas `mat * vec3` (n'existe pas). En phase 6, passe les matrices aux
+  uniformes avec `glm::value_ptr` (colonnes, sans transposition).
+- **Chemins de thème** : `std::filesystem::path / "/x"` **remplace** le chemin de gauche
+  (Boost concaténait). Les chemins `./…` des thèmes en étaient cassés depuis 3.B (corrigé
+  en #30) : cherche ce motif dans tout code qui ajoute un suffixe commençant par `/`.
+- **UBSan et nanosvg** : `qsort(NULL, 0, …)` dans `external/nanosvg/nanosvgrast.h:787` est
+  signalé quand une forme SVG n'a aucune arête (logos de la fixture de captures). Sans
+  danger ; à traiter en mettant nanosvg à jour, pas en désactivant UBSan.
 - **pugixml vendored ancien** (`external/pugixml`) : pas de `load_string`, utiliser
   `load(const char*)`. Le remplacer par le paquet Arch `pugixml` est possible (phase au
   choix) à condition de garder la compatibilité.
@@ -441,9 +456,9 @@ migration (copie, jamais déplacement) : teste-le sur un faux `$HOME` qui contie
 Boost n'en attendait pas : utilise les surcharges `std::error_code` dans le parcours des
 ROMs et dans `Paths`.
 
-**Phase 4 — Eigen → glm.** Fais un commit qui introduit des alias de transition, puis
-migre module par module. Attention à `pretranslate`/`prescale` (ordre de multiplication).
-Compare des captures d'écran avant/après.
+**Phase 4 — Eigen → glm.** Terminée (voir section 0). Les types traversant l'API, la
+migration s'est faite en une PR pour tout le code ; le job « Screenshots vs base branch »
+a confirmé un rendu identique.
 
 **Phase 5 — SDL3.** Lis `docs/README-migration.md` de SDL3 avant de commencer. Les
 fonctions SDL3 renvoient `bool` (true = succès) là où SDL2 renvoyait `0` : chaque test de
