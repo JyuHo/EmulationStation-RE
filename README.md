@@ -54,7 +54,7 @@ Raspberry Pi, Windows, macOS et OpenGL ES ne sont plus pris en charge.
 | 3 | Suppression de Boost, chemins XDG, propriété mémoire | fait (PR #3 à #28) |
 | 4 | Eigen → glm | fait (PR #30 à #32) |
 | 5 | SDL2 → SDL3, manettes reconnues par `SDL_Gamepad` | fait (PR #33, #34, #37) |
-| 6 | Rendu OpenGL 3.3 core | **prochaine étape** |
+| 6 | Rendu OpenGL 3.3 core | **en cours** : moteur à shaders et regroupement faits (PR #40, #42, #44, #45) ; mesure sur iGPU à faire |
 | 7 | Images animées, chargement asynchrone, cache | à faire |
 | 8 | Audio (sons, musique de fond) | à faire |
 | 9 | Vidéo avec FFmpeg | à faire |
@@ -76,7 +76,7 @@ sudo pacman -S --needed base-devel cmake ninja clang \
 sudo pacman -S --needed catch2 xorg-server-xvfb imagemagick xdotool
 ```
 
-stb, pugixml et nanosvg sont fournis dans `external/`. Boost, Eigen et SDL2 ne sont plus nécessaires.
+stb, pugixml, nanosvg et glad (chargeur OpenGL) sont fournis dans `external/`. Boost, Eigen et SDL2 ne sont plus nécessaires.
 
 ### Avec les presets (recommandé)
 
@@ -134,6 +134,12 @@ emulationstation [options]
 | `--debug` | journal plus détaillé |
 | `--scrape` | scraper en ligne de commande (services actuellement hors ligne, voir plus bas) |
 | `--help`, `-h` | aide |
+
+Rendu : **OpenGL 3.3 core** est requis (Mesa le fournit pour Intel, AMD et llvmpipe ; pas de
+repli en profil compatibilité). La version obtenue est écrite dans le journal
+(`GL_VERSION`, `GL_RENDERER`). **`ES_GL_DEBUG=1`** active la sortie de débogage OpenGL
+(extension KHR_debug) dans une version optimisée : chaque erreur GL devient une ligne
+`[ERROR]` du journal (toujours active dans une version Debug).
 
 Mode portable : **`--home <dossier>`** ou la variable **`ES_HOME=<dossier>`** (l'option
 l'emporte) place tous les fichiers dans `<dossier>/{config,data,state,cache}/emulationstation/`.
@@ -275,7 +281,8 @@ La CI GitHub Actions compile avec GCC et Clang dans un conteneur `archlinux:base
 avec `-Werror`, puis lance les tests unitaires et le test de fumée (la capture d'écran est
 publiée en artefact). Un troisième job refait la même chose avec AddressSanitizer et
 UBSan. Avant la compilation, la CI refuse les chemins écrits en dur et tout code propre à
-Windows, macOS, Raspberry Pi ou OpenGL ES.
+Windows, macOS, Raspberry Pi ou OpenGL ES, ainsi que tout appel ou type OpenGL hors de
+`es-core/src/renderer/`.
 
 Le code suit `.clang-format` ; ne formatez que les lignes modifiées
 (`git clang-format origin/main`). Pour que `git blame` ignore le commit de reformatage :

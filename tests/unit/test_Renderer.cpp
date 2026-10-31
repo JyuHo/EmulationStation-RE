@@ -219,3 +219,20 @@ TEST_CASE("Batcher transforms the vertices on the CPU", "[Renderer]")
 	CHECK(r.submissions[0].vertices[0].tex == glm::vec2(0, 0));
 	CHECK(r.submissions[0].vertices[0].color == 1);
 }
+
+TEST_CASE("scaleClipRect follows the window's pixel size", "[Renderer]")
+{
+	const glm::ivec4 box(100, 320, 400, 300);
+
+	// same size: unchanged
+	CHECK(Renderer::scaleClipRect(box, screen, screen) == box);
+
+	// 1280x720 laid out, 2560x1440 pixels (high density, or a larger fullscreen mode)
+	CHECK(Renderer::scaleClipRect(box, screen, {2560, 1440}) == glm::ivec4(200, 640, 800, 600));
+
+	// edges scaled, not sizes: two adjacent rectangles stay adjacent
+	const glm::ivec4 left = Renderer::scaleClipRect({0, 0, 427, 720}, screen, {1920, 1080});
+	const glm::ivec4 right = Renderer::scaleClipRect({427, 0, 853, 720}, screen, {1920, 1080});
+	CHECK(left[0] + left[2] == right[0]);
+	CHECK(right[0] + right[2] == 1920);
+}

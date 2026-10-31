@@ -10,6 +10,9 @@ namespace Renderer {
 bool initDrawing(glm::ivec2 screenSize);
 void deinitDrawing();
 
+// size of the window in pixels (the viewport); the clip rectangles are scaled to it
+void setPixelSize(glm::ivec2 size);
+
 // false before init and after deinit: no GL call may be made (the functions are not loaded).
 // Window and the resources exist before the first init (Window's constructor loads images).
 bool isReady();
