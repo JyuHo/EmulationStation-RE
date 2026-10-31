@@ -274,8 +274,8 @@ void ImageComponent::render(const glm::mat4& parentTrans)
 		}
 		else
 		{
-			LOG(LogError) << "Image texture is not initialized!";
-			mTexture.reset();
+			// Texture not ready yet (async loading) or invalid: skip drawing.
+			return;
 		}
 	}
 
