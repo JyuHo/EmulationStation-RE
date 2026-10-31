@@ -12,8 +12,8 @@
 
 > Section à lire en premier. Elle décrit l'état réel du dépôt et dit exactement où
 > reprendre. **Mets-la à jour à la fin de chaque phase** (c'est la mémoire du projet entre
-> deux agents). Dernière mise à jour : 31/10/2026, fin de la phase 5 (PR #33 à #35, à
-> fusionner dans cet ordre). Audit précédent : [`docs/AUDIT.md`](docs/AUDIT.md).
+> deux agents). Dernière mise à jour : 31/10/2026, fin de la phase 5 (PR #33, #34 et #37 ;
+> #35 a été fusionnée dans la branche de la 5b et portée dans `main` par #37). Audit précédent : [`docs/AUDIT.md`](docs/AUDIT.md).
 
 ### 0.1 État au moment de la passation
 | Phase | État | PR |
@@ -26,7 +26,7 @@
 | 3.D — Propriété mémoire (`unique_ptr`) | **terminée** pour cette phase (reste : arbre `FileData`/`SystemData`, `delete this` des GUI) | #6–#23, #26, #27 |
 | 3.E — Finitions de la phase 3 (issues de l'audit) | **terminée** : XDG (#25), job `asan` (#26), locale numérique et restes Windows (#28) | #25, #26, #28 |
 | 4 — Eigen → glm | **terminée** : glm, `math/Math.h`, captures identiques au pixel près, Eigen retiré ; correctif des chemins `./` des thèmes | #30, #31, #32 |
-| 5 — SDL2 → SDL3 | **terminée** : SDL3 partout, manettes reconnues par `SDL_Gamepad` avec configuration par défaut, captures identiques au pixel près ; manettes réelles non testées | #33, #34, #35 |
+| 5 — SDL2 → SDL3 | **terminée** : SDL3 partout, manettes reconnues par `SDL_Gamepad` avec configuration par défaut, captures identiques au pixel près ; testée par le propriétaire avec une vraie manette | #33, #34, #35 (#37) |
 | **6 — OpenGL 3.3 core** | **prochaine étape** (voir 0.2) | — |
 | 7 à 12 | à faire | — |
 
@@ -85,7 +85,7 @@ Ce qui existe et que tu dois **réutiliser** (ne le recrée pas) :
   « Screenshots vs base branch » (PR seulement) : captures de la base et de la PR comparées.
 
 ### 0.2 Point de reprise : phase 6 (OpenGL 3.3 core)
-La phase 5 est terminée (PR #33 à #35). Commence la phase 6 en suivant le plan, section
+La phase 5 est terminée (PR #33, #34, #37). Commence la phase 6 en suivant le plan, section
 « Phase 6 — Moteur de rendu OpenGL 3.3 core », et la section 9 de ce fichier.
 
 Inventaire à la fin de la phase 5 (refais-le avant de commencer) : 118 appels `gl*` (26
@@ -103,8 +103,8 @@ avec `compare.sh` (fuzz, nombre de pixels), explique-le dans la PR et pose l'ét
 `rendu-modifié` seulement si l'écart est voulu. Découpage suggéré, comme aux phases 4 et
 5 : une PR de préparation (chargeur GL, tests), une PR de migration, une PR de clôture.
 
-Restes de la phase 5 (voir le plan, « Écarts constatés ») : manettes réelles (Xbox,
-DualSense, 8BitDo) à tester sur matériel ; redimensionnement de la fenêtre
+Restes de la phase 5 (voir le plan, « Écarts constatés ») : d'autres modèles de manettes
+(Xbox, DualSense, 8BitDo) restent à essayer ; redimensionnement de la fenêtre
 (`SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED`) à traiter avec le moteur de rendu ; écran pour
 `GamepadSwapAB` avec les menus thémés (phase 11).
 
@@ -197,6 +197,10 @@ voulu, expliqué dans la PR.
   `[ERROR]` : les scripts forcent `SDL_AUDIO_DRIVER=dummy`.
 - **Captures déterministes** : n'ajoute pas d'écran qui affiche un chemin de la fixture
   (copiée dans un `mktemp`) : l'éditeur de métadonnées montre le chemin absolu de l'image.
+- **Fusion de PR empilées** : une PR dont la base est une autre branche de PR est
+  fusionnée dans cette branche, pas dans `main`. Après la fusion de la PR du dessous,
+  repasse la base de la suivante à `main` avant qu'elle soit fusionnée (#35 a dû être
+  portée par #37).
 - **Lancement de ES sans écran** : sans `es_systems.cfg` valide, ES affiche une erreur et
   quitte ; le test de fumée en fournit un. Au premier lancement, ES affiche l'écran de
   configuration de manette (normal sous Xvfb).

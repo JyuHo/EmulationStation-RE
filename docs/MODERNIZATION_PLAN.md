@@ -16,7 +16,7 @@
 | 2 | Hygiène C++23 et outillage (clang-format, clang-tidy, tests, logs) | 1 | M (fait, PR #2) |
 | 3 | Suppression de Boost + module de chemins **XDG** (std::filesystem, std::chrono, std::variant) | 2 | M (**fait** : 3.A à 3.E) |
 | 4 | Remplacement d'Eigen par une petite bibliothèque mathématique (glm) | 2 | M (**fait** : PR #30 à #32) |
-| 5 | Migration SDL2 → SDL3 (fenêtre, événements, manettes, audio) | 3, 4 | L (**fait** : PR #33 à #35) |
+| 5 | Migration SDL2 → SDL3 (fenêtre, événements, manettes, audio) | 3, 4 | L (**fait** : PR #33, #34, #37) |
 | 6 | Nouveau moteur de rendu OpenGL 3.3 core à shaders | 5 | L (**prochaine étape**) |
 | 7 | Images : WebP/GIF animés, chargement asynchrone, cache VRAM | 6 | M |
 | 8 | Audio : sons de navigation et musique de fond sur SDL3 | 5 | M |
@@ -568,9 +568,10 @@ comme en phase 4, trois PR.
   commentaires historiques en parlent encore).
 - [x] Navigation au clavier : captures scriptées identiques au pixel près entre SDL2 et SDL3
   (8 écrans, RelWithDebInfo et Debug+ASan).
-- [~] Manette : vérifiée avec des joysticks et manettes **virtuels** de SDL (axes, boutons,
+- [x] Manette : vérifiée avec des joysticks et manettes **virtuels** de SDL (axes, boutons,
   chapeau, configuration par défaut, inversion A/B, `es_input.cfg` prioritaire,
-  `gamecontrollerdb.txt`) ; **Xbox, DualSense, 8BitDo non testés** faute de matériel.
+  `gamecontrollerdb.txt`), puis par le propriétaire avec une vraie manette : fonctionne
+  correctement (31/10/2026). Les autres modèles (Xbox, DualSense, 8BitDo) restent à essayer.
 - [x] Branchement à chaud : joystick et manette virtuels branchés et débranchés pendant
   l'exécution (`test_Input.cpp`).
 - [x] Saisie de texte : écran `08-text-input` (« Beta RacerAbc ») en SDL3.
