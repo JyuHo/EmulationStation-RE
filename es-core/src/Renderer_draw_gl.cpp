@@ -7,6 +7,8 @@
 #include "Log.h"
 #include <stack>
 #include "Util.h"
+#include <cstddef>
+#include <cstring>
 
 namespace Renderer {
 std::stack<glm::ivec4> clipStack;
@@ -37,13 +39,8 @@ void pushClipRect(glm::ivec2 pos, glm::ivec2 dim)
 	if(box[3] == 0)
 		box[3] = Renderer::getScreenHeight() - box.y;
 
-	//glScissor starts at the bottom left of the window
-	//so (0, 0, 1, 1) is the bottom left pixel
-	//everything else uses y+ = down, so flip it to be consistent
-	//rect.pos.y = Renderer::getScreenHeight() - rect.pos.y - rect.size.y;
 	box[1] = Renderer::getScreenHeight() - box.y - box[3];
 
-	//make sure the box fits within clipStack.top(), and clip further accordingly
 	if(clipStack.size())
 	{
 		glm::ivec4& top = clipStack.top();
@@ -94,47 +91,78 @@ void drawRect(float x, float y, float w, float h, unsigned int color, GLenum ble
 
 void drawRect(int x, int y, int w, int h, unsigned int color, GLenum blend_sfactor, GLenum blend_dfactor)
 {
-	GLint points[12];
+	Vertex verts[6];
+	// color as RGBA in uint32; shader expects 4 bytes. Store as ABGR? We'll pack RGBA into uint32 and read as unsigned byte with GL_TRUE? Vertex color attribute is 4 unsigned bytes. Need consistent packing.
+	// Pack color (0xAABBGGRR? original color format). Original buildGLColorArray stored color bytes [A?]. Let's keep same: color passed is 0xRRGGBBAA? Check: setColor4bArray sets array[0]=alpha? Actually original: array[0]=(color&0xff000000)>>24. So color high byte -> array[0]. OpenGL color pointer GL_UNSIGNED_BYTE. We'll pack into uint32 with same byte order (memory). Use color directly as the GLuint value? The original did ((GLuint*)ptr)[i]=colorGl where colorGl had bytes set via setColor4bArray into (GLubyte*)&colorGl. So memory layout [byte0,byte1,byte2,byte3] = [high..low]. Our uint32_t color field read as 4 unsigned bytes (GL_TRUE normalize) in vertex attrib. If we store the same integer, memory same. So verts color = color.
+	uint32_t c = color;
+	verts[0] = { { (float)x, (float)y }, {0,0}, c };
+	verts[1] = { { (float)x, (float)(y + h) }, {0,0}, c };
+	verts[2] = { { (float)(x + w), (float)y }, {0,0}, c };
+	verts[3] = { { (float)(x + w), (float)y }, {0,0}, c };
+	verts[4] = { { (float)x, (float)(y + h) }, {0,0}, c };
+	verts[5] = { { (float)(x + w), (float)(y + h) }, {0,0}, c };
 
-	points[0] = x;
-	points[1] = y;
-	points[2] = x;
-	points[3] = y + h;
-	points[4] = x + w;
-	points[5] = y;
-
-	points[6] = x + w;
-	points[7] = y;
-	points[8] = x;
-	points[9] = y + h;
-	points[10] = x + w;
-	points[11] = y + h;
-
-	GLubyte colors[6 * 4];
-	buildGLColorArray(colors, color, 6);
-
-	glEnable(GL_BLEND);
-	glBlendFunc(blend_sfactor, blend_dfactor);
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_COLOR_ARRAY);
-
-	glVertexPointer(2, GL_INT, 0, points);
-	glColorPointer(4, GL_UNSIGNED_BYTE, 0, colors);
-
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-
-	glDisable(GL_BLEND);
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_COLOR_ARRAY);
+	drawTriangles(std::span<const Vertex>(verts, 6), 0, blend_sfactor, blend_dfactor);
 }
 
 void setMatrix(float* matrix)
 {
-	glLoadMatrixf(matrix);
+	modelMatrix = glm::mat4(1.0f);
+	std::memcpy(glm::value_ptr(modelMatrix), matrix, sizeof(float) * 16);
+	glUniformMatrix4fv(uModel, 1, GL_FALSE, glm::value_ptr(modelMatrix));
 }
 
 void setMatrix(const glm::mat4& matrix)
 {
-	setMatrix(const_cast<float*>(glm::value_ptr(matrix)));
+	modelMatrix = matrix;
+	glUniformMatrix4fv(uModel, 1, GL_FALSE, glm::value_ptr(modelMatrix));
 }
-}; // namespace Renderer
+
+void drawTriangles(std::span<const Vertex> vertices, GLuint texture, GLenum blend_sfactor, GLenum blend_dfactor)
+{
+	if(vertices.empty())
+		return;
+
+	glUseProgram(shaderProgram);
+	glBindVertexArray(vao);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_DYNAMIC_DRAW);
+
+	glBlendFunc(blend_sfactor, blend_dfactor);
+	glEnable(GL_BLEND);
+
+	if(texture != 0)
+	{
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture);
+		glUniform1i(uUseTexture, 1);
+	}
+	else
+	{
+		glUniform1i(uUseTexture, 0);
+	}
+
+	glDrawArrays(GL_TRIANGLES, 0, (GLsizei)vertices.size());
+
+	if(texture != 0)
+		glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void drawLines(std::span<const Vertex> vertices, GLenum blend_sfactor, GLenum blend_dfactor)
+{
+	if(vertices.empty())
+		return;
+
+	glUseProgram(shaderProgram);
+	glBindVertexArray(vao);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_DYNAMIC_DRAW);
+
+	glUniform1i(uUseTexture, 0);
+	glBlendFunc(blend_sfactor, blend_dfactor);
+	glEnable(GL_BLEND);
+
+	glDrawArrays(GL_LINES, 0, (GLsizei)vertices.size());
+}
+
+} // namespace Renderer

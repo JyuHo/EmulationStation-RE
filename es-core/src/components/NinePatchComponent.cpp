@@ -144,26 +144,15 @@ void NinePatchComponent::render(const glm::mat4& parentTrans)
 
 		mTexture->bind();
 
-		glEnable(GL_TEXTURE_2D);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glEnableClientState(GL_COLOR_ARRAY);
-
-		glVertexPointer(2, GL_FLOAT, sizeof(Vertex), &mVertices[0].pos);
-		glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), &mVertices[0].tex);
-		glColorPointer(4, GL_UNSIGNED_BYTE, 0, mColors.get());
-
-		glDrawArrays(GL_TRIANGLES, 0, 6 * 9);
-
-		glDisableClientState(GL_VERTEX_ARRAY);
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		glDisableClientState(GL_COLOR_ARRAY);
-
-		glDisable(GL_TEXTURE_2D);
-		glDisable(GL_BLEND);
+		std::vector<Renderer::Vertex> verts(6 * 9);
+		for(int i = 0; i < 6 * 9; i++)
+		{
+			verts[i].pos = mVertices[i].pos;
+			verts[i].tex = mVertices[i].tex;
+			verts[i].color = ((unsigned int)mColors[i * 4]) << 24 | ((unsigned int)mColors[i * 4 + 1]) << 16 |
+				((unsigned int)mColors[i * 4 + 2]) << 8 | ((unsigned int)mColors[i * 4 + 3]);
+		}
+		Renderer::drawTriangles(std::span<const Renderer::Vertex>(verts), mTexture->getTextureID(), GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 
 	renderChildren(trans);

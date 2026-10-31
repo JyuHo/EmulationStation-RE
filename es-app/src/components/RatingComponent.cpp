@@ -98,31 +98,25 @@ void RatingComponent::render(const glm::mat4& parentTrans)
 	glm::mat4 trans = roundMatrix(parentTrans * getTransform());
 	Renderer::setMatrix(trans);
 
-	glEnable(GL_TEXTURE_2D);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	uint32_t col = (255u << 24) | (255u << 16) | (255u << 8) | (unsigned int)getOpacity();
 
-	glColor4ub(255, 255, 255, getOpacity());
+	std::vector<Renderer::Vertex> filled(6);
+	for(int i = 0; i < 6; i++)
+	{
+		filled[i].pos = mVertices[i].pos;
+		filled[i].tex = mVertices[i].tex;
+		filled[i].color = col;
+	}
+	Renderer::drawTriangles(std::span<const Renderer::Vertex>(filled), mFilledTexture->getTextureID(), GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-
-	glVertexPointer(2, GL_FLOAT, sizeof(Vertex), &mVertices[0].pos);
-	glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), &mVertices[0].tex);
-
-	mFilledTexture->bind();
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-
-	mUnfilledTexture->bind();
-	glDrawArrays(GL_TRIANGLES, 6, 6);
-
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-
-	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_BLEND);
-
-	glColor4ub(255, 255, 255, 255);
+	std::vector<Renderer::Vertex> unfilled(6);
+	for(int i = 0; i < 6; i++)
+	{
+		unfilled[i].pos = mVertices[6 + i].pos;
+		unfilled[i].tex = mVertices[6 + i].tex;
+		unfilled[i].color = col;
+	}
+	Renderer::drawTriangles(std::span<const Renderer::Vertex>(unfilled), mUnfilledTexture->getTextureID(), GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	renderChildren(trans);
 }

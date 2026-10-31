@@ -306,7 +306,10 @@ void Font::FontTexture::initTexture()
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, textureSize.x, textureSize.y, 0, GL_ALPHA, GL_UNSIGNED_BYTE, nullptr);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, textureSize.x, textureSize.y, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
+	// swizzle: RGBA = (1, 1, 1, R) so font color comes from vertex color and alpha from atlas
+	GLint swizzle[] = { GL_ONE, GL_ONE, GL_ONE, GL_RED };
+	glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
 }
 
 void Font::FontTexture::deinitTexture()
@@ -469,7 +472,7 @@ Font::Glyph* Font::getGlyph(UnicodeChar id)
 	// upload glyph bitmap to texture
 	glBindTexture(GL_TEXTURE_2D, tex->textureId);
 	glTexSubImage2D(
-		GL_TEXTURE_2D, 0, cursor.x, cursor.y, glyphSize.x, glyphSize.y, GL_ALPHA, GL_UNSIGNED_BYTE, g->bitmap.buffer);
+		GL_TEXTURE_2D, 0, cursor.x, cursor.y, glyphSize.x, glyphSize.y, GL_RED, GL_UNSIGNED_BYTE, g->bitmap.buffer);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	// update max glyph height
@@ -506,7 +509,7 @@ void Font::rebuildTextures()
 
 		// upload to texture
 		glBindTexture(GL_TEXTURE_2D, tex->textureId);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, cursor.x, cursor.y, glyphSize.x, glyphSize.y, GL_ALPHA, GL_UNSIGNED_BYTE,
+		glTexSubImage2D(GL_TEXTURE_2D, 0, cursor.x, cursor.y, glyphSize.x, glyphSize.y, GL_RED, GL_UNSIGNED_BYTE,
 			glyphSlot->bitmap.buffer);
 	}
 
@@ -527,27 +530,15 @@ void Font::renderTextCache(TextCache* cache)
 
 		auto vertexList = *it;
 
-		glBindTexture(GL_TEXTURE_2D, *it->textureIdPtr);
-		glEnable(GL_TEXTURE_2D);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glEnableClientState(GL_COLOR_ARRAY);
-
-		glVertexPointer(2, GL_FLOAT, sizeof(TextCache::Vertex), glm::value_ptr(it->verts[0].pos));
-		glTexCoordPointer(2, GL_FLOAT, sizeof(TextCache::Vertex), glm::value_ptr(it->verts[0].tex));
-		glColorPointer(4, GL_UNSIGNED_BYTE, 0, it->colors.data());
-
-		glDrawArrays(GL_TRIANGLES, 0, it->verts.size());
-
-		glDisableClientState(GL_VERTEX_ARRAY);
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		glDisableClientState(GL_COLOR_ARRAY);
-
-		glDisable(GL_TEXTURE_2D);
-		glDisable(GL_BLEND);
+		std::vector<Renderer::Vertex> verts(it->verts.size());
+		for(size_t i = 0; i < it->verts.size(); i++)
+		{
+			verts[i].pos = it->verts[i].pos;
+			verts[i].tex = it->verts[i].tex;
+			verts[i].color = ((unsigned int)it->colors[i * 4]) << 24 | ((unsigned int)it->colors[i * 4 + 1]) << 16 |
+				((unsigned int)it->colors[i * 4 + 2]) << 8 | ((unsigned int)it->colors[i * 4 + 3]);
+		}
+		Renderer::drawTriangles(std::span<const Renderer::Vertex>(verts), *it->textureIdPtr, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 }
 

@@ -4,6 +4,7 @@
 #include GLHEADER
 #include "resources/Font.h"
 #include <SDL3/SDL.h>
+#include <cstddef>
 #include "Log.h"
 #include "ImageIO.h"
 #include "Resources.h"
@@ -27,6 +28,17 @@ unsigned int getScreenHeight()
 SDL_Window* sdlWindow = nullptr;
 SDL_GLContext sdlContext = nullptr;
 
+// Shader program state
+GLuint shaderProgram = 0;
+GLuint vao = 0;
+GLuint vbo = 0;
+GLint uProjection = -1;
+GLint uTexture = -1;
+GLint uUseTexture = -1;
+GLint uModel = -1;
+glm::mat4 projection = glm::mat4(1.0f);
+glm::mat4 modelMatrix = glm::mat4(1.0f);
+
 SDL_Window* getSDLWindow()
 {
 	return sdlWindow;
@@ -47,6 +59,12 @@ bool createSurface()
 	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+#ifndef NDEBUG
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
+#endif
 
 	// multisample anti-aliasing
 	//SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
@@ -149,6 +167,14 @@ void swapBuffers()
 
 void destroySurface()
 {
+	if(sdlContext)
+	{
+		SDL_GL_MakeCurrent(sdlWindow, sdlContext);
+		if(vbo) glDeleteBuffers(1, &vbo);
+		if(vao) glDeleteVertexArrays(1, &vao);
+		if(shaderProgram) glDeleteProgram(shaderProgram);
+		vbo = 0; vao = 0; shaderProgram = 0;
+	}
 	SDL_GL_DestroyContext(sdlContext);
 	sdlContext = nullptr;
 
@@ -161,6 +187,87 @@ void destroySurface()
 
 	SDL_Quit();
 }
+
+static GLuint compileShader(GLenum type, const char* src)
+{
+	GLuint s = glCreateShader(type);
+	glShaderSource(s, 1, &src, nullptr);
+	glCompileShader(s);
+	GLint ok = 0;
+	glGetShaderiv(s, GL_COMPILE_STATUS, &ok);
+	if(!ok)
+	{
+		char buf[1024];
+		glGetShaderInfoLog(s, 1024, nullptr, buf);
+		LOG(LogError) << "Shader compile error: " << buf;
+		glDeleteShader(s);
+		return 0;
+	}
+	return s;
+}
+
+static GLuint buildProgram(const char* vs, const char* fs)
+{
+	GLuint v = compileShader(GL_VERTEX_SHADER, vs);
+	GLuint f = compileShader(GL_FRAGMENT_SHADER, fs);
+	if(!v || !f)
+		return 0;
+	GLuint p = glCreateProgram();
+	glAttachShader(p, v);
+	glAttachShader(p, f);
+	glLinkProgram(p);
+	GLint ok = 0;
+	glGetProgramiv(p, GL_LINK_STATUS, &ok);
+	if(!ok)
+	{
+		char buf[1024];
+		glGetProgramInfoLog(p, 1024, nullptr, buf);
+		LOG(LogError) << "Program link error: " << buf;
+		glDeleteProgram(p);
+		p = 0;
+	}
+	glDeleteShader(v);
+	glDeleteShader(f);
+	return p;
+}
+
+static const char* VS = R"(#version 330 core
+layout(location = 0) in vec2 aPos;
+layout(location = 1) in vec2 aTex;
+layout(location = 2) in vec4 aColor;
+uniform mat4 uProjection;
+uniform mat4 uModel;
+out vec2 vTex;
+out vec4 vColor;
+void main() {
+    gl_Position = uProjection * uModel * vec4(aPos, 0.0, 1.0);
+    vTex = aTex;
+    vColor = aColor;
+}
+)";
+
+static const char* FS = R"(#version 330 core
+in vec2 vTex;
+in vec4 vColor;
+out vec4 FragColor;
+uniform sampler2D uTexture;
+uniform int uUseTexture;
+void main() {
+    if (uUseTexture == 1)
+        FragColor = texture(uTexture, vTex) * vColor;
+    else
+        FragColor = vColor;
+}
+)";
+
+#ifndef NDEBUG
+static void APIENTRY debugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
+{
+	if(severity == GL_DEBUG_SEVERITY_NOTIFICATION)
+		return;
+	LOG(LogWarning) << "GL debug: " << message;
+}
+#endif
 
 bool init(int w, int h)
 {
@@ -176,10 +283,44 @@ bool init(int w, int h)
 
 	glViewport(0, 0, display_width, display_height);
 
-	glMatrixMode(GL_PROJECTION);
-	glOrtho(0, display_width, display_height, 0, -1.0, 1.0);
-	glMatrixMode(GL_MODELVIEW);
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+	projection = glm::ortho(0.0f, (float)display_width, (float)display_height, 0.0f, -1.0f, 1.0f);
+
+#ifndef NDEBUG
+	glEnable(GL_DEBUG_OUTPUT);
+	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+	glDebugMessageCallback(debugCallback, nullptr);
+#endif
+
+	shaderProgram = buildProgram(VS, FS);
+	if(!shaderProgram)
+		return false;
+	glUseProgram(shaderProgram);
+	uProjection = glGetUniformLocation(shaderProgram, "uProjection");
+	uTexture = glGetUniformLocation(shaderProgram, "uTexture");
+	uUseTexture = glGetUniformLocation(shaderProgram, "uUseTexture");
+	uModel = glGetUniformLocation(shaderProgram, "uModel");
+	glUniformMatrix4fv(uProjection, 1, GL_FALSE, glm::value_ptr(projection));
+	glUniformMatrix4fv(uModel, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+	glUniform1i(uTexture, 0);
+
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	// pos
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, pos));
+	// tex
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, tex));
+	// color
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Vertex), (void*)offsetof(Vertex, color));
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	return true;
 }
