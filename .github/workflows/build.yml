@@ -64,3 +64,29 @@ jobs:
           name: smoke-${{ matrix.compiler }}
           path: smoke-${{ matrix.compiler }}.png
           if-no-files-found: ignore
+
+  asan:
+    name: Arch Linux (gcc, ASan + UBSan)
+    runs-on: ubuntu-latest
+    container: archlinux:base-devel
+    steps:
+      - name: Install dependencies
+        run: |
+          pacman -Syu --noconfirm --needed \
+            git cmake ninja \
+            sdl2-compat freetype2 fontconfig eigen curl alsa-lib libglvnd mesa libwebp \
+            catch2 xorg-server-xvfb
+
+      - uses: actions/checkout@v5
+
+      - name: Configure
+        run: cmake --preset asan -DES_WARNINGS_AS_ERRORS=ON
+
+      - name: Build
+        run: cmake --build --preset asan
+
+      - name: Unit tests
+        run: ctest --preset asan
+
+      - name: Smoke test (Xvfb)
+        run: tests/smoke/run.sh build/asan/emulationstation 10

@@ -1,0 +1,2 @@
+# Leaks inside system libraries, outside our control (reported under the asan preset).
+leak:libdbus-1.so

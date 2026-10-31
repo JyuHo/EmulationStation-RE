@@ -16,6 +16,7 @@ public:
 	~Window();
 
 	void pushGui(std::unique_ptr<GuiComponent> gui);
+	// Unlinks gui from the stack without deleting it; called by ~GuiComponent.
 	void removeGui(GuiComponent* gui);
 	GuiComponent* peekGui();
 
