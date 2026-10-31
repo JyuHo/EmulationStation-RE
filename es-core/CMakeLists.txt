@@ -172,7 +172,6 @@ target_include_directories(es-core PUBLIC
 target_include_directories(es-core PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/generated)
 
 target_compile_definitions(es-core PUBLIC
-    EIGEN_DONT_ALIGN
     # zero/identity default construction and no implicit conversions (see math/Math.h)
     GLM_FORCE_CTOR_INIT
     GLM_FORCE_EXPLICIT_CTOR
@@ -184,7 +183,6 @@ target_link_libraries(es-core PUBLIC
     Fontconfig::Fontconfig
     PkgConfig::WEBP
     SDL2::SDL2
-    Eigen3::Eigen
     glm::glm
     CURL::libcurl
     ALSA::ALSA

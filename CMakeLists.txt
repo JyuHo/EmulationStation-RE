@@ -60,8 +60,6 @@ find_package(Fontconfig REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(WEBP REQUIRED IMPORTED_TARGET libwebp)
 find_package(SDL2 CONFIG REQUIRED)
-# No version constraint: Arch ships Eigen 5, whose config rejects "3.x" requests.
-find_package(Eigen3 CONFIG REQUIRED NO_MODULE)
 find_package(glm CONFIG REQUIRED)
 find_package(CURL REQUIRED)
 find_package(ALSA REQUIRED)
