@@ -80,12 +80,18 @@ status=0
 HOME="$fakehome" ES_HOME="$home" xvfb-run -a -s '-screen 0 1280x720x24' bash -c '
 	set -u
 	out="$2"
-	"$1" --windowed --resolution 1280 720 &
+	# --debug: every log line also goes, unbuffered, to stderr, where the draw call count of
+	# each screen is read (Window logs it when it changes)
+	"$1" --windowed --resolution 1280 720 --debug 2>"$ES_HOME/stderr.txt" &
 	pid=$!
 	sleep 8
 	win="$(xdotool search --sync --onlyvisible --pid "$pid" | head -n 1)"
 	xdotool windowfocus --sync "$win" 2>/dev/null || true
-	shot() { import -window root "$out/$1.png"; }
+	shot() {
+		import -window root "$out/$1.png"
+		draws="$(grep -o "Draw calls per frame: .*" "$ES_HOME/stderr.txt" | tail -n 1 || true)"
+		echo "$1: ${draws#Draw calls per frame: }" >> "$out/draw-calls.txt"
+	}
 	key() { xdotool key --window "$win" "$1"; sleep "${2:-2}"; }
 
 	shot 01-system-nes
@@ -129,5 +135,7 @@ if [ "$status" -ne 0 ] || errors >/dev/null; then
 	exit 1
 fi
 grep -E '(VERSION|RENDERER|VENDOR): |OpenGL' "$log" || true
+echo "----- draw calls per frame -----"
+cat "$outdir/draw-calls.txt" 2>/dev/null || true
 ls "$outdir"/*.png
 echo "PASS"

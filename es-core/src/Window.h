@@ -5,6 +5,7 @@
 #include <vector>
 #include "resources/Font.h"
 #include "InputManager.h"
+#include "renderer/Renderer.h"
 
 class HelpComponent;
 class ImageComponent;
@@ -55,6 +56,7 @@ private:
 	int mAverageDeltaTime;
 
 	std::unique_ptr<TextCache> mFrameDataText;
+	Renderer::DrawCallCount mLoggedDrawCalls; // last count written to the log
 
 	bool mNormalizeNextUpdate;
 

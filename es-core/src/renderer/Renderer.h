@@ -4,6 +4,7 @@
 // This header is the module's public API and must stay free of any OpenGL type or header:
 // only the files of es-core/src/renderer/ call gl* (through renderer/GL.h).
 //   Renderer.cpp       global state, clip stack, matrices, draw calls
+//   Batcher.cpp        merging of consecutive draws (no GL, tested)
 //   Renderer_init.cpp  SDL3 window, OpenGL 3.3 core context, glad, GL_KHR_debug, swap
 //   Shader.cpp         GLSL programs (sources in Shaders.h)
 //   Texture.cpp        texture creation, update and deletion
@@ -88,6 +89,18 @@ void drawRect(float x, float y, float w, float h, unsigned int color, BlendMode 
 void drawRect(int x, int y, int w, int h, unsigned int color, BlendMode blend = BlendMode::Alpha);
 void drawTriangles(std::span<const Vertex> vertices, TextureHandle texture, BlendMode blend = BlendMode::Alpha);
 void drawLines(std::span<const Vertex> vertices, BlendMode blend = BlendMode::Alpha);
+
+// Draws of the last complete frame: `requested` drawRect/drawTriangles/drawLines calls,
+// `submitted` glDrawArrays (consecutive draws with the same texture, blending and primitive
+// are merged into one, until the clip changes).
+struct DrawCallCount
+{
+	unsigned int requested = 0;
+	unsigned int submitted = 0;
+
+	bool operator==(const DrawCallCount&) const = default;
+};
+DrawCallCount getDrawCallCount();
 
 // data may be nullptr (empty atlas); rows are tightly packed (no row alignment)
 [[nodiscard]] TextureHandle createTexture(
