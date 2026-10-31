@@ -71,9 +71,9 @@ Détails : [plan de modernisation](docs/MODERNIZATION_PLAN.md) et
 
 ```bash
 sudo pacman -S --needed base-devel cmake ninja clang \
-    sdl2-compat freetype2 fontconfig eigen curl alsa-lib libglvnd mesa libwebp
+    sdl2-compat freetype2 fontconfig eigen glm curl alsa-lib libglvnd mesa libwebp
 # Pour les tests :
-sudo pacman -S --needed catch2 xorg-server-xvfb imagemagick
+sudo pacman -S --needed catch2 xorg-server-xvfb imagemagick xdotool
 ```
 
 stb, pugixml et nanosvg sont fournis dans `external/`. Boost n'est plus nécessaire.

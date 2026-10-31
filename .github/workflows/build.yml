@@ -25,8 +25,8 @@ jobs:
         run: |
           pacman -Syu --noconfirm --needed \
             git cmake ninja clang \
-            sdl2-compat freetype2 fontconfig eigen curl alsa-lib libglvnd mesa libwebp \
-            catch2 xorg-server-xvfb imagemagick
+            sdl2-compat freetype2 fontconfig eigen glm curl alsa-lib libglvnd mesa libwebp \
+            catch2 xorg-server-xvfb imagemagick xdotool
           # French locale for test_Locale (decimal comma). The Docker image strips
           # locale sources through NoExtract, so reinstall glibc without it first.
           sed -i '/^NoExtract/d' /etc/pacman.conf
@@ -78,6 +78,17 @@ jobs:
           path: smoke-${{ matrix.compiler }}.png
           if-no-files-found: ignore
 
+      - name: Screenshots (Xvfb)
+        run: tests/smoke/capture.sh build/emulationstation captures-${{ matrix.compiler }}
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: captures-${{ matrix.compiler }}
+          path: captures-${{ matrix.compiler }}
+          if-no-files-found: ignore
+
   asan:
     name: Arch Linux (gcc, ASan + UBSan)
     runs-on: ubuntu-latest
@@ -87,7 +98,7 @@ jobs:
         run: |
           pacman -Syu --noconfirm --needed \
             git cmake ninja \
-            sdl2-compat freetype2 fontconfig eigen curl alsa-lib libglvnd mesa libwebp \
+            sdl2-compat freetype2 fontconfig eigen glm curl alsa-lib libglvnd mesa libwebp \
             catch2 xorg-server-xvfb
           # French locale for test_Locale (decimal comma). The Docker image strips
           # locale sources through NoExtract, so reinstall glibc without it first.
