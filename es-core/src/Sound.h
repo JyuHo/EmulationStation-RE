@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 #include <memory>
+#include <vector>
 #include <SDL3/SDL_audio.h>
 
 class ThemeData;
@@ -11,10 +12,9 @@ class ThemeData;
 class Sound
 {
 	std::string mPath;
-	std::unique_ptr<Uint8[]> mSampleData;
-	Uint32 mSamplePos;
-	Uint32 mSampleLength;
-	bool playing;
+	std::vector<float> mPcm; // interleaved stereo float32, 48 kHz
+	SDL_AudioStream* mStream;
+	bool mPlaying;
 
 public:
 	static std::shared_ptr<Sound> get(const std::string& path);

@@ -11,11 +11,9 @@
 class AudioManager
 {
 	static SDL_AudioSpec sAudioFormat;
-	static SDL_AudioStream* sStream;
+	static SDL_AudioDeviceID sDevice;
 	static std::vector<std::shared_ptr<Sound>> sSoundVector;
 	static std::shared_ptr<AudioManager> sInstance;
-
-	static void SDLCALL mixAudio(void* userdata, SDL_AudioStream* stream, int additional, int total);
 
 	AudioManager();
 
@@ -31,11 +29,10 @@ public:
 	void play();
 	void stop();
 
-	// the mixer runs on SDL's audio thread: lock around any change to what it reads
 	static void lock();
 	static void unlock();
 
-	// output format of the mixer: 44.1 kHz, 16-bit, stereo
+	static SDL_AudioDeviceID getDevice() { return sDevice; }
 	static const SDL_AudioSpec& getFormat() { return sAudioFormat; }
 
 	virtual ~AudioManager();

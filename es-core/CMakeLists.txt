@@ -192,6 +192,7 @@ target_link_libraries(es-core PUBLIC
     PkgConfig::WEBP
     PkgConfig::WEBPDEMUX
     PkgConfig::AVIF
+    PkgConfig::FFMPEG
     SDL3::SDL3
     glm::glm
     CURL::libcurl

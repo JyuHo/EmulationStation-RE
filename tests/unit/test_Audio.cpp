@@ -56,13 +56,13 @@ bool waitUntilStopped(const Sound& sound, std::chrono::milliseconds timeout)
 
 } // namespace
 
-TEST_CASE("a WAV file is converted to 44.1 kHz 16-bit stereo", "[Audio]")
+TEST_CASE("a WAV file is decoded to 48 kHz float stereo", "[Audio]")
 {
 	AudioFixture fixture;
 	std::shared_ptr<Sound> sound = Sound::get(kBeep);
 	REQUIRE(sound->getData() != nullptr);
-	// twice the frames (22050 -> 44100 Hz), 2 channels, 2 bytes per sample
-	CHECK(sound->getLength() == kBeepFrames * 2 * 2 * 2);
+	// 0.2 s resampled to 48 kHz, 2 channels, 4 bytes per sample (float32)
+	CHECK(sound->getLength() == 76528);
 	CHECK(sound->getPosition() == 0);
 	CHECK(!sound->isPlaying());
 	CHECK(Sound::get(kBeep) == sound); // sounds are shared by path
