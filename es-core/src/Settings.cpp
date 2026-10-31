@@ -59,6 +59,7 @@ void Settings::setDefaults()
 	mIntMap["MaxVRAM"] = 256; // MB budget for texture cache
 
 	mStringMap["TransitionStyle"] = "fade";
+	mStringMap["Language"] = "en";
 	mStringMap["ThemeSet"] = "";
 	mStringMap["ScreenSaverBehavior"] = "dim";
 	mStringMap["Scraper"] = "TheGamesDB";
