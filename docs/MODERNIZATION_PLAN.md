@@ -894,6 +894,17 @@ prioritaires dans `$XDG_DATA_HOME/emulationstation/locale/`).
 - Interface entièrement en français quand `Language=fr_FR`, même avec `LANG=C`.
 - `.pot` régénérable, `.po` fusionnables, CI de cohérence verte.
 
+### Écarts constatés
+- **#57** (lecteur `.mo`, première étape) : aucune vérification de bornes (lecture hors
+  mémoire sur un catalogue tronqué), contexte `_P` ignoré, pluriels jamais trouvés et
+  `Plural-Forms` non évalué, `_()` qui renvoyait une référence vers une seule chaîne
+  `thread_local` (deux `_()` dans une expression se marchaient dessus), `toUpperUtf8` qui
+  laissait les lettres accentuées en minuscules, pas de test, `I18n::init` appelé après la
+  construction des vues. Repris par la PR de correction : `MoCatalog` (bornes, deux
+  boutismes, contexte, pluriels avec évaluateur d'expressions C), `_()` renvoie une
+  `std::string`, majuscules latines, grecques et cyrilliques, `test_I18n.cpp` et fixtures
+  `tests/data/i18n/`.
+
 ---
 
 ## Phase 11 — Thèmes sur le modèle de Recalbox 10
