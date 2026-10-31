@@ -25,6 +25,9 @@ cat > "$home/config/emulationstation/es_systems.cfg" <<XML
 </systemList>
 XML
 
+# OpenGL debug output (GL_KHR_debug) in release builds too: a GL error is an [ERROR] line
+export ES_GL_DEBUG=1
+
 status=0
 LSAN_OPTIONS="suppressions=$(dirname "$(realpath "$0")")/lsan.supp${LSAN_OPTIONS:+:$LSAN_OPTIONS}" HOME="$fakehome" ES_HOME="$home" xvfb-run -a -s '-screen 0 1280x720x24' bash -c '
 	"$1" --windowed --resolution 1280 720 &
