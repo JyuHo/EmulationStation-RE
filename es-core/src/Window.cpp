@@ -123,14 +123,14 @@ void Window::input(InputConfig* config, Input input)
 
 	mTimeSinceLastInput = 0;
 
-	if(config->getDeviceId() == DEVICE_KEYBOARD && input.value && input.id == SDLK_g &&
-		SDL_GetModState() & KMOD_LCTRL && Settings::getInstance()->getBool("Debug"))
+	if(config->getDeviceId() == DEVICE_KEYBOARD && input.value && input.id == SDLK_G &&
+		SDL_GetModState() & SDL_KMOD_LCTRL && Settings::getInstance()->getBool("Debug"))
 	{
 		// toggle debug grid with Ctrl-G
 		Settings::getInstance()->setBool("DebugGrid", !Settings::getInstance()->getBool("DebugGrid"));
 	}
-	else if(config->getDeviceId() == DEVICE_KEYBOARD && input.value && input.id == SDLK_t &&
-		SDL_GetModState() & KMOD_LCTRL && Settings::getInstance()->getBool("Debug"))
+	else if(config->getDeviceId() == DEVICE_KEYBOARD && input.value && input.id == SDLK_T &&
+		SDL_GetModState() & SDL_KMOD_LCTRL && Settings::getInstance()->getBool("Debug"))
 	{
 		// toggle TextComponent debug view with Ctrl-T
 		Settings::getInstance()->setBool("DebugText", !Settings::getInstance()->getBool("DebugText"));

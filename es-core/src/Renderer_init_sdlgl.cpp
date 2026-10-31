@@ -3,7 +3,7 @@
 #include "platform.h"
 #include GLHEADER
 #include "resources/Font.h"
-#include <SDL.h>
+#include <SDL3/SDL.h>
 #include "Log.h"
 #include "ImageIO.h"
 #include "Resources.h"
@@ -27,11 +27,16 @@ unsigned int getScreenHeight()
 SDL_Window* sdlWindow = nullptr;
 SDL_GLContext sdlContext = nullptr;
 
+SDL_Window* getSDLWindow()
+{
+	return sdlWindow;
+}
+
 bool createSurface()
 {
 	LOG(LogInfo) << "Creating surface...";
 
-	if(SDL_Init(SDL_INIT_VIDEO) != 0)
+	if(!SDL_Init(SDL_INIT_VIDEO))
 	{
 		LOG(LogError) << "Error initializing SDL!\n	" << SDL_GetError();
 		return false;
@@ -47,20 +52,47 @@ bool createSurface()
 	//SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 	//SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 2);
 
-	SDL_DisplayMode dispMode;
-	SDL_GetDesktopDisplayMode(0, &dispMode);
+	const SDL_DisplayID display = SDL_GetPrimaryDisplay();
+	const SDL_DisplayMode* desktopMode = SDL_GetDesktopDisplayMode(display);
+	if(desktopMode == nullptr)
+	{
+		LOG(LogError) << "Error reading the desktop display mode!\n\t" << SDL_GetError();
+		return false;
+	}
 	if(display_width == 0)
-		display_width = dispMode.w;
+		display_width = desktopMode->w;
 	if(display_height == 0)
-		display_height = dispMode.h;
+		display_height = desktopMode->h;
 
-	sdlWindow = SDL_CreateWindow("EmulationStation", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, display_width,
-		display_height, SDL_WINDOW_OPENGL | (Settings::getInstance()->getBool("Windowed") ? 0 : SDL_WINDOW_FULLSCREEN));
+	const bool fullscreen = !Settings::getInstance()->getBool("Windowed");
+	sdlWindow = SDL_CreateWindow("EmulationStation", display_width, display_height,
+		SDL_WINDOW_OPENGL | SDL_WINDOW_HIGH_PIXEL_DENSITY | (fullscreen ? SDL_WINDOW_FULLSCREEN : 0));
 
 	if(sdlWindow == nullptr)
 	{
 		LOG(LogError) << "Error creating SDL window!\n\t" << SDL_GetError();
 		return false;
+	}
+
+	if(fullscreen)
+	{
+		// the desktop mode by default; another --resolution asks for the closest exclusive mode
+		SDL_DisplayMode mode{};
+		const bool otherMode = (int)display_width != desktopMode->w || (int)display_height != desktopMode->h;
+		if(otherMode && SDL_GetClosestFullscreenDisplayMode(display, display_width, display_height, 0.0f, true, &mode))
+			SDL_SetWindowFullscreenMode(sdlWindow, &mode);
+		else
+			SDL_SetWindowFullscreenMode(sdlWindow, nullptr);
+		SDL_SyncWindow(sdlWindow);
+	}
+
+	// the viewport is in pixels, which differ from window coordinates on high density displays
+	int pixelWidth = 0;
+	int pixelHeight = 0;
+	if(SDL_GetWindowSizeInPixels(sdlWindow, &pixelWidth, &pixelHeight) && pixelWidth > 0 && pixelHeight > 0)
+	{
+		display_width = pixelWidth;
+		display_height = pixelHeight;
 	}
 
 	LOG(LogInfo) << "Created window successfully.";
@@ -74,45 +106,37 @@ bool createSurface()
 	{
 		ImageIO::flipPixelsVert(rawData.data(), width, height);
 
-//SDL interprets each pixel as a 32-bit number, so our masks must depend on the endianness (byte order) of the machine
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-		Uint32 rmask = 0xff000000;
-		Uint32 gmask = 0x00ff0000;
-		Uint32 bmask = 0x0000ff00;
-		Uint32 amask = 0x000000ff;
-#else
-		Uint32 rmask = 0x000000ff;
-		Uint32 gmask = 0x0000ff00;
-		Uint32 bmask = 0x00ff0000;
-		Uint32 amask = 0xff000000;
-#endif
-		//try creating SDL surface from logo data
-		SDL_Surface* logoSurface =
-			SDL_CreateRGBSurfaceFrom((void*)rawData.data(), width, height, 32, width * 4, rmask, gmask, bmask, amask);
+		// SDL_PIXELFORMAT_RGBA32 is R, G, B, A in memory order whatever the endianness
+		SDL_Surface* logoSurface = SDL_CreateSurfaceFrom(
+			(int)width, (int)height, SDL_PIXELFORMAT_RGBA32, (void*)rawData.data(), (int)width * 4);
 		if(logoSurface != nullptr)
 		{
 			SDL_SetWindowIcon(sdlWindow, logoSurface);
-			SDL_FreeSurface(logoSurface);
+			SDL_DestroySurface(logoSurface);
 		}
 	}
 
 	sdlContext = SDL_GL_CreateContext(sdlWindow);
+	if(sdlContext == nullptr)
+	{
+		LOG(LogError) << "Error creating OpenGL context!\n\t" << SDL_GetError();
+		return false;
+	}
 
 	// vsync
 	if(Settings::getInstance()->getBool("VSync"))
 	{
-		// SDL_GL_SetSwapInterval(0) for immediate updates (no vsync, default),
-		// 1 for updates synchronized with the vertical retrace,
-		// or -1 for late swap tearing.
-		// SDL_GL_SetSwapInterval returns 0 on success, -1 on error.
-		// if vsync is requested, try late swap tearing; if that doesn't work, try normal vsync
+		// 0 for immediate updates (no vsync, default), 1 for updates synchronized with the vertical
+		// retrace, -1 for adaptive vsync (late swap tearing).
+		// if vsync is requested, try adaptive vsync; if that doesn't work, try normal vsync
 		// if that doesn't work, report an error
-		if(SDL_GL_SetSwapInterval(-1) != 0 && SDL_GL_SetSwapInterval(1) != 0)
+		if(!SDL_GL_SetSwapInterval(-1) && !SDL_GL_SetSwapInterval(1))
 			LOG(LogWarning) << "Tried to enable vsync, but failed! (" << SDL_GetError() << ")";
 	}
 
 	//hide mouse cursor
-	initialCursorState = SDL_ShowCursor(0) == 1;
+	initialCursorState = SDL_CursorVisible();
+	SDL_HideCursor();
 
 	return true;
 }
@@ -125,14 +149,15 @@ void swapBuffers()
 
 void destroySurface()
 {
-	SDL_GL_DeleteContext(sdlContext);
+	SDL_GL_DestroyContext(sdlContext);
 	sdlContext = nullptr;
 
 	SDL_DestroyWindow(sdlWindow);
 	sdlWindow = nullptr;
 
 	//show mouse cursor
-	SDL_ShowCursor(initialCursorState);
+	if(initialCursorState)
+		SDL_ShowCursor();
 
 	SDL_Quit();
 }

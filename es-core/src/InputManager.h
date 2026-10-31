@@ -1,7 +1,7 @@
 #ifndef _INPUTMANAGER_H_
 #define _INPUTMANAGER_H_
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 #include <vector>
 #include <map>
 #include <memory>
@@ -30,9 +30,10 @@ private:
 
 	bool initialized() const;
 
-	void addJoystickByDeviceIndex(int id);
-	void removeJoystickByJoystickID(SDL_JoystickID id);
+	void addJoystick(SDL_JoystickID id);
+	void removeJoystick(SDL_JoystickID id);
 	bool loadInputConfig(InputConfig* config); // returns true if successfully loaded, false if not (or didn't exist)
+	static std::string getJoystickGUIDString(SDL_Joystick* joystick);
 
 public:
 	virtual ~InputManager();

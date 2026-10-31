@@ -1,7 +1,7 @@
 #include "InputConfig.h"
 #include <string>
 #include <algorithm>
-#include <SDL.h>
+#include <SDL3/SDL.h>
 #include <iostream>
 #include "Log.h"
 #include "InputManager.h"

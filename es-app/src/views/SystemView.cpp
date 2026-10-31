@@ -91,8 +91,8 @@ bool SystemView::input(InputConfig* config, Input input)
 {
 	if(input.value != 0)
 	{
-		if(config->getDeviceId() == DEVICE_KEYBOARD && input.value && input.id == SDLK_r &&
-			SDL_GetModState() & KMOD_LCTRL && Settings::getInstance()->getBool("Debug"))
+		if(config->getDeviceId() == DEVICE_KEYBOARD && input.value && input.id == SDLK_R &&
+			SDL_GetModState() & SDL_KMOD_LCTRL && Settings::getInstance()->getBool("Debug"))
 		{
 			LOG(LogInfo) << " Reloading SystemList view";
 
