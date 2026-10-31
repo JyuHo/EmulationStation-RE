@@ -12,9 +12,8 @@
 
 > Section à lire en premier. Elle décrit l'état réel du dépôt et dit exactement où
 > reprendre. **Mets-la à jour à la fin de chaque phase** (c'est la mémoire du projet entre
-> deux agents). Dernière mise à jour : 31/10/2026, fin de la phase 5 (PR #33, #34 et #37 ;
-> #35 a été fusionnée dans la branche de la 5b et portée dans `main` par #37) et consignes
-> détaillées de la phase 6 (section 13). Audit précédent : [`docs/AUDIT.md`](docs/AUDIT.md).
+> deux agents). Dernière mise à jour : 31/10/2026, audit et clôture de la phase 6 (#42,
+> #44, #45 après #40), sauf la mesure de performance sur iGPU par le propriétaire. Audit précédent : [`docs/AUDIT.md`](docs/AUDIT.md).
 
 ### 0.1 État au moment de la passation
 | Phase | État | PR |
@@ -28,7 +27,7 @@
 | 3.E — Finitions de la phase 3 (issues de l'audit) | **terminée** : XDG (#25), job `asan` (#26), locale numérique et restes Windows (#28) | #25, #26, #28 |
 | 4 — Eigen → glm | **terminée** : glm, `math/Math.h`, captures identiques au pixel près, Eigen retiré ; correctif des chemins `./` des thèmes | #30, #31, #32 |
 | 5 — SDL2 → SDL3 | **terminée** : SDL3 partout, manettes reconnues par `SDL_Gamepad` avec configuration par défaut, captures identiques au pixel près ; testée par le propriétaire avec une vraie manette | #33, #34, #35 (#37) |
-| **6 — OpenGL 3.3 core** | **en cours** : contexte 3.3 core (#40, rendu faux) ; corrigé et remis aux normes de la section 13 (module `renderer/`, glad, API sans types GL, tests) ; restent le regroupement (6c) et la clôture (6d) | #40, en cours |
+| **6 — OpenGL 3.3 core** | **terminée sauf la mesure sur iGPU** (critère vérifié par le propriétaire, procédure dans le plan) : contexte 3.3 core, module `renderer/`, glad, API sans types GL, shaders, `Batcher`, taille de fenêtre ; #40 avait un rendu faux, corrigé par #42 | #40, #42, #44, #45 |
 | 7 à 12 | à faire | — |
 
 Toutes les PR ont été fusionnées par **merge commit** : le commit de reformatage
@@ -54,6 +53,17 @@ Ce qui existe et que tu dois **réutiliser** (ne le recrée pas) :
   enregistre ses entrées) et joysticks/manettes **virtuels** SDL (`SDL_AttachVirtualJoystick`)
   pour tester les entrées sans matériel. `test_Audio.cpp` : pilote audio `dummy`
   (`SDL_AUDIO_DRIVER=dummy`, aussi forcé par `capture.sh`).
+- Moteur de rendu `es-core/src/renderer/` (phase 6) : **seul** endroit qui appelle `gl*`
+  (étape CI « No GL outside the renderer », qui regarde aussi `tests/`, commentaires
+  compris : écris « KHR_debug », pas le nom GL complet). API (`Renderer.h`, sans type GL) :
+  `Vertex` (`pos`, `tex`, `color` = `convertColor(0xRRGGBBAA)`), `drawRect`,
+  `drawTriangles(span<const Vertex>, TextureHandle, BlendMode)`, `drawLines`,
+  `createTexture`/`updateTexture`/`destroyTexture` (`RGBA8`, `Alpha8`), `pushClipRect`,
+  `setMatrix`, `getDrawCallCount`, `onPixelSizeChanged`. `Batcher` (sans GL, testé) regroupe
+  les dessins consécutifs de même état. glad 2 vendored (`external/glad/README.md` pour le
+  régénérer, par exemple pour ajouter une extension en phase 9). `ES_GL_DEBUG=1` active
+  KHR_debug (exporté par `run.sh` et `capture.sh`). Tests : `tests/unit/test_Renderer.cpp`.
+  Script de grande liste : `tests/smoke/make-big-gamelist.sh`.
 - SDL3 : `Renderer::getSDLWindow()` (fenêtre, `nullptr` hors `init`/`deinit`) ;
   `AudioManager::lock/unlock` (verrou du flux audio, remplace `SDL_LockAudio`) ;
   `InputManager::mapGamepadDefaults` (configuration par défaut d'une manette reconnue, en
@@ -85,35 +95,30 @@ Ce qui existe et que tu dois **réutiliser** (ne le recrée pas) :
   dans le conteneur pour `test_Locale`. Boost et Eigen ne sont plus installés. Job
   « Screenshots vs base branch » (PR seulement) : captures de la base et de la PR comparées.
 
-### 0.2 Point de reprise : phase 6 (OpenGL 3.3 core), regroupement puis clôture
+### 0.2 Point de reprise : phase 7 (Images), après la mesure de la phase 6
 **Audit du 31/10/2026.** La PR #40 (un seul commit, sans le découpage 6a–6d) est passée en
 3.3 core mais avec les couleurs des sommets dans le mauvais ordre d'octets et les
 séparateurs de `ComponentGrid` en blanc : les 8 captures différaient de la phase 5 (2 000 à
-50 000 pixels) et elle a été fusionnée avec l'étiquette `rendu-modifié` sans explication. Elle
-gardait aussi les types GL dans les en-têtes publics, `GL_GLEXT_PROTOTYPES` au lieu de glad,
-`GL_KHR_debug` seulement en Debug, et un `glGetString` dans `main.cpp`. La PR de correction
-reprend 6a et 6b (section 13) : il reste **6c** (`Batcher`) et **6d** (taille de la fenêtre,
-mesure de performance, documentation). La phase 7 n'a pas commencé (#41 n'ajoute que la
-dépendance `libwebpdemux`).
+50 000 pixels) et elle a été fusionnée avec l'étiquette `rendu-modifié` sans les chiffres ni
+la cause demandés en 13.8. Elle gardait aussi les types GL dans les en-têtes publics,
+`GL_GLEXT_PROTOTYPES` au lieu de glad, KHR_debug seulement en Debug et un `glGetString`
+dans `main.cpp`. #42 a repris 6a et 6b (rendu de la phase 5 rétabli), #44 le regroupement
+(6c), #45 la clôture (6d).
 
-La phase 5 est terminée (PR #33, #34, #37) ; la manette réelle a été validée par le
-propriétaire le 31/10/2026. Pour la phase 6 : **la section 13 de ce fichier est son
-cahier des charges complet** (inventaire chiffré, architecture, contexte SDL3, shaders,
-découpage en quatre PR 6a à 6d, vérifications, captures et étiquette `rendu-modifié`,
-pièges, critères d'acceptation, fusion des PR empilées). Lis-la en entier, puis le plan,
-section « Phase 6 — Moteur de rendu OpenGL 3.3 core ».
+Reste de la phase 6 : la **mesure sur iGPU** (1080p et 4K, 1 000 jeux), faite par le
+propriétaire selon la procédure du plan (« Mesure de performance »). Ne coche pas ce
+critère sans son retour. La phase 7 n'a pas commencé : #41 n'ajoute que la dépendance
+`libwebpdemux` (déjà dans `pacman` via `libwebp`). Lis la section « Phase 7 » du plan ; le
+chargement asynchrone devra créer les textures sur le thread principal (`createTexture`
+ne doit être appelé qu'avec le contexte courant).
 
-En bref : 118 appels `gl*` (26 fonctions distinctes) dans 9 fichiers, tous en pipeline
-fixe, contexte en profil compatibilité. Première PR : `modernize/phase-6a-gl-prep`
-(glad vendored, déplacement vers `es-core/src/renderer/`, suppression de
-`glGetString(GL_EXTENSIONS)` qui plante en core, tests de la logique pure, captures
-étendues), rendu identique au pixel près. L'étiquette `rendu-modifié` n'existe pas encore
-dans le dépôt : le propriétaire la crée si un écart est accepté.
+Inventaire final de la phase 6 : 0 appel `gl*`, en-tête ou type GL hors de
+`es-core/src/renderer/` ; glad n'est inclus que par `renderer/GL.h`.
 
 Restes de la phase 5 (voir le plan, « Écarts constatés ») : d'autres modèles de manettes
-(Xbox, DualSense, 8BitDo) restent à essayer ; redimensionnement de la fenêtre
-(`SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED`) à traiter avec le moteur de rendu ; écran pour
-`GamepadSwapAB` avec les menus thémés (phase 11).
+(Xbox, DualSense, 8BitDo) restent à essayer ; écran pour `GamepadSwapAB` avec les menus
+thémés (phase 11). `SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED` est traité depuis #45 (image mise
+à l'échelle, sans relayout).
 
 Reliquat de 3.D, sans série dédiée : traite-le quand une phase réécrit le module.
 - `new` restants : uniquement dans des pointeurs intelligents pour des constructeurs privés
@@ -208,6 +213,20 @@ voulu, expliqué dans la PR.
   fusionnée dans cette branche, pas dans `main`. Après la fusion de la PR du dessous,
   repasse la base de la suivante à `main` avant qu'elle soit fusionnée (#35 a dû être
   portée par #37).
+- **glad et appels avant `init`** : les pointeurs de fonctions GL sont nuls tant que
+  `gladLoadGL` n'a pas tourné. `Window` charge des images dans son constructeur, avant
+  `Renderer::init` (et les tests unitaires n'ont jamais de contexte) : les fonctions de
+  texture et de dessin ne font rien hors de `init`/`deinit` (`Renderer::isReady`, privé au
+  module). Avec libGL (pipeline fixe), ces appels étaient silencieusement ignorés.
+- **Ordre des octets des couleurs** : `convertColor(0xRRGGBBAA)` donne les octets R, G, B, A
+  en mémoire ; ne copie jamais un `0xRRGGBBAA` tel quel dans `Vertex::color` (erreur de #40).
+- **Batcher et état GL** : tout ce qui change l'état d'un dessin en attente (clip, contenu
+  ou suppression d'une texture, fin d'image, `deinit`) doit vider le lot avant (`flushBatch`).
+- **Retour d'un jeu sans carte son** : `VolumeControl` (ALSA direct) écrit un `[ERROR]` ;
+  `capture.sh` ignore cette seule ligne.
+- **Job de captures et base fausse** : il compare avec la base de la PR. Pour comparer avec
+  un autre état (ici la phase 5, alors que `main` contenait le rendu faux de #40), pousse une
+  branche à ce commit et ouvre une PR brouillon « à ne pas fusionner » vers elle (#43).
 - **Lancement de ES sans écran** : sans `es_systems.cfg` valide, ES affiche une erreur et
   quitte ; le test de fumée en fournit un. Au premier lancement, ES affiche l'écran de
   configuration de manette (normal sous Xvfb).
@@ -573,6 +592,10 @@ En français, court :
 ---
 
 ## 13. Phase 6 — Consignes détaillées (moteur de rendu OpenGL 3.3 core)
+
+> **État (31/10/2026)** : réalisée par #42 (6a + 6b, après le rendu faux de #40), #44 (6c) et
+> #45 (6d) ; seul reste le critère de performance sur iGPU, vérifié par le propriétaire.
+> Garde cette section comme référence des choix du moteur.
 
 > Cette section est le cahier des charges de la phase 6. Elle complète le plan (section
 > « Phase 6 ») et prime sur lui en cas d'écart. Les chiffres viennent de `main` à `df6948a`

@@ -17,7 +17,7 @@
 | 3 | Suppression de Boost + module de chemins **XDG** (std::filesystem, std::chrono, std::variant) | 2 | M (**fait** : 3.A à 3.E) |
 | 4 | Remplacement d'Eigen par une petite bibliothèque mathématique (glm) | 2 | M (**fait** : PR #30 à #32) |
 | 5 | Migration SDL2 → SDL3 (fenêtre, événements, manettes, audio) | 3, 4 | L (**fait** : PR #33, #34, #37) |
-| 6 | Nouveau moteur de rendu OpenGL 3.3 core à shaders | 5 | L (**prochaine étape**) |
+| 6 | Nouveau moteur de rendu OpenGL 3.3 core à shaders | 5 | L (**en cours** : reste la mesure sur iGPU) |
 | 7 | Images : WebP/GIF animés, chargement asynchrone, cache VRAM | 6 | M |
 | 8 | Audio : sons de navigation et musique de fond sur SDL3 | 5 | M |
 | 9 | Vidéo : lecture des « snaps » avec FFmpeg | 6, 8 | L |
@@ -592,6 +592,10 @@ Consignes détaillées (inventaire, API, contexte SDL3, shaders GLSL, découpage
 cette section en cas d'écart.
 
 ### Conception
+> Réalisée (#42, #44, #45) selon `PROMPT.md` 13.3 : `renderer/{Renderer,Renderer_init,
+> Shader,Texture,Batcher}.cpp`, `Shaders.h`, `GL.h` (seule inclusion de glad), API sans
+> type GL. Ce qui suit est la conception initiale.
+
 - Chargeur de fonctions : **glad 2** généré pour GL 3.3 core (vendored dans
   `external/glad/`, licence MIT/Apache) ; ou `SDL_GL_GetProcAddress` + en-tête maison.
 - API interne (`es-core/src/renderer/`) :
@@ -632,12 +636,51 @@ facteurs de mélange passés par `ComponentList.cpp`. Détail dans `PROMPT.md`, 
 - `modernize/phase-6d-gl-close` : taille de fenêtre, mesure de performance, documentation.
 
 ### Critères d'acceptation
-- Aucun appel GL hors de `es-core/src/renderer/`.
-- Contexte core profile 3.3 ; aucune erreur `GL_KHR_debug` en Debug.
-- 60 i/s stables sur un iGPU Intel/AMD en 1080p et 4K avec une gamelist de 1 000 jeux
-  (vérifié par le propriétaire sur son matériel).
-- Captures identiques à la phase 5 (0 pixel pour 6a et 6b ; écart du batching mesuré et
-  accepté avec l'étiquette `rendu-modifié`).
+- [x] Aucun appel GL hors de `es-core/src/renderer/` : étape CI « No GL outside the
+  renderer » (#42).
+- [x] Contexte core profile 3.3 obtenu et journalisé (`GL_VERSION` dans le log du test de
+  fumée) ; glad core : aucun point d'entrée du pipeline fixe n'est déclaré.
+- [x] Aucune erreur `GL_KHR_debug` : sortie active en CI par `ES_GL_DEBUG=1` (test de fumée,
+  captures, preset `asan`).
+- [ ] Captures : 0 pixel avec la phase 5 pour 6a/6b (#42, comparé à `477f3fd` par #43) ;
+  écart du regroupement mesuré dans #44. *À cocher avec les résultats de CI.*
+- [x] Retour d'un jeu lancé : capture `09-game-return` (destruction et recréation du
+  contexte et des textures).
+- [x] Regroupement : ordre conservé (tests du `Batcher`) ; nombre de `glDrawArrays` par
+  image donné dans #44 (`draw-calls.txt` des captures).
+- [ ] 60 i/s stables sur un iGPU Intel/AMD en 1080p et 4K avec une gamelist de 1 000 jeux :
+  **à vérifier par le propriétaire** (procédure ci-dessous).
+- [x] `SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED` traité (viewport et clip mis à l'échelle).
+
+### Mesure de performance (propriétaire)
+```bash
+cmake --preset release && cmake --build --preset release
+tests/smoke/make-big-gamelist.sh ~/es-bench 1000
+build/release/emulationstation --home ~/es-bench --resolution 1920 1080 --vsync 0 --draw-framerate
+```
+Entrer dans la liste « Nintendo Entertainment System » (vue détaillée), garder **Bas**
+enfoncé 10 s (défilement rapide), puis **R1/L1** (page par page). Noter le minimum d'i/s
+affiché et la ligne `Draws: N (M glDrawArrays)`. Recommencer en 4K
+(`--resolution 3840 2160`, plein écran : retirer `--windowed` s'il est configuré). Le
+critère est rempli si le minimum reste ≥ 60 i/s dans les deux cas ; donner aussi le modèle
+d'iGPU et la ligne `GL_RENDERER` du journal (`~/es-bench/state/emulationstation/es_log.txt`).
+
+### Écarts constatés
+- **#40** (un commit, sans le découpage 6a–6d) : couleurs des sommets dans le mauvais ordre
+  d'octets, séparateurs de `ComponentGrid` blancs (les 8 captures différaient de 2 000 à
+  50 000 pixels), types GL dans les en-têtes publics, pas de glad, `GL_KHR_debug` jamais
+  actif en CI, fusionnée avec `rendu-modifié` sans explication. Corrigé et remis aux normes
+  par #42 (6a + 6b réunies, rendu de la phase 5 rétabli).
+- Le relayout complet quand la taille de la fenêtre change reste hors périmètre : l'image
+  est mise à l'échelle, la mise en page garde la taille du lancement. La fenêtre n'est pas
+  redimensionnable par l'utilisateur.
+- `VolumeControl` (ALSA direct) écrit un `[ERROR]` au retour d'un jeu sans carte son :
+  `capture.sh` tolère cette seule ligne (à revoir en phase 8, audio).
+- Le tampon de profondeur (`DEPTH_SIZE 16`, `GL_DEPTH_BUFFER_BIT`) est gardé : il ne sert
+  pas, mais le retirer change le format de la fenêtre ; à faire avec une mesure.
+- `computeClipRect` garde le comportement d'origine : un rectangle qui dépasse son parent
+  par le bas ou la gauche est décalé sans être raccourci (caractérisé dans
+  `test_Renderer.cpp`).
 
 ---
 
@@ -888,6 +931,7 @@ prioritaires dans `$XDG_DATA_HOME/emulationstation/locale/`).
 | 3 | − `boost`, + `fontconfig` (faits) |
 | 4 | − `eigen`, + `glm xdotool` (captures scriptées) |
 | 5 | − `sdl2-compat`, + `sdl3` |
+| 6 | rien : glad est fourni dans `external/glad/` ; `libglvnd mesa` restent |
 | 8-9 | + `ffmpeg` (et `libva` pour VA-API) |
 | 10 | + `gettext` |
 | premier usage de JSON | + `nlohmann-json` |
