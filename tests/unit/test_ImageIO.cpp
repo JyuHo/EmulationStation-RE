@@ -9,6 +9,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iterator>
+#include <span>
 #include <vector>
 
 namespace {
@@ -95,6 +96,30 @@ TEST_CASE("ImageIO rejects garbage", "[ImageIO]")
 	CHECK(px.empty());
 	CHECK(w == 0);
 	CHECK(h == 0);
+}
+
+TEST_CASE("ImageIO::load returns an image for PNG", "[ImageIO]")
+{
+	// reuse a generated PNG from the existing helper by writing one in memory
+	// Build via stb_image_write to a buffer.
+	std::vector<unsigned char> buf;
+	auto writeFn = [](void* ctx, void* data, int size) {
+		auto* v = static_cast<std::vector<unsigned char>*>(ctx);
+		const auto* p = static_cast<const unsigned char*>(data);
+		v->insert(v->end(), p, p + size);
+	};
+	const auto pixels = makePixels();
+	stbi_write_png_to_func(writeFn, &buf, 2, 2, 4, pixels.data(), 2 * 4);
+	REQUIRE(!buf.empty());
+
+	std::vector<std::byte> bytes(buf.size());
+	for(size_t i = 0; i < buf.size(); i++)
+		bytes[i] = static_cast<std::byte>(buf[i]);
+	const auto img = ImageIO::load(std::span<const std::byte>(bytes));
+	REQUIRE(img.has_value());
+	CHECK(img->width == 2);
+	CHECK(img->height == 2);
+	CHECK(img->rgba.size() == 2 * 2 * 4);
 }
 
 TEST_CASE("ImageIO resizes a file and keeps its format", "[ImageIO]")

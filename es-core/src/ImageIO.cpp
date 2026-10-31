@@ -6,6 +6,7 @@
 #include <iterator>
 
 #include <webp/decode.h>
+#include <webp/demux.h>
 #include <webp/encode.h>
 
 #include "stb/stb_image.h"
@@ -196,4 +197,101 @@ bool ImageIO::resizeImageFile(const std::string& path, int maxWidth, int maxHeig
 		return false;
 	}
 	return true;
+}
+
+std::expected<ImageIO::Image, std::string> ImageIO::load(std::span<const std::byte> data)
+{
+	ImageIO::Image result;
+	const auto* bytes = reinterpret_cast<const unsigned char*>(data.data());
+	const size_t size = data.size();
+	if(size == 0)
+		return std::unexpected(std::string("empty data"));
+
+	if(size >= 12 && std::memcmp(bytes, "RIFF", 4) == 0 && std::memcmp(bytes + 8, "WEBP", 4) == 0)
+	{
+		WebPBitstreamFeatures features{};
+		if(WebPGetFeatures(bytes, size, &features) != VP8_STATUS_OK)
+			return std::unexpected(std::string("invalid WebP"));
+		result.width = features.width;
+		result.height = features.height;
+		if(features.has_animation)
+		{
+			WebPAnimDecoderOptions decOpts{};
+			WebPAnimDecoderOptionsInit(&decOpts);
+			WebPData webpData{};
+			webpData.bytes = bytes;
+			webpData.size = size;
+			WebPAnimDecoder* dec = WebPAnimDecoderNew(&webpData, &decOpts);
+			if(!dec)
+				return std::unexpected(std::string("WebP anim decode failed"));
+			WebPAnimInfo info{};
+			WebPAnimDecoderGetInfo(dec, &info);
+			int timestamp = 0;
+			uint8_t* framePtr = nullptr;
+			int prevTimestamp = 0;
+			while(WebPAnimDecoderGetNext(dec, &framePtr, &timestamp))
+			{
+				Frame f;
+				f.durationMs = timestamp - prevTimestamp;
+				if(f.durationMs <= 0) f.durationMs = 100;
+				prevTimestamp = timestamp;
+				f.rgba.assign(framePtr, framePtr + static_cast<size_t>(info.canvas_width) * info.canvas_height * 4);
+				result.frames.push_back(std::move(f));
+			}
+			WebPAnimDecoderDelete(dec);
+			if(!result.frames.empty())
+			{
+				result.rgba = result.frames.front().rgba;
+				result.width = info.canvas_width;
+				result.height = info.canvas_height;
+			}
+			if(result.frames.size() <= 1)
+				result.frames.clear();
+			return result;
+		}
+		uint8_t* px = WebPDecodeRGBA(bytes, size, &result.width, &result.height);
+		if(!px)
+			return std::unexpected(std::string("WebP decode failed"));
+		result.rgba.assign(px, px + static_cast<size_t>(result.width) * result.height * 4);
+		WebPFree(px);
+		return result;
+	}
+
+	if(size >= 6 && (std::memcmp(bytes, "GIF87a", 6) == 0 || std::memcmp(bytes, "GIF89a", 6) == 0))
+	{
+		int* delays = nullptr;
+		int x = 0, y = 0, z = 0, comp = 0;
+		unsigned char* px = stbi_load_gif_from_memory(bytes, static_cast<int>(size), &delays, &x, &y, &z, &comp, 4);
+		if(!px)
+			return std::unexpected(std::string("GIF decode failed"));
+		result.width = x;
+		result.height = y;
+		const int frameSize = x * y * 4;
+		for(int i = 0; i < z; i++)
+		{
+			Frame f;
+			f.durationMs = (delays ? delays[i] : 10) * 10;
+			if(f.durationMs <= 0) f.durationMs = 100;
+			f.rgba.assign(px + static_cast<size_t>(i) * frameSize, px + static_cast<size_t>(i + 1) * frameSize);
+			result.frames.push_back(std::move(f));
+		}
+		stbi_image_free(px);
+		if(!result.frames.empty())
+			result.rgba = result.frames.front().rgba;
+		if(result.frames.size() <= 1)
+			result.frames.clear();
+		return result;
+	}
+
+	{
+		int w = 0, h = 0, ch = 0;
+		stbi_uc* px = stbi_load_from_memory(bytes, static_cast<int>(size), &w, &h, &ch, 4);
+		if(!px)
+			return std::unexpected(std::string(stbi_failure_reason() ? stbi_failure_reason() : "decode failed"));
+		result.width = w;
+		result.height = h;
+		result.rgba.assign(px, px + static_cast<size_t>(w) * h * 4);
+		stbi_image_free(px);
+		return result;
+	}
 }
