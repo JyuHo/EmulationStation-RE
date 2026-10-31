@@ -96,9 +96,10 @@ HOME="$fakehome" ES_HOME="$home" xvfb-run -a -s '-screen 0 1280x720x24' bash -c 
 	key Escape 1; key Escape 1; key Escape
 	# text input: gamelist options, metadata editor, then typing into the name field
 	key Return; key F2; shot 07-gamelist-options
-	key Down 0.5; key Down 0.5; key Return; shot 08-metadata-editor
+	# (the metadata editor itself shows the absolute, random, path of the fixture: no screenshot)
+	key Down 0.5; key Down 0.5; key Return
 	key Return 1; key Return 1
-	xdotool type --window "$win" --delay 100 "Abc"; sleep 2; shot 09-text-input
+	xdotool type --window "$win" --delay 100 "Abc"; sleep 2; shot 08-text-input
 	key Escape 1; key Escape 1; key Escape 1; key Escape 1; key Escape
 
 	if ! kill -0 "$pid" 2>/dev/null; then wait "$pid"; echo "emulationstation exited early with code $?"; exit 1; fi
