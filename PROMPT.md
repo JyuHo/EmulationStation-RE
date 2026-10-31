@@ -28,7 +28,8 @@
 | 4 — Eigen → glm | **terminée** : glm, `math/Math.h`, captures identiques au pixel près, Eigen retiré ; correctif des chemins `./` des thèmes | #30, #31, #32 |
 | 5 — SDL2 → SDL3 | **terminée** : SDL3 partout, manettes reconnues par `SDL_Gamepad` avec configuration par défaut, captures identiques au pixel près ; testée par le propriétaire avec une vraie manette | #33, #34, #35 (#37) |
 | **6 — OpenGL 3.3 core** | **terminée** (≈ 3 500 i/s au minimum sur APU AMD BC-250, 1 000 jeux, mesuré par le propriétaire) : contexte 3.3 core, module `renderer/`, glad, API sans types GL, shaders, `Batcher`, taille de fenêtre ; #40 avait un rendu faux, corrigé par #42 | #40, #42, #44, #45 |
-| 7 à 12 | à faire | — |
+| 7 — Images | **fusionnée** : façade `ImageIO::load` (PNG/JPEG/WebP statique+animé/GIF/AVIF), cache VRAM LRU, `AnimatedImageComponent::loadAnimated` | #41, #47, #48, #49 |
+| 8 à 12 | à faire | — |
 
 Toutes les PR ont été fusionnées par **merge commit** : le commit de reformatage
 `4b943d7` est dans l'historique et `.git-blame-ignore-revs` est valide.
@@ -95,7 +96,7 @@ Ce qui existe et que tu dois **réutiliser** (ne le recrée pas) :
   dans le conteneur pour `test_Locale`. Boost et Eigen ne sont plus installés. Job
   « Screenshots vs base branch » (PR seulement) : captures de la base et de la PR comparées.
 
-### 0.2 Point de reprise : phase 7 (Images)
+### 0.2 Point de reprise : phase 8 (Audio)
 **Audit du 31/10/2026.** La PR #40 (un seul commit, sans le découpage 6a–6d) est passée en
 3.3 core mais avec les couleurs des sommets dans le mauvais ordre d'octets et les
 séparateurs de `ComponentGrid` en blanc : les 8 captures différaient de la phase 5 (2 000 à
