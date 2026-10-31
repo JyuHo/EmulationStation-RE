@@ -117,12 +117,12 @@ const std::string& MetaDataList::get(const std::string& key) const
 
 int MetaDataList::getInt(const std::string& key) const
 {
-	return atoi(get(key).c_str());
+	return parseInt(get(key));
 }
 
 float MetaDataList::getFloat(const std::string& key) const
 {
-	return (float)atof(get(key).c_str());
+	return parseFloat(get(key));
 }
 
 std::optional<std::chrono::sys_seconds> MetaDataList::getTime(const std::string& key) const

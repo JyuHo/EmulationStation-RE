@@ -94,11 +94,7 @@ void drawRect(float x, float y, float w, float h, unsigned int color, GLenum ble
 
 void drawRect(int x, int y, int w, int h, unsigned int color, GLenum blend_sfactor, GLenum blend_dfactor)
 {
-#ifdef USE_OPENGL_ES
-	GLshort points[12];
-#else
 	GLint points[12];
-#endif
 
 	points[0] = x;
 	points[1] = y;
@@ -122,11 +118,7 @@ void drawRect(int x, int y, int w, int h, unsigned int color, GLenum blend_sfact
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_COLOR_ARRAY);
 
-#ifdef USE_OPENGL_ES
-	glVertexPointer(2, GL_SHORT, 0, points);
-#else
 	glVertexPointer(2, GL_INT, 0, points);
-#endif
 	glColorPointer(4, GL_UNSIGNED_BYTE, 0, colors);
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);

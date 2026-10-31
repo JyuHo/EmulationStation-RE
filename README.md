@@ -8,7 +8,7 @@ d'Alec « Aloshi » Lofquist (v2.0.1a, 2015), en cours de **modernisation compl�
 Linux.
 
 > **État : en développement.** L'application compile et démarre, mais la migration est en
-> cours (phase 3 sur 12). Les fichiers sont désormais rangés dans les dossiers XDG ; une
+> cours (phase 4 sur 12). Les fichiers sont désormais rangés dans les dossiers XDG ; une
 > configuration existante dans `~/.emulationstation/` est copiée au premier lancement
 > (voir [Fichiers et emplacements](#fichiers-et-emplacements)).
 
@@ -51,7 +51,7 @@ Raspberry Pi, Windows, macOS et OpenGL ES ne sont plus pris en charge.
 |------:|-------|------|
 | 1 | CMake moderne, C++23, CI Arch, FreeImage → stb_image + libwebp | fait (PR #1) |
 | 2 | Zéro avertissement, `-Werror`, clang-format/tidy, tests Catch2, test de fumée, journal | fait (PR #2) |
-| 3 | Suppression de Boost, chemins XDG, propriété mémoire | **en cours** : Boost supprimé, XDG en place ; restent la locale numérique, le job `asan` et le nettoyage |
+| 3 | Suppression de Boost, chemins XDG, propriété mémoire | fait (PR #3 à #28) |
 | 4 | Eigen → glm | à faire |
 | 5 | SDL2 → SDL3 | à faire |
 | 6 | Rendu OpenGL 3.3 core | à faire |

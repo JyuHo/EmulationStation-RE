@@ -27,6 +27,11 @@ jobs:
             git cmake ninja clang \
             sdl2-compat freetype2 fontconfig eigen curl alsa-lib libglvnd mesa libwebp \
             catch2 xorg-server-xvfb imagemagick
+          # French locale for test_Locale (decimal comma). The Docker image strips
+          # locale sources through NoExtract, so reinstall glibc without it first.
+          sed -i '/^NoExtract/d' /etc/pacman.conf
+          pacman -S --noconfirm glibc
+          sed -i 's/^#fr_FR.UTF-8/fr_FR.UTF-8/' /etc/locale.gen && locale-gen
 
       - uses: actions/checkout@v5
 
@@ -36,6 +41,14 @@ jobs:
           if grep -rnE '"/(etc|usr|opt|home)/|\.emulationstation|getenv\("HOME"\)|getHomePath' \
               es-core/src es-app/src --exclude=Paths.cpp --exclude=Paths.h; then
             echo "Hardcoded path found: use es::paths instead." >&2
+            exit 1
+          fi
+
+      - name: No Windows or embedded leftovers
+        run: |
+          # Linux desktop only: no Windows, macOS, Raspberry Pi or OpenGL ES branches.
+          if grep -rnE '\b_?WIN32\b|__APPLE__|_RPI_|USE_OPENGL_ES|_MSC_VER' es-core/src es-app/src tests; then
+            echo "Platform leftover found: this port targets Linux only." >&2
             exit 1
           fi
 
@@ -76,6 +89,11 @@ jobs:
             git cmake ninja \
             sdl2-compat freetype2 fontconfig eigen curl alsa-lib libglvnd mesa libwebp \
             catch2 xorg-server-xvfb
+          # French locale for test_Locale (decimal comma). The Docker image strips
+          # locale sources through NoExtract, so reinstall glibc without it first.
+          sed -i '/^NoExtract/d' /etc/pacman.conf
+          pacman -S --noconfirm glibc
+          sed -i 's/^#fr_FR.UTF-8/fr_FR.UTF-8/' /etc/locale.gen && locale-gen
 
       - uses: actions/checkout@v5
 

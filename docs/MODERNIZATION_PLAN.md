@@ -14,7 +14,7 @@
 |------:|-------|-----------|----------------|
 | 1 | Build moderne : CMake 3.25+, C++23, presets, CI Arch ; FreeImage → stb_image + libwebp | — | S (fait, PR #1) |
 | 2 | Hygiène C++23 et outillage (clang-format, clang-tidy, tests, logs) | 1 | M (fait, PR #2) |
-| 3 | Suppression de Boost + module de chemins **XDG** (std::filesystem, std::chrono, std::variant) | 2 | M (**en cours** : 3.A à 3.D faits ; 3.E en cours) |
+| 3 | Suppression de Boost + module de chemins **XDG** (std::filesystem, std::chrono, std::variant) | 2 | M (**fait** : 3.A à 3.E) |
 | 4 | Remplacement d'Eigen par une petite bibliothèque mathématique (glm) | 2 | M |
 | 5 | Migration SDL2 → SDL3 (fenêtre, événements, manettes, audio) | 3, 4 | L |
 | 6 | Nouveau moteur de rendu OpenGL 3.3 core à shaders | 5 | L |
@@ -370,9 +370,9 @@ constructeurs privés ; arbre `FileData` et `SystemData::sSystemVector` en point
 |------------|----|------|
 | 3.A Module XDG | #3, #25 | **Fait** : #3 avait livré le module ; #25 y fait passer tous les chemins et ajoute la migration, `--home`, le préfixe d'installation, fontconfig, les tests et l'étape CI. |
 | 3.B `std::filesystem` | #4 | Fait. |
-| 3.C `std::chrono`, Assign, Variant, Locale | #5 | Fait ; `find_package(Boost)` supprimé. Risque sur la locale numérique, voir 3.E. |
+| 3.C `std::chrono`, Assign, Variant, Locale | #5 | Fait ; `find_package(Boost)` supprimé. Locale numérique corrigée en 3.E (#28). |
 | 3.D Propriété mémoire | #6 à #23, #26, #27 | Fait pour cette phase (voir ci-dessus) ; reliquat listé. |
-| 3.E Finitions | #25, #26 | **En cours** : points 1 et 3 faits ; points 2 et 4 à faire avant la phase 4. |
+| 3.E Finitions | #25, #26, #28 | **Fait** : les quatre points. La phase 3 est terminée ; suite : phase 4. |
 
 ### 3.E Finitions de la phase 3 (issues de l'audit)
 
@@ -400,18 +400,20 @@ Une PR par point, dans cet ordre :
      `expandUser`, `find` (utilisateur avant système), migration sur un faux `$HOME` ;
    - étape CI « no-hardcoded-paths » (commande de la section 3.A) ;
    - `tests/smoke/run.sh` : échouer si un fichier est créé hors de `ES_HOME`.
-2. **`modernize/phase-3e-numeric-locale`** — `setlocale(LC_ALL, "")` suivi de
+2. **`modernize/phase-3e-numeric-locale`** — **fait (PR #28)**. `setlocale(LC_ALL, "")` suivi de
    `setlocale(LC_NUMERIC, "C")` ; `atof`/`stof` remplacés par `std::from_chars` dans
    `ThemeData.cpp`, `MetaData.cpp`, `RatingComponent.cpp` et tout autre site trouvé par
    `grep -rnE 'atof|atoi|stof|stoi|strtof|sscanf'` ; test unitaire sous
    `fr_FR.UTF-8` (ignoré proprement si la locale n'est pas générée).
-3. **`ci/asan`** — ajouter un job CI `asan` (preset `asan`, `ctest`, test de fumée).
+3. **`ci/asan`** — **fait (PR #26)**. Ajouter un job CI `asan` (preset `asan`, `ctest`, test de fumée).
    Le retrait de `boost` de la CI a été fait avec l'audit.
 4. **`chore/remove-windows-leftovers`** — supprimer `es-app/src/EmulationStation.rc`,
    `EmulationStation.aps`, `data/es_icon.ico` (une icône PNG/SVG arrivera en phase 12)
-   et les blocs `#ifdef WIN32`/GLES restants.
+   et les blocs `#ifdef WIN32`/GLES restants. **Fait (PR #28)**, avec aussi les branches
+   `__APPLE__`/`_RPI_` de `VolumeControl` et `Settings`, le réglage `HideConsole` et une
+   étape CI qui refuse leur retour.
 
-Critères d'acceptation complets de la phase 3 : ceux listés plus haut, plus l'étape CI
+Critères d'acceptation complets de la phase 3 (**remplis**) : ceux listés plus haut, plus l'étape CI
 « no-hardcoded-paths » verte, le job `asan` vert, le test de locale vert, et un
 utilisateur qui possède `~/.emulationstation/` retrouve ses systèmes, réglages,
 manettes et thèmes au premier lancement.

@@ -12,7 +12,7 @@ class Font;
 
 //The Renderer provides several higher-level functions for drawing (rectangles, text, etc.).
 //Renderer_draw_gl.cpp has most of the higher-level functions and wrappers.
-//Renderer_init_*.cpp has platform-specific renderer initialziation/deinitialziation code.  (e.g. the Raspberry Pi sets up dispmanx/OpenGL ES)
+//Renderer_init_sdlgl.cpp creates the SDL window and the OpenGL context.
 namespace Renderer {
 bool init(int w, int h);
 void deinit();

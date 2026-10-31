@@ -9,10 +9,6 @@
 #include "Resources.h"
 #include "Settings.h"
 
-#ifdef USE_OPENGL_ES
-#define glOrtho glOrthof
-#endif
-
 namespace Renderer {
 static bool initialCursorState;
 
@@ -50,10 +46,6 @@ bool createSurface()
 	// multisample anti-aliasing
 	//SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 	//SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 2);
-
-#ifdef USE_OPENGL_ES
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 1);
-#endif
 
 	SDL_DisplayMode dispMode;
 	SDL_GetDesktopDisplayMode(0, &dispMode);

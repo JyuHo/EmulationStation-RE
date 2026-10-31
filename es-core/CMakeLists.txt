@@ -170,7 +170,6 @@ target_include_directories(es-core PUBLIC
 target_include_directories(es-core PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/generated)
 
 target_compile_definitions(es-core PUBLIC
-    USE_OPENGL_DESKTOP
     EIGEN_DONT_ALIGN
 )
 

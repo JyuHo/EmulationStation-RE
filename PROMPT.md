@@ -22,9 +22,9 @@
 | 2 — Zéro avertissement, `-Werror`, clang-format/tidy, tests Catch2, test de fumée, Log | **fusionnée** | #2 |
 | 3.A — Module XDG `es::paths` | **terminée** : tous les chemins, migration, `--home`, tests, étape CI | #3, #25 |
 | 3.B — `std::filesystem` | **fusionnée** | #4 |
-| 3.C — `std::chrono`, Assign, Variant, Locale ; Boost supprimé | **fusionnée** (risque de locale numérique, voir 0.2) | #5 |
+| 3.C — `std::chrono`, Assign, Variant, Locale ; Boost supprimé | **fusionnée** (locale numérique corrigée en 3.E) | #5 |
 | 3.D — Propriété mémoire (`unique_ptr`) | **terminée** pour cette phase (reste : arbre `FileData`/`SystemData`, `delete this` des GUI) | #6–#23, #26, #27 |
-| 3.E — Finitions de la phase 3 (issues de l'audit) | **en cours** : XDG (#25) et job `asan` (#26) faits ; locale et nettoyage à faire | #25, #26 |
+| 3.E — Finitions de la phase 3 (issues de l'audit) | **terminée** : XDG (#25), job `asan` (#26), locale numérique et restes Windows (#28) | #25, #26, #28 |
 | 4 à 12 | à faire | — |
 
 Toutes les PR ont été fusionnées par **merge commit** : le commit de reformatage
@@ -55,18 +55,18 @@ Ce qui existe et que tu dois **réutiliser** (ne le recrée pas) :
   `RelWithDebInfo` avec `-Werror`, `ctest`, test de fumée, capture d'écran en artefact.
   Étape « No hardcoded paths » avant la compilation. Boost n'est plus installé.
 
-### 0.2 Point de reprise : phase 3.E, puis phase 4
-Fais les PR dans cet ordre (une PR par ligne, chacune verte avant la suivante). Le détail
-de chaque point est dans le plan, section « 3.E Finitions de la phase 3 ».
+### 0.2 Point de reprise : phase 4
+La phase 3 est terminée. Le détail des points 3.E est dans le plan, section « 3.E Finitions
+de la phase 3 ».
 1. ~~`modernize/phase-3e-xdg-complete`~~ — fait (PR #25).
-2. **`modernize/phase-3e-numeric-locale`** — `main.cpp` appelle `setlocale(LC_ALL, "")` ;
-   sous `fr_FR`, `atof("0.5")` (thèmes, `MetaData`) et `stof` (`RatingComponent`) lisent la
-   virgule comme séparateur décimal. Remets `LC_NUMERIC` à `"C"` et passe à
-   `std::from_chars`, avec un test sous `fr_FR.UTF-8`.
+2. ~~`modernize/phase-3e-numeric-locale`~~ — fait (PR #28) : `applyUserLocale()` garde
+   `LC_NUMERIC` à `"C"`, `parseFloat`/`parseInt` (`Util.h`, `std::from_chars`), test sous
+   `fr_FR.UTF-8`.
 3. ~~`ci/asan`~~ — fait (PR #26).
-4. **`chore/remove-windows-leftovers`** — `EmulationStation.rc`, `EmulationStation.aps`,
-   `data/es_icon.ico`, blocs `#ifdef WIN32`/GLES restants.
-5. Ensuite seulement : **phase 4** (Eigen → glm), branche `modernize/phase-4a-…`.
+4. ~~`chore/remove-windows-leftovers`~~ — fait (PR #28) : fichiers Windows supprimés, blocs
+   `WIN32`/`__APPLE__`/`_RPI_`/GLES retirés, réglage `HideConsole` supprimé, étape CI
+   « No Windows or embedded leftovers ».
+5. **Prochaine étape : phase 4** (Eigen → glm), branche `modernize/phase-4a-…`.
 
 Reliquat de 3.D, sans série dédiée : traite-le quand une phase réécrit le module.
 - `new` restants : uniquement dans des pointeurs intelligents pour des constructeurs privés
@@ -100,8 +100,13 @@ voulu, expliqué dans la PR.
   des membres (`mCell`). Ne l'applique pas en masse.
 - **`std::filesystem` sans `imbue`** : la locale de `boost::filesystem::path` a disparu ;
   les chemins sont des octets UTF-8 (`generic_string()`), ne cherche pas à la recréer.
-- **Locale** : ne touche jamais `LC_NUMERIC` (voir 0.2, point 2). Toute analyse de nombre
-  dans des fichiers (XML, thèmes) passe par `std::from_chars`.
+- **Locale** : la locale de l'utilisateur s'applique par `applyUserLocale()` (`Util.h`), qui
+  remet `LC_NUMERIC` à `"C"` : pugixml écrit et lit les flottants avec la bibliothèque C,
+  et sous `fr_FR` il écrirait `0,5`. N'appelle jamais `setlocale` ailleurs. Pour lire un
+  nombre venant d'un fichier (XML, thème, gamelist), utilise `parseFloat`/`parseInt`
+  (`std::from_chars`), jamais `atof`/`stof`/`atoi`.
+- **Une seule plateforme** : la CI refuse `WIN32`, `__APPLE__`, `_RPI_`, `USE_OPENGL_ES`
+  et `_MSC_VER` dans `es-core/src`, `es-app/src` et `tests`.
 - **`ES_HOME` / `--home`** : appliqués par `applyHomeOverride()` au tout début de `main`,
   avant `parseArgs` (qui instancie `Settings`, donc lit `es_settings.cfg`). Tout nouveau
   code qui lit un fichier au démarrage doit venir après. En mode portable, `~` reste le
@@ -399,7 +404,7 @@ Le plan contient les tâches détaillées ; voici les pièges propres à chaque 
 **Phase 2 — Hygiène.** Terminée (voir section 0). Si tu appliques encore `clang-tidy
 --fix`, fais-le par familles de règles (un commit par famille) et relis chaque diff.
 
-**Phase 3 — Boost et XDG.** Boost est supprimé ; il reste 3.E (voir section 0.2).
+**Phase 3 — Boost et XDG.** Terminée (Boost supprimé, XDG en place, 3.E faite).
 Pour XDG, chaque fichier déplacé doit rester trouvable à l'ancien emplacement par la
 migration (copie, jamais déplacement) : teste-le sur un faux `$HOME` qui contient un
 `~/.emulationstation/` complet. `std::filesystem` lève des exceptions là où le code

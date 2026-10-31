@@ -3,20 +3,23 @@
 #include "resources/ResourceManager.h"
 #include "platform.h"
 
+#include <charconv>
+#include <clocale>
+
 namespace fs = std::filesystem;
 
 std::string strToUpper(const char* from)
 {
 	std::string str(from);
 	for(unsigned int i = 0; i < str.size(); i++)
-		str[i] = toupper(from[i]);
+		str[i] = static_cast<char>(toupper(static_cast<unsigned char>(from[i])));
 	return str;
 }
 
 std::string& strToUpper(std::string& str)
 {
 	for(unsigned int i = 0; i < str.size(); i++)
-		str[i] = toupper(str[i]);
+		str[i] = static_cast<char>(toupper(static_cast<unsigned char>(str[i])));
 
 	return str;
 }
@@ -25,13 +28,6 @@ std::string strToUpper(const std::string& str)
 {
 	return strToUpper(str.c_str());
 }
-
-#if defined(_WIN32) && _MSC_VER < 1800
-float round(float num)
-{
-	return (float)((int)(num + 0.5f));
-}
-#endif
 
 Eigen::Affine3f& roundMatrix(Eigen::Affine3f& mat)
 {
@@ -188,4 +184,39 @@ std::optional<std::chrono::sys_seconds> string_to_ptime(const std::string& str, 
 	if(ss.fail())
 		return std::nullopt;
 	return time;
+}
+
+void applyUserLocale()
+{
+	std::setlocale(LC_ALL, "");
+	std::setlocale(LC_NUMERIC, "C");
+}
+
+namespace {
+
+std::string_view skipNumberPrefix(std::string_view str)
+{
+	while(!str.empty() && (str.front() == ' ' || (str.front() >= '\t' && str.front() <= '\r')))
+		str.remove_prefix(1);
+	if(!str.empty() && str.front() == '+')
+		str.remove_prefix(1);
+	return str;
+}
+
+} // namespace
+
+float parseFloat(std::string_view str, float fallback)
+{
+	str = skipNumberPrefix(str);
+	float value = fallback;
+	const auto [end, ec] = std::from_chars(str.data(), str.data() + str.size(), value);
+	return ec == std::errc() ? value : fallback;
+}
+
+int parseInt(std::string_view str, int fallback)
+{
+	str = skipNumberPrefix(str);
+	int value = fallback;
+	const auto [end, ec] = std::from_chars(str.data(), str.data() + str.size(), value);
+	return ec == std::errc() ? value : fallback;
 }
