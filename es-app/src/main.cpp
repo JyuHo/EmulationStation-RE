@@ -329,6 +329,9 @@ int main(int argc, char* argv[])
 	while(window.peekGui() != ViewController::get())
 		delete window.peekGui();
 	MusicPlayer::getInstance().deinit();
+	// before window.deinit(), whose SDL_Quit() frees the audio streams that the sounds
+	// still point to (the AudioManager destructor runs later, at static destruction)
+	AudioManager::getInstance()->deinit();
 	window.deinit();
 
 	SystemData::deleteSystems();
