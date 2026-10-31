@@ -50,6 +50,7 @@ set(CORE_HEADERS
 	src/components/TextComponent.h
 	src/components/TextEditComponent.h
 	src/components/VideoComponent.h
+	src/video/SdlAudioSink.h
 	src/video/VideoPlayer.h
 
 	# Guis
@@ -113,6 +114,7 @@ set(CORE_SOURCES
 	src/components/TextComponent.cpp
 	src/components/TextEditComponent.cpp
 	src/components/VideoComponent.cpp
+	src/video/SdlAudioSink.cpp
 	src/video/VideoPlayer.cpp
 
 	# Guis

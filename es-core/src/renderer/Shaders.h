@@ -35,6 +35,24 @@ void main()
 }
 )";
 
+// video frames: YUV 4:2:0 planes (BT.601, limited range) to RGB
+inline constexpr std::string_view fragmentYuv = R"(#version 330 core
+in vec2 vTex;
+in vec4 vColor;
+uniform sampler2D uY;
+uniform sampler2D uU;
+uniform sampler2D uV;
+out vec4 fragColor;
+void main()
+{
+	float y = 1.164383 * (texture(uY, vTex).r - 0.0627451);
+	float u = texture(uU, vTex).r - 0.5;
+	float v = texture(uV, vTex).r - 0.5;
+	vec3 rgb = vec3(y + 1.596027 * v, y - 0.391762 * u - 0.812968 * v, y + 2.017232 * u);
+	fragColor = vColor * vec4(clamp(rgb, 0.0, 1.0), 1.0);
+}
+)";
+
 // rectangles and lines
 inline constexpr std::string_view fragmentColor = R"(#version 330 core
 in vec4 vColor;
