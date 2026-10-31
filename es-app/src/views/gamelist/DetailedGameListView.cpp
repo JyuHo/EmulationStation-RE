@@ -199,7 +199,7 @@ void DetailedGameListView::updateInfoPanel()
 	}
 	else
 	{
-		mImage.setImage(file->metadata.get("image"));
+		mImage.setImage(file->metadata.get("image"), false, true);
 		mDescription.setText(file->metadata.get("desc"));
 		mDescContainer.reset();
 
