@@ -8,7 +8,7 @@
 #include <string>
 #include <filesystem>
 #include <variant>
-#include <Eigen/Dense>
+#include "math/Math.h"
 #include "pugixml/pugixml.hpp"
 #include "GuiComponent.h"
 
@@ -95,7 +95,7 @@ public:
 		bool extra;
 		std::string type;
 
-		std::map<std::string, std::variant<Eigen::Vector2f, std::string, unsigned int, float, bool>> properties;
+		std::map<std::string, std::variant<glm::vec2, std::string, unsigned int, float, bool>> properties;
 
 		template <typename T> T get(const std::string& prop) const { return std::get<T>(properties.at(prop)); }
 

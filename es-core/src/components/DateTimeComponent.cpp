@@ -150,15 +150,15 @@ void DateTimeComponent::update(int deltaTime)
 	GuiComponent::update(deltaTime);
 }
 
-void DateTimeComponent::render(const Eigen::Affine3f& parentTrans)
+void DateTimeComponent::render(const glm::mat4& parentTrans)
 {
-	Eigen::Affine3f trans = parentTrans * getTransform();
+	glm::mat4 trans = parentTrans * getTransform();
 
 	if(mTextCache)
 	{
 		// vertically center
-		Eigen::Vector3f off(0, (mSize.y() - mTextCache->metrics.size.y()) / 2, 0);
-		trans.translate(off);
+		glm::vec3 off(0, (mSize.y - mTextCache->metrics.size.y) / 2, 0);
+		trans = glm::translate(trans, off);
 		trans = roundMatrix(trans);
 
 		Renderer::setMatrix(trans);
@@ -280,19 +280,19 @@ void DateTimeComponent::updateTextCache()
 		return;
 
 	//month
-	Eigen::Vector2f start(0, 0);
-	Eigen::Vector2f end = font->sizeText(dispString.substr(0, 2));
-	Eigen::Vector2f diff = end - start;
+	glm::vec2 start(0, 0);
+	glm::vec2 end = font->sizeText(dispString.substr(0, 2));
+	glm::vec2 diff = end - start;
 	mCursorBoxes.emplace_back(start[0], start[1], diff[0], diff[1]);
 
 	//day
-	start[0] = font->sizeText(dispString.substr(0, 3)).x();
+	start[0] = font->sizeText(dispString.substr(0, 3)).x;
 	end = font->sizeText(dispString.substr(0, 5));
 	diff = end - start;
 	mCursorBoxes.emplace_back(start[0], start[1], diff[0], diff[1]);
 
 	//year
-	start[0] = font->sizeText(dispString.substr(0, 6)).x();
+	start[0] = font->sizeText(dispString.substr(0, 6)).x;
 	end = font->sizeText(dispString.substr(0, 10));
 	diff = end - start;
 	mCursorBoxes.emplace_back(start[0], start[1], diff[0], diff[1]);

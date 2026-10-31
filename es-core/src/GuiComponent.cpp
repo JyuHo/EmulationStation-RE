@@ -12,9 +12,9 @@ GuiComponent::GuiComponent(Window* window) :
 	mOpacity(255),
 	mWindow(window),
 	mParent(nullptr),
-	mPosition(Eigen::Vector3f::Zero()),
-	mSize(Eigen::Vector2f::Zero()),
-	mTransform(Eigen::Affine3f::Identity())
+	mPosition(glm::vec3(0.0f)),
+	mSize(glm::vec2(0.0f)),
+	mTransform(glm::mat4(1.0f))
 {}
 
 GuiComponent::~GuiComponent()
@@ -61,13 +61,13 @@ void GuiComponent::update(int deltaTime)
 	updateChildren(deltaTime);
 }
 
-void GuiComponent::render(const Eigen::Affine3f& parentTrans)
+void GuiComponent::render(const glm::mat4& parentTrans)
 {
-	Eigen::Affine3f trans = parentTrans * getTransform();
+	glm::mat4 trans = parentTrans * getTransform();
 	renderChildren(trans);
 }
 
-void GuiComponent::renderChildren(const Eigen::Affine3f& transform) const
+void GuiComponent::renderChildren(const glm::mat4& transform) const
 {
 	for(unsigned int i = 0; i < getChildCount(); i++)
 	{
@@ -75,12 +75,12 @@ void GuiComponent::renderChildren(const Eigen::Affine3f& transform) const
 	}
 }
 
-Eigen::Vector3f GuiComponent::getPosition() const
+glm::vec3 GuiComponent::getPosition() const
 {
 	return mPosition;
 }
 
-void GuiComponent::setPosition(const Eigen::Vector3f& offset)
+void GuiComponent::setPosition(const glm::vec3& offset)
 {
 	mPosition = offset;
 	onPositionChanged();
@@ -88,16 +88,16 @@ void GuiComponent::setPosition(const Eigen::Vector3f& offset)
 
 void GuiComponent::setPosition(float x, float y, float z)
 {
-	mPosition << x, y, z;
+	mPosition = {x, y, z};
 	onPositionChanged();
 }
 
-Eigen::Vector2f GuiComponent::getSize() const
+glm::vec2 GuiComponent::getSize() const
 {
 	return mSize;
 }
 
-void GuiComponent::setSize(const Eigen::Vector2f& size)
+void GuiComponent::setSize(const glm::vec2& size)
 {
 	mSize = size;
 	onSizeChanged();
@@ -105,7 +105,7 @@ void GuiComponent::setSize(const Eigen::Vector2f& size)
 
 void GuiComponent::setSize(float w, float h)
 {
-	mSize << w, h;
+	mSize = {w, h};
 	onSizeChanged();
 }
 
@@ -181,10 +181,10 @@ void GuiComponent::setOpacity(unsigned char opacity)
 	}
 }
 
-const Eigen::Affine3f& GuiComponent::getTransform()
+const glm::mat4& GuiComponent::getTransform()
 {
-	mTransform.setIdentity();
-	mTransform.translate(mPosition);
+	mTransform = glm::mat4(1.0f);
+	mTransform = glm::translate(mTransform, mPosition);
 	return mTransform;
 }
 
@@ -290,9 +290,9 @@ int GuiComponent::getAnimationTime(unsigned char slot) const
 void GuiComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view,
 	const std::string& element, unsigned int properties)
 {
-	Eigen::Vector2f scale = getParent()
+	glm::vec2 scale = getParent()
 		? getParent()->getSize()
-		: Eigen::Vector2f((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
+		: glm::vec2((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
 
 	const ThemeData::ThemeElement* elem = theme->getElement(view, element, "");
 	if(!elem)
@@ -301,12 +301,12 @@ void GuiComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, const std
 	using namespace ThemeFlags;
 	if(properties & POSITION && elem->has("pos"))
 	{
-		Eigen::Vector2f denormalized = elem->get<Eigen::Vector2f>("pos").cwiseProduct(scale);
-		setPosition(Eigen::Vector3f(denormalized.x(), denormalized.y(), 0));
+		glm::vec2 denormalized = elem->get<glm::vec2>("pos") * (scale);
+		setPosition(glm::vec3(denormalized.x, denormalized.y, 0));
 	}
 
 	if(properties & ThemeFlags::SIZE && elem->has("size"))
-		setSize(elem->get<Eigen::Vector2f>("size").cwiseProduct(scale));
+		setSize(elem->get<glm::vec2>("size") * (scale));
 }
 
 void GuiComponent::updateHelpPrompts()

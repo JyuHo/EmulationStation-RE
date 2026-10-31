@@ -11,8 +11,8 @@
 #include "Util.h"
 
 #define SELECTED_SCALE 1.5f
-#define LOGO_PADDING ((logoSize().x() * (SELECTED_SCALE - 1) / 2) + (mSize.x() * 0.06f))
-#define BAND_HEIGHT (logoSize().y() * SELECTED_SCALE)
+#define LOGO_PADDING ((logoSize().x * (SELECTED_SCALE - 1) / 2) + (mSize.x * 0.06f))
+#define BAND_HEIGHT (logoSize().y * SELECTED_SCALE)
 
 SystemView::SystemView(Window* window) :
 	IList<SystemViewData, SystemData*>(window, LIST_SCROLL_STYLE_SLOW, LIST_ALWAYS_LOOP),
@@ -24,8 +24,8 @@ SystemView::SystemView(Window* window) :
 
 	setSize((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
 
-	mSystemInfo.setSize(mSize.x(), mSystemInfo.getSize().y() * 1.333f);
-	mSystemInfo.setPosition(0, (mSize.y() + BAND_HEIGHT) / 2);
+	mSystemInfo.setSize(mSize.x, mSystemInfo.getSize().y * 1.333f);
+	mSystemInfo.setPosition(0, (mSize.y + BAND_HEIGHT) / 2);
 
 	populate();
 }
@@ -46,18 +46,18 @@ void SystemView::populate()
 		if(theme->getElement("system", "logo", "image"))
 		{
 			auto logo = std::make_shared<ImageComponent>(mWindow);
-			logo->setMaxSize(Eigen::Vector2f(logoSize().x(), logoSize().y()));
+			logo->setMaxSize(glm::vec2(logoSize().x, logoSize().y));
 			logo->applyTheme((*it)->getTheme(), "system", "logo", ThemeFlags::PATH);
 			logo->setPosition(
-				(logoSize().x() - logo->getSize().x()) / 2, (logoSize().y() - logo->getSize().y()) / 2); // center
+				(logoSize().x - logo->getSize().x) / 2, (logoSize().y - logo->getSize().y) / 2); // center
 			e.data.logo = logo;
 
 			auto logoSelected = std::make_shared<ImageComponent>(mWindow);
 			logoSelected->setMaxSize(
-				Eigen::Vector2f(logoSize().x() * SELECTED_SCALE, logoSize().y() * SELECTED_SCALE * 0.70f));
+				glm::vec2(logoSize().x * SELECTED_SCALE, logoSize().y * SELECTED_SCALE * 0.70f));
 			logoSelected->applyTheme((*it)->getTheme(), "system", "logo", ThemeFlags::PATH);
-			logoSelected->setPosition((logoSize().x() - logoSelected->getSize().x()) / 2,
-				(logoSize().y() - logoSelected->getSize().y()) / 2); // center
+			logoSelected->setPosition((logoSize().x - logoSelected->getSize().x) / 2,
+				(logoSize().y - logoSelected->getSize().y) / 2); // center
 			e.data.logoSelected = logoSelected;
 		}
 		else
@@ -249,24 +249,24 @@ void SystemView::onCursorChanged(const CursorState& state)
 	setAnimation(std::move(anim), 0, nullptr, false, 0);
 }
 
-void SystemView::render(const Eigen::Affine3f& parentTrans)
+void SystemView::render(const glm::mat4& parentTrans)
 {
 	if(size() == 0)
 		return;
 
-	Eigen::Affine3f trans = getTransform() * parentTrans;
+	glm::mat4 trans = getTransform() * parentTrans;
 
 	// draw the list elements (titles, backgrounds, logos)
-	const float logoSizeX = logoSize().x() + LOGO_PADDING;
+	const float logoSizeX = logoSize().x + LOGO_PADDING;
 
-	int logoCount = (int)(mSize.x() / logoSizeX) + 2; // how many logos we need to draw
+	int logoCount = (int)(mSize.x / logoSizeX) + 2; // how many logos we need to draw
 	int center = (int)(mCamOffset);
 
 	if(mEntries.size() == 1)
 		logoCount = 1;
 
 	// draw background extras
-	Eigen::Affine3f extrasTrans = trans;
+	glm::mat4 extrasTrans = trans;
 	int extrasCenter = (int)mExtrasCamOffset;
 	for(int i = extrasCenter - 1; i < extrasCenter + 2; i++)
 	{
@@ -276,10 +276,10 @@ void SystemView::render(const Eigen::Affine3f& parentTrans)
 		while(index >= (int)mEntries.size())
 			index -= mEntries.size();
 
-		extrasTrans.translation() = trans.translation() + Eigen::Vector3f((i - mExtrasCamOffset) * mSize.x(), 0, 0);
+		setTranslation(extrasTrans, getTranslation(trans) + glm::vec3((i - mExtrasCamOffset) * mSize.x, 0, 0));
 
-		Eigen::Vector2i clipRect = Eigen::Vector2i((int)((i - mExtrasCamOffset) * mSize.x()), 0);
-		Renderer::pushClipRect(clipRect, mSize.cast<int>());
+		glm::ivec2 clipRect = glm::ivec2((int)((i - mExtrasCamOffset) * mSize.x), 0);
+		Renderer::pushClipRect(clipRect, glm::ivec2(mSize));
 		mEntries.at(index).data.backgroundExtras->render(extrasTrans);
 		Renderer::popClipRect();
 	}
@@ -288,18 +288,18 @@ void SystemView::render(const Eigen::Affine3f& parentTrans)
 	if(mExtrasFadeOpacity)
 	{
 		Renderer::setMatrix(trans);
-		Renderer::drawRect(0.0f, 0.0f, mSize.x(), mSize.y(), 0x00000000 | (unsigned char)(mExtrasFadeOpacity * 255));
+		Renderer::drawRect(0.0f, 0.0f, mSize.x, mSize.y, 0x00000000 | (unsigned char)(mExtrasFadeOpacity * 255));
 	}
 
 	// draw logos
-	float xOff = (mSize.x() - logoSize().x()) / 2 - (mCamOffset * logoSizeX);
-	float yOff = (mSize.y() - logoSize().y()) / 2;
+	float xOff = (mSize.x - logoSize().x) / 2 - (mCamOffset * logoSizeX);
+	float yOff = (mSize.y - logoSize().y) / 2;
 
 	// background behind the logos
 	Renderer::setMatrix(trans);
-	Renderer::drawRect(0.f, (mSize.y() - BAND_HEIGHT) / 2, mSize.x(), BAND_HEIGHT, 0xFFFFFFD8);
+	Renderer::drawRect(0.f, (mSize.y - BAND_HEIGHT) / 2, mSize.x, BAND_HEIGHT, 0xFFFFFFD8);
 
-	Eigen::Affine3f logoTrans = trans;
+	glm::mat4 logoTrans = trans;
 	for(int i = center - logoCount / 2; i < center + logoCount / 2 + 1; i++)
 	{
 		int index = i;
@@ -308,7 +308,7 @@ void SystemView::render(const Eigen::Affine3f& parentTrans)
 		while(index >= (int)mEntries.size())
 			index -= mEntries.size();
 
-		logoTrans.translation() = trans.translation() + Eigen::Vector3f(i * logoSizeX + xOff, yOff, 0);
+		setTranslation(logoTrans, getTranslation(trans) + glm::vec3(i * logoSizeX + xOff, yOff, 0));
 
 		if(index == mCursor) //scale our selection up
 		{
@@ -327,8 +327,8 @@ void SystemView::render(const Eigen::Affine3f& parentTrans)
 	}
 
 	Renderer::setMatrix(trans);
-	Renderer::drawRect(mSystemInfo.getPosition().x(), mSystemInfo.getPosition().y() - 1, mSize.x(),
-		mSystemInfo.getSize().y(), 0xDDDDDD00 | (unsigned char)(mSystemInfo.getOpacity() / 255.f * 0xD8));
+	Renderer::drawRect(mSystemInfo.getPosition().x, mSystemInfo.getPosition().y - 1, mSize.x,
+		mSystemInfo.getSize().y, 0xDDDDDD00 | (unsigned char)(mSystemInfo.getOpacity() / 255.f * 0xD8));
 	mSystemInfo.render(trans);
 }
 

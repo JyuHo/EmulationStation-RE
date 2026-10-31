@@ -17,7 +17,7 @@ TextComponent::TextComponent(Window* window) :
 {}
 
 TextComponent::TextComponent(Window* window, const std::string& text, const std::shared_ptr<Font>& font,
-	unsigned int color, Alignment align, Eigen::Vector3f pos, Eigen::Vector2f size) :
+	unsigned int color, Alignment align, glm::vec3 pos, glm::vec2 size) :
 	GuiComponent(window),
 	mColor(0x000000FF),
 	mFont(nullptr),
@@ -35,7 +35,7 @@ TextComponent::TextComponent(Window* window, const std::string& text, const std:
 
 void TextComponent::onSizeChanged()
 {
-	mAutoCalcExtent << (getSize().x() == 0), (getSize().y() == 0);
+	mAutoCalcExtent = {(getSize().x == 0), (getSize().y == 0)};
 	onTextChanged();
 }
 
@@ -80,29 +80,29 @@ void TextComponent::setUppercase(bool uppercase)
 	onTextChanged();
 }
 
-void TextComponent::render(const Eigen::Affine3f& parentTrans)
+void TextComponent::render(const glm::mat4& parentTrans)
 {
-	Eigen::Affine3f trans = parentTrans * getTransform();
+	glm::mat4 trans = parentTrans * getTransform();
 
-	/*Eigen::Vector3f dim(mSize.x(), mSize.y(), 0);
-	dim = trans * dim - trans.translation();
-	Renderer::pushClipRect(Eigen::Vector2i((int)trans.translation().x(), (int)trans.translation().y()), 
-		Eigen::Vector2i((int)(dim.x() + 0.5f), (int)(dim.y() + 0.5f)));
+	/*glm::vec3 dim(mSize.x, mSize.y, 0);
+	dim = transformPoint(trans, dim) - getTranslation(trans);
+	Renderer::pushClipRect(glm::ivec2((int)getTranslation(trans).x, (int)getTranslation(trans).y), 
+		glm::ivec2((int)(dim.x + 0.5f), (int)(dim.y + 0.5f)));
 		*/
 
 	if(mTextCache)
 	{
-		const Eigen::Vector2f& textSize = mTextCache->metrics.size;
-		Eigen::Vector3f off(0, (getSize().y() - textSize.y()) / 2.0f, 0);
+		const glm::vec2& textSize = mTextCache->metrics.size;
+		glm::vec3 off(0, (getSize().y - textSize.y) / 2.0f, 0);
 
 		if(Settings::getInstance()->getBool("DebugText"))
 		{
 			// draw the "textbox" area, what we are aligned within
 			Renderer::setMatrix(trans);
-			Renderer::drawRect(0.f, 0.f, mSize.x(), mSize.y(), 0xFF000033);
+			Renderer::drawRect(0.f, 0.f, mSize.x, mSize.y, 0xFF000033);
 		}
 
-		trans.translate(off);
+		trans = glm::translate(trans, off);
 		trans = roundMatrix(trans);
 		Renderer::setMatrix(trans);
 
@@ -112,15 +112,15 @@ void TextComponent::render(const Eigen::Affine3f& parentTrans)
 			switch(mAlignment)
 			{
 			case ALIGN_LEFT:
-				Renderer::drawRect(0.0f, 0.0f, mTextCache->metrics.size.x(), mTextCache->metrics.size.y(), 0x00000033);
+				Renderer::drawRect(0.0f, 0.0f, mTextCache->metrics.size.x, mTextCache->metrics.size.y, 0x00000033);
 				break;
 			case ALIGN_CENTER:
-				Renderer::drawRect((mSize.x() - mTextCache->metrics.size.x()) / 2.0f, 0.0f,
-					mTextCache->metrics.size.x(), mTextCache->metrics.size.y(), 0x00000033);
+				Renderer::drawRect((mSize.x - mTextCache->metrics.size.x) / 2.0f, 0.0f,
+					mTextCache->metrics.size.x, mTextCache->metrics.size.y, 0x00000033);
 				break;
 			case ALIGN_RIGHT:
-				Renderer::drawRect(mSize.x() - mTextCache->metrics.size.x(), 0.0f, mTextCache->metrics.size.x(),
-					mTextCache->metrics.size.y(), 0x00000033);
+				Renderer::drawRect(mSize.x - mTextCache->metrics.size.x, 0.0f, mTextCache->metrics.size.x,
+					mTextCache->metrics.size.y, 0x00000033);
 				break;
 			}
 		}
@@ -133,15 +133,15 @@ void TextComponent::render(const Eigen::Affine3f& parentTrans)
 
 void TextComponent::calculateExtent()
 {
-	if(mAutoCalcExtent.x())
+	if(mAutoCalcExtent.x)
 	{
 		mSize = mFont->sizeText(mUppercase ? strToUpper(mText) : mText, mLineSpacing);
 	}
 	else
 	{
-		if(mAutoCalcExtent.y())
+		if(mAutoCalcExtent.y)
 		{
-			mSize[1] = mFont->sizeWrappedText(mUppercase ? strToUpper(mText) : mText, getSize().x(), mLineSpacing).y();
+			mSize[1] = mFont->sizeWrappedText(mUppercase ? strToUpper(mText) : mText, getSize().x, mLineSpacing).y;
 		}
 	}
 }
@@ -159,7 +159,7 @@ void TextComponent::onTextChanged()
 	std::string text = mUppercase ? strToUpper(mText) : mText;
 
 	std::shared_ptr<Font> f = mFont;
-	const bool isMultiline = (mSize.y() == 0 || mSize.y() > f->getHeight() * 1.2f);
+	const bool isMultiline = (mSize.y == 0 || mSize.y > f->getHeight() * 1.2f);
 
 	bool addAbbrev = false;
 	if(!isMultiline)
@@ -170,14 +170,14 @@ void TextComponent::onTextChanged()
 		addAbbrev = newline != std::string::npos;
 	}
 
-	Eigen::Vector2f size = f->sizeText(text);
-	if(!isMultiline && mSize.x() && text.size() && (size.x() > mSize.x() || addAbbrev))
+	glm::vec2 size = f->sizeText(text);
+	if(!isMultiline && mSize.x && text.size() && (size.x > mSize.x || addAbbrev))
 	{
 		// abbreviate text
 		const std::string abbrev = "...";
-		Eigen::Vector2f abbrevSize = f->sizeText(abbrev);
+		glm::vec2 abbrevSize = f->sizeText(abbrev);
 
-		while(text.size() && size.x() + abbrevSize.x() > mSize.x())
+		while(text.size() && size.x + abbrevSize.x > mSize.x)
 		{
 			size_t newSize = Font::getPrevCursor(text, text.size());
 			text.erase(newSize, text.size() - newSize);
@@ -187,12 +187,12 @@ void TextComponent::onTextChanged()
 		text.append(abbrev);
 
 		mTextCache = std::shared_ptr<TextCache>(f->buildTextCache(
-			text, Eigen::Vector2f(0, 0), (mColor >> 8 << 8) | mOpacity, mSize.x(), mAlignment, mLineSpacing));
+			text, glm::vec2(0, 0), (mColor >> 8 << 8) | mOpacity, mSize.x, mAlignment, mLineSpacing));
 	}
 	else
 	{
-		mTextCache = std::shared_ptr<TextCache>(f->buildTextCache(f->wrapText(text, mSize.x()), Eigen::Vector2f(0, 0),
-			(mColor >> 8 << 8) | mOpacity, mSize.x(), mAlignment, mLineSpacing));
+		mTextCache = std::shared_ptr<TextCache>(f->buildTextCache(f->wrapText(text, mSize.x), glm::vec2(0, 0),
+			(mColor >> 8 << 8) | mOpacity, mSize.x, mAlignment, mLineSpacing));
 	}
 }
 

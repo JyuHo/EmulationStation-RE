@@ -5,7 +5,7 @@
 class MoveCameraAnimation : public Animation
 {
 public:
-	MoveCameraAnimation(Eigen::Affine3f& camera, const Eigen::Vector3f& target) :
+	MoveCameraAnimation(glm::mat4& camera, const glm::vec3& target) :
 		mCameraStart(camera), mTarget(target), cameraOut(camera)
 	{}
 
@@ -15,12 +15,12 @@ public:
 	{
 		// cubic ease out
 		t -= 1;
-		cameraOut.translation() = -lerp<Eigen::Vector3f>(-mCameraStart.translation(), mTarget, t * t * t + 1);
+		setTranslation(cameraOut, -lerp<glm::vec3>(-getTranslation(mCameraStart), mTarget, t * t * t + 1));
 	}
 
 private:
-	Eigen::Affine3f mCameraStart;
-	Eigen::Vector3f mTarget;
+	glm::mat4 mCameraStart;
+	glm::vec3 mTarget;
 
-	Eigen::Affine3f& cameraOut;
+	glm::mat4& cameraOut;
 };

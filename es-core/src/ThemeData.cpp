@@ -285,7 +285,7 @@ void ThemeData::parseElement(
 			std::string first = str.substr(0, divider);
 			std::string second = str.substr(divider, std::string::npos);
 
-			Eigen::Vector2f val(parseFloat(first), parseFloat(second));
+			glm::vec2 val(parseFloat(first), parseFloat(second));
 
 			element.properties[node.name()] = val;
 			break;

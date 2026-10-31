@@ -23,7 +23,7 @@ public:
 
 	bool input(InputConfig* config, Input input) override;
 	void update(int deltaTime) override;
-	void render(const Eigen::Affine3f& parentTrans) override;
+	void render(const glm::mat4& parentTrans) override;
 	void onSizeChanged() override;
 
 	// Set how the point in time will be displayed:
@@ -58,7 +58,7 @@ private:
 	int mRelativeUpdateAccumulator;
 
 	std::unique_ptr<TextCache> mTextCache;
-	std::vector<Eigen::Vector4f> mCursorBoxes;
+	std::vector<glm::vec4> mCursorBoxes;
 
 	unsigned int mColor;
 	std::shared_ptr<Font> mFont;

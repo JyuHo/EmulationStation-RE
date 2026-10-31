@@ -115,7 +115,7 @@ private:
 			}
 
 			mMenu.setPosition(
-				(Renderer::getScreenWidth() - mMenu.getSize().x()) / 2, Renderer::getScreenHeight() * 0.15f);
+				(Renderer::getScreenWidth() - mMenu.getSize().x) / 2, Renderer::getScreenHeight() * 0.15f);
 			addChild(&mMenu);
 		}
 
@@ -168,7 +168,7 @@ public:
 			addChild(&mRightArrow);
 		}
 
-		setSize(mLeftArrow.getSize().x() + mRightArrow.getSize().x(), font->getHeight());
+		setSize(mLeftArrow.getSize().x + mRightArrow.getSize().x, font->getHeight());
 	}
 
 	// handles positioning/resizing of text and arrows
@@ -177,17 +177,17 @@ public:
 		mLeftArrow.setResize(0, mText.getFont()->getLetterHeight());
 		mRightArrow.setResize(0, mText.getFont()->getLetterHeight());
 
-		if(mSize.x() < (mLeftArrow.getSize().x() + mRightArrow.getSize().x()))
+		if(mSize.x < (mLeftArrow.getSize().x + mRightArrow.getSize().x))
 			LOG(LogWarning) << "OptionListComponent too narrow!";
 
-		mText.setSize(mSize.x() - mLeftArrow.getSize().x() - mRightArrow.getSize().x(), mText.getFont()->getHeight());
+		mText.setSize(mSize.x - mLeftArrow.getSize().x - mRightArrow.getSize().x, mText.getFont()->getHeight());
 
 		// position
-		mLeftArrow.setPosition(0, (mSize.y() - mLeftArrow.getSize().y()) / 2);
+		mLeftArrow.setPosition(0, (mSize.y - mLeftArrow.getSize().y) / 2);
 		mText.setPosition(
-			mLeftArrow.getPosition().x() + mLeftArrow.getSize().x(), (mSize.y() - mText.getSize().y()) / 2);
+			mLeftArrow.getPosition().x + mLeftArrow.getSize().x, (mSize.y - mText.getSize().y) / 2);
 		mRightArrow.setPosition(
-			mText.getPosition().x() + mText.getSize().x(), (mSize.y() - mRightArrow.getSize().y()) / 2);
+			mText.getPosition().x + mText.getSize().x, (mSize.y - mRightArrow.getSize().y) / 2);
 	}
 
 	bool input(InputConfig* config, Input input) override
@@ -284,8 +284,8 @@ private:
 			std::stringstream ss;
 			ss << getSelectedObjects().size() << " SELECTED";
 			mText.setText(ss.str());
-			mText.setSize(0, mText.getSize().y());
-			setSize(mText.getSize().x() + mRightArrow.getSize().x() + 24, mText.getSize().y());
+			mText.setSize(0, mText.getSize().y);
+			setSize(mText.getSize().x + mRightArrow.getSize().x + 24, mText.getSize().y);
 			if(mParent) // hack since theres no "on child size changed" callback atm...
 				mParent->onSizeChanged();
 		}
@@ -297,9 +297,9 @@ private:
 				if(it->selected)
 				{
 					mText.setText(strToUpper(it->name));
-					mText.setSize(0, mText.getSize().y());
-					setSize(mText.getSize().x() + mLeftArrow.getSize().x() + mRightArrow.getSize().x() + 24,
-						mText.getSize().y());
+					mText.setSize(0, mText.getSize().y);
+					setSize(mText.getSize().x + mLeftArrow.getSize().x + mRightArrow.getSize().x + 24,
+						mText.getSize().y);
 					if(mParent) // hack since theres no "on child size changed" callback atm...
 						mParent->onSizeChanged();
 					break;

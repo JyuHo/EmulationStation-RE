@@ -36,52 +36,52 @@ public:
 
 	bool input(InputConfig* config, Input input) override;
 	void update(int deltaTime) override;
-	void render(const Eigen::Affine3f& parentTrans) override;
+	void render(const glm::mat4& parentTrans) override;
 
 private:
-	Eigen::Vector2f getSquareSize(std::shared_ptr<TextureResource> tex = nullptr) const
+	glm::vec2 getSquareSize(std::shared_ptr<TextureResource> tex = nullptr) const
 	{
-		Eigen::Vector2f aspect(1, 1);
+		glm::vec2 aspect(1, 1);
 
 		if(tex)
 		{
-			const Eigen::Vector2i& texSize = tex->getSize();
+			const glm::ivec2& texSize = tex->getSize();
 
-			if(texSize.x() > texSize.y())
-				aspect[0] = (float)texSize.x() / texSize.y();
+			if(texSize.x > texSize.y)
+				aspect[0] = (float)texSize.x / texSize.y;
 			else
-				aspect[1] = (float)texSize.y() / texSize.x();
+				aspect[1] = (float)texSize.y / texSize.x;
 		}
 
-		return Eigen::Vector2f(156 * aspect.x(), 156 * aspect.y());
+		return glm::vec2(156 * aspect.x, 156 * aspect.y);
 	};
 
-	Eigen::Vector2f getMaxSquareSize() const
+	glm::vec2 getMaxSquareSize() const
 	{
-		Eigen::Vector2f squareSize(32, 32);
+		glm::vec2 squareSize(32, 32);
 
 		// calc biggest square size
 		for(auto it = mEntries.begin(); it != mEntries.end(); it++)
 		{
-			Eigen::Vector2f chkSize = getSquareSize(it->data.texture);
-			if(chkSize.x() > squareSize.x())
+			glm::vec2 chkSize = getSquareSize(it->data.texture);
+			if(chkSize.x > squareSize.x)
 				squareSize[0] = chkSize[0];
-			if(chkSize.y() > squareSize.y())
+			if(chkSize.y > squareSize.y)
 				squareSize[1] = chkSize[1];
 		}
 
 		return squareSize;
 	};
 
-	Eigen::Vector2i getGridSize() const
+	glm::ivec2 getGridSize() const
 	{
-		Eigen::Vector2f squareSize = getMaxSquareSize();
-		Eigen::Vector2i gridSize(
-			mSize.x() / (squareSize.x() + getPadding().x()), mSize.y() / (squareSize.y() + getPadding().y()));
+		glm::vec2 squareSize = getMaxSquareSize();
+		glm::ivec2 gridSize(
+			mSize.x / (squareSize.x + getPadding().x), mSize.y / (squareSize.y + getPadding().y));
 		return gridSize;
 	};
 
-	Eigen::Vector2f getPadding() const { return Eigen::Vector2f(24, 24); }
+	glm::vec2 getPadding() const { return glm::vec2(24, 24); }
 
 	void buildImages();
 	void updateImages();
@@ -114,7 +114,7 @@ template <typename T> bool ImageGridComponent<T>::input(InputConfig* config, Inp
 {
 	if(input.value != 0)
 	{
-		Eigen::Vector2i dir = Eigen::Vector2i::Zero();
+		glm::ivec2 dir = glm::ivec2(0);
 		if(config->isMappedTo("up", input))
 			dir[1] = -1;
 		else if(config->isMappedTo("down", input))
@@ -124,9 +124,9 @@ template <typename T> bool ImageGridComponent<T>::input(InputConfig* config, Inp
 		else if(config->isMappedTo("right", input))
 			dir[0] = 1;
 
-		if(dir != Eigen::Vector2i::Zero())
+		if(dir != glm::ivec2(0))
 		{
-			listInput(dir.x() + dir.y() * getGridSize().x());
+			listInput(dir.x + dir.y * getGridSize().x);
 			return true;
 		}
 	}
@@ -147,9 +147,9 @@ template <typename T> void ImageGridComponent<T>::update(int deltaTime)
 	listUpdate(deltaTime);
 }
 
-template <typename T> void ImageGridComponent<T>::render(const Eigen::Affine3f& parentTrans)
+template <typename T> void ImageGridComponent<T>::render(const glm::mat4& parentTrans)
 {
-	Eigen::Affine3f trans = getTransform() * parentTrans;
+	glm::mat4 trans = getTransform() * parentTrans;
 
 	if(mEntriesDirty)
 	{
@@ -180,27 +180,27 @@ template <typename T> void ImageGridComponent<T>::buildImages()
 {
 	mImages.clear();
 
-	Eigen::Vector2i gridSize = getGridSize();
-	Eigen::Vector2f squareSize = getMaxSquareSize();
-	Eigen::Vector2f padding = getPadding();
+	glm::ivec2 gridSize = getGridSize();
+	glm::vec2 squareSize = getMaxSquareSize();
+	glm::vec2 padding = getPadding();
 
 	// attempt to center within our size
-	Eigen::Vector2f totalSize(
-		gridSize.x() * (squareSize.x() + padding.x()), gridSize.y() * (squareSize.y() + padding.y()));
-	Eigen::Vector2f offset(mSize.x() - totalSize.x(), mSize.y() - totalSize.y());
+	glm::vec2 totalSize(
+		gridSize.x * (squareSize.x + padding.x), gridSize.y * (squareSize.y + padding.y));
+	glm::vec2 offset(mSize.x - totalSize.x, mSize.y - totalSize.y);
 	offset /= 2;
 
-	for(int y = 0; y < gridSize.y(); y++)
+	for(int y = 0; y < gridSize.y; y++)
 	{
-		for(int x = 0; x < gridSize.x(); x++)
+		for(int x = 0; x < gridSize.x; x++)
 		{
 			mImages.push_back(std::make_unique<ImageComponent>(mWindow));
 			ImageComponent& image = *mImages.back();
 
-			image.setPosition((squareSize.x() + padding.x()) * (x + 0.5f) + offset.x(),
-				(squareSize.y() + padding.y()) * (y + 0.5f) + offset.y());
+			image.setPosition((squareSize.x + padding.x) * (x + 0.5f) + offset.x,
+				(squareSize.y + padding.y) * (y + 0.5f) + offset.y);
 			image.setOrigin(0.5f, 0.5f);
-			image.setResize(squareSize.x(), squareSize.y());
+			image.setResize(squareSize.x, squareSize.y);
 			image.setImage("");
 		}
 	}
@@ -211,15 +211,15 @@ template <typename T> void ImageGridComponent<T>::updateImages()
 	if(mImages.empty())
 		buildImages();
 
-	Eigen::Vector2i gridSize = getGridSize();
+	glm::ivec2 gridSize = getGridSize();
 
-	int cursorRow = mCursor / gridSize.x();
+	int cursorRow = mCursor / gridSize.x;
 
-	int start = (cursorRow - (gridSize.y() / 2)) * gridSize.x();
+	int start = (cursorRow - (gridSize.y / 2)) * gridSize.x;
 
 	//if we're at the end put the row as close as we can and no higher
-	if(start + (gridSize.x() * gridSize.y()) >= (int)mEntries.size())
-		start = gridSize.x() * ((int)mEntries.size() / gridSize.x() - gridSize.y() + 1);
+	if(start + (gridSize.x * gridSize.y) >= (int)mEntries.size())
+		start = gridSize.x * ((int)mEntries.size() / gridSize.x - gridSize.y + 1);
 
 	if(start < 0)
 		start = 0;
@@ -234,16 +234,16 @@ template <typename T> void ImageGridComponent<T>::updateImages()
 			continue;
 		}
 
-		Eigen::Vector2f squareSize = getSquareSize(mEntries.at(i).data.texture);
+		glm::vec2 squareSize = getSquareSize(mEntries.at(i).data.texture);
 		if(i == mCursor)
 		{
 			image.setColorShift(0xFFFFFFFF);
-			image.setResize(squareSize.x() + getPadding().x() * 0.95f, squareSize.y() + getPadding().y() * 0.95f);
+			image.setResize(squareSize.x + getPadding().x * 0.95f, squareSize.y + getPadding().y * 0.95f);
 		}
 		else
 		{
 			image.setColorShift(0xAAAAAABB);
-			image.setResize(squareSize.x(), squareSize.y());
+			image.setResize(squareSize.x, squareSize.y);
 		}
 
 		image.setImage(mEntries.at(i).data.texture);

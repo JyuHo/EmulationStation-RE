@@ -21,7 +21,7 @@ ButtonComponent::ButtonComponent(
 
 void ButtonComponent::onSizeChanged()
 {
-	mBox.fitTo(mSize, Eigen::Vector3f::Zero(), Eigen::Vector2f(-32, -32));
+	mBox.fitTo(mSize, glm::vec3(0.0f), glm::vec2(-32, -32));
 }
 
 void ButtonComponent::setPressedFunc(std::function<void()> f)
@@ -48,8 +48,8 @@ void ButtonComponent::setText(const std::string& text, const std::string& helpTe
 
 	mTextCache = mFont->buildTextCache(mText, 0, 0, getCurTextColor());
 
-	float minWidth = mFont->sizeText("DELETE").x() + 12;
-	setSize(std::max(mTextCache->metrics.size.x() + 12, minWidth), mTextCache->metrics.size.y());
+	float minWidth = mFont->sizeText("DELETE").x + 12;
+	setSize(std::max(mTextCache->metrics.size.x + 12, minWidth), mTextCache->metrics.size.y);
 
 	updateHelpPrompts();
 }
@@ -87,23 +87,23 @@ void ButtonComponent::updateImage()
 	mBox.setImagePath(mFocused ? ":/button_filled.png" : ":/button.png");
 }
 
-void ButtonComponent::render(const Eigen::Affine3f& parentTrans)
+void ButtonComponent::render(const glm::mat4& parentTrans)
 {
-	Eigen::Affine3f trans = roundMatrix(parentTrans * getTransform());
+	glm::mat4 trans = roundMatrix(parentTrans * getTransform());
 
 	mBox.render(trans);
 
 	if(mTextCache)
 	{
-		Eigen::Vector3f centerOffset(
-			(mSize.x() - mTextCache->metrics.size.x()) / 2, (mSize.y() - mTextCache->metrics.size.y()) / 2, 0);
+		glm::vec3 centerOffset(
+			(mSize.x - mTextCache->metrics.size.x) / 2, (mSize.y - mTextCache->metrics.size.y) / 2, 0);
 		centerOffset = roundVector(centerOffset);
-		trans = trans.translate(centerOffset);
+		trans = glm::translate(trans, centerOffset);
 
 		Renderer::setMatrix(trans);
 		mTextCache->setColor(getCurTextColor());
 		mFont->renderTextCache(mTextCache.get());
-		trans = trans.translate(-centerOffset);
+		trans = glm::translate(trans, -centerOffset);
 	}
 
 	renderChildren(trans);

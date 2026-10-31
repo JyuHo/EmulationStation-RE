@@ -4,6 +4,8 @@
 #include "components/NinePatchComponent.h"
 #include "components/ComponentGrid.h"
 
+#include <functional>
+
 class TextComponent;
 class ButtonComponent;
 

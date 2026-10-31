@@ -245,13 +245,13 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "MAIN MEN
 	addChild(&mVersion);
 
 	setSize(mMenu.getSize());
-	setPosition((Renderer::getScreenWidth() - mSize.x()) / 2, Renderer::getScreenHeight() * 0.15f);
+	setPosition((Renderer::getScreenWidth() - mSize.x) / 2, Renderer::getScreenHeight() * 0.15f);
 }
 
 void GuiMenu::onSizeChanged()
 {
-	mVersion.setSize(mSize.x(), 0);
-	mVersion.setPosition(0, mSize.y() - mVersion.getSize().y());
+	mVersion.setSize(mSize.x, 0);
+	mVersion.setPosition(0, mSize.y - mVersion.getSize().y);
 }
 
 void GuiMenu::addEntry(const char* name, unsigned int color, bool add_arrow, const std::function<void()>& func)

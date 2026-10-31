@@ -13,7 +13,6 @@
 #define ICON_TEXT_SPACING 8 // space between [icon] and [text] (px)
 #define ENTRY_SPACING 16	// space between [text] and next [icon] (px)
 
-using namespace Eigen;
 
 static const std::map<std::string, const char*> ICON_PATH_MAP = {
 	{"up/down", ":/help/dpad_updown.svg"},
@@ -58,7 +57,7 @@ void HelpComponent::updateGrid()
 
 	std::shared_ptr<Font>& font = mStyle.font;
 
-	mGrid = std::make_shared<ComponentGrid>(mWindow, Vector2i(mPrompts.size() * 4, 1));
+	mGrid = std::make_shared<ComponentGrid>(mWindow, glm::ivec2(mPrompts.size() * 4, 1));
 	// [icon] [spacer1] [text] [spacer2]
 
 	std::vector<std::shared_ptr<ImageComponent>> icons;
@@ -77,23 +76,23 @@ void HelpComponent::updateGrid()
 		auto lbl = std::make_shared<TextComponent>(mWindow, strToUpper(it->second), font, mStyle.textColor);
 		labels.push_back(lbl);
 
-		width += icon->getSize().x() + lbl->getSize().x() + ICON_TEXT_SPACING + ENTRY_SPACING;
+		width += icon->getSize().x + lbl->getSize().x + ICON_TEXT_SPACING + ENTRY_SPACING;
 	}
 
 	mGrid->setSize(width, height);
 	for(unsigned int i = 0; i < icons.size(); i++)
 	{
 		const int col = i * 4;
-		mGrid->setColWidthPerc(col, icons.at(i)->getSize().x() / width);
+		mGrid->setColWidthPerc(col, icons.at(i)->getSize().x / width);
 		mGrid->setColWidthPerc(col + 1, ICON_TEXT_SPACING / width);
-		mGrid->setColWidthPerc(col + 2, labels.at(i)->getSize().x() / width);
+		mGrid->setColWidthPerc(col + 2, labels.at(i)->getSize().x / width);
 
-		mGrid->setEntry(icons.at(i), Vector2i(col, 0), false, false);
-		mGrid->setEntry(labels.at(i), Vector2i(col + 2, 0), false, false);
+		mGrid->setEntry(icons.at(i), glm::ivec2(col, 0), false, false);
+		mGrid->setEntry(labels.at(i), glm::ivec2(col + 2, 0), false, false);
 	}
 
-	mGrid->setPosition(Eigen::Vector3f(mStyle.position.x(), mStyle.position.y(), 0.0f));
-	//mGrid->setPosition(OFFSET_X, Renderer::getScreenHeight() - mGrid->getSize().y() - OFFSET_Y);
+	mGrid->setPosition(glm::vec3(mStyle.position.x, mStyle.position.y, 0.0f));
+	//mGrid->setPosition(OFFSET_X, Renderer::getScreenHeight() - mGrid->getSize().y - OFFSET_Y);
 }
 
 std::shared_ptr<TextureResource> HelpComponent::getIconTexture(const char* name)
@@ -130,9 +129,9 @@ void HelpComponent::setOpacity(unsigned char opacity)
 	}
 }
 
-void HelpComponent::render(const Eigen::Affine3f& parentTrans)
+void HelpComponent::render(const glm::mat4& parentTrans)
 {
-	Eigen::Affine3f trans = parentTrans * getTransform();
+	glm::mat4 trans = parentTrans * getTransform();
 
 	if(mGrid)
 		mGrid->render(trans);

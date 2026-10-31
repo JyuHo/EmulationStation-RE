@@ -86,12 +86,12 @@ void SVGResource::rasterizeAt(size_t width, size_t height)
 	free(imagePx);
 }
 
-Eigen::Vector2f SVGResource::getSourceImageSize() const
+glm::vec2 SVGResource::getSourceImageSize() const
 {
 	if(mSVGImage)
-		return Eigen::Vector2f(mSVGImage->width, mSVGImage->height);
+		return glm::vec2(mSVGImage->width, mSVGImage->height);
 
-	return Eigen::Vector2f::Zero();
+	return glm::vec2(0.0f);
 }
 
 void SVGResource::deinitSVG()

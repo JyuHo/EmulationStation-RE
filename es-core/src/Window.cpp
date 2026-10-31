@@ -190,7 +190,7 @@ void Window::update(int deltaTime)
 
 void Window::render()
 {
-	Eigen::Affine3f transform = Eigen::Affine3f::Identity();
+	glm::mat4 transform = glm::mat4(1.0f);
 
 	mRenderedHelpPrompts = false;
 
@@ -213,7 +213,7 @@ void Window::render()
 
 	if(Settings::getInstance()->getBool("DrawFramerate") && mFrameDataText)
 	{
-		Renderer::setMatrix(Eigen::Affine3f::Identity());
+		Renderer::setMatrix(glm::mat4(1.0f));
 		mDefaultFonts.at(1)->renderTextCache(mFrameDataText.get());
 	}
 
@@ -243,20 +243,20 @@ void Window::setAllowSleep(bool sleep)
 
 void Window::renderLoadingScreen()
 {
-	Eigen::Affine3f trans = Eigen::Affine3f::Identity();
+	glm::mat4 trans = glm::mat4(1.0f);
 	Renderer::setMatrix(trans);
 	Renderer::drawRect(0, 0, Renderer::getScreenWidth(), Renderer::getScreenHeight(), 0xFFFFFFFF);
 
 	ImageComponent splash(this);
 	splash.setResize(Renderer::getScreenWidth() * 0.6f, 0.0f);
 	splash.setImage(":/splash.svg");
-	splash.setPosition((Renderer::getScreenWidth() - splash.getSize().x()) / 2,
-		(Renderer::getScreenHeight() - splash.getSize().y()) / 2 * 0.6f);
+	splash.setPosition((Renderer::getScreenWidth() - splash.getSize().x) / 2,
+		(Renderer::getScreenHeight() - splash.getSize().y) / 2 * 0.6f);
 	splash.render(trans);
 
 	auto& font = mDefaultFonts.at(1);
 	const auto cache = font->buildTextCache("LOADING...", 0, 0, 0x656565FF);
-	trans = trans.translate(Eigen::Vector3f(round((Renderer::getScreenWidth() - cache->metrics.size.x()) / 2.0f),
+	trans = glm::translate(trans, glm::vec3(round((Renderer::getScreenWidth() - cache->metrics.size.x) / 2.0f),
 		round(Renderer::getScreenHeight() * 0.835f), 0.0f));
 	Renderer::setMatrix(trans);
 	font->renderTextCache(cache.get());
@@ -266,7 +266,7 @@ void Window::renderLoadingScreen()
 
 void Window::renderHelpPromptsEarly()
 {
-	mHelp->render(Eigen::Affine3f::Identity());
+	mHelp->render(glm::mat4(1.0f));
 	mRenderedHelpPrompts = true;
 }
 
@@ -340,7 +340,7 @@ void Window::setHelpPrompts(const std::vector<HelpPrompt>& prompts, const HelpSt
 
 void Window::onSleep()
 {
-	Renderer::setMatrix(Eigen::Affine3f::Identity());
+	Renderer::setMatrix(glm::mat4(1.0f));
 	unsigned char opacity = Settings::getInstance()->getString("ScreenSaverBehavior") == "dim" ? 0xA0 : 0xFF;
 	Renderer::drawRect(0, 0, Renderer::getScreenWidth(), Renderer::getScreenHeight(), 0x00000000 | opacity);
 }

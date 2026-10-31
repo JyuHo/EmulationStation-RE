@@ -16,8 +16,8 @@ class TextComponent : public GuiComponent
 public:
 	TextComponent(Window* window);
 	TextComponent(Window* window, const std::string& text, const std::shared_ptr<Font>& font,
-		unsigned int color = 0x000000FF, Alignment align = ALIGN_LEFT, Eigen::Vector3f pos = Eigen::Vector3f::Zero(),
-		Eigen::Vector2f size = Eigen::Vector2f::Zero());
+		unsigned int color = 0x000000FF, Alignment align = ALIGN_LEFT, glm::vec3 pos = glm::vec3(0.0f),
+		glm::vec2 size = glm::vec2(0.0f));
 
 	void setFont(const std::shared_ptr<Font>& font);
 	void setUppercase(bool uppercase);
@@ -27,7 +27,7 @@ public:
 	void setAlignment(Alignment align);
 	void setLineSpacing(float spacing);
 
-	void render(const Eigen::Affine3f& parentTrans) override;
+	void render(const glm::mat4& parentTrans) override;
 
 	std::string getValue() const override;
 	void setValue(const std::string& value) override;
@@ -49,7 +49,7 @@ private:
 	unsigned int mColor;
 	std::shared_ptr<Font> mFont;
 	bool mUppercase;
-	Eigen::Matrix<bool, 1, 2> mAutoCalcExtent;
+	glm::bvec2 mAutoCalcExtent;
 	std::string mText;
 	std::shared_ptr<TextCache> mTextCache;
 	Alignment mAlignment;

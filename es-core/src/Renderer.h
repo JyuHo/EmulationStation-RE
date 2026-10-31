@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 #include "platform.h"
-#include <Eigen/Dense>
+#include "math/Math.h"
 #include GLHEADER
 
 class GuiComponent;
@@ -25,11 +25,11 @@ void buildGLColorArray(GLubyte* ptr, unsigned int color, unsigned int vertCount)
 //graphics commands
 void swapBuffers();
 
-void pushClipRect(Eigen::Vector2i pos, Eigen::Vector2i dim);
+void pushClipRect(glm::ivec2 pos, glm::ivec2 dim);
 void popClipRect();
 
 void setMatrix(float* mat);
-void setMatrix(const Eigen::Affine3f& transform);
+void setMatrix(const glm::mat4& transform);
 
 void drawRect(int x, int y, int w, int h, unsigned int color, GLenum blend_sfactor = GL_SRC_ALPHA,
 	GLenum blend_dfactor = GL_ONE_MINUS_SRC_ALPHA);

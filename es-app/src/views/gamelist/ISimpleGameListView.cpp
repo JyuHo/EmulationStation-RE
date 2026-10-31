@@ -9,15 +9,15 @@ ISimpleGameListView::ISimpleGameListView(Window* window, FileData* root) :
 	IGameListView(window, root), mHeaderText(window), mHeaderImage(window), mBackground(window), mThemeExtras(window)
 {
 	mHeaderText.setText("Logo Text");
-	mHeaderText.setSize(mSize.x(), 0);
+	mHeaderText.setSize(mSize.x, 0);
 	mHeaderText.setPosition(0, 0);
 	mHeaderText.setAlignment(ALIGN_CENTER);
 
-	mHeaderImage.setResize(0, mSize.y() * 0.185f);
+	mHeaderImage.setResize(0, mSize.y * 0.185f);
 	mHeaderImage.setOrigin(0.5f, 0.0f);
-	mHeaderImage.setPosition(mSize.x() / 2, 0);
+	mHeaderImage.setPosition(mSize.x / 2, 0);
 
-	mBackground.setResize(mSize.x(), mSize.y());
+	mBackground.setResize(mSize.x, mSize.y);
 
 	addChild(&mHeaderText);
 	addChild(&mBackground);

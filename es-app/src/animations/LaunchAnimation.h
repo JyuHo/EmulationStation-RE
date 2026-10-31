@@ -31,7 +31,7 @@ class LaunchAnimation : public Animation
 {
 public:
 	//Target is a centerpoint
-	LaunchAnimation(Eigen::Affine3f& camera, float& fade, const Eigen::Vector3f& target, int duration) :
+	LaunchAnimation(glm::mat4& camera, float& fade, const glm::vec3& target, int duration) :
 		mCameraStart(camera), mTarget(target), mDuration(duration), cameraOut(camera), fadeOut(fade)
 	{}
 
@@ -39,28 +39,28 @@ public:
 
 	void apply(float t) override
 	{
-		cameraOut = Eigen::Affine3f::Identity();
+		cameraOut = glm::mat4(1.0f);
 
 		float zoom = lerp<float>(1.0, 4.25f, t * t);
-		cameraOut.scale(Eigen::Vector3f(zoom, zoom, 1));
+		cameraOut = glm::scale(cameraOut, glm::vec3(zoom, zoom, 1));
 
 		const float sw = (float)Renderer::getScreenWidth() / zoom;
 		const float sh = (float)Renderer::getScreenHeight() / zoom;
 
-		Eigen::Vector3f centerPoint = lerp<Eigen::Vector3f>(-mCameraStart.translation() +
-				Eigen::Vector3f(Renderer::getScreenWidth() / 2.0f, Renderer::getScreenHeight() / 2.0f, 0),
+		glm::vec3 centerPoint = lerp<glm::vec3>(-getTranslation(mCameraStart) +
+				glm::vec3(Renderer::getScreenWidth() / 2.0f, Renderer::getScreenHeight() / 2.0f, 0),
 			mTarget, smoothStep(0.0, 1.0, t));
 
-		cameraOut.translate(Eigen::Vector3f((sw / 2) - centerPoint.x(), (sh / 2) - centerPoint.y(), 0));
+		cameraOut = glm::translate(cameraOut, glm::vec3((sw / 2) - centerPoint.x, (sh / 2) - centerPoint.y, 0));
 
 		fadeOut = lerp<float>(0.0, 1.0, t * t);
 	}
 
 private:
-	Eigen::Affine3f mCameraStart;
-	Eigen::Vector3f mTarget;
+	glm::mat4 mCameraStart;
+	glm::vec3 mTarget;
 	int mDuration;
 
-	Eigen::Affine3f& cameraOut;
+	glm::mat4& cameraOut;
 	float& fadeOut;
 };

@@ -42,7 +42,7 @@ public:
 
 	bool input(InputConfig* config, Input input) override;
 	void update(int deltaTime) override;
-	void render(const Eigen::Affine3f& parentTrans) override;
+	void render(const glm::mat4& parentTrans) override;
 	void applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element,
 		unsigned int properties) override;
 
@@ -131,9 +131,9 @@ template <typename T> TextListComponent<T>::TextListComponent(Window* window) : 
 	mColors[1] = 0x00FF00FF;
 }
 
-template <typename T> void TextListComponent<T>::render(const Eigen::Affine3f& parentTrans)
+template <typename T> void TextListComponent<T>::render(const glm::mat4& parentTrans)
 {
-	Eigen::Affine3f trans = parentTrans * getTransform();
+	glm::mat4 trans = parentTrans * getTransform();
 
 	std::shared_ptr<Font>& font = mFont;
 
@@ -145,7 +145,7 @@ template <typename T> void TextListComponent<T>::render(const Eigen::Affine3f& p
 	int startEntry = 0;
 
 	//number of entries that can fit on the screen simultaniously
-	int screenCount = (int)(mSize.y() / entrySize + 0.5f);
+	int screenCount = (int)(mSize.y / entrySize + 0.5f);
 
 	if(size() >= screenCount)
 	{
@@ -166,16 +166,16 @@ template <typename T> void TextListComponent<T>::render(const Eigen::Affine3f& p
 	if(startEntry < listCutoff)
 	{
 		Renderer::setMatrix(trans);
-		Renderer::drawRect(0.f, (mCursor - startEntry) * entrySize + (entrySize - font->getHeight()) / 2, mSize.x(),
+		Renderer::drawRect(0.f, (mCursor - startEntry) * entrySize + (entrySize - font->getHeight()) / 2, mSize.x,
 			font->getHeight(), mSelectorColor);
 	}
 
 	// clip to inside margins
-	Eigen::Vector3f dim(mSize.x(), mSize.y(), 0);
-	dim = trans * dim - trans.translation();
+	glm::vec3 dim(mSize.x, mSize.y, 0);
+	dim = transformPoint(trans, dim) - getTranslation(trans);
 	Renderer::pushClipRect(
-		Eigen::Vector2i((int)(trans.translation().x() + mHorizontalMargin), (int)trans.translation().y()),
-		Eigen::Vector2i((int)(dim.x() - mHorizontalMargin * 2), (int)dim.y()));
+		glm::ivec2((int)(getTranslation(trans).x + mHorizontalMargin), (int)getTranslation(trans).y),
+		glm::ivec2((int)(dim.x - mHorizontalMargin * 2), (int)dim.y));
 
 	for(int i = startEntry; i < listCutoff; i++)
 	{
@@ -193,18 +193,18 @@ template <typename T> void TextListComponent<T>::render(const Eigen::Affine3f& p
 
 		entry.data.textCache->setColor(color);
 
-		Eigen::Vector3f offset(0, y, 0);
+		glm::vec3 offset(0, y, 0);
 
 		switch(mAlignment)
 		{
 		case ALIGN_LEFT: offset[0] = mHorizontalMargin; break;
 		case ALIGN_CENTER:
-			offset[0] = (mSize.x() - entry.data.textCache->metrics.size.x()) / 2;
+			offset[0] = (mSize.x - entry.data.textCache->metrics.size.x) / 2;
 			if(offset[0] < 0)
 				offset[0] = 0;
 			break;
 		case ALIGN_RIGHT:
-			offset[0] = (mSize.x() - entry.data.textCache->metrics.size.x());
+			offset[0] = (mSize.x - entry.data.textCache->metrics.size.x);
 			offset[0] -= mHorizontalMargin;
 			if(offset[0] < 0)
 				offset[0] = 0;
@@ -214,8 +214,8 @@ template <typename T> void TextListComponent<T>::render(const Eigen::Affine3f& p
 		if(mCursor == i)
 			offset[0] -= mMarqueeOffset;
 
-		Eigen::Affine3f drawTrans = trans;
-		drawTrans.translate(offset);
+		glm::mat4 drawTrans = trans;
+		drawTrans = glm::translate(drawTrans, offset);
 		Renderer::setMatrix(drawTrans);
 
 		font->renderTextCache(entry.data.textCache.get());
@@ -280,10 +280,10 @@ template <typename T> void TextListComponent<T>::update(int deltaTime)
 		//if we're not scrolling and this object's text goes outside our size, marquee it!
 		const std::string& text = mEntries.at((unsigned int)mCursor).name;
 
-		Eigen::Vector2f textSize = mFont->sizeText(text);
+		glm::vec2 textSize = mFont->sizeText(text);
 
 		//it's long enough to marquee
-		if(textSize.x() - mMarqueeOffset > mSize.x() - 12 - (mAlignment != ALIGN_CENTER ? mHorizontalMargin : 0))
+		if(textSize.x - mMarqueeOffset > mSize.x - 12 - (mAlignment != ALIGN_CENTER ? mHorizontalMargin : 0))
 		{
 			mMarqueeTime += deltaTime;
 			while(mMarqueeTime > MARQUEE_SPEED)
@@ -363,7 +363,7 @@ void TextListComponent<T>::applyTheme(const std::shared_ptr<ThemeData>& theme, c
 		if(elem->has("horizontalMargin"))
 		{
 			mHorizontalMargin = elem->get<float>("horizontalMargin") *
-				(this->mParent ? this->mParent->getSize().x() : (float)Renderer::getScreenWidth());
+				(this->mParent ? this->mParent->getSize().x : (float)Renderer::getScreenWidth());
 		}
 	}
 

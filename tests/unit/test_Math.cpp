@@ -2,7 +2,6 @@
 // both libraries on the same input. The literal values pin the expected result; the Eigen
 // side proves that glm reproduces the current behaviour and goes away with Eigen.
 #include "math/Math.h"
-#include "Util.h"
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -112,15 +111,13 @@ TEST_CASE("setTranslation only replaces the translation", "[Math]")
 	CHECK(same(g, e));
 }
 
-TEST_CASE("roundMatrix and roundVector match the Eigen versions", "[Math]")
+// The Eigen versions were removed from Util with the migration; the values below are the ones
+// both versions produced (checked side by side before the migration).
+TEST_CASE("roundMatrix and roundVector", "[Math]")
 {
-	Eigen::Affine3f e = Eigen::Affine3f::Identity();
-	e.translate(Eigen::Vector3f(10.5f, -2.5f, 0.75f));
-	e.scale(Eigen::Vector3f(1.5f, 1.5f, 1));
 	glm::mat4 g = glm::translate(glm::mat4(1.0f), glm::vec3(10.5f, -2.5f, 0.75f));
 	g = glm::scale(g, glm::vec3(1.5f, 1.5f, 1));
 
-	CHECK(same(roundMatrix(g), roundMatrix(e)));
 	// halves away from zero, z untouched, scale untouched
 	CHECK(getTranslation(roundMatrix(g)) == glm::vec3(11, -3, 0.75f));
 	CHECK(roundMatrix(g)[0][0] == 1.5f);
@@ -131,6 +128,4 @@ TEST_CASE("roundMatrix and roundVector match the Eigen versions", "[Math]")
 
 	CHECK(roundVector(glm::vec2(0.5f, -1.4f)) == glm::vec2(1, -1));
 	CHECK(roundVector(glm::vec3(2.49f, -0.5f, 7.5f)) == glm::vec3(2, -1, 8));
-	const Eigen::Vector3f eRounded = roundVector(Eigen::Vector3f(2.49f, -0.5f, 7.5f));
-	CHECK(same(roundVector(glm::vec3(2.49f, -0.5f, 7.5f)), eRounded));
 }

@@ -67,20 +67,20 @@ void SliderComponent::update(int deltaTime)
 	GuiComponent::update(deltaTime);
 }
 
-void SliderComponent::render(const Eigen::Affine3f& parentTrans)
+void SliderComponent::render(const glm::mat4& parentTrans)
 {
-	Eigen::Affine3f trans = roundMatrix(parentTrans * getTransform());
+	glm::mat4 trans = roundMatrix(parentTrans * getTransform());
 	Renderer::setMatrix(trans);
 
 	// render suffix
 	if(mValueCache)
 		mFont->renderTextCache(mValueCache.get());
 
-	float width = mSize.x() - mKnob.getSize().x() - (mValueCache ? mValueCache->metrics.size.x() + 4 : 0);
+	float width = mSize.x - mKnob.getSize().x - (mValueCache ? mValueCache->metrics.size.x + 4 : 0);
 
 	//render line
 	const float lineWidth = 2;
-	Renderer::drawRect(mKnob.getSize().x() / 2, mSize.y() / 2 - lineWidth / 2, width, lineWidth, 0x777777FF);
+	Renderer::drawRect(mKnob.getSize().x / 2, mSize.y / 2 - lineWidth / 2, width, lineWidth, 0x777777FF);
 
 	//render knob
 	mKnob.render(trans);
@@ -107,7 +107,7 @@ float SliderComponent::getValue()
 void SliderComponent::onSizeChanged()
 {
 	if(!mSuffix.empty())
-		mFont = Font::get((int)(mSize.y()), FONT_PATH_LIGHT);
+		mFont = Font::get((int)(mSize.y), FONT_PATH_LIGHT);
 
 	onValueChanged();
 }
@@ -132,16 +132,16 @@ void SliderComponent::onValueChanged()
 		ss << mSuffix;
 		const std::string max = ss.str();
 
-		Eigen::Vector2f textSize = mFont->sizeText(max);
+		glm::vec2 textSize = mFont->sizeText(max);
 		mValueCache = std::shared_ptr<TextCache>(
-			mFont->buildTextCache(val, mSize.x() - textSize.x(), (mSize.y() - textSize.y()) / 2, 0x777777FF));
-		mValueCache->metrics.size[0] = textSize.x(); // fudge the width
+			mFont->buildTextCache(val, mSize.x - textSize.x, (mSize.y - textSize.y) / 2, 0x777777FF));
+		mValueCache->metrics.size[0] = textSize.x; // fudge the width
 	}
 
 	// update knob position/size
-	mKnob.setResize(0, mSize.y() * 0.7f);
-	float lineLength = mSize.x() - mKnob.getSize().x() - (mValueCache ? mValueCache->metrics.size.x() + 4 : 0);
-	mKnob.setPosition(((mValue + mMin) / mMax) * lineLength + mKnob.getSize().x() / 2, mSize.y() / 2);
+	mKnob.setResize(0, mSize.y * 0.7f);
+	float lineLength = mSize.x - mKnob.getSize().x - (mValueCache ? mValueCache->metrics.size.x + 4 : 0);
+	mKnob.setPosition(((mValue + mMin) / mMax) * lineLength + mKnob.getSize().x / 2, mSize.y / 2);
 }
 
 std::vector<HelpPrompt> SliderComponent::getHelpPrompts()

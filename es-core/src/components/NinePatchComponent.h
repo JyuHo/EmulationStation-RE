@@ -22,12 +22,12 @@ public:
 		unsigned int centerColor = 0xFFFFFFFF);
 	~NinePatchComponent() override;
 
-	void render(const Eigen::Affine3f& parentTrans) override;
+	void render(const glm::mat4& parentTrans) override;
 
 	void onSizeChanged() override;
 
-	void fitTo(Eigen::Vector2f size, Eigen::Vector3f position = Eigen::Vector3f::Zero(),
-		Eigen::Vector2f padding = Eigen::Vector2f::Zero());
+	void fitTo(glm::vec2 size, glm::vec3 position = glm::vec3(0.0f),
+		glm::vec2 padding = glm::vec2(0.0f));
 
 	void setImagePath(const std::string& path);
 	void setEdgeColor(unsigned int edgeColor);	   // Apply a color shift to the "edge" parts of the ninepatch.
@@ -37,15 +37,15 @@ public:
 		unsigned int properties) override;
 
 private:
-	Eigen::Vector2f getCornerSize() const;
+	glm::vec2 getCornerSize() const;
 
 	void buildVertices();
 	void updateColors();
 
 	struct Vertex
 	{
-		Eigen::Vector2f pos;
-		Eigen::Vector2f tex;
+		glm::vec2 pos;
+		glm::vec2 tex;
 	};
 
 	std::unique_ptr<Vertex[]> mVertices;
