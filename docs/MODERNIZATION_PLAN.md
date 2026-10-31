@@ -642,12 +642,13 @@ facteurs de mélange passés par `ComponentList.cpp`. Détail dans `PROMPT.md`, 
   fumée) ; glad core : aucun point d'entrée du pipeline fixe n'est déclaré.
 - [x] Aucune erreur `GL_KHR_debug` : sortie active en CI par `ES_GL_DEBUG=1` (test de fumée,
   captures, preset `asan`).
-- [ ] Captures : 0 pixel avec la phase 5 pour 6a/6b (#42, comparé à `477f3fd` par #43) ;
-  écart du regroupement mesuré dans #44. *À cocher avec les résultats de CI.*
+- [x] Captures : 0 pixel avec la phase 5 sur les 9 écrans pour 6a/6b (#42, comparé à
+  `477f3fd` par #43) ; regroupement (6c, #44) : 0 pixel avec 6b.
 - [x] Retour d'un jeu lancé : capture `09-game-return` (destruction et recréation du
   contexte et des textures).
 - [x] Regroupement : ordre conservé (tests du `Batcher`) ; nombre de `glDrawArrays` par
-  image donné dans #44 (`draw-calls.txt` des captures).
+  image donné dans #44 (`draw-calls.txt` des captures) : environ 30 % de moins, par
+  exemple 56 → 40 sur la liste détaillée et 74 → 51 sur le menu.
 - [ ] 60 i/s stables sur un iGPU Intel/AMD en 1080p et 4K avec une gamelist de 1 000 jeux :
   **à vérifier par le propriétaire** (procédure ci-dessous).
 - [x] `SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED` traité (viewport et clip mis à l'échelle).
