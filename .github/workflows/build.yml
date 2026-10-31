@@ -26,7 +26,7 @@ jobs:
           pacman -Syu --noconfirm --needed \
             git cmake ninja clang \
             sdl3 freetype2 fontconfig glm curl alsa-lib libglvnd mesa libwebp ffmpeg \
-            catch2 xorg-server-xvfb imagemagick xdotool
+            gettext catch2 xorg-server-xvfb imagemagick xdotool
           # French locale for test_Locale (decimal comma). The Docker image strips
           # locale sources through NoExtract, so reinstall glibc without it first.
           sed -i '/^NoExtract/d' /etc/pacman.conf
@@ -73,6 +73,13 @@ jobs:
       - name: Build
         run: cmake --build build
 
+      - name: Check .pot up to date
+        run: |
+          cmake --build build --target es-update-pot
+          if git diff -- locale/emulationstation2.pot | grep -v 'POT-Creation-Date' | grep -q '^[+-]'; then
+            echo "locale/emulationstation2.pot is out of date"; exit 1
+          fi
+
       - name: Unit tests
         run: ctest --test-dir build --output-on-failure
 
@@ -108,7 +115,7 @@ jobs:
           pacman -Syu --noconfirm --needed \
             git cmake ninja \
             sdl3 freetype2 fontconfig glm curl alsa-lib libglvnd mesa libwebp ffmpeg \
-            catch2 xorg-server-xvfb
+            gettext catch2 xorg-server-xvfb
           # French locale for test_Locale (decimal comma). The Docker image strips
           # locale sources through NoExtract, so reinstall glibc without it first.
           sed -i '/^NoExtract/d' /etc/pacman.conf
@@ -142,7 +149,7 @@ jobs:
         run: |
           pacman -Syu --noconfirm --needed \
             git cmake ninja \
-            sdl3 freetype2 fontconfig glm curl alsa-lib libglvnd mesa libwebp ffmpeg \
+            sdl3 freetype2 fontconfig glm curl alsa-lib libglvnd mesa libwebp ffmpeg gettext \
             xorg-server-xvfb imagemagick xdotool
 
       - uses: actions/checkout@v5
