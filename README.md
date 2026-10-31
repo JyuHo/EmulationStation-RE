@@ -53,8 +53,8 @@ Raspberry Pi, Windows, macOS et OpenGL ES ne sont plus pris en charge.
 | 2 | Zéro avertissement, `-Werror`, clang-format/tidy, tests Catch2, test de fumée, journal | fait (PR #2) |
 | 3 | Suppression de Boost, chemins XDG, propriété mémoire | fait (PR #3 à #28) |
 | 4 | Eigen → glm | fait (PR #30 à #32) |
-| 5 | SDL2 → SDL3 | **prochaine étape** |
-| 6 | Rendu OpenGL 3.3 core | à faire |
+| 5 | SDL2 → SDL3, manettes reconnues par `SDL_Gamepad` | fait (PR #33 à #35) |
+| 6 | Rendu OpenGL 3.3 core | **prochaine étape** |
 | 7 | Images animées, chargement asynchrone, cache | à faire |
 | 8 | Audio (sons, musique de fond) | à faire |
 | 9 | Vidéo avec FFmpeg | à faire |
@@ -150,7 +150,7 @@ Les variables `XDG_*` vides ou relatives sont ignorées.
 
 | Contenu | Dossier utilisateur (lecture et écriture) | Dossiers système (lecture seule, en repli) |
 |---------|-------------------------------------------|--------------------------------------------|
-| `es_systems.cfg`, `es_settings.cfg`, `es_input.cfg`, `es_theme_default.xml` | `$XDG_CONFIG_HOME/emulationstation/` (défaut `~/.config/emulationstation/`) | `$XDG_CONFIG_DIRS/emulationstation/` (défaut `/etc/xdg/emulationstation/`), puis `<sysconfdir>/xdg/emulationstation/` |
+| `es_systems.cfg`, `es_settings.cfg`, `es_input.cfg`, `gamecontrollerdb.txt`, `es_theme_default.xml` | `$XDG_CONFIG_HOME/emulationstation/` (défaut `~/.config/emulationstation/`) | `$XDG_CONFIG_DIRS/emulationstation/` (défaut `/etc/xdg/emulationstation/`), puis `<sysconfdir>/xdg/emulationstation/` |
 | `themes/`, `gamelists/<système>/gamelist.xml`, `downloaded_images/` | `$XDG_DATA_HOME/emulationstation/` (défaut `~/.local/share/emulationstation/`) | `$XDG_DATA_DIRS/emulationstation/` (défaut `/usr/local/share` puis `/usr/share`), puis `<datadir>/emulationstation/`, puis `<dossier du binaire>/../share/emulationstation/` |
 | `es_log.txt` | `$XDG_STATE_HOME/emulationstation/` (défaut `~/.local/state/emulationstation/`) | — |
 | caches (à venir) | `$XDG_CACHE_HOME/emulationstation/` (défaut `~/.cache/emulationstation/`) | — |
@@ -217,16 +217,27 @@ dossier est ignoré ; si aucun système n'est valide, ES affiche une erreur et s
 
 ## Manettes et clavier
 
-Au premier lancement, ES demande de configurer un périphérique :
+Les manettes que SDL3 reconnaît (Xbox, DualSense, 8BitDo et la plupart des modèles
+courants, base intégrée à SDL) sont utilisables dès qu'elles sont branchées, sans
+configuration : croix directionnelle, A = bouton du bas, B = bouton de droite, Start,
+Select (Back), gâchettes L/R pour page précédente/suivante. Pour le placement Nintendo
+(A à droite), mettez `<bool name="GamepadSwapAB" value="true" />` dans `es_settings.cfg`.
+Une manette absente de la base de SDL se décrit dans un fichier `gamecontrollerdb.txt`
+(format de [SDL_GameControllerDB](https://github.com/mdqinc/SDL_GameControllerDB)) placé
+dans le dossier de configuration (`~/.config/emulationstation/`), ou dans
+`/etc/xdg/emulationstation/` pour tout le système.
+
+Les autres périphériques, et le clavier, se configurent au premier lancement :
 
 1. maintenez un bouton du périphérique à configurer (le clavier compte aussi) ;
 2. appuyez sur les boutons demandés ; maintenir un bouton quelques secondes passe une entrée facultative ;
 3. vérifiez avec haut/bas, corrigez avec A, puis choisissez « SAVE ».
 
 La configuration est enregistrée dans `es_input.cfg`. On peut la refaire à tout moment
-depuis le menu (Start → « CONFIGURE INPUT »). Si une manette ne répond plus, supprimez
-`es_input.cfg` pour relancer l'assistant. La reconnaissance automatique des manettes par
-SDL3 arrive en phase 5 ; l'assistant restera disponible en repli.
+depuis le menu (Start → « CONFIGURE INPUT »), y compris pour une manette reconnue : la
+configuration enregistrée dans `es_input.cfg` passe avant celle par défaut. Si une manette
+ne répond plus, supprimez son entrée de `es_input.cfg` (ou le fichier) pour revenir à la
+configuration par défaut ou relancer l'assistant.
 
 ## Listes de jeux et scraping
 

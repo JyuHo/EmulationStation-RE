@@ -16,8 +16,8 @@
 | 2 | Hygiène C++23 et outillage (clang-format, clang-tidy, tests, logs) | 1 | M (fait, PR #2) |
 | 3 | Suppression de Boost + module de chemins **XDG** (std::filesystem, std::chrono, std::variant) | 2 | M (**fait** : 3.A à 3.E) |
 | 4 | Remplacement d'Eigen par une petite bibliothèque mathématique (glm) | 2 | M (**fait** : PR #30 à #32) |
-| 5 | Migration SDL2 → SDL3 (fenêtre, événements, manettes, audio) | 3, 4 | L (**prochaine étape**) |
-| 6 | Nouveau moteur de rendu OpenGL 3.3 core à shaders | 5 | L |
+| 5 | Migration SDL2 → SDL3 (fenêtre, événements, manettes, audio) | 3, 4 | L (**fait** : PR #33 à #35) |
+| 6 | Nouveau moteur de rendu OpenGL 3.3 core à shaders | 5 | L (**prochaine étape**) |
 | 7 | Images : WebP/GIF animés, chargement asynchrone, cache VRAM | 6 | M |
 | 8 | Audio : sons de navigation et musique de fond sur SDL3 | 5 | M |
 | 9 | Vidéo : lecture des « snaps » avec FFmpeg | 6, 8 | L |
@@ -547,9 +547,36 @@ comme en phase 4, trois PR.
   manettes reconnues, `gamecontrollerdb.txt`, clôture (documentation, `sdl2-compat` retiré
   du job de captures).
 
+### Écarts constatés
+- Les manettes reconnues ne passent pas par les événements `SDL_EVENT_GAMEPAD_*` : ES lit
+  toujours les événements joystick bruts, et la configuration par défaut d'une manette
+  reconnue traduit chaque bouton standard en l'entrée joystick qui l'alimente
+  (`InputManager::mapGamepadDefaults`, via `SDL_GetGamepadBindings`). `InputConfig`,
+  `es_input.cfg`, `GuiInputConfig` et les aides restent inchangés ; une entrée de
+  `es_input.cfg` passe avant la configuration par défaut. Une manette dont un des dix
+  boutons n'a pas de liaison est traitée comme un joystick inconnu (assistant).
+- Inversion A/B : réglage `GamepadSwapAB` de `es_settings.cfg`, sans écran pour l'instant
+  (le menu des réglages sera repris avec les menus thémés, phase 11).
+- Au premier lancement, l'écran de configuration est sauté si une manette reconnue est
+  branchée (avant : il fallait un `es_input.cfg`).
+- Redimensionnement de la fenêtre (`SDL_EVENT_WINDOW_*`) : non fait, la fenêtre n'est pas
+  redimensionnable ; à reprendre avec le moteur de rendu (phase 6).
+- Contexte GL laissé en profil compatibilité : le 3.3 core vient avec la phase 6.
+
 ### Critères d'acceptation
-- Plus aucune référence à `SDL2`. Navigation au clavier et à la manette (Xbox, DualSense,
-  8BitDo testés si possible), branchement à chaud, saisie de texte, sons de navigation.
+- [x] Plus aucune référence à `SDL2` dans le code, CMake et la CI (la documentation et les
+  commentaires historiques en parlent encore).
+- [x] Navigation au clavier : captures scriptées identiques au pixel près entre SDL2 et SDL3
+  (8 écrans, RelWithDebInfo et Debug+ASan).
+- [~] Manette : vérifiée avec des joysticks et manettes **virtuels** de SDL (axes, boutons,
+  chapeau, configuration par défaut, inversion A/B, `es_input.cfg` prioritaire,
+  `gamecontrollerdb.txt`) ; **Xbox, DualSense, 8BitDo non testés** faute de matériel.
+- [x] Branchement à chaud : joystick et manette virtuels branchés et débranchés pendant
+  l'exécution (`test_Input.cpp`).
+- [x] Saisie de texte : écran `08-text-input` (« Beta RacerAbc ») en SDL3.
+- [x] Sons de navigation : sons du thème de la fixture chargés et joués sur le pilote
+  `dummy` à chaque capture ; `test_Audio.cpp` (conversion, lecture, arrêt). Sortie sur une
+  vraie carte son non vérifiée ici.
 
 ---
 

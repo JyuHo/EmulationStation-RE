@@ -2,10 +2,12 @@
 // GUI for each SDL event, and the es_input.cfg format, which must stay readable.
 #include "InputConfig.h"
 #include "InputManager.h"
+#include "Settings.h"
 #include "Window.h"
 #include "utils/Paths.h"
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 #include <SDL3/SDL.h>
 
 #include <chrono>
@@ -224,7 +226,7 @@ TEST_CASE("a joystick can be plugged, used and unplugged", "[Input]")
 	InputConfig* config = im->getInputConfigByDevice(id);
 	REQUIRE(config != nullptr);
 	CHECK(config->getDeviceId() == id);
-	CHECK(!config->isConfigured()); // not in es_input.cfg
+	CHECK(!config->isConfigured()); // not in es_input.cfg, and too few buttons for a default gamepad mapping
 	CHECK(im->getDeviceGUIDString(id) == config->getDeviceGUIDString());
 	CHECK(config->getDeviceGUIDString().size() == 32);
 	CHECK(im->getButtonCountByDevice(id) == 4);
@@ -265,4 +267,119 @@ TEST_CASE("a joystick can be plugged, used and unplugged", "[Input]")
 	// unplugging recenters the axis that was still pushed
 	REQUIRE(inputs.size() == 1);
 	CHECK(sameInput(inputs[0], Input(id, TYPE_AXIS, 1, 0, false)));
+}
+
+namespace {
+
+// A virtual gamepad whose joystick button i is gamepad button i (SOUTH = 0 ... DPAD_RIGHT = 14).
+SDL_JoystickID attachVirtualGamepad()
+{
+	SDL_VirtualJoystickDesc desc;
+	SDL_INIT_INTERFACE(&desc);
+	desc.type = SDL_JOYSTICK_TYPE_GAMEPAD;
+	desc.nbuttons = SDL_GAMEPAD_BUTTON_DPAD_RIGHT + 1;
+	desc.button_mask = (1u << desc.nbuttons) - 1;
+	desc.name = "ES test gamepad";
+	return SDL_AttachVirtualJoystick(&desc);
+}
+
+} // namespace
+
+TEST_CASE("a recognized gamepad gets a default configuration", "[Input]")
+{
+	const bool swapAB = GENERATE(false, true);
+	InputFixture fixture(kKeyboardConfig);
+	Settings::getInstance()->setBool("GamepadSwapAB", swapAB);
+	InputManager* im = InputManager::getInstance();
+
+	const SDL_JoystickID virtualId = attachVirtualGamepad();
+	REQUIRE(virtualId != 0);
+	fixture.pump();
+	REQUIRE(SDL_IsGamepad(virtualId));
+
+	const int id = (int)virtualId;
+	InputConfig* config = im->getInputConfigByDevice(id);
+	REQUIRE(config != nullptr);
+	CHECK(config->isConfigured());
+	CHECK(im->getNumConfiguredDevices() == 2); // keyboard and gamepad
+
+	auto button = [id](SDL_GamepadButton b) {
+		return Input(id, TYPE_BUTTON, b, 1, false);
+	};
+	CHECK(config->isMappedTo("a", button(swapAB ? SDL_GAMEPAD_BUTTON_EAST : SDL_GAMEPAD_BUTTON_SOUTH)));
+	CHECK(config->isMappedTo("b", button(swapAB ? SDL_GAMEPAD_BUTTON_SOUTH : SDL_GAMEPAD_BUTTON_EAST)));
+	CHECK(config->isMappedTo("start", button(SDL_GAMEPAD_BUTTON_START)));
+	CHECK(config->isMappedTo("select", button(SDL_GAMEPAD_BUTTON_BACK)));
+	CHECK(config->isMappedTo("pageup", button(SDL_GAMEPAD_BUTTON_LEFT_SHOULDER)));
+	CHECK(config->isMappedTo("pagedown", button(SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER)));
+	CHECK(config->isMappedTo("up", button(SDL_GAMEPAD_BUTTON_DPAD_UP)));
+	CHECK(config->isMappedTo("down", button(SDL_GAMEPAD_BUTTON_DPAD_DOWN)));
+	CHECK(config->isMappedTo("left", button(SDL_GAMEPAD_BUTTON_DPAD_LEFT)));
+	CHECK(config->isMappedTo("right", button(SDL_GAMEPAD_BUTTON_DPAD_RIGHT)));
+
+	// its buttons arrive as joystick inputs, which the GUI reads through the configuration
+	SDL_Joystick* joystick = SDL_OpenJoystick(virtualId);
+	REQUIRE(joystick != nullptr);
+	SDL_SetJoystickVirtualButton(joystick, SDL_GAMEPAD_BUTTON_SOUTH, true);
+	fixture.pump();
+	auto& inputs = fixture.recorder->inputs;
+	REQUIRE(inputs.size() == 1);
+	CHECK(config->isMappedTo(swapAB ? "b" : "a", inputs[0]));
+	SDL_CloseJoystick(joystick);
+
+	REQUIRE(SDL_DetachVirtualJoystick(virtualId));
+	fixture.pump();
+	CHECK(im->getNumConfiguredDevices() == 1);
+}
+
+TEST_CASE("es_input.cfg wins over the default gamepad configuration", "[Input]")
+{
+	InputFixture fixture(kKeyboardConfig);
+	InputManager* im = InputManager::getInstance();
+	const SDL_JoystickID virtualId = attachVirtualGamepad();
+	REQUIRE(virtualId != 0);
+	fixture.pump();
+
+	// the user maps "a" to the north button and saves
+	InputConfig* config = im->getInputConfigByDevice((int)virtualId);
+	REQUIRE(config != nullptr);
+	config->mapInput("a", Input((int)virtualId, TYPE_BUTTON, SDL_GAMEPAD_BUTTON_NORTH, 1, true));
+	im->writeDeviceConfig(config);
+
+	// plugged again: the saved configuration is used
+	REQUIRE(SDL_DetachVirtualJoystick(virtualId));
+	fixture.pump();
+	const SDL_JoystickID again = attachVirtualGamepad();
+	REQUIRE(again != 0);
+	fixture.pump();
+	config = im->getInputConfigByDevice((int)again);
+	REQUIRE(config != nullptr);
+	CHECK(config->isMappedTo("a", Input((int)again, TYPE_BUTTON, SDL_GAMEPAD_BUTTON_NORTH, 1, false)));
+	CHECK(!config->isMappedTo("a", Input((int)again, TYPE_BUTTON, SDL_GAMEPAD_BUTTON_SOUTH, 1, false)));
+	REQUIRE(SDL_DetachVirtualJoystick(again));
+	fixture.pump();
+}
+
+TEST_CASE("gamecontrollerdb.txt in the configuration directory adds mappings", "[Input]")
+{
+	// a mapping for a made-up device: "a" on button 5, d-pad on hat 0
+	const std::string guid = "03000000aaaa0000bbbb000000000000";
+	const std::string mapping = guid +
+		",ES test pad,a:b5,b:b4,x:b3,y:b2,back:b1,start:b0,leftshoulder:b6,"
+		"rightshoulder:b7,dpup:h0.1,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,platform:Linux,";
+	const fs::path home = fs::temp_directory_path() / ("es-test-gcdb-" + std::to_string(::getpid()));
+	fs::remove_all(home);
+	fs::create_directories(home / "config/emulationstation");
+	std::ofstream(home / "config/emulationstation/gamecontrollerdb.txt") << mapping << "\n";
+	es::paths::setHome(home);
+
+	InputManager::getInstance()->init();
+	char* found = SDL_GetGamepadMappingForGUID(SDL_StringToGUID(guid.c_str()));
+	REQUIRE(found != nullptr);
+	CHECK(std::string(found).starts_with(guid + ",ES test pad,"));
+	SDL_free(found);
+	InputManager::getInstance()->deinit();
+
+	es::paths::clearHome();
+	fs::remove_all(home);
 }

@@ -23,6 +23,7 @@ private:
 	void loadDefaultKBConfig();
 
 	std::map<SDL_JoystickID, SDL_Joystick*> mJoysticks;
+	std::map<SDL_JoystickID, SDL_Gamepad*> mGamepads; // the joysticks SDL recognizes as gamepads
 	std::map<SDL_JoystickID, std::unique_ptr<InputConfig>> mInputConfigs;
 	std::unique_ptr<InputConfig> mKeyboardInputConfig;
 
@@ -42,6 +43,10 @@ public:
 
 	void writeDeviceConfig(InputConfig* config);
 	static std::string getConfigPath();
+
+	// Fills config with the joystick inputs behind the standard gamepad buttons (A = south button,
+	// or east one if swapAB). Returns false, with config left empty, if a button has no binding.
+	static bool mapGamepadDefaults(InputConfig& config, SDL_Gamepad* gamepad, bool swapAB);
 
 	void init();
 	void deinit();
