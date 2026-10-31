@@ -405,7 +405,7 @@ conséquences visibles.
 
 ```bash
 # Dépendances (état après la phase 3 ; adapter selon l'annexe A du plan)
-sudo pacman -S --needed base-devel cmake ninja clang sdl2-compat freetype2 fontconfig glm \
+sudo pacman -S --needed base-devel cmake ninja clang sdl3 freetype2 fontconfig glm \
     curl alsa-lib libglvnd mesa libwebp catch2 xorg-server-xvfb imagemagick xdotool
 
 # Build GCC et Clang
