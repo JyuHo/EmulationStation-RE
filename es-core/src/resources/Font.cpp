@@ -294,29 +294,16 @@ void Font::FontTexture::initTexture()
 {
 	assert(textureId == 0);
 
-	glGenTextures(1, &textureId);
-	glBindTexture(GL_TEXTURE_2D, textureId);
-
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-	glPixelStorei(GL_PACK_ALIGNMENT, 1);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, textureSize.x, textureSize.y, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
-	// swizzle: RGBA = (1, 1, 1, R) so font color comes from vertex color and alpha from atlas
-	GLint swizzle[] = { GL_ONE, GL_ONE, GL_ONE, GL_RED };
-	glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
+	// one channel, sampled as (1, 1, 1, a); empty until the glyphs are uploaded
+	textureId = Renderer::createTexture(
+		Renderer::TextureFormat::Alpha8, Renderer::TextureFilter::Nearest, false, textureSize, nullptr);
 }
 
 void Font::FontTexture::deinitTexture()
 {
 	if(textureId != 0)
 	{
-		glDeleteTextures(1, &textureId);
+		Renderer::destroyTexture(textureId);
 		textureId = 0;
 	}
 }
@@ -470,10 +457,7 @@ Font::Glyph* Font::getGlyph(UnicodeChar id)
 	glyph.bearing = {(float)g->metrics.horiBearingX / 64.0f, (float)g->metrics.horiBearingY / 64.0f};
 
 	// upload glyph bitmap to texture
-	glBindTexture(GL_TEXTURE_2D, tex->textureId);
-	glTexSubImage2D(
-		GL_TEXTURE_2D, 0, cursor.x, cursor.y, glyphSize.x, glyphSize.y, GL_RED, GL_UNSIGNED_BYTE, g->bitmap.buffer);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	Renderer::updateTexture(tex->textureId, Renderer::TextureFormat::Alpha8, cursor, glyphSize, g->bitmap.buffer);
 
 	// update max glyph height
 	if(glyphSize.y > mMaxGlyphHeight)
@@ -508,12 +492,9 @@ void Font::rebuildTextures()
 		glm::ivec2 glyphSize(it->second.texSize.x * tex->textureSize.x, it->second.texSize.y * tex->textureSize.y);
 
 		// upload to texture
-		glBindTexture(GL_TEXTURE_2D, tex->textureId);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, cursor.x, cursor.y, glyphSize.x, glyphSize.y, GL_RED, GL_UNSIGNED_BYTE,
-			glyphSlot->bitmap.buffer);
+		Renderer::updateTexture(
+			tex->textureId, Renderer::TextureFormat::Alpha8, cursor, glyphSize, glyphSlot->bitmap.buffer);
 	}
-
-	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void Font::renderTextCache(TextCache* cache)
@@ -528,17 +509,7 @@ void Font::renderTextCache(TextCache* cache)
 	{
 		assert(*it->textureIdPtr != 0);
 
-		auto vertexList = *it;
-
-		std::vector<Renderer::Vertex> verts(it->verts.size());
-		for(size_t i = 0; i < it->verts.size(); i++)
-		{
-			verts[i].pos = it->verts[i].pos;
-			verts[i].tex = it->verts[i].tex;
-			verts[i].color = ((unsigned int)it->colors[i * 4]) << 24 | ((unsigned int)it->colors[i * 4 + 1]) << 16 |
-				((unsigned int)it->colors[i * 4 + 2]) << 8 | ((unsigned int)it->colors[i * 4 + 3]);
-		}
-		Renderer::drawTriangles(std::span<const Renderer::Vertex>(verts), *it->textureIdPtr, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		Renderer::drawTriangles(it->verts, *it->textureIdPtr);
 	}
 }
 
@@ -718,7 +689,7 @@ std::unique_ptr<TextCache> Font::buildTextCache(
 	float y = offset[1] + (yBot + yTop) / 2.0f;
 
 	// vertices by texture
-	std::map<FontTexture*, std::vector<TextCache::Vertex>> vertMap;
+	std::map<FontTexture*, std::vector<Renderer::Vertex>> vertMap;
 
 	size_t cursor = 0;
 	UnicodeChar character;
@@ -743,10 +714,10 @@ std::unique_ptr<TextCache> Font::buildTextCache(
 		if(glyph == nullptr)
 			continue;
 
-		std::vector<TextCache::Vertex>& verts = vertMap[glyph->texture];
+		std::vector<Renderer::Vertex>& verts = vertMap[glyph->texture];
 		size_t oldVertSize = verts.size();
 		verts.resize(oldVertSize + 6);
-		TextCache::Vertex* tri = verts.data() + oldVertSize;
+		Renderer::Vertex* tri = verts.data() + oldVertSize;
 
 		const float glyphStartX = x + glyph->bearing.x;
 
@@ -786,15 +757,17 @@ std::unique_ptr<TextCache> Font::buildTextCache(
 	cache->metrics = {sizeText(text, lineSpacing)};
 
 	unsigned int i = 0;
-	for(auto it = vertMap.begin(); it != vertMap.end(); it++)
+	for(auto it = vertMap.begin(); it != vertMap.end(); it++, i++)
 	{
+		// one list per atlas (i was never incremented: a text spread over two atlases kept a
+		// list with an uninitialized texture pointer)
 		TextCache::VertexList& vertList = cache->vertexLists.at(i);
 
 		vertList.textureIdPtr = &it->first->textureId;
 		vertList.verts = it->second;
 
-		vertList.colors.resize(4 * it->second.size());
-		Renderer::buildGLColorArray(vertList.colors.data(), color, it->second.size());
+		for(Renderer::Vertex& vertex : vertList.verts)
+			vertex.color = Renderer::convertColor(color);
 	}
 
 	clearFaceCache();
@@ -811,7 +784,10 @@ std::unique_ptr<TextCache> Font::buildTextCache(
 void TextCache::setColor(unsigned int color)
 {
 	for(auto it = vertexLists.begin(); it != vertexLists.end(); it++)
-		Renderer::buildGLColorArray(it->colors.data(), color, it->verts.size());
+	{
+		for(Renderer::Vertex& vertex : it->verts)
+			vertex.color = Renderer::convertColor(color);
+	}
 }
 
 std::shared_ptr<Font> Font::getFromTheme(

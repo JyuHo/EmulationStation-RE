@@ -11,7 +11,11 @@ set(CORE_HEADERS
 	src/math/Math.h
 	src/platform.h
 	src/utils/Paths.h
+	src/renderer/GL.h
+	src/renderer/Internal.h
 	src/renderer/Renderer.h
+	src/renderer/Shader.h
+	src/renderer/Shaders.h
 	src/Settings.h
 	src/Sound.h
 	src/ThemeData.h
@@ -73,6 +77,8 @@ set(CORE_SOURCES
 	src/utils/Paths.cpp
 	src/renderer/Renderer.cpp
 	src/renderer/Renderer_init.cpp
+	src/renderer/Shader.cpp
+	src/renderer/Texture.cpp
 	src/Settings.cpp
 	src/Sound.cpp
 	src/ThemeData.cpp

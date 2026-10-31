@@ -216,9 +216,6 @@ int main(int argc, char* argv[])
 			return 1;
 		}
 
-		const GLubyte* glVersion = glGetString(GL_VERSION);
-		LOG(LogInfo) << "OpenGL version: " << (glVersion ? (const char*)glVersion : "unknown");
-
 		window.renderLoadingScreen();
 	}
 

@@ -1,9 +1,5 @@
 #pragma once
 
-// desktop OpenGL, through SDL
-#define GL_GLEXT_PROTOTYPES
-#define GLHEADER <GL/glcorearb.h>
-
 #include <string>
 
 int runShutdownCommand(); // shut down the system (returns 0 if successful)

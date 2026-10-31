@@ -1,8 +1,7 @@
 #pragma once
 
 #include <string>
-#include "platform.h"
-#include GLHEADER
+#include "renderer/Renderer.h"
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include "math/Math.h"
@@ -86,7 +85,7 @@ private:
 
 	struct FontTexture
 	{
-		GLuint textureId;
+		Renderer::TextureHandle textureId;
 		glm::ivec2 textureSize;
 
 		glm::ivec2 writePos;
@@ -156,18 +155,11 @@ private:
 class TextCache
 {
 protected:
-	struct Vertex
-	{
-		glm::vec2 pos;
-		glm::vec2 tex;
-	};
-
 	struct VertexList
 	{
-		GLuint*
-			textureIdPtr; // this is a pointer because the texture ID can change during deinit/reinit (when launching a game)
-		std::vector<Vertex> verts;
-		std::vector<GLubyte> colors;
+		// a pointer because the texture changes during deinit/reinit (when launching a game)
+		Renderer::TextureHandle* textureIdPtr;
+		std::vector<Renderer::Vertex> verts;
 	};
 
 	std::vector<VertexList> vertexLists;

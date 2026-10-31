@@ -247,7 +247,9 @@ void ImageComponent::updateVertices()
 
 void ImageComponent::updateColors()
 {
-	Renderer::buildGLColorArray(mColors, mColorShift, 6);
+	const std::uint32_t color = Renderer::convertColor(mColorShift);
+	for(Renderer::Vertex& vertex : mVertices)
+		vertex.color = color;
 }
 
 void ImageComponent::render(const glm::mat4& parentTrans)
@@ -260,18 +262,7 @@ void ImageComponent::render(const glm::mat4& parentTrans)
 		if(mTexture->isInitialized())
 		{
 			// actually draw the image
-			mTexture->bind();
-
-			Renderer::Vertex verts[6];
-			for(int i = 0; i < 6; i++)
-			{
-				verts[i].pos = mVertices[i].pos;
-				verts[i].tex = mVertices[i].tex;
-				// pack color bytes
-				verts[i].color = ((unsigned int)mColors[i*4]) << 24 | ((unsigned int)mColors[i*4+1]) << 16 |
-					((unsigned int)mColors[i*4+2]) << 8 | ((unsigned int)mColors[i*4+3]);
-			}
-			Renderer::drawTriangles(std::span<const Renderer::Vertex>(verts, 6), mTexture->getTextureID(), GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			Renderer::drawTriangles(mVertices, mTexture->getTextureHandle());
 		}
 		else
 		{
