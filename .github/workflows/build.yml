@@ -25,7 +25,7 @@ jobs:
         run: |
           pacman -Syu --noconfirm --needed \
             git cmake ninja clang \
-            sdl3 freetype2 fontconfig glm curl alsa-lib libglvnd mesa libwebp libavif \
+            sdl3 freetype2 fontconfig glm curl alsa-lib libglvnd mesa libwebp libavif ffmpeg \
             catch2 xorg-server-xvfb imagemagick xdotool
           # French locale for test_Locale (decimal comma). The Docker image strips
           # locale sources through NoExtract, so reinstall glibc without it first.
@@ -107,7 +107,7 @@ jobs:
         run: |
           pacman -Syu --noconfirm --needed \
             git cmake ninja \
-            sdl3 freetype2 fontconfig glm curl alsa-lib libglvnd mesa libwebp libavif \
+            sdl3 freetype2 fontconfig glm curl alsa-lib libglvnd mesa libwebp libavif ffmpeg \
             catch2 xorg-server-xvfb
           # French locale for test_Locale (decimal comma). The Docker image strips
           # locale sources through NoExtract, so reinstall glibc without it first.
@@ -142,7 +142,7 @@ jobs:
         run: |
           pacman -Syu --noconfirm --needed \
             git cmake ninja \
-            sdl3 freetype2 fontconfig glm curl alsa-lib libglvnd mesa libwebp libavif \
+            sdl3 freetype2 fontconfig glm curl alsa-lib libglvnd mesa libwebp libavif ffmpeg \
             xorg-server-xvfb imagemagick xdotool
 
       - uses: actions/checkout@v5
