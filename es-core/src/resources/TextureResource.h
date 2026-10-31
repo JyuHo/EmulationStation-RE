@@ -23,6 +23,7 @@ public:
 	bool isTiled() const;
 	const glm::ivec2& getSize() const;
 	void bind() const;
+	GLuint getTextureID() const { return mTextureID; }
 
 	// Warning: will NOT correctly reinitialize when this texture is reloaded (e.g. ES starts/stops playing a game).
 	virtual void initFromMemory(const char* file, size_t length);

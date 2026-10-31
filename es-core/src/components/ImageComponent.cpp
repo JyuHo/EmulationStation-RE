@@ -262,26 +262,16 @@ void ImageComponent::render(const glm::mat4& parentTrans)
 			// actually draw the image
 			mTexture->bind();
 
-			glEnable(GL_TEXTURE_2D);
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-			glEnableClientState(GL_VERTEX_ARRAY);
-			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-			glEnableClientState(GL_COLOR_ARRAY);
-
-			glVertexPointer(2, GL_FLOAT, sizeof(Vertex), &mVertices[0].pos);
-			glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), &mVertices[0].tex);
-			glColorPointer(4, GL_UNSIGNED_BYTE, 0, mColors);
-
-			glDrawArrays(GL_TRIANGLES, 0, 6);
-
-			glDisableClientState(GL_VERTEX_ARRAY);
-			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-			glDisableClientState(GL_COLOR_ARRAY);
-
-			glDisable(GL_TEXTURE_2D);
-			glDisable(GL_BLEND);
+			Renderer::Vertex verts[6];
+			for(int i = 0; i < 6; i++)
+			{
+				verts[i].pos = mVertices[i].pos;
+				verts[i].tex = mVertices[i].tex;
+				// pack color bytes
+				verts[i].color = ((unsigned int)mColors[i*4]) << 24 | ((unsigned int)mColors[i*4+1]) << 16 |
+					((unsigned int)mColors[i*4+2]) << 8 | ((unsigned int)mColors[i*4+3]);
+			}
+			Renderer::drawTriangles(std::span<const Renderer::Vertex>(verts, 6), mTexture->getTextureID(), GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		}
 		else
 		{

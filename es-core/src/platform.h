@@ -1,7 +1,8 @@
 #pragma once
 
 // desktop OpenGL, through SDL
-#define GLHEADER <SDL3/SDL_opengl.h>
+#define GL_GLEXT_PROTOTYPES
+#define GLHEADER <GL/glcorearb.h>
 
 #include <string>
 

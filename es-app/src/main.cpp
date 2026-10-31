@@ -216,10 +216,8 @@ int main(int argc, char* argv[])
 			return 1;
 		}
 
-		std::string glExts = (const char*)glGetString(GL_EXTENSIONS);
-		LOG(LogInfo) << "Checking available OpenGL extensions...";
-		LOG(LogInfo) << " ARB_texture_non_power_of_two: "
-					 << (glExts.find("ARB_texture_non_power_of_two") != std::string::npos ? "ok" : "MISSING");
+		const GLubyte* glVersion = glGetString(GL_VERSION);
+		LOG(LogInfo) << "OpenGL version: " << (glVersion ? (const char*)glVersion : "unknown");
 
 		window.renderLoadingScreen();
 	}

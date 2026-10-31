@@ -362,19 +362,18 @@ void ComponentGrid::render(const glm::mat4& parentTrans)
 	{
 		Renderer::setMatrix(trans);
 
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glEnableClientState(GL_COLOR_ARRAY);
-
-		glVertexPointer(2, GL_FLOAT, 0, &mLines[0].x);
-		glColorPointer(4, GL_UNSIGNED_BYTE, 0, mLineColors.data());
-
-		glDrawArrays(GL_LINES, 0, mLines.size());
-
-		glDisable(GL_BLEND);
-		glDisableClientState(GL_VERTEX_ARRAY);
-		glDisableClientState(GL_COLOR_ARRAY);
+		std::vector<Renderer::Vertex> verts(mLines.size());
+		for(size_t i = 0; i < mLines.size(); i++)
+		{
+			verts[i].pos = { mLines[i].x, mLines[i].y };
+			verts[i].tex = { 0, 0 };
+			if(i * 4 + 3 < mLineColors.size())
+				verts[i].color = ((unsigned int)mLineColors[i * 4]) << 24 | ((unsigned int)mLineColors[i * 4 + 1]) << 16 |
+					((unsigned int)mLineColors[i * 4 + 2]) << 8 | ((unsigned int)mLineColors[i * 4 + 3]);
+			else
+				verts[i].color = 0xFFFFFFFF;
+		}
+		Renderer::drawLines(std::span<const Renderer::Vertex>(verts), GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 }
 
