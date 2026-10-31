@@ -133,9 +133,8 @@ jobs:
         run: |
           pacman -Syu --noconfirm --needed \
             git cmake ninja \
-            sdl3 sdl2-compat freetype2 fontconfig glm curl alsa-lib libglvnd mesa libwebp \
+            sdl3 freetype2 fontconfig glm curl alsa-lib libglvnd mesa libwebp \
             xorg-server-xvfb imagemagick xdotool
-          # sdl2-compat: the base branch may still use SDL2 (until phase 5 is merged)
 
       - uses: actions/checkout@v5
         with:

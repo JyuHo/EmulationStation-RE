@@ -12,7 +12,7 @@
 
 > Section à lire en premier. Elle décrit l'état réel du dépôt et dit exactement où
 > reprendre. **Mets-la à jour à la fin de chaque phase** (c'est la mémoire du projet entre
-> deux agents). Dernière mise à jour : 31/10/2026, fin de la phase 4 (PR #30 à #32, à
+> deux agents). Dernière mise à jour : 31/10/2026, fin de la phase 5 (PR #33 à #35, à
 > fusionner dans cet ordre). Audit précédent : [`docs/AUDIT.md`](docs/AUDIT.md).
 
 ### 0.1 État au moment de la passation
@@ -26,8 +26,9 @@
 | 3.D — Propriété mémoire (`unique_ptr`) | **terminée** pour cette phase (reste : arbre `FileData`/`SystemData`, `delete this` des GUI) | #6–#23, #26, #27 |
 | 3.E — Finitions de la phase 3 (issues de l'audit) | **terminée** : XDG (#25), job `asan` (#26), locale numérique et restes Windows (#28) | #25, #26, #28 |
 | 4 — Eigen → glm | **terminée** : glm, `math/Math.h`, captures identiques au pixel près, Eigen retiré ; correctif des chemins `./` des thèmes | #30, #31, #32 |
-| **5 — SDL2 → SDL3** | **prochaine étape** (voir 0.2) | — |
-| 6 à 12 | à faire | — |
+| 5 — SDL2 → SDL3 | **terminée** : SDL3 partout, manettes reconnues par `SDL_Gamepad` avec configuration par défaut, captures identiques au pixel près ; manettes réelles non testées | #33, #34, #35 |
+| **6 — OpenGL 3.3 core** | **prochaine étape** (voir 0.2) | — |
+| 7 à 12 | à faire | — |
 
 Toutes les PR ont été fusionnées par **merge commit** : le commit de reformatage
 `4b943d7` est dans l'historique et `.git-blame-ignore-revs` est valide.
@@ -36,7 +37,7 @@ Ce qui existe et que tu dois **réutiliser** (ne le recrée pas) :
 - `CMakePresets.json` : configure/build/test presets `debug` (tests + `-Werror`), `release`,
   `relwithdebinfo`, `asan`, `clang-debug`.
 - `es-app-lib` : toutes les sources de `es-app` sauf `main.cpp` (cible à lier dans les tests).
-- `tests/unit/*.cpp` (Catch2 v3, 42 cas : `ImageIO`, `MetaData`, `ThemeData`, `Paths`,
+- `tests/unit/*.cpp` (Catch2 v3, 45 cas : `ImageIO`, `MetaData`, `ThemeData`, `Paths`,
   `Util`, `Window`, `Locale`, `Math`, `Input`, `Audio`) et `tests/data/` (fixtures). Ajoute tes tests ici,
   un fichier par module (`test_<Module>.cpp`), et déclare-les dans `tests/CMakeLists.txt`.
 - `tests/smoke/run.sh <binaire> [secondes] [capture.png]` : test de fumée Xvfb ; il
@@ -48,6 +49,15 @@ Ce qui existe et que tu dois **réutiliser** (ne le recrée pas) :
   [pixels]` les compare. Le job CI « Screenshots vs base branch » le fait pour chaque PR
   (base contre PR, même runner) ; une PR qui change le rendu exprès porte l'étiquette
   `rendu-modifié`. Étends le scénario (`capture.sh`) quand tu touches un écran non couvert.
+- `test_Input.cpp` : `InputFixture` (`ES_HOME` jetable, `InputManager` initialisé, GUI qui
+  enregistre ses entrées) et joysticks/manettes **virtuels** SDL (`SDL_AttachVirtualJoystick`)
+  pour tester les entrées sans matériel. `test_Audio.cpp` : pilote audio `dummy`
+  (`SDL_AUDIO_DRIVER=dummy`, aussi forcé par `capture.sh`).
+- SDL3 : `Renderer::getSDLWindow()` (fenêtre, `nullptr` hors `init`/`deinit`) ;
+  `AudioManager::lock/unlock` (verrou du flux audio, remplace `SDL_LockAudio`) ;
+  `InputManager::mapGamepadDefaults` (configuration par défaut d'une manette reconnue, en
+  entrées joystick brutes) ; réglage `GamepadSwapAB` ; `gamecontrollerdb.txt` lu par
+  `es::paths::find(Kind::Config, …)` dans `InputManager::init`.
 - `es-core/src/math/Math.h` : types glm (`glm::vec2`, `glm::ivec2`, `glm::mat4`…) et aides
   `getTranslation`, `setTranslation`, `transformPoint`, `roundMatrix`, `roundVector`.
 - `es::paths` (`es-core/src/utils/Paths.{h,cpp}`) : **seul** endroit qui connaît des
@@ -74,25 +84,29 @@ Ce qui existe et que tu dois **réutiliser** (ne le recrée pas) :
   dans le conteneur pour `test_Locale`. Boost et Eigen ne sont plus installés. Job
   « Screenshots vs base branch » (PR seulement) : captures de la base et de la PR comparées.
 
-### 0.2 Point de reprise : phase 5 (SDL2 → SDL3)
-La phase 4 est terminée (PR #30 à #32). Commence la phase 5 en suivant le plan, section
-« Phase 5 — Migration SDL2 → SDL3 », la section 9 de ce fichier et
-`docs/README-migration.md` du dépôt SDL.
+### 0.2 Point de reprise : phase 6 (OpenGL 3.3 core)
+La phase 5 est terminée (PR #33 à #35). Commence la phase 6 en suivant le plan, section
+« Phase 6 — Moteur de rendu OpenGL 3.3 core », et la section 9 de ce fichier.
 
-Inventaire à la fin de la phase 4 (refais-le avant de commencer) : 17 fichiers de
-`es-core/src` et `es-app/src` utilisent SDL, avec 96 symboles `SDL_*` distincts. Points
-lourds : `SDL_JoystickID` (10, `InputManager`, `main.cpp`), audio par rappel
-(`SDL_AudioSpec`, `SDL_LockAudio`/`SDL_UnlockAudio`, `SDL_PauseAudio` dans
-`AudioManager`/`Sound`), `SDL_GL_SetAttribute` / `SDL_GL_SetSwapInterval`
-(`Renderer_init_sdlgl.cpp`), événements clavier et texte (`InputManager`,
-`TextEditComponent`). Paquet Arch : `sdl3` remplace `sdl2-compat` (CI, README, annexe A).
+Inventaire à la fin de la phase 5 (refais-le avant de commencer) : 118 appels `gl*` (26
+fonctions distinctes) dans 9 fichiers : `Renderer_draw_gl.cpp`, `Renderer_init_sdlgl.cpp`,
+`components/{ComponentGrid,ImageComponent,NinePatchComponent}.cpp`,
+`resources/{Font,TextureResource}.cpp`, `es-app/src/components/RatingComponent.cpp` et
+`es-app/src/main.cpp`. Pipeline fixe (`glMatrixMode`, `glOrtho`, tableaux de sommets
+clients) : tout est à réécrire en shaders. Le contexte est demandé en profil compatibilité
+dans `Renderer_init_sdlgl.cpp` (attributs `SDL_GL_*`) : passe-le en 3.3 core
+(`SDL_GL_CONTEXT_PROFILE_CORE`) dans la même série que le moteur à shaders.
 
-Découpage suggéré (à confirmer après lecture du guide de migration) : 5a fenêtre,
-contexte GL et événements ; 5b manettes (`SDL_Gamepad`, repli `es_input.cfg`) ; 5c audio.
-Si les étapes ne compilent pas séparément (SDL2 et SDL3 ne cohabitent pas dans un même
-binaire), fais comme en phase 4 : une PR de préparation (tests, scénario de captures),
-une PR de migration, une PR de clôture. Le job de captures ne couvre que le rendu ;
-teste les manettes et l'audio à part (`xdotool` ne simule pas de manette).
+Outils : le job « Screenshots vs base branch » et `capture.sh` (8 écrans) sont le filet de
+sécurité ; un léger écart d'anticrénelage est possible en changeant de pipeline : mesure-le
+avec `compare.sh` (fuzz, nombre de pixels), explique-le dans la PR et pose l'étiquette
+`rendu-modifié` seulement si l'écart est voulu. Découpage suggéré, comme aux phases 4 et
+5 : une PR de préparation (chargeur GL, tests), une PR de migration, une PR de clôture.
+
+Restes de la phase 5 (voir le plan, « Écarts constatés ») : manettes réelles (Xbox,
+DualSense, 8BitDo) à tester sur matériel ; redimensionnement de la fenêtre
+(`SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED`) à traiter avec le moteur de rendu ; écran pour
+`GamepadSwapAB` avec les menus thémés (phase 11).
 
 Reliquat de 3.D, sans série dédiée : traite-le quand une phase réécrit le module.
 - `new` restants : uniquement dans des pointeurs intelligents pour des constructeurs privés
@@ -109,8 +123,8 @@ actuel. Tu n'en changes les valeurs attendues que pour un changement de comporte
 voulu, expliqué dans la PR.
 
 ### 0.3 Pièges déjà rencontrés (ne les redécouvre pas)
-- **Paquets Arch** : `freeimage` n'existe plus ; `sdl2-compat` remplace SDL2 (SDL2
-  au-dessus de SDL3). Inclus toujours ce que tu utilises : Eigen apportait `<functional>`
+- **Paquets Arch** : `freeimage` n'existe plus ; SDL2 n'existe plus que sous forme de
+  `sdl2-compat` (SDL2 au-dessus de SDL3) ; le projet utilise `sdl3` directement. Inclus toujours ce que tu utilises : Eigen apportait `<functional>`
   à plusieurs en-têtes sans qu'ils l'incluent, son retrait l'a montré.
 - **glm** : `GLM_FORCE_CTOR_INIT` et `GLM_FORCE_EXPLICIT_CTOR` sont des définitions
   publiques d'`es-core` (ne les redéfinis pas ailleurs). Conversion `ivec2` → `vec2` :
@@ -167,6 +181,22 @@ voulu, expliqué dans la PR.
   `.git-blame-ignore-revs` devient invalide et l'historique des étapes est perdu.
 - **Logs** : format `YYYY-MM-DD HH:MM:SS.mmm [LEVEL] message`. Le test de fumée échoue
   sur toute ligne `[ERROR]` : n'utilise `LogError` que pour de vraies erreurs.
+- **SDL3 et `SDL_Quit()`** : `Renderer::deinit` appelle `SDL_Quit()`, qui détruit aussi le
+  flux audio et ferme les joysticks. Les singletons qui survivent (l'`AudioManager` est
+  détruit à la sortie du programme) doivent vérifier `SDL_WasInit` avant de toucher un
+  objet SDL : sinon ES bloque à la sortie (vu en phase 5, détecté par `capture.sh`).
+- **SDL3, retours et identifiants** : les fonctions renvoient `bool` (true = succès) ;
+  `SDL_EVENT_JOYSTICK_ADDED` donne un `SDL_JoystickID`, pas un index ; SDL3 envoie aussi
+  `ADDED` pour les joysticks présents au démarrage (déjà ouverts par `init()`, ignorés).
+  `SDL_StartTextInput(window)` est nécessaire pour recevoir du texte (`TextEditComponent`).
+- **Pas d'événement texte poussé sous `sdl2-compat`** : `SDL_PushEvent` d'un
+  `SDL_TEXTINPUT` plante `sdl2-compat` ; dans les tests, passe l'événement directement à
+  `InputManager::parseEvent`.
+- **Xvfb** : SDL3 essaie Wayland d'abord et écrit « XDG_RUNTIME_DIR is invalid » sur
+  stderr avant de passer à X11 : sans effet. Sans carte son, ouvrir l'audio écrit un
+  `[ERROR]` : les scripts forcent `SDL_AUDIO_DRIVER=dummy`.
+- **Captures déterministes** : n'ajoute pas d'écran qui affiche un chemin de la fixture
+  (copiée dans un `mktemp`) : l'éditeur de métadonnées montre le chemin absolu de l'image.
 - **Lancement de ES sans écran** : sans `es_systems.cfg` valide, ES affiche une erreur et
   quitte ; le test de fumée en fournit un. Au premier lancement, ES affiche l'écran de
   configuration de manette (normal sous Xvfb).
@@ -461,7 +491,8 @@ ROMs et dans `Paths`.
 migration s'est faite en une PR pour tout le code ; le job « Screenshots vs base branch »
 a confirmé un rendu identique.
 
-**Phase 5 — SDL3.** Lis `docs/README-migration.md` de SDL3 avant de commencer. Les
+**Phase 5 — SDL3.** Terminée (voir section 0). Pour mémoire : lis `docs/README-migration.md`
+de SDL3 avant de toucher à SDL. Les
 fonctions SDL3 renvoient `bool` (true = succès) là où SDL2 renvoyait `0` : chaque test de
 retour doit être revu. Les joysticks sont identifiés par `SDL_JoystickID`, pas par index.
 `SDL_StartTextInput(window)` est obligatoire pour recevoir du texte. Conserve
