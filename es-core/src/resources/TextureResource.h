@@ -32,6 +32,7 @@ public:
 
 	size_t getMemUsage() const;		  // returns an approximation of the VRAM used by this texture (in bytes)
 	static size_t getTotalMemUsage(); // returns an approximation of total VRAM used by textures (in bytes)
+	static void evictIfNeeded(); // evict least-recently-used textures over the MaxVRAM budget
 
 protected:
 	TextureResource(const std::string& path, bool tile);
