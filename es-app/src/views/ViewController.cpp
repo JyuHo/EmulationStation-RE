@@ -109,7 +109,7 @@ void ViewController::goToGameList(SystemData* system)
 
 void ViewController::playViewTransition()
 {
-	glm::vec3 target(1.0f, 0.0f, 0.0f); // was Eigen::Vector3f::Identity(), i.e. the unit x vector
+	glm::vec3 target(1.0f, 0.0f, 0.0f); // unit x vector, as in the original code
 	if(mCurrentView)
 		target = mCurrentView->getPosition();
 

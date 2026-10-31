@@ -131,10 +131,9 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          # eigen: only for base branches from before the glm migration (phase 4)
           pacman -Syu --noconfirm --needed \
             git cmake ninja \
-            sdl2-compat freetype2 fontconfig glm eigen curl alsa-lib libglvnd mesa libwebp \
+            sdl2-compat freetype2 fontconfig glm curl alsa-lib libglvnd mesa libwebp \
             xorg-server-xvfb imagemagick xdotool
 
       - uses: actions/checkout@v5

@@ -1,5 +1,5 @@
-// The transformations the code base performs, with the values Eigen produced before the
-// migration to glm (phase 4; checked side by side with Eigen in PR #30).
+// The transformations the code base performs, with the values the previous math library
+// produced (phase 4, checked side by side in PR #30).
 #include "math/Math.h"
 
 #include <catch2/catch_test_macros.hpp>

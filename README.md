@@ -52,8 +52,8 @@ Raspberry Pi, Windows, macOS et OpenGL ES ne sont plus pris en charge.
 | 1 | CMake moderne, C++23, CI Arch, FreeImage → stb_image + libwebp | fait (PR #1) |
 | 2 | Zéro avertissement, `-Werror`, clang-format/tidy, tests Catch2, test de fumée, journal | fait (PR #2) |
 | 3 | Suppression de Boost, chemins XDG, propriété mémoire | fait (PR #3 à #28) |
-| 4 | Eigen → glm | **prochaine étape** |
-| 5 | SDL2 → SDL3 | à faire |
+| 4 | Eigen → glm | fait (PR #30 à #32) |
+| 5 | SDL2 → SDL3 | **prochaine étape** |
 | 6 | Rendu OpenGL 3.3 core | à faire |
 | 7 | Images animées, chargement asynchrone, cache | à faire |
 | 8 | Audio (sons, musique de fond) | à faire |
@@ -76,7 +76,7 @@ sudo pacman -S --needed base-devel cmake ninja clang \
 sudo pacman -S --needed catch2 xorg-server-xvfb imagemagick xdotool
 ```
 
-stb, pugixml et nanosvg sont fournis dans `external/`. Boost n'est plus nécessaire.
+stb, pugixml et nanosvg sont fournis dans `external/`. Boost et Eigen ne sont plus nécessaires.
 
 ### Avec les presets (recommandé)
 

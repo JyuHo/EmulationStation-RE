@@ -15,8 +15,8 @@
 | 1 | Build moderne : CMake 3.25+, C++23, presets, CI Arch ; FreeImage → stb_image + libwebp | — | S (fait, PR #1) |
 | 2 | Hygiène C++23 et outillage (clang-format, clang-tidy, tests, logs) | 1 | M (fait, PR #2) |
 | 3 | Suppression de Boost + module de chemins **XDG** (std::filesystem, std::chrono, std::variant) | 2 | M (**fait** : 3.A à 3.E) |
-| 4 | Remplacement d'Eigen par une petite bibliothèque mathématique (glm) | 2 | M (**prochaine étape**) |
-| 5 | Migration SDL2 → SDL3 (fenêtre, événements, manettes, audio) | 3, 4 | L |
+| 4 | Remplacement d'Eigen par une petite bibliothèque mathématique (glm) | 2 | M (**fait** : PR #30 à #32) |
+| 5 | Migration SDL2 → SDL3 (fenêtre, événements, manettes, audio) | 3, 4 | L (**prochaine étape**) |
 | 6 | Nouveau moteur de rendu OpenGL 3.3 core à shaders | 5 | L |
 | 7 | Images : WebP/GIF animés, chargement asynchrone, cache VRAM | 6 | M |
 | 8 | Audio : sons de navigation et musique de fond sur SDL3 | 5 | M |
@@ -52,7 +52,7 @@ Cible unique : **Linux x86_64, Arch Linux / CachyOS**, GCC 14+ ou Clang 18+, Mes
 | Boost.Assign | tables constantes | 5 fichiers | listes d'initialisation (phase 3) |
 | Boost.Variant | propriétés de thème | 1 fichier | `std::variant` (phase 3) |
 | Boost.Locale | `std::locale::global(generator().generate(""))` dans `main.cpp` | 1 ligne | supprimé, remplacé par la phase 10 |
-| Eigen3 | `Vector2f/2i/3f`, `Affine3f` partout | 64 fichiers, ~370 occurrences | glm (phase 4) |
+| Eigen3 | `Vector2f/2i/3f`, `Affine3f` partout | 64 fichiers, ~370 occurrences | glm (fait en phase 4) |
 | FreeImage | décodage PNG/JPG, redimensionnement du scraper | 2 fichiers | **retiré des dépôts Arch** → stb_image + libwebp (fait en phase 1) |
 | FreeType | rendu des polices | `Font.cpp` | conservé |
 | libcurl | `HttpReq` (scrapers) | 1 fichier | conservé |
@@ -475,8 +475,11 @@ volontairement porte l'étiquette `rendu-modifié`.
 2. Supprimer `EIGEN_DONT_ALIGN` et `Eigen3` de CMake.
 
 ### Critères d'acceptation
-- Aucune occurrence `Eigen` ; rendu identique au pixel près sur les captures de référence
-  (tolérance d'anticrénelage acceptée).
+- [x] Aucune occurrence `Eigen` dans le code, les tests, CMake et la CI (seule la
+  documentation en parle encore).
+- [x] Rendu identique au pixel près sur les captures : 0 pixel de différence, sans
+  tolérance, entre Eigen et glm sur les 6 écrans de `capture.sh` (local, Debug et
+  RelWithDebInfo), et job CI « Screenshots vs base branch » vert sur la PR #31.
 
 ---
 
