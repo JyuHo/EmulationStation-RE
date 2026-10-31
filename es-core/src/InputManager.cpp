@@ -7,6 +7,8 @@
 #include "Log.h"
 #include "pugixml/pugixml.hpp"
 #include <algorithm>
+#include <iterator>
+#include <utility>
 #include <filesystem>
 #include "platform.h"
 #include "Renderer.h"
@@ -45,8 +47,17 @@ void InputManager::init()
 
 	SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS,
 		Settings::getInstance()->getBool("BackgroundJoystickInput") ? "1" : "0");
-	if(!SDL_InitSubSystem(SDL_INIT_JOYSTICK))
-		LOG(LogError) << "Error initializing SDL joysticks: " << SDL_GetError();
+	// gamepads: SDL's built-in database, plus the user's or the system's gamecontrollerdb.txt
+	if(!SDL_InitSubSystem(SDL_INIT_GAMEPAD))
+		LOG(LogError) << "Error initializing SDL gamepads: " << SDL_GetError();
+	if(auto db = es::paths::find(es::paths::Kind::Config, "gamecontrollerdb.txt"))
+	{
+		const int added = SDL_AddGamepadMappingsFromFile(db->string().c_str());
+		if(added < 0)
+			Log::write(LogWarning, "Could not read gamepad mappings from {}: {}", db->string(), SDL_GetError());
+		else
+			Log::write(LogInfo, "Read {} gamepad mappings from {}", added, db->string());
+	}
 	SDL_SetJoystickEventsEnabled(true);
 
 	// first, open all currently present joysticks
@@ -82,16 +93,22 @@ void InputManager::addJoystick(SDL_JoystickID joyId)
 	const char* name = SDL_GetJoystickName(joy);
 	const std::string deviceName = name ? name : "";
 
-	// create the InputConfig
+	// create the InputConfig: es_input.cfg first, then the gamepad mapping SDL knows for this device
 	mInputConfigs[joyId] = std::make_unique<InputConfig>((int)joyId, deviceName, guid);
-	if(!loadInputConfig(mInputConfigs[joyId].get()))
+	if(loadInputConfig(mInputConfigs[joyId].get()))
 	{
-		LOG(LogInfo) << "Added unconfigured joystick " << deviceName << " (GUID: " << guid << ", instance ID: " << joyId
-					 << ").";
+		LOG(LogInfo) << "Added known joystick " << deviceName << " (instance ID: " << joyId << ")";
+	}
+	else if(SDL_IsGamepad(joyId) && (mGamepads[joyId] = SDL_OpenGamepad(joyId)) != nullptr &&
+		mapGamepadDefaults(*mInputConfigs[joyId], mGamepads[joyId], Settings::getInstance()->getBool("GamepadSwapAB")))
+	{
+		Log::write(
+			LogInfo, "Added gamepad {} with its default mapping (GUID: {}, instance ID: {})", deviceName, guid, joyId);
 	}
 	else
 	{
-		LOG(LogInfo) << "Added known joystick " << deviceName << " (instance ID: " << joyId << ")";
+		LOG(LogInfo) << "Added unconfigured joystick " << deviceName << " (GUID: " << guid << ", instance ID: " << joyId
+					 << ").";
 	}
 
 	// set up the prevAxisValues
@@ -109,6 +126,14 @@ void InputManager::removeJoystick(SDL_JoystickID joyId)
 
 	// delete old InputConfig
 	mInputConfigs.erase(joyId);
+
+	auto padIt = mGamepads.find(joyId);
+	if(padIt != mGamepads.end())
+	{
+		if(padIt->second != nullptr)
+			SDL_CloseGamepad(padIt->second);
+		mGamepads.erase(padIt);
+	}
 
 	// close the joystick
 	auto joyIt = mJoysticks.find(joyId);
@@ -128,6 +153,13 @@ void InputManager::deinit()
 	if(!initialized())
 		return;
 
+	for(auto& [id, gamepad] : mGamepads)
+	{
+		if(gamepad != nullptr)
+			SDL_CloseGamepad(gamepad);
+	}
+	mGamepads.clear();
+
 	for(auto iter = mJoysticks.begin(); iter != mJoysticks.end(); iter++)
 	{
 		SDL_CloseJoystick(iter->second);
@@ -141,7 +173,7 @@ void InputManager::deinit()
 	mKeyboardInputConfig.reset();
 
 	SDL_SetJoystickEventsEnabled(false);
-	SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
+	SDL_QuitSubSystem(SDL_INIT_GAMEPAD);
 }
 
 int InputManager::getNumJoysticks()
@@ -375,4 +407,71 @@ std::string InputManager::getJoystickGUIDString(SDL_Joystick* joystick)
 	char guid[33]; // 32 hex digits
 	SDL_GUIDToString(SDL_GetJoystickGUID(joystick), guid, sizeof(guid));
 	return guid;
+}
+
+bool InputManager::mapGamepadDefaults(InputConfig& config, SDL_Gamepad* gamepad, bool swapAB)
+{
+	// ES names -> buttons of the standard layout; "a" is the bottom face button unless swapped
+	// (Nintendo style: confirm on the right one)
+	const std::pair<const char*, SDL_GamepadButton> layout[] = {
+		{"up", SDL_GAMEPAD_BUTTON_DPAD_UP},
+		{"down", SDL_GAMEPAD_BUTTON_DPAD_DOWN},
+		{"left", SDL_GAMEPAD_BUTTON_DPAD_LEFT},
+		{"right", SDL_GAMEPAD_BUTTON_DPAD_RIGHT},
+		{"a", swapAB ? SDL_GAMEPAD_BUTTON_EAST : SDL_GAMEPAD_BUTTON_SOUTH},
+		{"b", swapAB ? SDL_GAMEPAD_BUTTON_SOUTH : SDL_GAMEPAD_BUTTON_EAST},
+		{"start", SDL_GAMEPAD_BUTTON_START},
+		{"select", SDL_GAMEPAD_BUTTON_BACK},
+		{"pageup", SDL_GAMEPAD_BUTTON_LEFT_SHOULDER},
+		{"pagedown", SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER},
+	};
+
+	int count = 0;
+	SDL_GamepadBinding** bindings = SDL_GetGamepadBindings(gamepad, &count);
+	if(bindings == nullptr)
+		return false;
+
+	// ES reads raw joystick events: map each button to the joystick input that feeds it
+	config.clear();
+	size_t mapped = 0;
+	for(const auto& [name, button] : layout)
+	{
+		for(int i = 0; i < count; i++)
+		{
+			const SDL_GamepadBinding& binding = *bindings[i];
+			if(binding.output_type != SDL_GAMEPAD_BINDTYPE_BUTTON || binding.output.button != button)
+				continue;
+
+			const int device = config.getDeviceId();
+			switch(binding.input_type)
+			{
+			case SDL_GAMEPAD_BINDTYPE_BUTTON:
+				config.mapInput(name, Input(device, TYPE_BUTTON, binding.input.button, 1, true));
+				break;
+			case SDL_GAMEPAD_BINDTYPE_HAT:
+				config.mapInput(name, Input(device, TYPE_HAT, binding.input.hat.hat, binding.input.hat.hat_mask, true));
+				break;
+			case SDL_GAMEPAD_BINDTYPE_AXIS: {
+				// a half axis: its sign is the direction that presses the button
+				const bool positive = binding.input.axis.axis_max > binding.input.axis.axis_min
+					? binding.input.axis.axis_max > 0
+					: binding.input.axis.axis_min > 0;
+				config.mapInput(name, Input(device, TYPE_AXIS, binding.input.axis.axis, positive ? 1 : -1, true));
+				break;
+			}
+			default: continue;
+			}
+			mapped++;
+			break;
+		}
+	}
+	SDL_free(bindings);
+
+	// a partial mapping would leave menus unreachable: configure it by hand instead
+	if(mapped != std::size(layout))
+	{
+		config.clear();
+		return false;
+	}
+	return true;
 }
