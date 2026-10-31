@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GuiComponent.h"
+#include "renderer/Renderer.h"
 #include <memory>
 
 namespace GridFlags {
@@ -94,15 +95,7 @@ private:
 	std::unique_ptr<float[]> mRowHeights;
 	std::unique_ptr<float[]> mColWidths;
 
-	struct Vert
-	{
-		Vert(float xi = 0, float yi = 0) : x(xi), y(yi){};
-		float x;
-		float y;
-	};
-
-	std::vector<Vert> mLines;
-	std::vector<unsigned int> mLineColors;
+	std::vector<Renderer::Vertex> mLines; // pairs of points (one line each), with their colour
 
 	// Update position & size
 	void updateCellComponent(const GridEntry& cell);

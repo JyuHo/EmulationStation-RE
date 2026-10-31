@@ -12,6 +12,7 @@ add_executable(es-tests
     unit/test_Math.cpp
     unit/test_Input.cpp
     unit/test_Audio.cpp
+    unit/test_Renderer.cpp
 )
 target_link_libraries(es-tests PRIVATE es-app-lib Catch2::Catch2WithMain)
 target_compile_definitions(es-tests PRIVATE ES_TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data")

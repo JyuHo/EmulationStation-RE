@@ -1,7 +1,7 @@
 #include "Window.h"
 #include <string_view>
 #include <iostream>
-#include "Renderer.h"
+#include "renderer/Renderer.h"
 #include "AudioManager.h"
 #include "Log.h"
 #include "Settings.h"

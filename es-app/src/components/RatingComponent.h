@@ -34,11 +34,7 @@ private:
 
 	float mValue;
 
-	struct Vertex
-	{
-		glm::vec2 pos;
-		glm::vec2 tex;
-	} mVertices[12];
+	Renderer::Vertex mVertices[12]; // 6 for the filled stars, then 6 for the unfilled ones
 
 	std::shared_ptr<TextureResource> mFilledTexture;
 	std::shared_ptr<TextureResource> mUnfilledTexture;

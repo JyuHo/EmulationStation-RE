@@ -1,5 +1,5 @@
 #include "guis/GuiMsgBox.h"
-#include "Renderer.h"
+#include "renderer/Renderer.h"
 #include "components/TextComponent.h"
 #include "components/ButtonComponent.h"
 #include "components/MenuComponent.h" // for makeButtonGrid

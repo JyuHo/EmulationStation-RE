@@ -4,7 +4,7 @@
 #include <SDL3/SDL.h>
 #include <iostream>
 #include <iomanip>
-#include "Renderer.h"
+#include "renderer/Renderer.h"
 #include "views/ViewController.h"
 #include "SystemData.h"
 #include <filesystem>
@@ -215,9 +215,6 @@ int main(int argc, char* argv[])
 			LOG(LogError) << "Window failed to initialize!";
 			return 1;
 		}
-
-		const GLubyte* glVersion = glGetString(GL_VERSION);
-		LOG(LogInfo) << "OpenGL version: " << (glVersion ? (const char*)glVersion : "unknown");
 
 		window.renderLoadingScreen();
 	}

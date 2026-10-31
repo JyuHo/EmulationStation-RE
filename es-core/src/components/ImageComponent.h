@@ -1,10 +1,8 @@
 #ifndef _IMAGECOMPONENT_H_
 #define _IMAGECOMPONENT_H_
 
-#include "platform.h"
-#include GLHEADER
-
 #include "GuiComponent.h"
+#include "renderer/Renderer.h"
 #include <string>
 #include <memory>
 #include "resources/TextureResource.h"
@@ -73,13 +71,7 @@ private:
 	// Used internally whenever the resizing parameters or texture change.
 	void resize();
 
-	struct Vertex
-	{
-		glm::vec2 pos;
-		glm::vec2 tex;
-	} mVertices[6];
-
-	GLubyte mColors[6 * 4];
+	Renderer::Vertex mVertices[6];
 
 	void updateVertices();
 	void updateColors();

@@ -1,10 +1,10 @@
-#include "Renderer.h"
-#include <iostream>
-#include "platform.h"
-#include GLHEADER
-#include "resources/Font.h"
+#include "renderer/Renderer.h"
+
+#include "renderer/GL.h"
+#include "renderer/Internal.h"
 #include <SDL3/SDL.h>
-#include <cstddef>
+#include <cstdlib>
+#include <string_view>
 #include "Log.h"
 #include "ImageIO.h"
 #include "Resources.h"
@@ -28,20 +28,20 @@ unsigned int getScreenHeight()
 SDL_Window* sdlWindow = nullptr;
 SDL_GLContext sdlContext = nullptr;
 
-// Shader program state
-GLuint shaderProgram = 0;
-GLuint vao = 0;
-GLuint vbo = 0;
-GLint uProjection = -1;
-GLint uTexture = -1;
-GLint uUseTexture = -1;
-GLint uModel = -1;
-glm::mat4 projection = glm::mat4(1.0f);
-glm::mat4 modelMatrix = glm::mat4(1.0f);
-
 SDL_Window* getSDLWindow()
 {
 	return sdlWindow;
+}
+
+// GL_KHR_debug: debug builds, or ES_GL_DEBUG=1 (set by the smoke test and the screenshots)
+bool glDebugRequested()
+{
+#ifndef NDEBUG
+	return true;
+#else
+	const char* env = std::getenv("ES_GL_DEBUG");
+	return env != nullptr && std::string_view(env) == "1";
+#endif
 }
 
 bool createSurface()
@@ -59,12 +59,12 @@ bool createSurface()
 	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	// read when the window and the context are created: set them before SDL_CreateWindow.
+	// No SDL_GL_ALPHA_SIZE: under Wayland an alpha channel makes the window translucent.
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-#ifndef NDEBUG
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
-#endif
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, glDebugRequested() ? SDL_GL_CONTEXT_DEBUG_FLAG : 0);
 
 	// multisample anti-aliasing
 	//SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
@@ -167,14 +167,6 @@ void swapBuffers()
 
 void destroySurface()
 {
-	if(sdlContext)
-	{
-		SDL_GL_MakeCurrent(sdlWindow, sdlContext);
-		if(vbo) glDeleteBuffers(1, &vbo);
-		if(vao) glDeleteVertexArrays(1, &vao);
-		if(shaderProgram) glDeleteProgram(shaderProgram);
-		vbo = 0; vao = 0; shaderProgram = 0;
-	}
 	SDL_GL_DestroyContext(sdlContext);
 	sdlContext = nullptr;
 
@@ -188,86 +180,59 @@ void destroySurface()
 	SDL_Quit();
 }
 
-static GLuint compileShader(GLenum type, const char* src)
+namespace {
+
+GLADapiproc loadProc(const char* name)
 {
-	GLuint s = glCreateShader(type);
-	glShaderSource(s, 1, &src, nullptr);
-	glCompileShader(s);
-	GLint ok = 0;
-	glGetShaderiv(s, GL_COMPILE_STATUS, &ok);
-	if(!ok)
-	{
-		char buf[1024];
-		glGetShaderInfoLog(s, 1024, nullptr, buf);
-		LOG(LogError) << "Shader compile error: " << buf;
-		glDeleteShader(s);
-		return 0;
-	}
-	return s;
+	return reinterpret_cast<GLADapiproc>(SDL_GL_GetProcAddress(name));
 }
 
-static GLuint buildProgram(const char* vs, const char* fs)
+const char* glString(GLenum name)
 {
-	GLuint v = compileShader(GL_VERTEX_SHADER, vs);
-	GLuint f = compileShader(GL_FRAGMENT_SHADER, fs);
-	if(!v || !f)
-		return 0;
-	GLuint p = glCreateProgram();
-	glAttachShader(p, v);
-	glAttachShader(p, f);
-	glLinkProgram(p);
-	GLint ok = 0;
-	glGetProgramiv(p, GL_LINK_STATUS, &ok);
-	if(!ok)
-	{
-		char buf[1024];
-		glGetProgramInfoLog(p, 1024, nullptr, buf);
-		LOG(LogError) << "Program link error: " << buf;
-		glDeleteProgram(p);
-		p = 0;
-	}
-	glDeleteShader(v);
-	glDeleteShader(f);
-	return p;
+	const GLubyte* value = glGetString(name);
+	return value != nullptr ? reinterpret_cast<const char*>(value) : "unknown";
 }
 
-static const char* VS = R"(#version 330 core
-layout(location = 0) in vec2 aPos;
-layout(location = 1) in vec2 aTex;
-layout(location = 2) in vec4 aColor;
-uniform mat4 uProjection;
-uniform mat4 uModel;
-out vec2 vTex;
-out vec4 vColor;
-void main() {
-    gl_Position = uProjection * uModel * vec4(aPos, 0.0, 1.0);
-    vTex = aTex;
-    vColor = aColor;
+// valid in core and compatibility profiles (glGetString(GL_EXTENSIONS) is not, in core)
+void logContextInfo()
+{
+	Log::write(LogInfo, "GL_VERSION: {}", glString(GL_VERSION));
+	Log::write(LogInfo, "GL_RENDERER: {}", glString(GL_RENDERER));
+	Log::write(LogInfo, "GL_VENDOR: {}", glString(GL_VENDOR));
+	Log::write(LogInfo, "GL_SHADING_LANGUAGE_VERSION: {}", glString(GL_SHADING_LANGUAGE_VERSION));
 }
-)";
 
-static const char* FS = R"(#version 330 core
-in vec2 vTex;
-in vec4 vColor;
-out vec4 FragColor;
-uniform sampler2D uTexture;
-uniform int uUseTexture;
-void main() {
-    if (uUseTexture == 1)
-        FragColor = texture(uTexture, vTex) * vColor;
-    else
-        FragColor = vColor;
-}
-)";
-
-#ifndef NDEBUG
-static void APIENTRY debugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
+void GLAD_API_PTR debugCallback(GLenum /*source*/, GLenum type, GLuint id, GLenum severity, GLsizei /*length*/,
+	const GLchar* message, const void* /*userParam*/)
 {
 	if(severity == GL_DEBUG_SEVERITY_NOTIFICATION)
 		return;
-	LOG(LogWarning) << "GL debug: " << message;
+
+	// a GL error fails the smoke test (it fails on any [ERROR] line): on purpose
+	if(type == GL_DEBUG_TYPE_ERROR)
+		Log::write(LogError, "OpenGL error {}: {}", id, message);
+	else if(severity == GL_DEBUG_SEVERITY_HIGH || severity == GL_DEBUG_SEVERITY_MEDIUM)
+		Log::write(LogWarning, "OpenGL {}: {}", id, message);
+	else
+		Log::write(LogDebug, "OpenGL {}: {}", id, message);
 }
-#endif
+
+void enableDebugOutput()
+{
+	if(!GLAD_GL_KHR_debug)
+	{
+		LOG(LogWarning) << "GL_KHR_debug is not available: no OpenGL debug output.";
+		return;
+	}
+
+	glEnable(GL_DEBUG_OUTPUT);
+	// the callback then runs on the calling (main) thread: Log needs no lock
+	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+	glDebugMessageCallback(debugCallback, nullptr);
+	LOG(LogInfo) << "OpenGL debug output enabled (GL_KHR_debug).";
+}
+
+} // namespace
 
 bool init(int w, int h)
 {
@@ -276,57 +241,45 @@ bool init(int w, int h)
 	if(h)
 		display_height = h;
 
-	bool createdSurface = createSurface();
-
-	if(!createdSurface)
+	if(!createSurface())
 		return false;
+
+	// SDL_GL_CreateContext made the context current
+	const int version = gladLoadGL(loadProc);
+	if(version == 0)
+	{
+		Log::write(LogError, "Could not load the OpenGL functions: {}", SDL_GetError());
+		return false;
+	}
+	if(GLAD_VERSION_MAJOR(version) < 3 || (GLAD_VERSION_MAJOR(version) == 3 && GLAD_VERSION_MINOR(version) < 3))
+	{
+		Log::write(LogError, "OpenGL 3.3 core is required, got {}.{}", GLAD_VERSION_MAJOR(version),
+			GLAD_VERSION_MINOR(version));
+		return false;
+	}
+
+	logContextInfo();
+	if(glDebugRequested())
+		enableDebugOutput();
+
+	// tightly packed rows (font atlases of any width)
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
 	glViewport(0, 0, display_width, display_height);
-
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
-	projection = glm::ortho(0.0f, (float)display_width, (float)display_height, 0.0f, -1.0f, 1.0f);
-
-#ifndef NDEBUG
-	glEnable(GL_DEBUG_OUTPUT);
-	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-	glDebugMessageCallback(debugCallback, nullptr);
-#endif
-
-	shaderProgram = buildProgram(VS, FS);
-	if(!shaderProgram)
+	if(!initDrawing(glm::ivec2(static_cast<int>(display_width), static_cast<int>(display_height))))
 		return false;
-	glUseProgram(shaderProgram);
-	uProjection = glGetUniformLocation(shaderProgram, "uProjection");
-	uTexture = glGetUniformLocation(shaderProgram, "uTexture");
-	uUseTexture = glGetUniformLocation(shaderProgram, "uUseTexture");
-	uModel = glGetUniformLocation(shaderProgram, "uModel");
-	glUniformMatrix4fv(uProjection, 1, GL_FALSE, glm::value_ptr(projection));
-	glUniformMatrix4fv(uModel, 1, GL_FALSE, glm::value_ptr(modelMatrix));
-	glUniform1i(uTexture, 0);
-
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-	glGenBuffers(1, &vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	// pos
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, pos));
-	// tex
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, tex));
-	// color
-	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Vertex), (void*)offsetof(Vertex, color));
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	return true;
 }
 
 void deinit()
 {
+	// the GL objects go before the context (SDL_GL_DestroyContext in destroySurface)
+	if(sdlContext != nullptr)
+		deinitDrawing();
 	destroySurface();
 }
-}; // namespace Renderer
+
+} // namespace Renderer

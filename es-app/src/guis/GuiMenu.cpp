@@ -3,6 +3,7 @@
 #include "Window.h"
 #include "Sound.h"
 #include "Log.h"
+#include "platform.h"
 #include "Settings.h"
 #include "guis/GuiMsgBox.h"
 #include "guis/GuiSettings.h"

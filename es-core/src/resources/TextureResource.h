@@ -4,10 +4,9 @@
 
 #include <string>
 #include "math/Math.h"
-#include "platform.h"
-#include GLHEADER
+#include "renderer/Renderer.h"
 
-// An OpenGL texture.
+// A texture of the renderer (RGBA8).
 // Automatically recreates the texture with renderer deinit/reinit.
 class TextureResource : public IReloadable
 {
@@ -22,8 +21,8 @@ public:
 	bool isInitialized() const;
 	bool isTiled() const;
 	const glm::ivec2& getSize() const;
-	void bind() const;
-	GLuint getTextureID() const { return mTextureID; }
+	// 0 until initialized; changes when the renderer is reinitialized (game launch)
+	Renderer::TextureHandle getTextureHandle() const { return mTexture; }
 
 	// Warning: will NOT correctly reinitialize when this texture is reloaded (e.g. ES starts/stops playing a game).
 	virtual void initFromMemory(const char* file, size_t length);
@@ -43,7 +42,7 @@ protected:
 	const bool mTile;
 
 private:
-	GLuint mTextureID;
+	Renderer::TextureHandle mTexture;
 
 	using TextureKeyType = std::pair<std::string, bool>;
 	static std::map<TextureKeyType, std::weak_ptr<TextureResource>>

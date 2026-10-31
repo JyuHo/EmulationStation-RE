@@ -1,5 +1,5 @@
 #include "components/RatingComponent.h"
-#include "Renderer.h"
+#include "renderer/Renderer.h"
 #include "Window.h"
 #include "Util.h"
 #include "resources/SVGResource.h"
@@ -98,25 +98,14 @@ void RatingComponent::render(const glm::mat4& parentTrans)
 	glm::mat4 trans = roundMatrix(parentTrans * getTransform());
 	Renderer::setMatrix(trans);
 
-	uint32_t col = (255u << 24) | (255u << 16) | (255u << 8) | (unsigned int)getOpacity();
+	// white, with the opacity of the component (constant colour of the former fixed pipeline)
+	const std::uint32_t color = Renderer::convertColor(0xFFFFFF00 | getOpacity());
+	for(Renderer::Vertex& vertex : mVertices)
+		vertex.color = color;
 
-	std::vector<Renderer::Vertex> filled(6);
-	for(int i = 0; i < 6; i++)
-	{
-		filled[i].pos = mVertices[i].pos;
-		filled[i].tex = mVertices[i].tex;
-		filled[i].color = col;
-	}
-	Renderer::drawTriangles(std::span<const Renderer::Vertex>(filled), mFilledTexture->getTextureID(), GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	std::vector<Renderer::Vertex> unfilled(6);
-	for(int i = 0; i < 6; i++)
-	{
-		unfilled[i].pos = mVertices[6 + i].pos;
-		unfilled[i].tex = mVertices[6 + i].tex;
-		unfilled[i].color = col;
-	}
-	Renderer::drawTriangles(std::span<const Renderer::Vertex>(unfilled), mUnfilledTexture->getTextureID(), GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	const std::span<const Renderer::Vertex> vertices(mVertices);
+	Renderer::drawTriangles(vertices.first(6), mFilledTexture->getTextureHandle());
+	Renderer::drawTriangles(vertices.subspan(6, 6), mUnfilledTexture->getTextureHandle());
 
 	renderChildren(trans);
 }

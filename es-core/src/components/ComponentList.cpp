@@ -215,8 +215,9 @@ void ComponentList::render(const glm::mat4& parentTrans)
 
 		const float selectedRowHeight = getRowHeight(mEntries.at(mCursor).data);
 		Renderer::drawRect(
-			0.0f, mSelectorBarOffset, mSize.x, selectedRowHeight, 0xFFFFFFFF, GL_ONE_MINUS_DST_COLOR, GL_ZERO);
-		Renderer::drawRect(0.0f, mSelectorBarOffset, mSize.x, selectedRowHeight, 0x777777FF, GL_ONE, GL_ONE);
+			0.0f, mSelectorBarOffset, mSize.x, selectedRowHeight, 0xFFFFFFFF, Renderer::BlendMode::InvertDst);
+		Renderer::drawRect(
+			0.0f, mSelectorBarOffset, mSize.x, selectedRowHeight, 0x777777FF, Renderer::BlendMode::Additive);
 
 		// hack to draw 2px dark on left/right of the bar
 		Renderer::drawRect(0.0f, mSelectorBarOffset, 2.0f, selectedRowHeight, 0x878787FF);

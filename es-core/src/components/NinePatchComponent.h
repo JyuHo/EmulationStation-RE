@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GuiComponent.h"
+#include "renderer/Renderer.h"
 #include "resources/TextureResource.h"
 #include <memory>
 
@@ -41,14 +42,7 @@ private:
 	void buildVertices();
 	void updateColors();
 
-	struct Vertex
-	{
-		glm::vec2 pos;
-		glm::vec2 tex;
-	};
-
-	std::unique_ptr<Vertex[]> mVertices;
-	std::unique_ptr<GLubyte[]> mColors;
+	std::unique_ptr<Renderer::Vertex[]> mVertices; // 9 pieces of 6 vertices
 
 	std::string mPath;
 	unsigned int mEdgeColor;

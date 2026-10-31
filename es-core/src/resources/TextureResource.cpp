@@ -1,10 +1,8 @@
 #include "resources/TextureResource.h"
 #include <cassert>
 #include "Log.h"
-#include "platform.h"
-#include GLHEADER
 #include "ImageIO.h"
-#include "Renderer.h"
+#include "renderer/Renderer.h"
 #include "Util.h"
 #include "resources/SVGResource.h"
 
@@ -12,7 +10,7 @@ std::map<TextureResource::TextureKeyType, std::weak_ptr<TextureResource>> Textur
 std::list<std::weak_ptr<TextureResource>> TextureResource::sTextureList;
 
 TextureResource::TextureResource(const std::string& path, bool tile) :
-	mTextureSize(glm::ivec2(0)), mPath(path), mTile(tile), mTextureID(0)
+	mTextureSize(glm::ivec2(0)), mPath(path), mTile(tile), mTexture(0)
 {}
 
 TextureResource::~TextureResource()
@@ -40,18 +38,8 @@ void TextureResource::initFromPixels(const unsigned char* dataRGBA, size_t width
 
 	assert(width > 0 && height > 0);
 
-	//now for the openGL texture stuff
-	glGenTextures(1, &mTextureID);
-	glBindTexture(GL_TEXTURE_2D, mTextureID);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, dataRGBA);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-	const GLint wrapMode = mTile ? GL_REPEAT : GL_CLAMP_TO_EDGE;
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapMode);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapMode);
+	mTexture = Renderer::createTexture(Renderer::TextureFormat::RGBA8, Renderer::TextureFilter::LinearMinNearestMag,
+		mTile, glm::ivec2(static_cast<int>(width), static_cast<int>(height)), dataRGBA);
 
 	mTextureSize = {width, height};
 }
@@ -74,10 +62,10 @@ void TextureResource::initFromMemory(const char* data, size_t length)
 
 void TextureResource::deinit()
 {
-	if(mTextureID != 0)
+	if(mTexture != 0)
 	{
-		glDeleteTextures(1, &mTextureID);
-		mTextureID = 0;
+		Renderer::destroyTexture(mTexture);
+		mTexture = 0;
 	}
 }
 
@@ -89,14 +77,6 @@ const glm::ivec2& TextureResource::getSize() const
 bool TextureResource::isTiled() const
 {
 	return mTile;
-}
-
-void TextureResource::bind() const
-{
-	if(mTextureID != 0)
-		glBindTexture(GL_TEXTURE_2D, mTextureID);
-	else
-		LOG(LogError) << "Tried to bind uninitialized texture!";
 }
 
 std::shared_ptr<TextureResource> TextureResource::get(const std::string& path, bool tile)
@@ -148,12 +128,12 @@ std::shared_ptr<TextureResource> TextureResource::get(const std::string& path, b
 
 bool TextureResource::isInitialized() const
 {
-	return mTextureID != 0;
+	return mTexture != 0;
 }
 
 size_t TextureResource::getMemUsage() const
 {
-	if(!mTextureID || mTextureSize.x == 0 || mTextureSize.y == 0)
+	if(!mTexture || mTextureSize.x == 0 || mTextureSize.y == 0)
 		return 0;
 
 	return mTextureSize.x * mTextureSize.y * 4;

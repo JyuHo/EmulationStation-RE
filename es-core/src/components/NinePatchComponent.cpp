@@ -1,18 +1,13 @@
 #include "components/NinePatchComponent.h"
 #include "Window.h"
 #include "Log.h"
-#include "Renderer.h"
+#include "renderer/Renderer.h"
 #include "ThemeData.h"
 #include "Util.h"
 
 NinePatchComponent::NinePatchComponent(
 	Window* window, const std::string& path, unsigned int edgeColor, unsigned int centerColor) :
-	GuiComponent(window),
-	mVertices(nullptr),
-	mColors(nullptr),
-	mPath(path),
-	mEdgeColor(edgeColor),
-	mCenterColor(centerColor)
+	GuiComponent(window), mVertices(nullptr), mPath(path), mEdgeColor(edgeColor), mCenterColor(centerColor)
 {
 	if(!mPath.empty())
 		buildVertices();
@@ -22,27 +17,30 @@ NinePatchComponent::~NinePatchComponent() = default;
 
 void NinePatchComponent::updateColors()
 {
-	Renderer::buildGLColorArray(mColors.get(), mEdgeColor, 6 * 9);
-	Renderer::buildGLColorArray(mColors.get() + 4 * 6 * 4, mCenterColor, 6);
+	if(mVertices == nullptr)
+		return;
+
+	// the centre piece (slice 4) has its own colour
+	const std::uint32_t edge = Renderer::convertColor(mEdgeColor);
+	const std::uint32_t center = Renderer::convertColor(mCenterColor);
+	for(int i = 0; i < 6 * 9; i++)
+		mVertices[i].color = (i >= 4 * 6 && i < 5 * 6) ? center : edge;
 }
 
 void NinePatchComponent::buildVertices()
 {
 	mVertices.reset();
-	mColors.reset();
 
 	mTexture = TextureResource::get(mPath);
 
 	if(mTexture->getSize() == glm::ivec2(0))
 	{
 		mVertices = nullptr;
-		mColors = nullptr;
 		LOG(LogWarning) << "NinePatchComponent missing texture!";
 		return;
 	}
 
-	mVertices = std::make_unique<Vertex[]>(6 * 9);
-	mColors = std::make_unique<GLubyte[]>(6 * 9 * 4);
+	mVertices = std::make_unique<Renderer::Vertex[]>(6 * 9);
 	updateColors();
 
 	const glm::vec2 ts = glm::vec2(mTexture->getSize());
@@ -142,17 +140,8 @@ void NinePatchComponent::render(const glm::mat4& parentTrans)
 	{
 		Renderer::setMatrix(trans);
 
-		mTexture->bind();
-
-		std::vector<Renderer::Vertex> verts(6 * 9);
-		for(int i = 0; i < 6 * 9; i++)
-		{
-			verts[i].pos = mVertices[i].pos;
-			verts[i].tex = mVertices[i].tex;
-			verts[i].color = ((unsigned int)mColors[i * 4]) << 24 | ((unsigned int)mColors[i * 4 + 1]) << 16 |
-				((unsigned int)mColors[i * 4 + 2]) << 8 | ((unsigned int)mColors[i * 4 + 3]);
-		}
-		Renderer::drawTriangles(std::span<const Renderer::Vertex>(verts), mTexture->getTextureID(), GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		Renderer::drawTriangles(
+			std::span<const Renderer::Vertex>(mVertices.get(), 6 * 9), mTexture->getTextureHandle());
 	}
 
 	renderChildren(trans);

@@ -1,5 +1,5 @@
 #include "components/HelpComponent.h"
-#include "Renderer.h"
+#include "renderer/Renderer.h"
 #include "Settings.h"
 #include "Log.h"
 #include "Util.h"

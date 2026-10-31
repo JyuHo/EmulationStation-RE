@@ -52,6 +52,15 @@ jobs:
             exit 1
           fi
 
+      - name: No GL outside the renderer
+        run: |
+          # Only es-core/src/renderer/ calls OpenGL or names its types (PROMPT.md 13.8).
+          if grep -rnE '\bgl[A-Z][A-Za-z0-9]*\s*\(|GLHEADER|SDL_opengl|\bGL(enum|uint|int|ubyte|float)\b|\bGL_[A-Z]' \
+              es-core/src es-app/src tests --exclude-dir=renderer; then
+            echo "OpenGL used outside es-core/src/renderer/: go through the Renderer API." >&2
+            exit 1
+          fi
+
       - name: Configure
         run: |
           cmake -B build -G Ninja \

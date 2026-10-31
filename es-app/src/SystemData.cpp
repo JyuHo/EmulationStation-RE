@@ -1,11 +1,12 @@
 #include "SystemData.h"
 #include <memory>
 #include "utils/Paths.h"
+#include "platform.h"
 #include "Gamelist.h"
 #include <filesystem>
 #include <fstream>
 #include <stdlib.h>
-#include "Renderer.h"
+#include "renderer/Renderer.h"
 #include "AudioManager.h"
 #include "VolumeControl.h"
 #include "Log.h"

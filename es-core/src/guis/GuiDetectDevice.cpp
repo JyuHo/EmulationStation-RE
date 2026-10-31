@@ -1,6 +1,6 @@
 #include "guis/GuiDetectDevice.h"
 #include "Window.h"
-#include "Renderer.h"
+#include "renderer/Renderer.h"
 #include "resources/Font.h"
 #include "guis/GuiInputConfig.h"
 #include "components/TextComponent.h"

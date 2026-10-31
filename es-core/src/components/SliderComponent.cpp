@@ -1,6 +1,6 @@
 #include "components/SliderComponent.h"
 #include <assert.h>
-#include "Renderer.h"
+#include "renderer/Renderer.h"
 #include "resources/Font.h"
 #include "Log.h"
 #include "Util.h"

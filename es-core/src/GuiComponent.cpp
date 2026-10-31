@@ -4,7 +4,7 @@
 #include <utility>
 #include "Window.h"
 #include "Log.h"
-#include "Renderer.h"
+#include "renderer/Renderer.h"
 #include "animations/AnimationController.h"
 #include "ThemeData.h"
 

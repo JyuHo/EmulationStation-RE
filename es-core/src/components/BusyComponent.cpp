@@ -2,7 +2,7 @@
 
 #include "components/AnimatedImageComponent.h"
 #include "components/TextComponent.h"
-#include "Renderer.h"
+#include "renderer/Renderer.h"
 
 // animation definition
 AnimationFrame BUSY_ANIMATION_FRAMES[] = {

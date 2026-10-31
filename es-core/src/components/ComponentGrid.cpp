@@ -2,7 +2,7 @@
 #include <cassert>
 #include <string_view>
 #include "Log.h"
-#include "Renderer.h"
+#include "renderer/Renderer.h"
 #include "Settings.h"
 
 using namespace GridFlags;
@@ -145,6 +145,15 @@ void ComponentGrid::updateCellComponent(const GridEntry& cell)
 	cell.component->setPosition(pos);
 }
 
+namespace {
+
+Renderer::Vertex linePoint(float x, float y)
+{
+	return {{x, y}, {0.0f, 0.0f}, 0};
+}
+
+} // namespace
+
 void ComponentGrid::updateSeparators()
 {
 	mLines.clear();
@@ -172,28 +181,29 @@ void ComponentGrid::updateSeparators()
 
 		if(it->border & BORDER_TOP || drawAll)
 		{
-			mLines.emplace_back(pos.x, pos.y);
-			mLines.emplace_back(pos.x + size.x, pos.y);
+			mLines.push_back(linePoint(pos.x, pos.y));
+			mLines.push_back(linePoint(pos.x + size.x, pos.y));
 		}
 		if(it->border & BORDER_BOTTOM || drawAll)
 		{
-			mLines.emplace_back(pos.x, pos.y + size.y);
-			mLines.emplace_back(pos.x + size.x, mLines.back().y);
+			mLines.push_back(linePoint(pos.x, pos.y + size.y));
+			mLines.push_back(linePoint(pos.x + size.x, mLines.back().pos.y));
 		}
 		if(it->border & BORDER_LEFT || drawAll)
 		{
-			mLines.emplace_back(pos.x, pos.y);
-			mLines.emplace_back(pos.x, pos.y + size.y);
+			mLines.push_back(linePoint(pos.x, pos.y));
+			mLines.push_back(linePoint(pos.x, pos.y + size.y));
 		}
 		if(it->border & BORDER_RIGHT || drawAll)
 		{
-			mLines.emplace_back(pos.x + size.x, pos.y);
-			mLines.emplace_back(mLines.back().x, pos.y + size.y);
+			mLines.push_back(linePoint(pos.x + size.x, pos.y));
+			mLines.push_back(linePoint(mLines.back().pos.x, pos.y + size.y));
 		}
 	}
 
-	mLineColors.reserve(mLines.size());
-	Renderer::buildGLColorArray((GLubyte*)mLineColors.data(), 0xC6C7C6FF, mLines.size());
+	const std::uint32_t color = Renderer::convertColor(0xC6C7C6FF);
+	for(Renderer::Vertex& vertex : mLines)
+		vertex.color = color;
 }
 
 void ComponentGrid::onSizeChanged()
@@ -362,18 +372,7 @@ void ComponentGrid::render(const glm::mat4& parentTrans)
 	{
 		Renderer::setMatrix(trans);
 
-		std::vector<Renderer::Vertex> verts(mLines.size());
-		for(size_t i = 0; i < mLines.size(); i++)
-		{
-			verts[i].pos = { mLines[i].x, mLines[i].y };
-			verts[i].tex = { 0, 0 };
-			if(i * 4 + 3 < mLineColors.size())
-				verts[i].color = ((unsigned int)mLineColors[i * 4]) << 24 | ((unsigned int)mLineColors[i * 4 + 1]) << 16 |
-					((unsigned int)mLineColors[i * 4 + 2]) << 8 | ((unsigned int)mLineColors[i * 4 + 3]);
-			else
-				verts[i].color = 0xFFFFFFFF;
-		}
-		Renderer::drawLines(std::span<const Renderer::Vertex>(verts), GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		Renderer::drawLines(mLines);
 	}
 }
 
