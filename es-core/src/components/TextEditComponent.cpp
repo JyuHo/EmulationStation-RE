@@ -84,14 +84,17 @@ void TextEditComponent::textInput(const char* text)
 
 void TextEditComponent::startEditing()
 {
-	SDL_StartTextInput();
+	// SDL3 only sends text events to a window that asked for them
+	if(SDL_Window* window = Renderer::getSDLWindow())
+		SDL_StartTextInput(window);
 	mEditing = true;
 	updateHelpPrompts();
 }
 
 void TextEditComponent::stopEditing()
 {
-	SDL_StopTextInput();
+	if(SDL_Window* window = Renderer::getSDLWindow())
+		SDL_StopTextInput(window);
 	mEditing = false;
 	updateHelpPrompts();
 }

@@ -5,7 +5,6 @@
 #include <filesystem>
 #include <fstream>
 #include <stdlib.h>
-#include <SDL_joystick.h>
 #include "Renderer.h"
 #include "AudioManager.h"
 #include "VolumeControl.h"

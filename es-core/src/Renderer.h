@@ -9,6 +9,7 @@
 
 class GuiComponent;
 class Font;
+struct SDL_Window;
 
 //The Renderer provides several higher-level functions for drawing (rectangles, text, etc.).
 //Renderer_draw_gl.cpp has most of the higher-level functions and wrappers.
@@ -19,6 +20,9 @@ void deinit();
 
 unsigned int getScreenWidth();
 unsigned int getScreenHeight();
+
+// nullptr before init() and after deinit()
+SDL_Window* getSDLWindow();
 
 void buildGLColorArray(GLubyte* ptr, unsigned int color, unsigned int vertCount);
 

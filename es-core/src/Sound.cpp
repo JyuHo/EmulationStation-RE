@@ -4,6 +4,8 @@
 #include "Settings.h"
 #include "ThemeData.h"
 
+#include <cstring>
+
 std::map<std::string, std::shared_ptr<Sound>> Sound::sMap;
 
 std::shared_ptr<Sound> Sound::get(const std::string& path)
@@ -61,22 +63,17 @@ void Sound::init()
 	SDL_AudioSpec wave;
 	Uint8* data = nullptr;
 	Uint32 dlen = 0;
-	if(SDL_LoadWAV(mPath.c_str(), &wave, &data, &dlen) == nullptr)
+	if(!SDL_LoadWAV(mPath.c_str(), &wave, &data, &dlen))
 	{
 		LOG(LogError) << "Error loading sound \"" << mPath << "\"!\n"
 					  << "	" << SDL_GetError();
 		return;
 	}
-	//build conversion buffer
-	SDL_AudioCVT cvt;
-	SDL_BuildAudioCVT(&cvt, wave.format, wave.channels, wave.freq, AUDIO_S16, 2, 44100);
-	//copy data to conversion buffer
-	cvt.len = dlen;
-	auto buffer = std::make_unique<Uint8[]>(cvt.len * cvt.len_mult);
-	cvt.buf = buffer.get();
-	memcpy(cvt.buf, data, dlen);
-	//convert buffer to stereo, 16bit, 44.1kHz
-	if(SDL_ConvertAudio(&cvt) < 0)
+	//convert to the mixer's format: stereo, 16bit, 44.1kHz
+	const SDL_AudioSpec& format = AudioManager::getFormat();
+	Uint8* converted = nullptr;
+	int convertedLength = 0;
+	if(!SDL_ConvertAudioSamples(&wave, data, (int)dlen, &format, &converted, &convertedLength))
 	{
 		LOG(LogError) << "Error converting sound \"" << mPath << "\" to 44.1kHz, 16bit, stereo format!\n"
 					  << "	" << SDL_GetError();
@@ -84,17 +81,17 @@ void Sound::init()
 	else
 	{
 		//worked. set up member data
-		SDL_LockAudio();
+		auto buffer = std::make_unique<Uint8[]>(convertedLength);
+		memcpy(buffer.get(), converted, convertedLength);
+		AudioManager::lock();
 		mSampleData = std::move(buffer);
-		mSampleLength = cvt.len_cvt;
+		mSampleLength = convertedLength;
 		mSamplePos = 0;
-		mSampleFormat.channels = 2;
-		mSampleFormat.freq = 44100;
-		mSampleFormat.format = AUDIO_S16;
-		SDL_UnlockAudio();
+		AudioManager::unlock();
 	}
 	//free wav data now
-	SDL_FreeWAV(data);
+	SDL_free(converted);
+	SDL_free(data);
 }
 
 void Sound::deinit()
@@ -103,11 +100,11 @@ void Sound::deinit()
 
 	if(mSampleData)
 	{
-		SDL_LockAudio();
+		AudioManager::lock();
 		mSampleData.reset();
 		mSampleLength = 0;
 		mSamplePos = 0;
-		SDL_UnlockAudio();
+		AudioManager::unlock();
 	}
 }
 
@@ -119,7 +116,7 @@ void Sound::play()
 	if(!Settings::getInstance()->getBool("EnableSounds"))
 		return;
 
-	SDL_LockAudio();
+	AudioManager::lock();
 	if(playing)
 	{
 		//replay from start. rewind the sample to the beginning
@@ -130,7 +127,7 @@ void Sound::play()
 		//flag our sample as playing
 		playing = true;
 	}
-	SDL_UnlockAudio();
+	AudioManager::unlock();
 	//tell the AudioManager to start playing samples
 	AudioManager::getInstance()->play();
 }
@@ -143,10 +140,10 @@ bool Sound::isPlaying() const
 void Sound::stop()
 {
 	//flag our sample as playing and rewind its position
-	SDL_LockAudio();
+	AudioManager::lock();
 	playing = false;
 	mSamplePos = 0;
-	SDL_UnlockAudio();
+	AudioManager::unlock();
 }
 
 const Uint8* Sound::getData() const

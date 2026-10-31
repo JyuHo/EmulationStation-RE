@@ -20,7 +20,7 @@ bool IGameListView::input(InputConfig* config, Input input)
 		// Ctrl-R to reload a view when debugging
 	}
 	else if(Settings::getInstance()->getBool("Debug") && config->getDeviceId() == DEVICE_KEYBOARD &&
-		(SDL_GetModState() & (KMOD_LCTRL | KMOD_RCTRL)) && input.id == SDLK_r && input.value != 0)
+		(SDL_GetModState() & (SDL_KMOD_LCTRL | SDL_KMOD_RCTRL)) && input.id == SDLK_R && input.value != 0)
 	{
 		LOG(LogDebug) << "reloading view";
 		ViewController::get()->reloadGameListView(this, true);

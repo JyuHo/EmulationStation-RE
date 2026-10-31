@@ -6,21 +6,18 @@
 #include "Window.h"
 #include "Log.h"
 #include "pugixml/pugixml.hpp"
+#include <algorithm>
 #include <filesystem>
 #include "platform.h"
+#include "Renderer.h"
 
 #define KEYBOARD_GUID_STRING "-1"
 
-// SO HEY POTENTIAL POOR SAP WHO IS TRYING TO MAKE SENSE OF ALL THIS (by which I mean my future self)
-// There are like four distinct IDs used for joysticks (crazy, right?)
-// 1. Device index - this is the "lowest level" identifier, and is just the Nth joystick plugged in to the system (like /dev/js#).
-//    It can change even if the device is the same, and is only used to open joysticks (required to receive SDL events).
-// 2. SDL_JoystickID - this is an ID for each joystick that is supposed to remain consistent between plugging and unplugging.
-//    ES doesn't care if it does, though.
-// 3. "Device ID" - this is something I made up and is what InputConfig's getDeviceID() returns.
-//    This is actually just an SDL_JoystickID (also called instance ID), but -1 means "keyboard" instead of "error."
-// 4. Joystick GUID - this is some squashed version of joystick vendor, version, and a bunch of other device-specific things.
-//    It should remain the same across runs of the program/system restarts/device reordering and is what I use to identify which joystick to load.
+// Joysticks are identified by their SDL_JoystickID (instance ID), which stays the same while the
+// device is plugged in. InputConfig's "device ID" is that instance ID, or DEVICE_KEYBOARD (-1);
+// SDL never hands out 0 or IDs beyond INT_MAX in practice, so an int holds both.
+// The joystick GUID (vendor, product, version...) identifies the model across runs and is what
+// es_input.cfg uses to find the configuration of a device.
 
 namespace fs = std::filesystem;
 
@@ -48,61 +45,67 @@ void InputManager::init()
 
 	SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS,
 		Settings::getInstance()->getBool("BackgroundJoystickInput") ? "1" : "0");
-	SDL_InitSubSystem(SDL_INIT_JOYSTICK);
-	SDL_JoystickEventState(SDL_ENABLE);
+	if(!SDL_InitSubSystem(SDL_INIT_JOYSTICK))
+		LOG(LogError) << "Error initializing SDL joysticks: " << SDL_GetError();
+	SDL_SetJoystickEventsEnabled(true);
 
 	// first, open all currently present joysticks
-	int numJoysticks = SDL_NumJoysticks();
+	int numJoysticks = 0;
+	SDL_JoystickID* joysticks = SDL_GetJoysticks(&numJoysticks);
 	for(int i = 0; i < numJoysticks; i++)
 	{
-		addJoystickByDeviceIndex(i);
+		addJoystick(joysticks[i]);
 	}
+	SDL_free(joysticks);
 
 	mKeyboardInputConfig = std::make_unique<InputConfig>(DEVICE_KEYBOARD, "Keyboard", KEYBOARD_GUID_STRING);
 	loadInputConfig(mKeyboardInputConfig.get());
 }
 
-void InputManager::addJoystickByDeviceIndex(int id)
+void InputManager::addJoystick(SDL_JoystickID joyId)
 {
-	assert(id >= 0 && id < SDL_NumJoysticks());
+	if(mJoysticks.contains(joyId))
+		return; // already opened by init(), its "added" event comes afterwards
 
 	// open joystick & add to our list
-	SDL_Joystick* joy = SDL_JoystickOpen(id);
-	assert(joy);
+	SDL_Joystick* joy = SDL_OpenJoystick(joyId);
+	if(joy == nullptr)
+	{
+		LOG(LogError) << "Could not open joystick (instance ID: " << joyId << "): " << SDL_GetError();
+		return;
+	}
 
 	// add it to our list so we can close it again later
-	SDL_JoystickID joyId = SDL_JoystickInstanceID(joy);
 	mJoysticks[joyId] = joy;
 
-	char guid[65];
-	SDL_JoystickGetGUIDString(SDL_JoystickGetGUID(joy), guid, 65);
+	const std::string guid = getJoystickGUIDString(joy);
+	const char* name = SDL_GetJoystickName(joy);
+	const std::string deviceName = name ? name : "";
 
 	// create the InputConfig
-	mInputConfigs[joyId] = std::make_unique<InputConfig>(joyId, SDL_JoystickName(joy), guid);
+	mInputConfigs[joyId] = std::make_unique<InputConfig>((int)joyId, deviceName, guid);
 	if(!loadInputConfig(mInputConfigs[joyId].get()))
 	{
-		LOG(LogInfo) << "Added unconfigured joystick " << SDL_JoystickName(joy) << " (GUID: " << guid
-					 << ", instance ID: " << joyId << ", device index: " << id << ").";
+		LOG(LogInfo) << "Added unconfigured joystick " << deviceName << " (GUID: " << guid << ", instance ID: " << joyId
+					 << ").";
 	}
 	else
 	{
-		LOG(LogInfo) << "Added known joystick " << SDL_JoystickName(joy) << " (instance ID: " << joyId
-					 << ", device index: " << id << ")";
+		LOG(LogInfo) << "Added known joystick " << deviceName << " (instance ID: " << joyId << ")";
 	}
 
 	// set up the prevAxisValues
-	int numAxes = SDL_JoystickNumAxes(joy);
+	int numAxes = std::max(SDL_GetNumJoystickAxes(joy), 0);
 	mPrevAxisValues[joyId] = std::make_unique<int[]>(numAxes);
 	std::fill(mPrevAxisValues[joyId].get(), mPrevAxisValues[joyId].get() + numAxes, 0); //initialize array to 0
 }
 
-void InputManager::removeJoystickByJoystickID(SDL_JoystickID joyId)
+void InputManager::removeJoystick(SDL_JoystickID joyId)
 {
-	assert(joyId != -1);
+	assert(joyId != 0);
 
 	// delete old prevAxisValues
-	auto axisIt = mPrevAxisValues.find(joyId);
-	mPrevAxisValues.erase(axisIt);
+	mPrevAxisValues.erase(joyId);
 
 	// delete old InputConfig
 	mInputConfigs.erase(joyId);
@@ -111,7 +114,7 @@ void InputManager::removeJoystickByJoystickID(SDL_JoystickID joyId)
 	auto joyIt = mJoysticks.find(joyId);
 	if(joyIt != mJoysticks.end())
 	{
-		SDL_JoystickClose(joyIt->second);
+		SDL_CloseJoystick(joyIt->second);
 		mJoysticks.erase(joyIt);
 	}
 	else
@@ -127,7 +130,7 @@ void InputManager::deinit()
 
 	for(auto iter = mJoysticks.begin(); iter != mJoysticks.end(); iter++)
 	{
-		SDL_JoystickClose(iter->second);
+		SDL_CloseJoystick(iter->second);
 	}
 	mJoysticks.clear();
 
@@ -137,7 +140,7 @@ void InputManager::deinit()
 
 	mKeyboardInputConfig.reset();
 
-	SDL_JoystickEventState(SDL_DISABLE);
+	SDL_SetJoystickEventsEnabled(false);
 	SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
 }
 
@@ -145,12 +148,13 @@ int InputManager::getNumJoysticks()
 {
 	return mJoysticks.size();
 }
-int InputManager::getButtonCountByDevice(SDL_JoystickID id)
+int InputManager::getButtonCountByDevice(int id)
 {
 	if(id == DEVICE_KEYBOARD)
 		return 120; //it's a lot, okay.
-	else
-		return SDL_JoystickNumButtons(mJoysticks[id]);
+
+	auto it = mJoysticks.find((SDL_JoystickID)id);
+	return it == mJoysticks.end() ? 0 : SDL_GetNumJoystickButtons(it->second);
 }
 
 InputConfig* InputManager::getInputConfigByDevice(int device)
@@ -158,7 +162,7 @@ InputConfig* InputManager::getInputConfigByDevice(int device)
 	if(device == DEVICE_KEYBOARD)
 		return mKeyboardInputConfig.get();
 	else
-		return mInputConfigs[device].get();
+		return mInputConfigs[(SDL_JoystickID)device].get();
 }
 
 bool InputManager::parseEvent(const SDL_Event& ev, Window* window)
@@ -166,7 +170,8 @@ bool InputManager::parseEvent(const SDL_Event& ev, Window* window)
 	bool causedEvent = false;
 	switch(ev.type)
 	{
-	case SDL_JOYAXISMOTION:
+	case SDL_EVENT_JOYSTICK_AXIS_MOTION: {
+		const int device = (int)ev.jaxis.which;
 		//if it switched boundaries
 		if((abs(ev.jaxis.value) > DEADZONE) != (abs(mPrevAxisValues[ev.jaxis.which][ev.jaxis.axis]) > DEADZONE))
 		{
@@ -178,27 +183,27 @@ bool InputManager::parseEvent(const SDL_Event& ev, Window* window)
 			else
 				normValue = -1;
 
-			window->input(getInputConfigByDevice(ev.jaxis.which),
-				Input(ev.jaxis.which, TYPE_AXIS, ev.jaxis.axis, normValue, false));
+			window->input(getInputConfigByDevice(device), Input(device, TYPE_AXIS, ev.jaxis.axis, normValue, false));
 			causedEvent = true;
 		}
 
 		mPrevAxisValues[ev.jaxis.which][ev.jaxis.axis] = ev.jaxis.value;
 		return causedEvent;
+	}
 
-	case SDL_JOYBUTTONDOWN:
-	case SDL_JOYBUTTONUP:
-		window->input(getInputConfigByDevice(ev.jbutton.which),
-			Input(ev.jbutton.which, TYPE_BUTTON, ev.jbutton.button, ev.jbutton.state == SDL_PRESSED, false));
+	case SDL_EVENT_JOYSTICK_BUTTON_DOWN:
+	case SDL_EVENT_JOYSTICK_BUTTON_UP:
+		window->input(getInputConfigByDevice((int)ev.jbutton.which),
+			Input((int)ev.jbutton.which, TYPE_BUTTON, ev.jbutton.button, ev.jbutton.down ? 1 : 0, false));
 		return true;
 
-	case SDL_JOYHATMOTION:
-		window->input(
-			getInputConfigByDevice(ev.jhat.which), Input(ev.jhat.which, TYPE_HAT, ev.jhat.hat, ev.jhat.value, false));
+	case SDL_EVENT_JOYSTICK_HAT_MOTION:
+		window->input(getInputConfigByDevice((int)ev.jhat.which),
+			Input((int)ev.jhat.which, TYPE_HAT, ev.jhat.hat, ev.jhat.value, false));
 		return true;
 
-	case SDL_KEYDOWN:
-		if(ev.key.keysym.sym == SDLK_BACKSPACE && SDL_IsTextInputActive())
+	case SDL_EVENT_KEY_DOWN:
+		if(ev.key.key == SDLK_BACKSPACE && Renderer::getSDLWindow() && SDL_TextInputActive(Renderer::getSDLWindow()))
 		{
 			window->textInput("\b");
 		}
@@ -206,32 +211,28 @@ bool InputManager::parseEvent(const SDL_Event& ev, Window* window)
 		if(ev.key.repeat)
 			return false;
 
-		if(ev.key.keysym.sym == SDLK_F4)
+		if(ev.key.key == SDLK_F4)
 		{
 			SDL_Event quit{};
-			quit.type = SDL_QUIT;
+			quit.type = SDL_EVENT_QUIT;
 			SDL_PushEvent(&quit); // SDL copies the event
 			return false;
 		}
 
 		window->input(
-			getInputConfigByDevice(DEVICE_KEYBOARD), Input(DEVICE_KEYBOARD, TYPE_KEY, ev.key.keysym.sym, 1, false));
+			getInputConfigByDevice(DEVICE_KEYBOARD), Input(DEVICE_KEYBOARD, TYPE_KEY, (int)ev.key.key, 1, false));
 		return true;
 
-	case SDL_KEYUP:
+	case SDL_EVENT_KEY_UP:
 		window->input(
-			getInputConfigByDevice(DEVICE_KEYBOARD), Input(DEVICE_KEYBOARD, TYPE_KEY, ev.key.keysym.sym, 0, false));
+			getInputConfigByDevice(DEVICE_KEYBOARD), Input(DEVICE_KEYBOARD, TYPE_KEY, (int)ev.key.key, 0, false));
 		return true;
 
-	case SDL_TEXTINPUT: window->textInput(ev.text.text); break;
+	case SDL_EVENT_TEXT_INPUT: window->textInput(ev.text.text); break;
 
-	case SDL_JOYDEVICEADDED:
-		addJoystickByDeviceIndex(ev.jdevice.which); // ev.jdevice.which is a device index
-		return true;
+	case SDL_EVENT_JOYSTICK_ADDED: addJoystick(ev.jdevice.which); return true;
 
-	case SDL_JOYDEVICEREMOVED:
-		removeJoystickByJoystickID(ev.jdevice.which); // ev.jdevice.which is an SDL_JoystickID (instance ID)
-		return false;
+	case SDL_EVENT_JOYSTICK_REMOVED: removeJoystick(ev.jdevice.which); return false;
 	}
 
 	return false;
@@ -359,14 +360,19 @@ std::string InputManager::getDeviceGUIDString(int deviceId)
 	if(deviceId == DEVICE_KEYBOARD)
 		return KEYBOARD_GUID_STRING;
 
-	auto it = mJoysticks.find(deviceId);
+	auto it = mJoysticks.find((SDL_JoystickID)deviceId);
 	if(it == mJoysticks.end())
 	{
 		LOG(LogError) << "getDeviceGUIDString - deviceId " << deviceId << " not found!";
 		return "something went horribly wrong";
 	}
 
-	char guid[65];
-	SDL_JoystickGetGUIDString(SDL_JoystickGetGUID(it->second), guid, 65);
-	return std::string(guid);
+	return getJoystickGUIDString(it->second);
+}
+
+std::string InputManager::getJoystickGUIDString(SDL_Joystick* joystick)
+{
+	char guid[33]; // 32 hex digits
+	SDL_GUIDToString(SDL_GetJoystickGUID(joystick), guid, sizeof(guid));
+	return guid;
 }

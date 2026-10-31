@@ -6,7 +6,7 @@
 #include "utils/Paths.h"
 
 #include <catch2/catch_test_macros.hpp>
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 #include <chrono>
 #include <cstdlib>

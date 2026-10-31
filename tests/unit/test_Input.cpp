@@ -6,7 +6,7 @@
 #include "utils/Paths.h"
 
 #include <catch2/catch_test_macros.hpp>
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 #include <chrono>
 #include <filesystem>
@@ -83,7 +83,7 @@ struct InputFixture
 		SDL_Event event;
 		while(SDL_PollEvent(&event))
 		{
-			if(event.type == SDL_QUIT)
+			if(event.type == SDL_EVENT_QUIT)
 				quit = true;
 			InputManager::getInstance()->parseEvent(event, &window);
 		}
@@ -94,10 +94,10 @@ struct InputFixture
 	{
 		SDL_Event event{};
 		event.type = type;
-		event.key.keysym.sym = key;
-		event.key.repeat = repeat ? 1 : 0;
-		event.key.state = type == SDL_KEYDOWN ? SDL_PRESSED : SDL_RELEASED;
-		REQUIRE(SDL_PushEvent(&event) == 1);
+		event.key.key = key;
+		event.key.repeat = repeat;
+		event.key.down = type == SDL_EVENT_KEY_DOWN;
+		REQUIRE(SDL_PushEvent(&event));
 	}
 
 	fs::path home;
@@ -159,7 +159,7 @@ TEST_CASE("inputs describe themselves for the configuration screens", "[Input]")
 {
 	CHECK(Input(DEVICE_KEYBOARD, TYPE_KEY, SDLK_RETURN, 1, true).string() == "Key Return");
 	CHECK(Input(DEVICE_KEYBOARD, TYPE_KEY, SDLK_UP, 1, true).string() == "Key Up");
-	CHECK(Input(DEVICE_KEYBOARD, TYPE_KEY, SDLK_a, 1, true).string() == "Key A");
+	CHECK(Input(DEVICE_KEYBOARD, TYPE_KEY, SDLK_A, 1, true).string() == "Key A");
 	CHECK(Input(0, TYPE_BUTTON, 3, 1, true).string() == "Button 3");
 	CHECK(Input(0, TYPE_AXIS, 1, 1, true).string() == "Axis 1+");
 	CHECK(Input(0, TYPE_AXIS, 1, -1, true).string() == "Axis 1-");
@@ -170,9 +170,9 @@ TEST_CASE("inputs describe themselves for the configuration screens", "[Input]")
 TEST_CASE("key events reach the GUI on top of the window", "[Input]")
 {
 	InputFixture fixture(kKeyboardConfig);
-	fixture.pushKey(SDL_KEYDOWN, SDLK_RETURN);
-	fixture.pushKey(SDL_KEYDOWN, SDLK_RETURN, true); // key repeat is ignored
-	fixture.pushKey(SDL_KEYUP, SDLK_RETURN);
+	fixture.pushKey(SDL_EVENT_KEY_DOWN, SDLK_RETURN);
+	fixture.pushKey(SDL_EVENT_KEY_DOWN, SDLK_RETURN, true); // key repeat is ignored
+	fixture.pushKey(SDL_EVENT_KEY_UP, SDLK_RETURN);
 	CHECK(!fixture.pump());
 
 	const auto& inputs = fixture.recorder->inputs;
@@ -184,7 +184,7 @@ TEST_CASE("key events reach the GUI on top of the window", "[Input]")
 TEST_CASE("F4 quits instead of reaching the GUI", "[Input]")
 {
 	InputFixture fixture(kKeyboardConfig);
-	fixture.pushKey(SDL_KEYDOWN, SDLK_F4);
+	fixture.pushKey(SDL_EVENT_KEY_DOWN, SDLK_F4);
 	// the quit event is pushed while the queue is being read: it may only show up on the next frame
 	const bool quit = fixture.pump();
 	CHECK((fixture.pump() || quit));
@@ -195,9 +195,8 @@ TEST_CASE("text input events reach the GUI as UTF-8", "[Input]")
 {
 	InputFixture fixture(kKeyboardConfig);
 	SDL_Event event{};
-	event.type = SDL_TEXTINPUT;
-	SDL_strlcpy(event.text.text, "é", sizeof(event.text.text));
-	// handed over directly: sdl2-compat crashes on a pushed text event (it converts the text buffer)
+	event.type = SDL_EVENT_TEXT_INPUT;
+	event.text.text = "é";
 	InputManager::getInstance()->parseEvent(event, &fixture.window);
 	CHECK(fixture.recorder->text == "é");
 }
@@ -208,14 +207,20 @@ TEST_CASE("a joystick can be plugged, used and unplugged", "[Input]")
 	InputManager* im = InputManager::getInstance();
 	const int before = im->getNumJoysticks();
 
-	const int index = SDL_JoystickAttachVirtual(SDL_JOYSTICK_TYPE_GAMECONTROLLER, 2, 4, 1);
-	REQUIRE(index >= 0);
+	SDL_VirtualJoystickDesc desc;
+	SDL_INIT_INTERFACE(&desc);
+	desc.type = SDL_JOYSTICK_TYPE_GAMEPAD;
+	desc.naxes = 2;
+	desc.nbuttons = 4;
+	desc.nhats = 1;
+	const SDL_JoystickID virtualId = SDL_AttachVirtualJoystick(&desc);
+	REQUIRE(virtualId != 0);
 	fixture.pump();
 	REQUIRE(im->getNumJoysticks() == before + 1);
 
-	SDL_Joystick* joystick = SDL_JoystickOpen(index);
+	SDL_Joystick* joystick = SDL_OpenJoystick(virtualId);
 	REQUIRE(joystick != nullptr);
-	const int id = SDL_JoystickInstanceID(joystick);
+	const int id = (int)SDL_GetJoystickID(joystick);
 	InputConfig* config = im->getInputConfigByDevice(id);
 	REQUIRE(config != nullptr);
 	CHECK(config->getDeviceId() == id);
@@ -233,28 +238,28 @@ TEST_CASE("a joystick can be plugged, used and unplugged", "[Input]")
 	};
 
 	// axes become -1/0/1 around a dead zone, and only boundary crossings are reported
-	SDL_JoystickSetVirtualAxis(joystick, 1, 30000);
+	SDL_SetJoystickVirtualAxis(joystick, 1, 30000);
 	expectOnly(Input(id, TYPE_AXIS, 1, 1, false));
-	SDL_JoystickSetVirtualAxis(joystick, 1, 25000);
+	SDL_SetJoystickVirtualAxis(joystick, 1, 25000);
 	fixture.pump();
 	CHECK(inputs.empty());
-	SDL_JoystickSetVirtualAxis(joystick, 1, 1000);
+	SDL_SetJoystickVirtualAxis(joystick, 1, 1000);
 	expectOnly(Input(id, TYPE_AXIS, 1, 0, false));
-	SDL_JoystickSetVirtualAxis(joystick, 1, -30000);
+	SDL_SetJoystickVirtualAxis(joystick, 1, -30000);
 	expectOnly(Input(id, TYPE_AXIS, 1, -1, false));
 
-	SDL_JoystickSetVirtualButton(joystick, 2, SDL_PRESSED);
+	SDL_SetJoystickVirtualButton(joystick, 2, true);
 	expectOnly(Input(id, TYPE_BUTTON, 2, 1, false));
-	SDL_JoystickSetVirtualButton(joystick, 2, SDL_RELEASED);
+	SDL_SetJoystickVirtualButton(joystick, 2, false);
 	expectOnly(Input(id, TYPE_BUTTON, 2, 0, false));
 
-	SDL_JoystickSetVirtualHat(joystick, 0, SDL_HAT_LEFT);
+	SDL_SetJoystickVirtualHat(joystick, 0, SDL_HAT_LEFT);
 	expectOnly(Input(id, TYPE_HAT, 0, SDL_HAT_LEFT, false));
-	SDL_JoystickSetVirtualHat(joystick, 0, SDL_HAT_CENTERED);
+	SDL_SetJoystickVirtualHat(joystick, 0, SDL_HAT_CENTERED);
 	expectOnly(Input(id, TYPE_HAT, 0, SDL_HAT_CENTERED, false));
 
-	SDL_JoystickClose(joystick);
-	REQUIRE(SDL_JoystickDetachVirtual(index) == 0);
+	SDL_CloseJoystick(joystick);
+	REQUIRE(SDL_DetachVirtualJoystick(virtualId));
 	fixture.pump();
 	CHECK(im->getNumJoysticks() == before);
 	// unplugging recenters the axis that was still pushed

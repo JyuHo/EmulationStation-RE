@@ -221,8 +221,8 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "MAIN MEN
 				window->pushGui(std::make_unique<GuiMsgBox>(
 					window, "REALLY QUIT?", "YES",
 					[] {
-						SDL_Event ev;
-						ev.type = SDL_QUIT;
+						SDL_Event ev{};
+						ev.type = SDL_EVENT_QUIT;
 						SDL_PushEvent(&ev);
 					},
 					"NO", nullptr));

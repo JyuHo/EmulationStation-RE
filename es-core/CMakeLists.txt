@@ -182,7 +182,7 @@ target_link_libraries(es-core PUBLIC
     Freetype::Freetype
     Fontconfig::Fontconfig
     PkgConfig::WEBP
-    SDL2::SDL2
+    SDL3::SDL3
     glm::glm
     CURL::libcurl
     ALSA::ALSA

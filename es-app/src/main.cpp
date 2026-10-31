@@ -1,7 +1,7 @@
 //EmulationStation, a graphical front-end for ROM browsing. Created by Alec "Aloshi" Lofquist.
 //http://www.aloshi.com
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 #include <iostream>
 #include <iomanip>
 #include "Renderer.h"
@@ -239,7 +239,7 @@ int main(int argc, char* argv[])
 		// we can't handle es_systems.cfg file problems inside ES itself, so display the error message then quit
 		window.pushGui(std::make_unique<GuiMsgBox>(&window, errorMsg, "QUIT", [] {
 			SDL_Event quit{};
-			quit.type = SDL_QUIT;
+			quit.type = SDL_EVENT_QUIT;
 			SDL_PushEvent(&quit); // SDL copies the event
 		}));
 	}
@@ -251,7 +251,7 @@ int main(int argc, char* argv[])
 	}
 
 	//dont generate joystick events while we're loading (hopefully fixes "automatically started emulator" bug)
-	SDL_JoystickEventState(SDL_DISABLE);
+	SDL_SetJoystickEventsEnabled(false);
 
 	// preload what we can right away instead of waiting for the user to select it
 	// this makes for no delays when accessing content, but a longer startup time
@@ -271,9 +271,9 @@ int main(int argc, char* argv[])
 	}
 
 	//generate joystick events since we're done loading
-	SDL_JoystickEventState(SDL_ENABLE);
+	SDL_SetJoystickEventsEnabled(true);
 
-	int lastTime = SDL_GetTicks();
+	Uint64 lastTime = SDL_GetTicks();
 	bool running = true;
 
 	while(running)
@@ -283,17 +283,17 @@ int main(int argc, char* argv[])
 		{
 			switch(event.type)
 			{
-			case SDL_JOYHATMOTION:
-			case SDL_JOYBUTTONDOWN:
-			case SDL_JOYBUTTONUP:
-			case SDL_KEYDOWN:
-			case SDL_KEYUP:
-			case SDL_JOYAXISMOTION:
-			case SDL_TEXTINPUT:
-			case SDL_TEXTEDITING:
-			case SDL_JOYDEVICEADDED:
-			case SDL_JOYDEVICEREMOVED: InputManager::getInstance()->parseEvent(event, &window); break;
-			case SDL_QUIT: running = false; break;
+			case SDL_EVENT_JOYSTICK_HAT_MOTION:
+			case SDL_EVENT_JOYSTICK_BUTTON_DOWN:
+			case SDL_EVENT_JOYSTICK_BUTTON_UP:
+			case SDL_EVENT_KEY_DOWN:
+			case SDL_EVENT_KEY_UP:
+			case SDL_EVENT_JOYSTICK_AXIS_MOTION:
+			case SDL_EVENT_TEXT_INPUT:
+			case SDL_EVENT_TEXT_EDITING:
+			case SDL_EVENT_JOYSTICK_ADDED:
+			case SDL_EVENT_JOYSTICK_REMOVED: InputManager::getInstance()->parseEvent(event, &window); break;
+			case SDL_EVENT_QUIT: running = false; break;
 			}
 		}
 
@@ -305,8 +305,8 @@ int main(int argc, char* argv[])
 			continue;
 		}
 
-		int curTime = SDL_GetTicks();
-		int deltaTime = curTime - lastTime;
+		Uint64 curTime = SDL_GetTicks();
+		int deltaTime = (int)(curTime - lastTime);
 		lastTime = curTime;
 
 		// cap deltaTime at 1000

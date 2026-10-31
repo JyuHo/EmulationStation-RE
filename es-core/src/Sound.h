@@ -4,14 +4,13 @@
 #include <string>
 #include <map>
 #include <memory>
-#include "SDL_audio.h"
+#include <SDL3/SDL_audio.h>
 
 class ThemeData;
 
 class Sound
 {
 	std::string mPath;
-	SDL_AudioSpec mSampleFormat;
 	std::unique_ptr<Uint8[]> mSampleData;
 	Uint32 mSamplePos;
 	Uint32 mSampleLength;

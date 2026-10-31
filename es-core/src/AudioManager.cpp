@@ -1,53 +1,56 @@
 #include "AudioManager.h"
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 #include "Log.h"
 
 std::vector<std::shared_ptr<Sound>> AudioManager::sSoundVector;
-SDL_AudioSpec AudioManager::sAudioFormat;
+SDL_AudioSpec AudioManager::sAudioFormat{SDL_AUDIO_S16, 2, 44100};
+SDL_AudioStream* AudioManager::sStream = nullptr;
 std::shared_ptr<AudioManager> AudioManager::sInstance;
 
-void AudioManager::mixAudio(void* unused, Uint8* stream, int len)
+// Called by SDL with the stream locked, when the device needs "additional" more bytes.
+void AudioManager::mixAudio(void* /*userdata*/, SDL_AudioStream* stream, int additional, int /*total*/)
 {
-	bool stillPlaying = false;
+	if(additional <= 0)
+		return;
 
-	//initialize the buffer to "silence"
-	SDL_memset(stream, 0, len);
+	static std::vector<Uint8> buffer;
+	buffer.assign(additional, 0); // silence
+	const Uint32 len = additional;
 
+	bool anyPlaying = false;
 	//iterate through all our samples
-	std::vector<std::shared_ptr<Sound>>::const_iterator soundIt = sSoundVector.cbegin();
-	while(soundIt != sSoundVector.cend())
+	for(const std::shared_ptr<Sound>& sound : sSoundVector)
 	{
-		std::shared_ptr<Sound> sound = *soundIt;
 		if(sound->isPlaying())
 		{
+			anyPlaying = true;
 			//calculate rest length of current sample
 			Uint32 restLength = (sound->getLength() - sound->getPosition());
-			if(restLength > (Uint32)len)
+			if(restLength > len)
 			{
 				//if stream length is smaller than smaple lenght, clip it
 				restLength = len;
 			}
 			//mix sample into stream
-			SDL_MixAudio(stream, &(sound->getData()[sound->getPosition()]), restLength, SDL_MIX_MAXVOLUME);
-			if(sound->getPosition() + restLength < sound->getLength())
-			{
-				//sample hasn't ended yet
-				stillPlaying = true;
-			}
+			SDL_MixAudio(
+				buffer.data(), &(sound->getData()[sound->getPosition()]), sAudioFormat.format, restLength, 1.0f);
 			//set new sound position. if this is at or beyond the end of the sample, it will stop automatically
 			sound->setPosition(sound->getPosition() + restLength);
 		}
-		//advance to next sound
-		++soundIt;
 	}
 
-	//we have processed all samples. check if some will still be playing
-	if(!stillPlaying)
-	{
-		//no. pause audio till a Sound::play() wakes us up
-		SDL_PauseAudio(1);
-	}
+	// with nothing queued, the device plays silence: no need to send it
+	if(anyPlaying)
+		SDL_PutAudioStreamData(stream, buffer.data(), additional);
+}
+
+// SDL_Quit() (Renderer::deinit) destroys the stream: the AudioManager can outlive it at exit
+static bool streamAlive(SDL_AudioStream*& stream)
+{
+	if(stream != nullptr && SDL_WasInit(SDL_INIT_AUDIO) == 0)
+		stream = nullptr;
+	return stream != nullptr;
 }
 
 AudioManager::AudioManager()
@@ -72,7 +75,7 @@ std::shared_ptr<AudioManager>& AudioManager::getInstance()
 
 void AudioManager::init()
 {
-	if(SDL_InitSubSystem(SDL_INIT_AUDIO) != 0)
+	if(!SDL_InitSubSystem(SDL_INIT_AUDIO))
 	{
 		LOG(LogError) << "Error initializing SDL audio!\n" << SDL_GetError();
 		return;
@@ -87,18 +90,11 @@ void AudioManager::init()
 		}
 	}
 
-	//Set up format and callback. Play 16-bit stereo audio at 44.1Khz
-	sAudioFormat.freq = 44100;
-	sAudioFormat.format = AUDIO_S16;
-	sAudioFormat.channels = 2;
-	sAudioFormat.samples = 1024;
-	sAudioFormat.callback = mixAudio;
-	sAudioFormat.userdata = nullptr;
-
-	//Open the audio device and pause
-	if(SDL_OpenAudio(&sAudioFormat, nullptr) < 0)
+	//Open the default device with a stream in our format, fed by mixAudio; it starts paused
+	sStream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &sAudioFormat, mixAudio, nullptr);
+	if(sStream == nullptr)
 	{
-		LOG(LogError) << "AudioManager Error - Unable to open SDL audio: " << SDL_GetError() << std::endl;
+		LOG(LogError) << "AudioManager Error - Unable to open SDL audio: " << SDL_GetError();
 	}
 }
 
@@ -107,8 +103,13 @@ void AudioManager::deinit()
 	//stop all playback
 	stop();
 	//completely tear down SDL audio. else SDL hogs audio resources and emulators might fail to start...
-	SDL_CloseAudio();
-	SDL_QuitSubSystem(SDL_INIT_AUDIO);
+	if(streamAlive(sStream))
+	{
+		SDL_DestroyAudioStream(sStream); // also closes the device
+		sStream = nullptr;
+	}
+	if(SDL_WasInit(SDL_INIT_AUDIO) != 0)
+		SDL_QuitSubSystem(SDL_INIT_AUDIO);
 }
 
 void AudioManager::registerSound(std::shared_ptr<Sound>& sound)
@@ -137,7 +138,8 @@ void AudioManager::play()
 	getInstance();
 
 	//unpause audio, the mixer will figure out if samples need to be played...
-	SDL_PauseAudio(0);
+	if(streamAlive(sStream))
+		SDL_ResumeAudioStreamDevice(sStream);
 }
 
 void AudioManager::stop()
@@ -151,5 +153,18 @@ void AudioManager::stop()
 		}
 	}
 	//pause audio
-	SDL_PauseAudio(1);
+	if(streamAlive(sStream))
+		SDL_PauseAudioStreamDevice(sStream);
+}
+
+void AudioManager::lock()
+{
+	if(streamAlive(sStream))
+		SDL_LockAudioStream(sStream);
+}
+
+void AudioManager::unlock()
+{
+	if(streamAlive(sStream))
+		SDL_UnlockAudioStream(sStream);
 }
