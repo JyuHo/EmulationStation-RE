@@ -2,7 +2,10 @@
 
 #include "resources/ResourceManager.h"
 
+#include <mutex>
 #include <string>
+#include <thread>
+#include <vector>
 #include "math/Math.h"
 #include "renderer/Renderer.h"
 
@@ -33,6 +36,7 @@ public:
 	size_t getMemUsage() const;		  // returns an approximation of the VRAM used by this texture (in bytes)
 	static size_t getTotalMemUsage(); // returns an approximation of total VRAM used by textures (in bytes)
 	static void evictIfNeeded(); // evict least-recently-used textures over the MaxVRAM budget
+	static void processPending(); // upload textures decoded off-thread (call on main thread)
 
 protected:
 	TextureResource(const std::string& path, bool tile);
@@ -44,6 +48,14 @@ protected:
 
 private:
 	Renderer::TextureHandle mTexture;
+
+	// Async loading state
+	std::vector<unsigned char> mPendingPixels;
+	size_t mPendingW = 0;
+	size_t mPendingH = 0;
+	bool mPendingReady = false;
+	std::mutex mPendingMutex;
+	std::jthread mWorker;
 
 	using TextureKeyType = std::pair<std::string, bool>;
 	static std::map<TextureKeyType, std::weak_ptr<TextureResource>>
