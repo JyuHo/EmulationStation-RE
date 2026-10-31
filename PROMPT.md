@@ -13,7 +13,7 @@
 > Section à lire en premier. Elle décrit l'état réel du dépôt et dit exactement où
 > reprendre. **Mets-la à jour à la fin de chaque phase** (c'est la mémoire du projet entre
 > deux agents). Dernière mise à jour : 31/10/2026, audit et clôture de la phase 6 (#42,
-> #44, #45 après #40), sauf la mesure de performance sur iGPU par le propriétaire. Audit précédent : [`docs/AUDIT.md`](docs/AUDIT.md).
+> #44, #45 après #40) ; mesure de performance faite par le propriétaire (#46). Audit précédent : [`docs/AUDIT.md`](docs/AUDIT.md).
 
 ### 0.1 État au moment de la passation
 | Phase | État | PR |
@@ -27,7 +27,7 @@
 | 3.E — Finitions de la phase 3 (issues de l'audit) | **terminée** : XDG (#25), job `asan` (#26), locale numérique et restes Windows (#28) | #25, #26, #28 |
 | 4 — Eigen → glm | **terminée** : glm, `math/Math.h`, captures identiques au pixel près, Eigen retiré ; correctif des chemins `./` des thèmes | #30, #31, #32 |
 | 5 — SDL2 → SDL3 | **terminée** : SDL3 partout, manettes reconnues par `SDL_Gamepad` avec configuration par défaut, captures identiques au pixel près ; testée par le propriétaire avec une vraie manette | #33, #34, #35 (#37) |
-| **6 — OpenGL 3.3 core** | **terminée sauf la mesure sur iGPU** (critère vérifié par le propriétaire, procédure dans le plan) : contexte 3.3 core, module `renderer/`, glad, API sans types GL, shaders, `Batcher`, taille de fenêtre ; #40 avait un rendu faux, corrigé par #42 | #40, #42, #44, #45 |
+| **6 — OpenGL 3.3 core** | **terminée** (≈ 3 500 i/s au minimum sur APU AMD BC-250, 1 000 jeux, mesuré par le propriétaire) : contexte 3.3 core, module `renderer/`, glad, API sans types GL, shaders, `Batcher`, taille de fenêtre ; #40 avait un rendu faux, corrigé par #42 | #40, #42, #44, #45 |
 | 7 à 12 | à faire | — |
 
 Toutes les PR ont été fusionnées par **merge commit** : le commit de reformatage
@@ -95,7 +95,7 @@ Ce qui existe et que tu dois **réutiliser** (ne le recrée pas) :
   dans le conteneur pour `test_Locale`. Boost et Eigen ne sont plus installés. Job
   « Screenshots vs base branch » (PR seulement) : captures de la base et de la PR comparées.
 
-### 0.2 Point de reprise : phase 7 (Images), après la mesure de la phase 6
+### 0.2 Point de reprise : phase 7 (Images)
 **Audit du 31/10/2026.** La PR #40 (un seul commit, sans le découpage 6a–6d) est passée en
 3.3 core mais avec les couleurs des sommets dans le mauvais ordre d'octets et les
 séparateurs de `ComponentGrid` en blanc : les 8 captures différaient de la phase 5 (2 000 à
@@ -105,9 +105,9 @@ la cause demandés en 13.8. Elle gardait aussi les types GL dans les en-têtes p
 dans `main.cpp`. #42 a repris 6a et 6b (rendu de la phase 5 rétabli), #44 le regroupement
 (6c), #45 la clôture (6d).
 
-Reste de la phase 6 : la **mesure sur iGPU** (1080p et 4K, 1 000 jeux), faite par le
-propriétaire selon la procédure du plan (« Mesure de performance »). Ne coche pas ce
-critère sans son retour. La phase 7 n'a pas commencé : #41 n'ajoute que la dépendance
+La mesure de la phase 6 est faite (propriétaire, 31/10/2026) : environ 3 500 i/s au
+minimum en 1080p sur un APU AMD BC-250, mêmes chiffres en 4K (voir « Écarts constatés » du
+plan), `Draws: 56 (32 glDrawArrays)`. La phase 7 n'a pas commencé : #41 n'ajoute que la dépendance
 `libwebpdemux` (déjà dans `pacman` via `libwebp`). Lis la section « Phase 7 » du plan ; le
 chargement asynchrone devra créer les textures sur le thread principal (`createTexture`
 ne doit être appelé qu'avec le contexte courant).
@@ -594,7 +594,7 @@ En français, court :
 ## 13. Phase 6 — Consignes détaillées (moteur de rendu OpenGL 3.3 core)
 
 > **État (31/10/2026)** : réalisée par #42 (6a + 6b, après le rendu faux de #40), #44 (6c) et
-> #45 (6d) ; seul reste le critère de performance sur iGPU, vérifié par le propriétaire.
+> #45 (6d) ; critère de performance vérifié par le propriétaire (APU AMD BC-250).
 > Garde cette section comme référence des choix du moteur.
 
 > Cette section est le cahier des charges de la phase 6. Elle complète le plan (section

@@ -54,7 +54,7 @@ Raspberry Pi, Windows, macOS et OpenGL ES ne sont plus pris en charge.
 | 3 | Suppression de Boost, chemins XDG, propriété mémoire | fait (PR #3 à #28) |
 | 4 | Eigen → glm | fait (PR #30 à #32) |
 | 5 | SDL2 → SDL3, manettes reconnues par `SDL_Gamepad` | fait (PR #33, #34, #37) |
-| 6 | Rendu OpenGL 3.3 core | **en cours** : moteur à shaders et regroupement faits (PR #40, #42, #44, #45) ; mesure sur iGPU à faire |
+| 6 | Rendu OpenGL 3.3 core | **terminée** : moteur à shaders et regroupement (PR #40, #42, #44, #45) ; ≈ 3 500 i/s sur APU AMD |
 | 7 | Images animées, chargement asynchrone, cache | à faire |
 | 8 | Audio (sons, musique de fond) | à faire |
 | 9 | Vidéo avec FFmpeg | à faire |
