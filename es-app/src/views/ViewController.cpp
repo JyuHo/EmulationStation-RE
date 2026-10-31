@@ -31,11 +31,7 @@ void ViewController::init(Window* window)
 }
 
 ViewController::ViewController(Window* window) :
-	GuiComponent(window),
-	mCurrentView(nullptr),
-	mCamera(glm::mat4(1.0f)),
-	mFadeOpacity(0),
-	mLockInput(false)
+	GuiComponent(window), mCurrentView(nullptr), mCamera(glm::mat4(1.0f)), mFadeOpacity(0), mLockInput(false)
 {
 	mState.viewing = NOTHING;
 }
@@ -300,8 +296,8 @@ void ViewController::render(const glm::mat4& parentTrans)
 	// camera position, position + size
 	const glm::mat4 inverseTrans = glm::inverse(trans);
 	glm::vec3 viewStart = getTranslation(inverseTrans);
-	glm::vec3 viewEnd =
-		transformPoint(inverseTrans, glm::vec3((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight(), 0));
+	glm::vec3 viewEnd = transformPoint(
+		inverseTrans, glm::vec3((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight(), 0));
 
 	// draw systemview
 	getSystemListView()->render(trans);
@@ -311,11 +307,9 @@ void ViewController::render(const glm::mat4& parentTrans)
 	{
 		// clipping
 		glm::vec3 guiStart = it->second->getPosition();
-		glm::vec3 guiEnd =
-			it->second->getPosition() + glm::vec3(it->second->getSize().x, it->second->getSize().y, 0);
+		glm::vec3 guiEnd = it->second->getPosition() + glm::vec3(it->second->getSize().x, it->second->getSize().y, 0);
 
-		if(guiEnd.x >= viewStart.x && guiEnd.y >= viewStart.y && guiStart.x <= viewEnd.x &&
-			guiStart.y <= viewEnd.y)
+		if(guiEnd.x >= viewStart.x && guiEnd.y >= viewStart.y && guiStart.x <= viewEnd.x && guiStart.y <= viewEnd.y)
 			it->second->render(trans);
 	}
 

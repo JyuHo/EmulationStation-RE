@@ -11,7 +11,6 @@
 #include "components/MenuComponent.h" // for makeButtonGrid
 #include "guis/GuiMsgBox.h"
 
-
 GuiScraperMulti::GuiScraperMulti(Window* window, const std::queue<ScraperSearchParams>& searches, bool approveResults) :
 	GuiComponent(window), mSearchQueue(searches), mBackground(window, ":/frame.png"), mGrid(window, glm::ivec2(1, 5))
 {

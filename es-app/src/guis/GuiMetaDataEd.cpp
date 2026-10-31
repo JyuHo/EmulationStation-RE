@@ -14,7 +14,6 @@
 #include "components/RatingComponent.h"
 #include "guis/GuiTextEditPopup.h"
 
-
 GuiMetaDataEd::GuiMetaDataEd(Window* window, MetaDataList* md, const std::vector<MetaDataDecl>& mdd,
 	ScraperSearchParams scraperParams, const std::string& header, std::function<void()> saveCallback,
 	std::function<void()> deleteFunc) :

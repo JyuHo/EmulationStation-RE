@@ -1,7 +1,6 @@
 #include "guis/GuiTextEditPopup.h"
 #include "components/MenuComponent.h"
 
-
 GuiTextEditPopup::GuiTextEditPopup(Window* window, const std::string& title, const std::string& initValue,
 	const std::function<void(const std::string&)>& okCallback, bool multiLine, const char* acceptBtnText) :
 	GuiComponent(window), mBackground(window, ":/frame.png"), mGrid(window, glm::ivec2(1, 3)), mMultiLine(multiLine)
@@ -37,8 +36,8 @@ GuiTextEditPopup::GuiTextEditPopup(Window* window, const std::string& title, con
 		textHeight *= 6;
 	mText->setSize(0, textHeight);
 
-	setSize(Renderer::getScreenWidth() * 0.5f,
-		mTitle->getFont()->getHeight() + textHeight + mButtonGrid->getSize().y + 40);
+	setSize(
+		Renderer::getScreenWidth() * 0.5f, mTitle->getFont()->getHeight() + textHeight + mButtonGrid->getSize().y + 40);
 	setPosition((Renderer::getScreenWidth() - mSize.x) / 2, (Renderer::getScreenHeight() - mSize.y) / 2);
 }
 

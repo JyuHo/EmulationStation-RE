@@ -290,9 +290,8 @@ int GuiComponent::getAnimationTime(unsigned char slot) const
 void GuiComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view,
 	const std::string& element, unsigned int properties)
 {
-	glm::vec2 scale = getParent()
-		? getParent()->getSize()
-		: glm::vec2((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
+	glm::vec2 scale = getParent() ? getParent()->getSize()
+								  : glm::vec2((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
 
 	const ThemeData::ThemeElement* elem = theme->getElement(view, element, "");
 	if(!elem)

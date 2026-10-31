@@ -31,9 +31,9 @@ public:
 
 	bool removeEntry(const std::shared_ptr<GuiComponent>& comp);
 
-	void setEntry(const std::shared_ptr<GuiComponent>& comp, const glm::ivec2& pos, bool canFocus,
-		bool resize = true, const glm::ivec2& size = glm::ivec2(1, 1),
-		unsigned int border = GridFlags::BORDER_NONE, GridFlags::UpdateType updateType = GridFlags::UPDATE_ALWAYS);
+	void setEntry(const std::shared_ptr<GuiComponent>& comp, const glm::ivec2& pos, bool canFocus, bool resize = true,
+		const glm::ivec2& size = glm::ivec2(1, 1), unsigned int border = GridFlags::BORDER_NONE,
+		GridFlags::UpdateType updateType = GridFlags::UPDATE_ALWAYS);
 
 	void textInput(const char* text) override;
 	bool input(InputConfig* config, Input input) override;
@@ -83,10 +83,9 @@ private:
 		GridFlags::UpdateType updateType;
 		unsigned int border;
 
-		GridEntry(const glm::ivec2& p = glm::ivec2(0),
-			const glm::ivec2& d = glm::ivec2(0), const std::shared_ptr<GuiComponent>& cmp = nullptr,
-			bool f = false, bool r = true, GridFlags::UpdateType u = GridFlags::UPDATE_ALWAYS,
-			unsigned int b = GridFlags::BORDER_NONE) :
+		GridEntry(const glm::ivec2& p = glm::ivec2(0), const glm::ivec2& d = glm::ivec2(0),
+			const std::shared_ptr<GuiComponent>& cmp = nullptr, bool f = false, bool r = true,
+			GridFlags::UpdateType u = GridFlags::UPDATE_ALWAYS, unsigned int b = GridFlags::BORDER_NONE) :
 			pos(p), dim(d), component(cmp), canFocus(f), resize(r), updateType(u), border(b){};
 
 		operator bool() const { return component != nullptr; }

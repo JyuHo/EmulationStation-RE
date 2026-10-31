@@ -241,8 +241,8 @@ void TextEditComponent::render(const glm::mat4& parentTrans)
 	setTranslation(trans, getTranslation(trans) + glm::vec3(getTextAreaPos().x, getTextAreaPos().y, 0));
 
 	glm::ivec2 clipPos((int)getTranslation(trans).x, (int)getTranslation(trans).y);
-	glm::vec3 dimScaled =
-		transformPoint(trans, glm::vec3(getTextAreaSize().x, getTextAreaSize().y, 0)); // use "text area" size for clipping
+	glm::vec3 dimScaled = transformPoint(
+		trans, glm::vec3(getTextAreaSize().x, getTextAreaSize().y, 0)); // use "text area" size for clipping
 	glm::ivec2 clipDim((int)dimScaled.x - getTranslation(trans).x, (int)dimScaled.y - getTranslation(trans).y);
 	Renderer::pushClipRect(clipPos, clipDim);
 

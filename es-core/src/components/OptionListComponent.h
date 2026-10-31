@@ -184,10 +184,8 @@ public:
 
 		// position
 		mLeftArrow.setPosition(0, (mSize.y - mLeftArrow.getSize().y) / 2);
-		mText.setPosition(
-			mLeftArrow.getPosition().x + mLeftArrow.getSize().x, (mSize.y - mText.getSize().y) / 2);
-		mRightArrow.setPosition(
-			mText.getPosition().x + mText.getSize().x, (mSize.y - mRightArrow.getSize().y) / 2);
+		mText.setPosition(mLeftArrow.getPosition().x + mLeftArrow.getSize().x, (mSize.y - mText.getSize().y) / 2);
+		mRightArrow.setPosition(mText.getPosition().x + mText.getSize().x, (mSize.y - mRightArrow.getSize().y) / 2);
 	}
 
 	bool input(InputConfig* config, Input input) override
@@ -298,8 +296,8 @@ private:
 				{
 					mText.setText(strToUpper(it->name));
 					mText.setSize(0, mText.getSize().y);
-					setSize(mText.getSize().x + mLeftArrow.getSize().x + mRightArrow.getSize().x + 24,
-						mText.getSize().y);
+					setSize(
+						mText.getSize().x + mLeftArrow.getSize().x + mRightArrow.getSize().x + 24, mText.getSize().y);
 					if(mParent) // hack since theres no "on child size changed" callback atm...
 						mParent->onSizeChanged();
 					break;

@@ -115,8 +115,8 @@ void TextComponent::render(const glm::mat4& parentTrans)
 				Renderer::drawRect(0.0f, 0.0f, mTextCache->metrics.size.x, mTextCache->metrics.size.y, 0x00000033);
 				break;
 			case ALIGN_CENTER:
-				Renderer::drawRect((mSize.x - mTextCache->metrics.size.x) / 2.0f, 0.0f,
-					mTextCache->metrics.size.x, mTextCache->metrics.size.y, 0x00000033);
+				Renderer::drawRect((mSize.x - mTextCache->metrics.size.x) / 2.0f, 0.0f, mTextCache->metrics.size.x,
+					mTextCache->metrics.size.y, 0x00000033);
 				break;
 			case ALIGN_RIGHT:
 				Renderer::drawRect(mSize.x - mTextCache->metrics.size.x, 0.0f, mTextCache->metrics.size.x,
@@ -186,8 +186,8 @@ void TextComponent::onTextChanged()
 
 		text.append(abbrev);
 
-		mTextCache = std::shared_ptr<TextCache>(f->buildTextCache(
-			text, glm::vec2(0, 0), (mColor >> 8 << 8) | mOpacity, mSize.x, mAlignment, mLineSpacing));
+		mTextCache = std::shared_ptr<TextCache>(
+			f->buildTextCache(text, glm::vec2(0, 0), (mColor >> 8 << 8) | mOpacity, mSize.x, mAlignment, mLineSpacing));
 	}
 	else
 	{

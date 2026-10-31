@@ -21,7 +21,6 @@ ScraperSearchComponent::ScraperSearchComponent(Window* window, SearchType type) 
 
 	mBlockAccept = false;
 
-
 	// left spacer (empty component, needed for borders)
 	mGrid.setEntry(std::make_shared<GuiComponent>(mWindow), glm::ivec2(0, 0), false, false, glm::ivec2(1, 3),
 		GridFlags::BORDER_TOP | GridFlags::BORDER_BOTTOM);
@@ -97,7 +96,7 @@ void ScraperSearchComponent::onSizeChanged()
 
 	// row heights
 	if(mSearchType == ALWAYS_ACCEPT_FIRST_RESULT)													   // show name
-		mGrid.setRowHeightPerc(0, (mResultName->getFont()->getHeight() * 1.6f) / mGrid.getSize().y); // result name
+		mGrid.setRowHeightPerc(0, (mResultName->getFont()->getHeight() * 1.6f) / mGrid.getSize().y);   // result name
 	else
 		mGrid.setRowHeightPerc(0, 0.0825f); // hide name but do padding
 

@@ -468,8 +468,8 @@ Font::Glyph* Font::getGlyph(UnicodeChar id)
 
 	// upload glyph bitmap to texture
 	glBindTexture(GL_TEXTURE_2D, tex->textureId);
-	glTexSubImage2D(GL_TEXTURE_2D, 0, cursor.x, cursor.y, glyphSize.x, glyphSize.y, GL_ALPHA, GL_UNSIGNED_BYTE,
-		g->bitmap.buffer);
+	glTexSubImage2D(
+		GL_TEXTURE_2D, 0, cursor.x, cursor.y, glyphSize.x, glyphSize.y, GL_ALPHA, GL_UNSIGNED_BYTE, g->bitmap.buffer);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	// update max glyph height
@@ -501,15 +501,13 @@ void Font::rebuildTextures()
 		FontTexture* tex = it->second.texture;
 
 		// find the position/size
-		glm::ivec2 cursor(
-			it->second.texPos.x * tex->textureSize.x, it->second.texPos.y * tex->textureSize.y);
-		glm::ivec2 glyphSize(
-			it->second.texSize.x * tex->textureSize.x, it->second.texSize.y * tex->textureSize.y);
+		glm::ivec2 cursor(it->second.texPos.x * tex->textureSize.x, it->second.texPos.y * tex->textureSize.y);
+		glm::ivec2 glyphSize(it->second.texSize.x * tex->textureSize.x, it->second.texSize.y * tex->textureSize.y);
 
 		// upload to texture
 		glBindTexture(GL_TEXTURE_2D, tex->textureId);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, cursor.x, cursor.y, glyphSize.x, glyphSize.y, GL_ALPHA,
-			GL_UNSIGNED_BYTE, glyphSlot->bitmap.buffer);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, cursor.x, cursor.y, glyphSize.x, glyphSize.y, GL_ALPHA, GL_UNSIGNED_BYTE,
+			glyphSlot->bitmap.buffer);
 	}
 
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -719,8 +717,8 @@ inline float font_round(float v)
 	return round(v);
 }
 
-std::unique_ptr<TextCache> Font::buildTextCache(const std::string& text, glm::vec2 offset, unsigned int color,
-	float xLen, Alignment alignment, float lineSpacing)
+std::unique_ptr<TextCache> Font::buildTextCache(
+	const std::string& text, glm::vec2 offset, unsigned int color, float xLen, Alignment alignment, float lineSpacing)
 {
 	float x = offset[0] + (xLen != 0 ? getNewlineStartOffset(text, 0, xLen, alignment) : 0);
 
@@ -765,10 +763,8 @@ std::unique_ptr<TextCache> Font::buildTextCache(const std::string& text, glm::ve
 
 		// triangle 1
 		// round to fix some weird "cut off" text bugs
-		tri[0].pos = {font_round(glyphStartX),
-			font_round(y + (glyph->texSize.y * textureSize.y - glyph->bearing.y))};
-		tri[1].pos = {font_round(glyphStartX + glyph->texSize.x * textureSize.x),
-			font_round(y - glyph->bearing.y)};
+		tri[0].pos = {font_round(glyphStartX), font_round(y + (glyph->texSize.y * textureSize.y - glyph->bearing.y))};
+		tri[1].pos = {font_round(glyphStartX + glyph->texSize.x * textureSize.x), font_round(y - glyph->bearing.y)};
 		tri[2].pos = {tri[0].pos.x, tri[1].pos.y};
 
 		//tri[0].tex << 0, 0;

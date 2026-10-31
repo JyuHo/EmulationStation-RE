@@ -20,7 +20,6 @@ static const char* inputIcon[inputCount] = {":/help/dpad_up.svg", ":/help/dpad_d
 //MasterVolUp and MasterVolDown are also hooked up, but do not appear on this screen.
 //If you want, you can manually add them to es_input.cfg.
 
-
 #define HOLD_TO_SKIP_MS 5000
 
 GuiInputConfig::GuiInputConfig(

@@ -48,13 +48,11 @@ void SystemView::populate()
 			auto logo = std::make_shared<ImageComponent>(mWindow);
 			logo->setMaxSize(glm::vec2(logoSize().x, logoSize().y));
 			logo->applyTheme((*it)->getTheme(), "system", "logo", ThemeFlags::PATH);
-			logo->setPosition(
-				(logoSize().x - logo->getSize().x) / 2, (logoSize().y - logo->getSize().y) / 2); // center
+			logo->setPosition((logoSize().x - logo->getSize().x) / 2, (logoSize().y - logo->getSize().y) / 2); // center
 			e.data.logo = logo;
 
 			auto logoSelected = std::make_shared<ImageComponent>(mWindow);
-			logoSelected->setMaxSize(
-				glm::vec2(logoSize().x * SELECTED_SCALE, logoSize().y * SELECTED_SCALE * 0.70f));
+			logoSelected->setMaxSize(glm::vec2(logoSize().x * SELECTED_SCALE, logoSize().y * SELECTED_SCALE * 0.70f));
 			logoSelected->applyTheme((*it)->getTheme(), "system", "logo", ThemeFlags::PATH);
 			logoSelected->setPosition((logoSize().x - logoSelected->getSize().x) / 2,
 				(logoSize().y - logoSelected->getSize().y) / 2); // center
@@ -327,8 +325,8 @@ void SystemView::render(const glm::mat4& parentTrans)
 	}
 
 	Renderer::setMatrix(trans);
-	Renderer::drawRect(mSystemInfo.getPosition().x, mSystemInfo.getPosition().y - 1, mSize.x,
-		mSystemInfo.getSize().y, 0xDDDDDD00 | (unsigned char)(mSystemInfo.getOpacity() / 255.f * 0xD8));
+	Renderer::drawRect(mSystemInfo.getPosition().x, mSystemInfo.getPosition().y - 1, mSize.x, mSystemInfo.getSize().y,
+		0xDDDDDD00 | (unsigned char)(mSystemInfo.getOpacity() / 255.f * 0xD8));
 	mSystemInfo.render(trans);
 }
 

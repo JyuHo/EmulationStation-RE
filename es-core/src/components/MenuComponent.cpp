@@ -6,7 +6,6 @@
 
 #define TITLE_HEIGHT (mTitle->getFont()->getLetterHeight() + TITLE_VERT_PADDING)
 
-
 MenuComponent::MenuComponent(Window* window, const char* title, const std::shared_ptr<Font>& titleFont) :
 	GuiComponent(window), mBackground(window), mGrid(window, glm::ivec2(1, 3))
 {

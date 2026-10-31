@@ -173,8 +173,7 @@ template <typename T> void TextListComponent<T>::render(const glm::mat4& parentT
 	// clip to inside margins
 	glm::vec3 dim(mSize.x, mSize.y, 0);
 	dim = transformPoint(trans, dim) - getTranslation(trans);
-	Renderer::pushClipRect(
-		glm::ivec2((int)(getTranslation(trans).x + mHorizontalMargin), (int)getTranslation(trans).y),
+	Renderer::pushClipRect(glm::ivec2((int)(getTranslation(trans).x + mHorizontalMargin), (int)getTranslation(trans).y),
 		glm::ivec2((int)(dim.x - mHorizontalMargin * 2), (int)dim.y));
 
 	for(int i = startEntry; i < listCutoff; i++)

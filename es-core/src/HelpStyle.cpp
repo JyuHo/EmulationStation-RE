@@ -22,8 +22,8 @@ void HelpStyle::applyTheme(const std::shared_ptr<ThemeData>& theme, const std::s
 		return;
 
 	if(elem->has("pos"))
-		position = elem->get<glm::vec2>("pos") * (
-			glm::vec2((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight()));
+		position = elem->get<glm::vec2>("pos") *
+			(glm::vec2((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight()));
 
 	if(elem->has("textColor"))
 		textColor = elem->get<unsigned int>("textColor");

@@ -26,8 +26,7 @@ public:
 
 	void onSizeChanged() override;
 
-	void fitTo(glm::vec2 size, glm::vec3 position = glm::vec3(0.0f),
-		glm::vec2 padding = glm::vec2(0.0f));
+	void fitTo(glm::vec2 size, glm::vec3 position = glm::vec3(0.0f), glm::vec2 padding = glm::vec2(0.0f));
 
 	void setImagePath(const std::string& path);
 	void setEdgeColor(unsigned int edgeColor);	   // Apply a color shift to the "edge" parts of the ninepatch.

@@ -256,8 +256,9 @@ void Window::renderLoadingScreen()
 
 	auto& font = mDefaultFonts.at(1);
 	const auto cache = font->buildTextCache("LOADING...", 0, 0, 0x656565FF);
-	trans = glm::translate(trans, glm::vec3(round((Renderer::getScreenWidth() - cache->metrics.size.x) / 2.0f),
-		round(Renderer::getScreenHeight() * 0.835f), 0.0f));
+	trans = glm::translate(trans,
+		glm::vec3(round((Renderer::getScreenWidth() - cache->metrics.size.x) / 2.0f),
+			round(Renderer::getScreenHeight() * 0.835f), 0.0f));
 	Renderer::setMatrix(trans);
 	font->renderTextCache(cache.get());
 

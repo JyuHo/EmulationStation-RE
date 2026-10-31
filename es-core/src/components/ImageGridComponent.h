@@ -76,8 +76,7 @@ private:
 	glm::ivec2 getGridSize() const
 	{
 		glm::vec2 squareSize = getMaxSquareSize();
-		glm::ivec2 gridSize(
-			mSize.x / (squareSize.x + getPadding().x), mSize.y / (squareSize.y + getPadding().y));
+		glm::ivec2 gridSize(mSize.x / (squareSize.x + getPadding().x), mSize.y / (squareSize.y + getPadding().y));
 		return gridSize;
 	};
 
@@ -185,8 +184,7 @@ template <typename T> void ImageGridComponent<T>::buildImages()
 	glm::vec2 padding = getPadding();
 
 	// attempt to center within our size
-	glm::vec2 totalSize(
-		gridSize.x * (squareSize.x + padding.x), gridSize.y * (squareSize.y + padding.y));
+	glm::vec2 totalSize(gridSize.x * (squareSize.x + padding.x), gridSize.y * (squareSize.y + padding.y));
 	glm::vec2 offset(mSize.x - totalSize.x, mSize.y - totalSize.y);
 	offset /= 2;
 
@@ -197,8 +195,8 @@ template <typename T> void ImageGridComponent<T>::buildImages()
 			mImages.push_back(std::make_unique<ImageComponent>(mWindow));
 			ImageComponent& image = *mImages.back();
 
-			image.setPosition((squareSize.x + padding.x) * (x + 0.5f) + offset.x,
-				(squareSize.y + padding.y) * (y + 0.5f) + offset.y);
+			image.setPosition(
+				(squareSize.x + padding.x) * (x + 0.5f) + offset.x, (squareSize.y + padding.y) * (y + 0.5f) + offset.y);
 			image.setOrigin(0.5f, 0.5f);
 			image.setResize(squareSize.x, squareSize.y);
 			image.setImage("");

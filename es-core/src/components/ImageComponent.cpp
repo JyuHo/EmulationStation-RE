@@ -43,9 +43,8 @@ void ImageComponent::resize()
 
 	SVGResource* svg = dynamic_cast<SVGResource*>(mTexture.get());
 
-	const glm::vec2 textureSize = svg
-		? svg->getSourceImageSize()
-		: glm::vec2((float)mTexture->getSize().x, (float)mTexture->getSize().y);
+	const glm::vec2 textureSize =
+		svg ? svg->getSourceImageSize() : glm::vec2((float)mTexture->getSize().x, (float)mTexture->getSize().y);
 	if(textureSize == glm::vec2(0.0f))
 		return;
 
@@ -310,9 +309,8 @@ void ImageComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, const s
 		return;
 	}
 
-	glm::vec2 scale = getParent()
-		? getParent()->getSize()
-		: glm::vec2((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
+	glm::vec2 scale = getParent() ? getParent()->getSize()
+								  : glm::vec2((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
 
 	if(properties & POSITION && elem->has("pos"))
 	{
