@@ -72,7 +72,7 @@ void Sound::init()
 	SDL_BuildAudioCVT(&cvt, wave.format, wave.channels, wave.freq, AUDIO_S16, 2, 44100);
 	//copy data to conversion buffer
 	cvt.len = dlen;
-	cvt.buf = new Uint8[cvt.len * cvt.len_mult];
+	cvt.buf = std::make_unique<Uint8[]>(cvt.len * cvt.len_mult).release();
 	memcpy(cvt.buf, data, dlen);
 	//convert buffer to stereo, 16bit, 44.1kHz
 	if(SDL_ConvertAudio(&cvt) < 0)
@@ -85,7 +85,7 @@ void Sound::init()
 	{
 		//worked. set up member data
 		SDL_LockAudio();
-		mSampleData = cvt.buf;
+		mSampleData.reset(cvt.buf);
 		mSampleLength = cvt.len_cvt;
 		mSamplePos = 0;
 		mSampleFormat.channels = 2;
@@ -101,11 +101,10 @@ void Sound::deinit()
 {
 	playing = false;
 
-	if(mSampleData != nullptr)
+	if(mSampleData)
 	{
 		SDL_LockAudio();
-		delete[] mSampleData;
-		mSampleData = nullptr;
+		mSampleData.reset();
 		mSampleLength = 0;
 		mSamplePos = 0;
 		SDL_UnlockAudio();
@@ -152,7 +151,7 @@ void Sound::stop()
 
 const Uint8* Sound::getData() const
 {
-	return mSampleData;
+	return mSampleData.get();
 }
 
 Uint32 Sound::getPosition() const
