@@ -1,5 +1,5 @@
 #include "platform.h"
-#include "Renderer.h"
+#include "renderer/Renderer.h"
 #include GLHEADER
 #include <iostream>
 #include "resources/Font.h"

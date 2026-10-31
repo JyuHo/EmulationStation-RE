@@ -4,7 +4,7 @@
 #include "platform.h"
 #include GLHEADER
 #include "ImageIO.h"
-#include "Renderer.h"
+#include "renderer/Renderer.h"
 #include "Util.h"
 #include "resources/SVGResource.h"
 

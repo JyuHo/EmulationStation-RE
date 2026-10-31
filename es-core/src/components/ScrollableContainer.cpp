@@ -1,5 +1,5 @@
 #include "components/ScrollableContainer.h"
-#include "Renderer.h"
+#include "renderer/Renderer.h"
 #include "Log.h"
 
 #define AUTO_SCROLL_RESET_DELAY 10000 // ms to reset to top after we reach the bottom

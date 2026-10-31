@@ -3,7 +3,7 @@
 #include "GuiComponent.h"
 #include <cassert>
 #include "resources/Font.h"
-#include "Renderer.h"
+#include "renderer/Renderer.h"
 #include "Window.h"
 #include "components/TextComponent.h"
 #include "components/ImageComponent.h"

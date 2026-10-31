@@ -4,7 +4,7 @@
 #include "components/ButtonComponent.h"
 #include "components/MenuComponent.h"
 #include "scrapers/Scraper.h"
-#include "Renderer.h"
+#include "renderer/Renderer.h"
 #include "Log.h"
 #include "Settings.h"
 

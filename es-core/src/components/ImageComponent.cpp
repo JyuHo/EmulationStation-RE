@@ -3,7 +3,7 @@
 #include <filesystem>
 #include <math.h>
 #include "Log.h"
-#include "Renderer.h"
+#include "renderer/Renderer.h"
 #include "ThemeData.h"
 #include "Util.h"
 #include "resources/SVGResource.h"

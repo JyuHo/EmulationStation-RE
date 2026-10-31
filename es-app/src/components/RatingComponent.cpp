@@ -1,5 +1,5 @@
 #include "components/RatingComponent.h"
-#include "Renderer.h"
+#include "renderer/Renderer.h"
 #include "Window.h"
 #include "Util.h"
 #include "resources/SVGResource.h"

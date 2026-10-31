@@ -1,7 +1,7 @@
 #include "ThemeData.h"
 #include "utils/Paths.h"
 #include <algorithm>
-#include "Renderer.h"
+#include "renderer/Renderer.h"
 #include "resources/Font.h"
 #include "Sound.h"
 #include "resources/TextureResource.h"

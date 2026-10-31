@@ -1,5 +1,5 @@
 #include "SwitchComponent.h"
-#include "Renderer.h"
+#include "renderer/Renderer.h"
 #include "resources/Font.h"
 #include "Window.h"
 

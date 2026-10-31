@@ -2,7 +2,7 @@
 #include <cassert>
 #include <string_view>
 #include "Log.h"
-#include "Renderer.h"
+#include "renderer/Renderer.h"
 #include "Settings.h"
 
 using namespace GridFlags;

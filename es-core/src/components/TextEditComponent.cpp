@@ -2,7 +2,7 @@
 #include "Log.h"
 #include "resources/Font.h"
 #include "Window.h"
-#include "Renderer.h"
+#include "renderer/Renderer.h"
 #include "Util.h"
 
 #define TEXT_PADDING_HORIZ 10

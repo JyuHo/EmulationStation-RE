@@ -1,6 +1,6 @@
 #include "views/gamelist/BasicGameListView.h"
 #include "views/ViewController.h"
-#include "Renderer.h"
+#include "renderer/Renderer.h"
 #include "Window.h"
 #include "ThemeData.h"
 #include "SystemData.h"

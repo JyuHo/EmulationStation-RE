@@ -1,5 +1,5 @@
 #include "components/TextComponent.h"
-#include "Renderer.h"
+#include "renderer/Renderer.h"
 #include "Log.h"
 #include "Window.h"
 #include "ThemeData.h"

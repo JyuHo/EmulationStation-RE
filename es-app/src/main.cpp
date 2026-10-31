@@ -4,7 +4,7 @@
 #include <SDL3/SDL.h>
 #include <iostream>
 #include <iomanip>
-#include "Renderer.h"
+#include "renderer/Renderer.h"
 #include "views/ViewController.h"
 #include "SystemData.h"
 #include <filesystem>
