@@ -53,7 +53,7 @@ Raspberry Pi, Windows, macOS et OpenGL ES ne sont plus pris en charge.
 | 2 | Zéro avertissement, `-Werror`, clang-format/tidy, tests Catch2, test de fumée, journal | fait (PR #2) |
 | 3 | Suppression de Boost, chemins XDG, propriété mémoire | fait (PR #3 à #28) |
 | 4 | Eigen → glm | fait (PR #30 à #32) |
-| 5 | SDL2 → SDL3, manettes reconnues par `SDL_Gamepad` | fait (PR #33 à #35) |
+| 5 | SDL2 → SDL3, manettes reconnues par `SDL_Gamepad` | fait (PR #33, #34, #37) |
 | 6 | Rendu OpenGL 3.3 core | **prochaine étape** |
 | 7 | Images animées, chargement asynchrone, cache | à faire |
 | 8 | Audio (sons, musique de fond) | à faire |
