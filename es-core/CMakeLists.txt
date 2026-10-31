@@ -191,5 +191,7 @@ target_link_libraries(es-core PUBLIC
     nanosvg
     stb
 )
+# OpenGL loader: only the files of src/renderer/ include it (through renderer/GL.h)
+target_link_libraries(es-core PRIVATE glad)
 
 es_set_warnings(es-core)
