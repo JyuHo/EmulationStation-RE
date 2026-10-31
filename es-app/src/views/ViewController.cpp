@@ -24,7 +24,10 @@ ViewController* ViewController::get()
 void ViewController::init(Window* window)
 {
 	assert(!sInstance);
-	sInstance = new ViewController(window);
+	// the window owns the view controller; sInstance is only a shortcut to it
+	std::unique_ptr<ViewController> controller(new ViewController(window)); // private constructor
+	sInstance = controller.get();
+	window->pushGui(std::move(controller));
 }
 
 ViewController::ViewController(Window* window) :

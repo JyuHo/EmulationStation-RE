@@ -243,9 +243,8 @@ protected:
 		mGradient.setOpacity(mTitleOverlayOpacity);
 		mGradient.render(identTrans);
 
-		TextCache* cache = mTitleOverlayFont->buildTextCache(text, off.x(), off.y(), 0xFFFFFF00 | mTitleOverlayOpacity);
-		mTitleOverlayFont->renderTextCache(cache); // relies on mGradient's render for Renderer::setMatrix()
-		delete cache;
+		const auto cache = mTitleOverlayFont->buildTextCache(text, off.x(), off.y(), 0xFFFFFF00 | mTitleOverlayOpacity);
+		mTitleOverlayFont->renderTextCache(cache.get()); // relies on mGradient's render for Renderer::setMatrix()
 	}
 
 	void scroll(int amt)

@@ -14,7 +14,7 @@
 |------:|-------|-----------|----------------|
 | 1 | Build moderne : CMake 3.25+, C++23, presets, CI Arch ; FreeImage → stb_image + libwebp | — | S (fait, PR #1) |
 | 2 | Hygiène C++23 et outillage (clang-format, clang-tidy, tests, logs) | 1 | M (fait, PR #2) |
-| 3 | Suppression de Boost + module de chemins **XDG** (std::filesystem, std::chrono, std::variant) | 2 | M (**en cours**, PR #3 à #23 : 3.B et 3.C faits, 3.A et 3.D partiels, 3.E à faire) |
+| 3 | Suppression de Boost + module de chemins **XDG** (std::filesystem, std::chrono, std::variant) | 2 | M (**en cours** : 3.A à 3.D faits ; 3.E en cours) |
 | 4 | Remplacement d'Eigen par une petite bibliothèque mathématique (glm) | 2 | M |
 | 5 | Migration SDL2 → SDL3 (fenêtre, événements, manettes, audio) | 3, 4 | L |
 | 6 | Nouveau moteur de rendu OpenGL 3.3 core à shaders | 5 | L |
@@ -285,6 +285,16 @@ Règles :
 - CI : étape « no-hardcoded-paths » :
   `! grep -rnE '"/(etc|usr|opt)/|\.emulationstation|getenv\("HOME"\)' es-core/src es-app/src --exclude=Paths.cpp`.
 
+Choix faits à l'implémentation (PR #25) :
+- `~` (dans `es_systems.cfg`, les thèmes, les gamelists) désigne toujours le vrai `$HOME`,
+  même en mode portable ; la migration est sautée en mode portable.
+- La migration ne copie pas `es_log.txt` (un nouveau journal suffit) et ne se refait pas
+  tant que `~/.emulationstation/MIGRATED_TO_XDG.txt` existe ; un fichier XDG déjà présent
+  n'est jamais écrasé.
+- `/etc/emulationstation/` (ancien emplacement système d'Aloshi) n'est plus lu ; seuls
+  `$XDG_CONFIG_DIRS` et `$XDG_DATA_DIRS` le sont, plus le préfixe d'installation.
+- `--home` est lu avant `parseArgs`, car celui-ci instancie `Settings`.
+
 ### Correspondances
 | Boost | Remplacement | Points d'attention |
 |-------|--------------|--------------------|
@@ -342,31 +352,33 @@ Jalons livrés, une PR par module :
 - #22 `Font` : `buildTextCache` `make_unique`
 - #23 `GuiComponent` animation + `Sound` buffer : `make_unique`/`unique_ptr`
 
-Reste (constructeurs privés/protégés ou propriété complexe) : singletons
-`InputManager`, `AudioManager`, `ResourceManager`, `Sound`, `VolumeControl`,
-`ViewController`, `TextureResource`, `Font` (constructeur), `ThemeData` extras,
-`InputManager` (`InputConfig`, `SDL_Event`). Environ 36 `new` et 70 `delete` nus
-restent (audit du 31/10/2026). Ils seront traités dans les phases qui réécrivent ces
-modules (5 pour les entrées et l'audio, 6 pour les textures et les polices) plutôt que
-par une série dédiée ; le code nouveau reste sans `new`/`delete` nu. Pour ce type de
-travail, regrouper plusieurs modules voisins dans une même PR (< ~1 500 lignes) au lieu
-d'une PR par fichier.
+- #26 **correctif** : `Window::removeGui` supprimait une seconde fois une GUI fermée par
+  `delete this` (régression de #6) ; job CI `asan`
+- #27 fin de série : `InputConfig` possédés par `InputManager`, `SDL_Event` sur la pile
+  (fuite à chaque F4 / « Quitter »), extras de thème, animations de `GuiComponent`
+  (`unique_ptr`, `GuiComponent` devient non copiable), `ImageGridComponent` (copiait des
+  composants), `ViewController::init`, `Font::buildTextCache` renvoie un `unique_ptr`,
+  tampons de `ResourceManager` et `Sound`
+
+Reliquat assumé (voir `PROMPT.md` §0.2) : `new` dans des pointeurs intelligents pour des
+constructeurs privés ; arbre `FileData` et `SystemData::sSystemVector` en pointeurs bruts ;
+36 `delete this` dans les GUI, qui devraient devenir une fermeture par `Window`.
 
 ### État de la phase 3 (audit du 31/10/2026, détails dans [`AUDIT.md`](AUDIT.md))
 
 | Sous-phase | PR | État |
 |------------|----|------|
-| 3.A Module XDG | #3 | **Partiel** : `es::paths` existe et sert au log, à `es_systems.cfg` et aux gamelists ; le reste des chemins, l'appel de la migration, `--home`, le préfixe d'installation, les tests et l'étape CI manquent. |
+| 3.A Module XDG | #3, #25 | **Fait** : #3 avait livré le module ; #25 y fait passer tous les chemins et ajoute la migration, `--home`, le préfixe d'installation, fontconfig, les tests et l'étape CI. |
 | 3.B `std::filesystem` | #4 | Fait. |
 | 3.C `std::chrono`, Assign, Variant, Locale | #5 | Fait ; `find_package(Boost)` supprimé. Risque sur la locale numérique, voir 3.E. |
-| 3.D Propriété mémoire | #6 à #23 | Partiel (voir ci-dessus) ; la suite est rattachée aux phases 5 et 6. |
-| 3.E Finitions | — | **À faire avant la phase 4.** |
+| 3.D Propriété mémoire | #6 à #23, #26, #27 | Fait pour cette phase (voir ci-dessus) ; reliquat listé. |
+| 3.E Finitions | #25, #26 | **En cours** : points 1 et 3 faits ; points 2 et 4 à faire avant la phase 4. |
 
 ### 3.E Finitions de la phase 3 (issues de l'audit)
 
 Une PR par point, dans cet ordre :
 
-1. **`modernize/phase-3e-xdg-complete`** — terminer 3.A selon la section 3.A ci-dessus :
+1. **`modernize/phase-3e-xdg-complete`** — **fait (PR #25, branche `modernize/phase-3a-xdg-complete`)**. Terminer 3.A selon la section 3.A ci-dessus :
    - faire passer par `es::paths` : `Settings.cpp` (`es_settings.cfg`, Config),
      `InputManager.cpp` (`es_input.cfg`, Config), `ThemeData.cpp` (`es_theme_default.xml`,
      Config ; `themes/` via `userDir(Data)` puis `systemDirs(Data)`), `Scraper.cpp`
@@ -788,7 +800,7 @@ prioritaires dans `$XDG_DATA_HOME/emulationstation/locale/`).
 |-------|--------------------------------|
 | 1 | `base-devel cmake ninja clang sdl2-compat boost freetype2 eigen curl alsa-lib libglvnd mesa libwebp` |
 | 2 | + `catch2 xorg-server-xvfb imagemagick` (tests, test de fumée, capture) |
-| 3 | − `boost` (fait), + `fontconfig` (3.E) |
+| 3 | − `boost`, + `fontconfig` (faits) |
 | 4 | − `eigen`, + `glm` |
 | 5 | − `sdl2-compat`, + `sdl3` |
 | 8-9 | + `ffmpeg` (et `libva` pour VA-API) |

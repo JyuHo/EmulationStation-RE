@@ -9,6 +9,8 @@
 #include "Log.h"
 #include "Util.h"
 
+#include <fontconfig/fontconfig.h>
+
 FT_Library Font::sLibrary = nullptr;
 
 int Font::getSize() const
@@ -343,57 +345,45 @@ void Font::getTextureForNewGlyph(const Eigen::Vector2i& glyphSize, FontTexture*&
 	}
 }
 
+// Fonts covering the scripts that the embedded fonts lack, found through fontconfig.
 std::vector<std::string> getFallbackFontPaths()
 {
-#ifdef WIN32
-	// Windows
-
-	// get this system's equivalent of "C:\Windows" (might be on a different drive or in a different folder)
-	// so we can check the Fonts subdirectory for fallback fonts
-	TCHAR winDir[MAX_PATH];
-	GetWindowsDirectory(winDir, MAX_PATH);
-	std::string fontDir = winDir;
-	fontDir += "\\Fonts\\";
-
-	const char* fontNames[] = {
-		"meiryo.ttc", // japanese
-		"simhei.ttf", // chinese
-		"arial.ttf"	  // latin
-	};
-
-	//prepend to font file names
 	std::vector<std::string> fontPaths;
-	fontPaths.reserve(sizeof(fontNames) / sizeof(fontNames[0]));
+	if(!FcInit())
+		return fontPaths;
 
-	for(unsigned int i = 0; i < sizeof(fontNames) / sizeof(fontNames[0]); i++)
+	for(const char* lang : {"ja", "zh-cn", "ko"})
 	{
-		std::string path = fontDir + fontNames[i];
-		if(ResourceManager::getInstance()->fileExists(path))
-			fontPaths.push_back(path);
+		const std::string query = std::string("sans-serif:lang=") + lang;
+		FcPattern* pattern = FcNameParse(reinterpret_cast<const FcChar8*>(query.c_str()));
+		if(pattern == nullptr)
+			continue;
+		FcConfigSubstitute(nullptr, pattern, FcMatchPattern);
+		FcDefaultSubstitute(pattern);
+
+		FcResult result = FcResultNoMatch;
+		FcPattern* match = FcFontMatch(nullptr, pattern, &result);
+		FcPatternDestroy(pattern);
+		if(match == nullptr)
+			continue;
+
+		FcChar8* file = nullptr;
+		FcLangSet* langs = nullptr;
+		if(FcPatternGetString(match, FC_FILE, 0, &file) == FcResultMatch &&
+			FcPatternGetLangSet(match, FC_LANG, 0, &langs) == FcResultMatch &&
+			FcLangSetHasLang(langs, reinterpret_cast<const FcChar8*>(lang)) != FcLangDifferentLang)
+		{
+			std::string path = reinterpret_cast<const char*>(file);
+			if(std::find(fontPaths.begin(), fontPaths.end(), path) == fontPaths.end() &&
+				ResourceManager::getInstance()->fileExists(path))
+				fontPaths.push_back(std::move(path));
+		}
+		FcPatternDestroy(match);
 	}
 
-	fontPaths.shrink_to_fit();
+	// releases fontconfig's caches; nothing else in the program uses it
+	FcFini();
 	return fontPaths;
-
-#else
-	// Linux
-
-	// TODO
-	const char* paths[] = {
-		"/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf" // japanese, chinese, present on Debian
-	};
-
-	std::vector<std::string> fontPaths;
-	for(unsigned int i = 0; i < sizeof(paths) / sizeof(paths[0]); i++)
-	{
-		if(ResourceManager::getInstance()->fileExists(paths[i]))
-			fontPaths.emplace_back(paths[i]);
-	}
-
-	fontPaths.shrink_to_fit();
-	return fontPaths;
-
-#endif
 }
 
 FT_Face Font::getFaceForChar(UnicodeChar id)
@@ -729,8 +719,8 @@ inline float font_round(float v)
 	return round(v);
 }
 
-TextCache* Font::buildTextCache(const std::string& text, Eigen::Vector2f offset, unsigned int color, float xLen,
-	Alignment alignment, float lineSpacing)
+std::unique_ptr<TextCache> Font::buildTextCache(const std::string& text, Eigen::Vector2f offset, unsigned int color,
+	float xLen, Alignment alignment, float lineSpacing)
 {
 	float x = offset[0] + (xLen != 0 ? getNewlineStartOffset(text, 0, xLen, alignment) : 0);
 
@@ -804,7 +794,7 @@ TextCache* Font::buildTextCache(const std::string& text, Eigen::Vector2f offset,
 
 	//TextCache::CacheMetrics metrics = { sizeText(text, lineSpacing) };
 
-	TextCache* cache = std::make_unique<TextCache>().release();
+	auto cache = std::make_unique<TextCache>();
 	cache->vertexLists.resize(vertMap.size());
 	cache->metrics = {sizeText(text, lineSpacing)};
 
@@ -825,7 +815,8 @@ TextCache* Font::buildTextCache(const std::string& text, Eigen::Vector2f offset,
 	return cache;
 }
 
-TextCache* Font::buildTextCache(const std::string& text, float offsetX, float offsetY, unsigned int color)
+std::unique_ptr<TextCache> Font::buildTextCache(
+	const std::string& text, float offsetX, float offsetY, unsigned int color)
 {
 	return buildTextCache(text, Eigen::Vector2f(offsetX, offsetY), color, 0.0f);
 }

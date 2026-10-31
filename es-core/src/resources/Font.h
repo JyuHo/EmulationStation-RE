@@ -41,9 +41,10 @@ public:
 	Eigen::Vector2f sizeText(std::string text,
 		float lineSpacing =
 			1.5f); // Returns the expected size of a string when rendered.  Extra spacing is applied to the Y axis.
-	TextCache* buildTextCache(const std::string& text, float offsetX, float offsetY, unsigned int color);
-	TextCache* buildTextCache(const std::string& text, Eigen::Vector2f offset, unsigned int color, float xLen,
-		Alignment alignment = ALIGN_LEFT, float lineSpacing = 1.5f);
+	std::unique_ptr<TextCache> buildTextCache(
+		const std::string& text, float offsetX, float offsetY, unsigned int color);
+	std::unique_ptr<TextCache> buildTextCache(const std::string& text, Eigen::Vector2f offset, unsigned int color,
+		float xLen, Alignment alignment = ALIGN_LEFT, float lineSpacing = 1.5f);
 	void renderTextCache(TextCache* cache);
 
 	std::string wrapText(std::string text, float xLen); // Inserts newlines into text to make it wrap properly.

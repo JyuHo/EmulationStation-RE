@@ -1,4 +1,5 @@
 #include "Util.h"
+#include "utils/Paths.h"
 #include "resources/ResourceManager.h"
 #include "platform.h"
 
@@ -73,7 +74,7 @@ std::string getCanonicalPath(const std::string& path)
 }
 
 // expands "./my/path.sfc" to "[relativeTo]/my/path.sfc"
-// if allowHome is true, also expands "~/my/path.sfc" to "/home/pi/my/path.sfc"
+// if allowHome is true, also expands "~/my/path.sfc" to "$HOME/my/path.sfc"
 fs::path resolvePath(const fs::path& path, const fs::path& relativeTo, bool allowHome)
 {
 	// nothing here
@@ -90,7 +91,7 @@ fs::path resolvePath(const fs::path& path, const fs::path& relativeTo, bool allo
 
 	if(allowHome && *path.begin() == "~")
 	{
-		fs::path ret = getHomePath();
+		fs::path ret = es::paths::homeDir();
 		for(auto it = ++path.begin(); it != path.end(); ++it)
 			ret /= *it;
 		return ret;
@@ -99,7 +100,7 @@ fs::path resolvePath(const fs::path& path, const fs::path& relativeTo, bool allo
 	return path;
 }
 
-// example: removeCommonPath("/home/pi/roms/nes/foo/bar.nes", "/home/pi/roms/nes/") returns "foo/bar.nes"
+// example: removeCommonPath("$HOME/roms/nes/foo/bar.nes", "$HOME/roms/nes/") returns "foo/bar.nes"
 fs::path removeCommonPath(const fs::path& path, const fs::path& relativeTo, bool& contains)
 {
 	// if either of these doesn't exist, fs::canonical() is going to throw an error
@@ -148,7 +149,7 @@ fs::path removeCommonPath(const fs::path& path, const fs::path& relativeTo, bool
 }
 
 // usage: makeRelativePath("/path/to/my/thing.sfc", "/path/to") -> "./my/thing.sfc"
-// usage: makeRelativePath("/home/pi/my/thing.sfc", "/path/to", true) -> "~/my/thing.sfc"
+// usage: makeRelativePath("$HOME/my/thing.sfc", "/path/to", true) -> "~/my/thing.sfc"
 fs::path makeRelativePath(const fs::path& path, const fs::path& relativeTo, bool allowHome)
 {
 	bool contains = false;
@@ -164,7 +165,7 @@ fs::path makeRelativePath(const fs::path& path, const fs::path& relativeTo, bool
 	if(allowHome)
 	{
 		contains = false;
-		std::string homePath = getHomePath();
+		const fs::path homePath = es::paths::homeDir();
 		ret = removeCommonPath(path, homePath, contains);
 		if(contains)
 		{

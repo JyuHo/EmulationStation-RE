@@ -25,9 +25,13 @@ Window::Window() :
 
 Window::~Window()
 {
-	// delete all our GUIs
-	while(peekGui())
-		removeGui(peekGui());
+	// delete all our GUIs, top first; each destructor calls removeGui(), which finds nothing left to unlink
+	while(!mGuiStack.empty())
+	{
+		std::unique_ptr<GuiComponent> gui = std::move(mGuiStack.back());
+		mGuiStack.pop_back();
+		gui.reset();
+	}
 }
 
 void Window::pushGui(std::unique_ptr<GuiComponent> gui)
@@ -43,6 +47,9 @@ void Window::removeGui(GuiComponent* gui)
 	{
 		if(i->get() == gui)
 		{
+			// Called from ~GuiComponent (a GUI closing with "delete this"): the object is already being
+			// destroyed, so give up ownership instead of deleting it a second time.
+			(void)i->release();
 			i = mGuiStack.erase(i);
 
 			if(i == mGuiStack.end() && mGuiStack.size()) // we just popped the stack and the stack is not empty
@@ -168,8 +175,7 @@ void Window::update(int deltaTime)
 			ss << "\nVRAM: " << totalVramUsageMb << "mb (texs: " << textureVramUsageMb
 			   << "mb, fonts: " << fontVramUsageMb << "mb)";
 
-			mFrameDataText =
-				std::unique_ptr<TextCache>(mDefaultFonts.at(1)->buildTextCache(ss.str(), 50.f, 50.f, 0xFF00FFFF));
+			mFrameDataText = mDefaultFonts.at(1)->buildTextCache(ss.str(), 50.f, 50.f, 0xFF00FFFF);
 		}
 
 		mFrameTimeElapsed = 0;
@@ -249,12 +255,11 @@ void Window::renderLoadingScreen()
 	splash.render(trans);
 
 	auto& font = mDefaultFonts.at(1);
-	TextCache* cache = font->buildTextCache("LOADING...", 0, 0, 0x656565FF);
+	const auto cache = font->buildTextCache("LOADING...", 0, 0, 0x656565FF);
 	trans = trans.translate(Eigen::Vector3f(round((Renderer::getScreenWidth() - cache->metrics.size.x()) / 2.0f),
 		round(Renderer::getScreenHeight() * 0.835f), 0.0f));
 	Renderer::setMatrix(trans);
-	font->renderTextCache(cache);
-	delete cache;
+	font->renderTextCache(cache.get());
 
 	Renderer::swapBuffers();
 }

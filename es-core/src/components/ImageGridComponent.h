@@ -90,7 +90,7 @@ private:
 
 	bool mEntriesDirty;
 
-	std::vector<ImageComponent> mImages;
+	std::vector<std::unique_ptr<ImageComponent>> mImages;
 };
 
 template <typename T> ImageGridComponent<T>::ImageGridComponent(Window* window) : IList<ImageGridData, T>(window)
@@ -158,10 +158,8 @@ template <typename T> void ImageGridComponent<T>::render(const Eigen::Affine3f& 
 		mEntriesDirty = false;
 	}
 
-	for(auto it = mImages.begin(); it != mImages.end(); it++)
-	{
-		it->render(trans);
-	}
+	for(auto& image : mImages)
+		image->render(trans);
 
 	GuiComponent::renderChildren(trans);
 }
@@ -196,8 +194,8 @@ template <typename T> void ImageGridComponent<T>::buildImages()
 	{
 		for(int x = 0; x < gridSize.x(); x++)
 		{
-			mImages.push_back(ImageComponent(mWindow));
-			ImageComponent& image = mImages.at(y * gridSize.x() + x);
+			mImages.push_back(std::make_unique<ImageComponent>(mWindow));
+			ImageComponent& image = *mImages.back();
 
 			image.setPosition((squareSize.x() + padding.x()) * (x + 0.5f) + offset.x(),
 				(squareSize.y() + padding.y()) * (y + 0.5f) + offset.y());
@@ -229,7 +227,7 @@ template <typename T> void ImageGridComponent<T>::updateImages()
 	unsigned int i = (unsigned int)start;
 	for(unsigned int img = 0; img < mImages.size(); img++)
 	{
-		ImageComponent& image = mImages.at(img);
+		ImageComponent& image = *mImages.at(img);
 		if(i >= (unsigned int)size())
 		{
 			image.setImage("");

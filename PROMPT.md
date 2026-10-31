@@ -20,11 +20,11 @@
 |-------|------|----|
 | 1 — Build CMake/C++23, CI Arch, FreeImage → stb_image + libwebp | **fusionnée** | #1 |
 | 2 — Zéro avertissement, `-Werror`, clang-format/tidy, tests Catch2, test de fumée, Log | **fusionnée** | #2 |
-| 3.A — Module XDG `es::paths` | **partielle** : seuls le log, `es_systems.cfg` et les gamelists passent par `es::paths` | #3 |
+| 3.A — Module XDG `es::paths` | **terminée** : tous les chemins, migration, `--home`, tests, étape CI | #3, #25 |
 | 3.B — `std::filesystem` | **fusionnée** | #4 |
 | 3.C — `std::chrono`, Assign, Variant, Locale ; Boost supprimé | **fusionnée** (risque de locale numérique, voir 0.2) | #5 |
-| 3.D — Propriété mémoire (`unique_ptr`) | **partielle** : 18 modules faits, singletons restants | #6–#23 |
-| 3.E — Finitions de la phase 3 (issues de l'audit) | **à faire, prochaine étape** | — |
+| 3.D — Propriété mémoire (`unique_ptr`) | **terminée** pour cette phase (reste : arbre `FileData`/`SystemData`, `delete this` des GUI) | #6–#23, #26, #27 |
+| 3.E — Finitions de la phase 3 (issues de l'audit) | **en cours** : XDG (#25) et job `asan` (#26) faits ; locale et nettoyage à faire | #25, #26 |
 | 4 à 12 | à faire | — |
 
 Toutes les PR ont été fusionnées par **merge commit** : le commit de reformatage
@@ -34,12 +34,16 @@ Ce qui existe et que tu dois **réutiliser** (ne le recrée pas) :
 - `CMakePresets.json` : configure/build/test presets `debug` (tests + `-Werror`), `release`,
   `relwithdebinfo`, `asan`, `clang-debug`.
 - `es-app-lib` : toutes les sources de `es-app` sauf `main.cpp` (cible à lier dans les tests).
-- `tests/unit/*.cpp` (Catch2 v3, 13 cas) et `tests/data/` (fixtures). Ajoute tes tests ici,
+- `tests/unit/*.cpp` (Catch2 v3, 21 cas) et `tests/data/` (fixtures). Ajoute tes tests ici,
   un fichier par module (`test_<Module>.cpp`), et déclare-les dans `tests/CMakeLists.txt`.
 - `tests/smoke/run.sh <binaire> [secondes] [capture.png]` : test de fumée Xvfb ; il
-  utilise `ES_HOME` pour isoler les fichiers.
-- `es::paths` (`es-core/src/utils/Paths.{h,cpp}`) : `userDir`, `userFile`, `systemDirs`,
-  `find`, `expandUser`, `setHome`, `migrateFromLegacy`. **À compléter, pas à réécrire.**
+  utilise `ES_HOME` et un `HOME` jetable, et échoue si un fichier est écrit hors de `ES_HOME`.
+- `es::paths` (`es-core/src/utils/Paths.{h,cpp}`) : **seul** endroit qui connaît des
+  chemins. `homeDir`, `userDir` (crée en `0700`), `userFile`, `systemDirs` (XDG, puis
+  préfixe d'installation généré par `Paths.config.h.in`, puis `<exe>/../share`), `find`,
+  `expandUser`, `setHome`/`hasHomeOverride` (`--home`, `ES_HOME`), `migrateFromLegacy`
+  (appelée dans `main` avant toute lecture). Tests : `tests/unit/test_Paths.cpp`.
+- Polices de repli CJK via fontconfig (`getFallbackFontPaths` dans `Font.cpp`).
 - `Log::write(level, "format {}", args…)` (std::format) pour tout nouveau message ;
   `LOG(level) << …` reste valable dans le code existant. Log dans
   `$XDG_STATE_HOME/emulationstation/es_log.txt`.
@@ -49,33 +53,30 @@ Ce qui existe et que tu dois **réutiliser** (ne le recrée pas) :
   les dates de `gamelist.xml` (`YYYYMMDDTHHMMSS`) sont traitées comme UTC.
 - CI `.github/workflows/build.yml` : Arch (`archlinux:base-devel`), GCC et Clang, build
   `RelWithDebInfo` avec `-Werror`, `ctest`, test de fumée, capture d'écran en artefact.
-  Boost n'est plus installé.
+  Étape « No hardcoded paths » avant la compilation. Boost n'est plus installé.
 
 ### 0.2 Point de reprise : phase 3.E, puis phase 4
 Fais les PR dans cet ordre (une PR par ligne, chacune verte avant la suivante). Le détail
 de chaque point est dans le plan, section « 3.E Finitions de la phase 3 ».
-1. **`modernize/phase-3e-xdg-complete`** — terminer XDG. Aujourd'hui encore en dur :
-   `Settings.cpp` (`es_settings.cfg`), `InputManager.cpp` (`es_input.cfg`),
-   `ThemeData.cpp` (`es_theme_default.xml`, dossiers `themes/` dans `/etc/emulationstation`
-   et `~/.emulationstation`), `Scraper.cpp` (`downloaded_images/`), `Font.cpp` (police de
-   repli Debian), replis `"/etc/xdg/…"` et `"/usr/share/…"` de `SystemData.cpp`, et tous
-   les `getHomePath()`. **`migrateFromLegacy()` n'est jamais appelée** : un utilisateur
-   qui a `~/.emulationstation/es_systems.cfg` voit ES écrire un exemple puis quitter.
-   À livrer aussi : `--home`, préfixe d'installation (`configure_file`), repli `getpwuid`,
-   dossiers en `0700`, `tests/unit/test_Paths.cpp`, étape CI « no-hardcoded-paths ».
+1. ~~`modernize/phase-3e-xdg-complete`~~ — fait (PR #25).
 2. **`modernize/phase-3e-numeric-locale`** — `main.cpp` appelle `setlocale(LC_ALL, "")` ;
    sous `fr_FR`, `atof("0.5")` (thèmes, `MetaData`) et `stof` (`RatingComponent`) lisent la
    virgule comme séparateur décimal. Remets `LC_NUMERIC` à `"C"` et passe à
    `std::from_chars`, avec un test sous `fr_FR.UTF-8`.
-3. **`ci/asan`** — job CI avec le preset `asan` (tests + test de fumée).
+3. ~~`ci/asan`~~ — fait (PR #26).
 4. **`chore/remove-windows-leftovers`** — `EmulationStation.rc`, `EmulationStation.aps`,
    `data/es_icon.ico`, blocs `#ifdef WIN32`/GLES restants.
 5. Ensuite seulement : **phase 4** (Eigen → glm), branche `modernize/phase-4a-…`.
 
-Le reliquat de 3.D (singletons `InputManager`, `AudioManager`, `ResourceManager`,
-`VolumeControl`, `ViewController`, `TextureResource`, `Font`, `InputConfig` ; environ
-36 `new` et 70 `delete` nus) n'a plus de série dédiée : traite-le quand une phase réécrit
-le module (5 pour les entrées et l'audio, 6 pour les textures et les polices).
+Reliquat de 3.D, sans série dédiée : traite-le quand une phase réécrit le module.
+- `new` restants : uniquement dans des pointeurs intelligents pour des constructeurs privés
+  (singletons `InputManager`, `AudioManager`, `ResourceManager`, `VolumeControl`,
+  `Settings`, `ViewController`, fabriques de `Font`, `TextureResource`, `Sound`) et
+  `AsyncReqComponent` (qui se détruit lui-même).
+- Arbre `FileData` (enfants en `FileData*`) et `SystemData::sSystemVector` : propriété
+  brute, utilisée partout. À reprendre avec la phase 11 (collections) ou une PR dédiée.
+- 36 `delete this` dans les GUI : fonctionnent (voir 0.3) mais devraient devenir
+  `mWindow->closeGui(this)` ; à faire avec la refonte des menus thémés (phase 11).
 
 Les tests existants sont des **tests de caractérisation** : ils fixent le comportement
 actuel. Tu n'en changes les valeurs attendues que pour un changement de comportement
@@ -101,9 +102,25 @@ voulu, expliqué dans la PR.
   les chemins sont des octets UTF-8 (`generic_string()`), ne cherche pas à la recréer.
 - **Locale** : ne touche jamais `LC_NUMERIC` (voir 0.2, point 2). Toute analyse de nombre
   dans des fichiers (XML, thèmes) passe par `std::from_chars`.
-- **`ES_HOME`** : ne protège que les chemins qui passent par `es::paths`. Tant que 3.E-1
-  n'est pas livrée, le test de fumée écrit `es_settings.cfg`/`es_input.cfg` dans le vrai
-  `$HOME/.emulationstation`.
+- **`ES_HOME` / `--home`** : appliqués par `applyHomeOverride()` au tout début de `main`,
+  avant `parseArgs` (qui instancie `Settings`, donc lit `es_settings.cfg`). Tout nouveau
+  code qui lit un fichier au démarrage doit venir après. En mode portable, `~` reste le
+  vrai `$HOME` et la migration est sautée.
+- **Étape CI « No hardcoded paths »** : elle cherche aussi dans les commentaires et les
+  messages ; écris `$HOME/…` plutôt que `/home/…` dans un exemple.
+- **Propriété des GUI** : `Window` possède les GUI empilées (`pushGui(unique_ptr)`), mais
+  elles se ferment encore avec `delete this`. `Window::removeGui` **détache sans
+  supprimer** (son appelant est `~GuiComponent`). Ne le change pas sans traiter tous les
+  `delete this` : #6 l'avait fait et chaque fermeture de menu libérait deux fois la
+  mémoire. `tests/unit/test_Window.cpp` couvre ce cas.
+- **`GuiComponent` n'est plus copiable** (il possède ses animations en `unique_ptr`) :
+  stocke les composants dans des `unique_ptr` (ex. `ImageGridComponent::mImages`).
+- **Animations** : le slot est vidé **avant** la destruction du contrôleur, car son
+  `finishedCallback` peut lancer une nouvelle animation dans le même slot ou supprimer le
+  composant.
+- **Navigation scriptée** : le test de fumée ne fait que démarrer et arrêter ES. Pour
+  tester les menus sans écran : `es_input.cfg` clavier dans `ES_HOME`, puis `xdotool key
+  F1 Escape …` sous `xvfb-run`, avec le preset `asan`.
 - **Fusion des PR** : par **merge commit** (pas squash), sinon le hash de
   `.git-blame-ignore-revs` devient invalide et l'historique des étapes est perdu.
 - **Logs** : format `YYYY-MM-DD HH:MM:SS.mmm [LEVEL] message`. Le test de fumée échoue
@@ -346,7 +363,7 @@ conséquences visibles.
 
 ```bash
 # Dépendances (état après la phase 3.C ; adapter selon l'annexe A du plan)
-sudo pacman -S --needed base-devel cmake ninja clang sdl2-compat freetype2 eigen \
+sudo pacman -S --needed base-devel cmake ninja clang sdl2-compat freetype2 fontconfig eigen \
     curl alsa-lib libglvnd mesa libwebp catch2 xorg-server-xvfb imagemagick
 
 # Build GCC et Clang

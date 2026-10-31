@@ -28,11 +28,7 @@ SystemData::SystemData(const std::string& name, const std::string& fullName, con
 	mStartPath = startPath;
 
 	//expand home symbol if the startpath contains ~
-	if(mStartPath[0] == '~')
-	{
-		mStartPath.erase(0, 1);
-		mStartPath.insert(0, getHomePath());
-	}
+	mStartPath = es::paths::expandUser(mStartPath).generic_string();
 
 	mSearchExtensions = extensions;
 	mLaunchCommand = command;
@@ -399,8 +395,9 @@ std::string SystemData::getConfigPath(bool forWrite)
 		return p.generic_string();
 
 	auto found = es::paths::find(k, "es_systems.cfg");
-	if(found) return found->generic_string();
-	return "/etc/xdg/emulationstation/es_systems.cfg";
+	if(found)
+		return found->generic_string();
+	return p.generic_string();
 }
 
 std::string SystemData::getGamelistPath(bool forWrite) const
@@ -418,8 +415,9 @@ std::string SystemData::getGamelistPath(bool forWrite) const
 		return filePath.generic_string();
 
 	auto found = es::paths::find(es::paths::Kind::Data, "gamelists/" + mName + "/gamelist.xml");
-	if(found) return found->generic_string();
-	return "/usr/share/emulationstation/gamelists/" + mName + "/gamelist.xml";
+	if(found)
+		return found->generic_string();
+	return filePath.generic_string();
 }
 
 std::string SystemData::getThemePath() const

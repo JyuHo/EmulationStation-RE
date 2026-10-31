@@ -9,6 +9,7 @@ set(CORE_HEADERS
 	src/InputManager.h
 	src/Log.h
 	src/platform.h
+	src/utils/Paths.h
 	src/Renderer.h
 	src/Settings.h
 	src/Sound.h
@@ -160,10 +161,13 @@ list(APPEND CORE_SOURCES ${EMBEDDED_ASSET_SOURCES})
 
 add_library(es-core STATIC ${CORE_SOURCES} ${CORE_HEADERS})
 
+configure_file(src/utils/Paths.config.h.in ${CMAKE_CURRENT_BINARY_DIR}/generated/Paths.config.h @ONLY)
+
 target_include_directories(es-core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${PROJECT_SOURCE_DIR}/data
 )
+target_include_directories(es-core PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/generated)
 
 target_compile_definitions(es-core PUBLIC
     USE_OPENGL_DESKTOP
@@ -173,6 +177,7 @@ target_compile_definitions(es-core PUBLIC
 target_link_libraries(es-core PUBLIC
     OpenGL::GL
     Freetype::Freetype
+    Fontconfig::Fontconfig
     PkgConfig::WEBP
     SDL2::SDL2
     Eigen3::Eigen

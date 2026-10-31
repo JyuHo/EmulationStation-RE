@@ -1,4 +1,5 @@
 #include "InputManager.h"
+#include "utils/Paths.h"
 #include <cassert>
 #include "InputConfig.h"
 #include "Settings.h"
@@ -23,9 +24,9 @@
 
 namespace fs = std::filesystem;
 
-InputManager* InputManager::mInstance = nullptr;
+std::unique_ptr<InputManager> InputManager::sInstance;
 
-InputManager::InputManager() : mKeyboardInputConfig(nullptr) {}
+InputManager::InputManager() = default;
 
 InputManager::~InputManager()
 {
@@ -34,10 +35,10 @@ InputManager::~InputManager()
 
 InputManager* InputManager::getInstance()
 {
-	if(!mInstance)
-		mInstance = new InputManager();
+	if(!sInstance)
+		sInstance.reset(new InputManager()); // private constructor: std::make_unique cannot reach it
 
-	return mInstance;
+	return sInstance.get();
 }
 
 void InputManager::init()
@@ -57,8 +58,8 @@ void InputManager::init()
 		addJoystickByDeviceIndex(i);
 	}
 
-	mKeyboardInputConfig = new InputConfig(DEVICE_KEYBOARD, "Keyboard", KEYBOARD_GUID_STRING);
-	loadInputConfig(mKeyboardInputConfig);
+	mKeyboardInputConfig = std::make_unique<InputConfig>(DEVICE_KEYBOARD, "Keyboard", KEYBOARD_GUID_STRING);
+	loadInputConfig(mKeyboardInputConfig.get());
 }
 
 void InputManager::addJoystickByDeviceIndex(int id)
@@ -77,8 +78,8 @@ void InputManager::addJoystickByDeviceIndex(int id)
 	SDL_JoystickGetGUIDString(SDL_JoystickGetGUID(joy), guid, 65);
 
 	// create the InputConfig
-	mInputConfigs[joyId] = new InputConfig(joyId, SDL_JoystickName(joy), guid);
-	if(!loadInputConfig(mInputConfigs[joyId]))
+	mInputConfigs[joyId] = std::make_unique<InputConfig>(joyId, SDL_JoystickName(joy), guid);
+	if(!loadInputConfig(mInputConfigs[joyId].get()))
 	{
 		LOG(LogInfo) << "Added unconfigured joystick " << SDL_JoystickName(joy) << " (GUID: " << guid
 					 << ", instance ID: " << joyId << ", device index: " << id << ").";
@@ -104,9 +105,7 @@ void InputManager::removeJoystickByJoystickID(SDL_JoystickID joyId)
 	mPrevAxisValues.erase(axisIt);
 
 	// delete old InputConfig
-	auto it = mInputConfigs.find(joyId);
-	delete it->second;
-	mInputConfigs.erase(it);
+	mInputConfigs.erase(joyId);
 
 	// close the joystick
 	auto joyIt = mJoysticks.find(joyId);
@@ -132,19 +131,11 @@ void InputManager::deinit()
 	}
 	mJoysticks.clear();
 
-	for(auto iter = mInputConfigs.begin(); iter != mInputConfigs.end(); iter++)
-	{
-		delete iter->second;
-	}
 	mInputConfigs.clear();
 
 	mPrevAxisValues.clear();
 
-	if(mKeyboardInputConfig != nullptr)
-	{
-		delete mKeyboardInputConfig;
-		mKeyboardInputConfig = nullptr;
-	}
+	mKeyboardInputConfig.reset();
 
 	SDL_JoystickEventState(SDL_DISABLE);
 	SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
@@ -165,9 +156,9 @@ int InputManager::getButtonCountByDevice(SDL_JoystickID id)
 InputConfig* InputManager::getInputConfigByDevice(int device)
 {
 	if(device == DEVICE_KEYBOARD)
-		return mKeyboardInputConfig;
+		return mKeyboardInputConfig.get();
 	else
-		return mInputConfigs[device];
+		return mInputConfigs[device].get();
 }
 
 bool InputManager::parseEvent(const SDL_Event& ev, Window* window)
@@ -217,9 +208,9 @@ bool InputManager::parseEvent(const SDL_Event& ev, Window* window)
 
 		if(ev.key.keysym.sym == SDLK_F4)
 		{
-			SDL_Event* quit = new SDL_Event();
-			quit->type = SDL_QUIT;
-			SDL_PushEvent(quit);
+			SDL_Event quit{};
+			quit.type = SDL_QUIT;
+			SDL_PushEvent(&quit); // SDL copies the event
 			return false;
 		}
 
@@ -340,9 +331,7 @@ void InputManager::writeDeviceConfig(InputConfig* config)
 
 std::string InputManager::getConfigPath()
 {
-	std::string path = getHomePath();
-	path += "/.emulationstation/es_input.cfg";
-	return path;
+	return es::paths::userFile(es::paths::Kind::Config, "es_input.cfg").string();
 }
 
 bool InputManager::initialized() const

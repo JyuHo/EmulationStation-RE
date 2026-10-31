@@ -188,8 +188,8 @@ template <typename T> void TextListComponent<T>::render(const Eigen::Affine3f& p
 			color = mColors[entry.data.colorId];
 
 		if(!entry.data.textCache)
-			entry.data.textCache = std::unique_ptr<TextCache>(
-				font->buildTextCache(mUppercase ? strToUpper(entry.name) : entry.name, 0, 0, 0x000000FF));
+			entry.data.textCache =
+				font->buildTextCache(mUppercase ? strToUpper(entry.name) : entry.name, 0, 0, 0x000000FF);
 
 		entry.data.textCache->setColor(color);
 

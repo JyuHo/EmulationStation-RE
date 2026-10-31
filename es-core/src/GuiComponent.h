@@ -114,5 +114,5 @@ public:
 
 private:
 	Eigen::Affine3f mTransform; //Don't access this directly! Use getTransform()!
-	AnimationController* mAnimationMap[MAX_ANIMATIONS];
+	std::unique_ptr<AnimationController> mAnimationMap[MAX_ANIMATIONS];
 };

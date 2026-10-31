@@ -1,6 +1,7 @@
 #include "GuiComponent.h"
 #include <memory>
 #include <cassert>
+#include <utility>
 #include "Window.h"
 #include "Log.h"
 #include "Renderer.h"
@@ -14,10 +15,7 @@ GuiComponent::GuiComponent(Window* window) :
 	mPosition(Eigen::Vector3f::Zero()),
 	mSize(Eigen::Vector2f::Zero()),
 	mTransform(Eigen::Affine3f::Identity())
-{
-	for(unsigned char i = 0; i < MAX_ANIMATIONS; i++)
-		mAnimationMap[i] = nullptr;
-}
+{}
 
 GuiComponent::~GuiComponent()
 {
@@ -210,82 +208,54 @@ void GuiComponent::setAnimation(
 {
 	assert(slot < MAX_ANIMATIONS);
 
-	AnimationController* oldAnim = mAnimationMap[slot];
-	mAnimationMap[slot] = std::make_unique<AnimationController>(std::move(anim), delay, finishedCallback, reverse).release();
-
-	if(oldAnim)
-		delete oldAnim;
+	// the old controller runs its finished callback when destroyed, after the new one is in place
+	std::unique_ptr<AnimationController> oldAnim = std::exchange(mAnimationMap[slot],
+		std::make_unique<AnimationController>(std::move(anim), delay, std::move(finishedCallback), reverse));
 }
 
+// The slot is emptied before the controller is destroyed: its finished callback may start a new
+// animation in the same slot, or delete this component.
 bool GuiComponent::stopAnimation(unsigned char slot)
 {
 	assert(slot < MAX_ANIMATIONS);
-	if(mAnimationMap[slot])
-	{
-		delete mAnimationMap[slot];
-		mAnimationMap[slot] = nullptr;
-		return true;
-	}
-	else
-	{
-		return false;
-	}
+	std::unique_ptr<AnimationController> anim = std::move(mAnimationMap[slot]);
+	return anim != nullptr;
 }
 
 bool GuiComponent::cancelAnimation(unsigned char slot)
 {
 	assert(slot < MAX_ANIMATIONS);
-	if(mAnimationMap[slot])
-	{
-		mAnimationMap[slot]->removeFinishedCallback();
-		delete mAnimationMap[slot];
-		mAnimationMap[slot] = nullptr;
-		return true;
-	}
-	else
-	{
+	std::unique_ptr<AnimationController> anim = std::move(mAnimationMap[slot]);
+	if(!anim)
 		return false;
-	}
+	anim->removeFinishedCallback();
+	return true;
 }
 
 bool GuiComponent::finishAnimation(unsigned char slot)
 {
 	assert(slot < MAX_ANIMATIONS);
-	if(mAnimationMap[slot])
-	{
-		// skip to animation's end
-		[[maybe_unused]] const bool done = mAnimationMap[slot]->update(
-			mAnimationMap[slot]->getAnimation()->getDuration() - mAnimationMap[slot]->getTime());
-		assert(done);
-
-		delete mAnimationMap[slot]; // will also call finishedCallback
-		mAnimationMap[slot] = nullptr;
-		return true;
-	}
-	else
-	{
+	std::unique_ptr<AnimationController> anim = std::move(mAnimationMap[slot]);
+	if(!anim)
 		return false;
-	}
+
+	// skip to animation's end; destroying anim then calls finishedCallback
+	[[maybe_unused]] const bool done = anim->update(anim->getAnimation()->getDuration() - anim->getTime());
+	assert(done);
+	return true;
 }
 
 bool GuiComponent::advanceAnimation(unsigned char slot, unsigned int time)
 {
 	assert(slot < MAX_ANIMATIONS);
-	AnimationController* anim = mAnimationMap[slot];
-	if(anim)
-	{
-		bool done = anim->update(time);
-		if(done)
-		{
-			mAnimationMap[slot] = nullptr;
-			delete anim;
-		}
-		return true;
-	}
-	else
-	{
+	if(!mAnimationMap[slot])
 		return false;
+
+	if(mAnimationMap[slot]->update(time))
+	{
+		std::unique_ptr<AnimationController> done = std::move(mAnimationMap[slot]);
 	}
+	return true;
 }
 
 void GuiComponent::stopAllAnimations()

@@ -43,8 +43,8 @@ public:
 	static bool
 	loadConfig(); //Load the system config file at getConfigPath(). Returns true if no errors were encountered. An example will be written if the file doesn't exist.
 	static void writeExampleConfig(const std::string& path);
-	static std::string getConfigPath(bool
-			forWrite); // if forWrite, will only return ~/.emulationstation/es_systems.cfg, never /etc/emulationstation/es_systems.cfg
+	static std::string getConfigPath(
+		bool forWrite); // if forWrite, only returns the user file in $XDG_CONFIG_HOME, never a system one
 
 	static std::vector<SystemData*> sSystemVector;
 

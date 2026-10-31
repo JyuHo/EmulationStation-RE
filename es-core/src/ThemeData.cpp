@@ -1,4 +1,6 @@
 #include "ThemeData.h"
+#include "utils/Paths.h"
+#include <algorithm>
 #include "Renderer.h"
 #include "resources/Font.h"
 #include "Sound.h"
@@ -104,7 +106,7 @@ std::string resolvePath(const char* in, const fs::path& relative)
 	// some directories could theoretically start with ~ or .
 	if(*path.begin() == "~")
 	{
-		path = getHomePath() + (in + 1);
+		path = es::paths::expandUser(in);
 	}
 	else if(*path.begin() == ".")
 	{
@@ -335,9 +337,10 @@ const std::shared_ptr<ThemeData>& ThemeData::getDefault()
 	{
 		theme = std::make_shared<ThemeData>();
 
-		const std::string path = getHomePath() + "/.emulationstation/es_theme_default.xml";
-		if(fs::exists(path))
+		const auto found = es::paths::find(es::paths::Kind::Config, "es_theme_default.xml");
+		if(found)
 		{
+			const std::string path = found->string();
 			try
 			{
 				theme->loadFile(path);
@@ -353,10 +356,10 @@ const std::shared_ptr<ThemeData>& ThemeData::getDefault()
 	return theme;
 }
 
-std::vector<GuiComponent*> ThemeData::makeExtras(
+std::vector<std::unique_ptr<GuiComponent>> ThemeData::makeExtras(
 	const std::shared_ptr<ThemeData>& theme, const std::string& view, Window* window)
 {
-	std::vector<GuiComponent*> comps;
+	std::vector<std::unique_ptr<GuiComponent>> comps;
 
 	auto viewIt = theme->mViews.find(view);
 	if(viewIt == theme->mViews.end())
@@ -367,53 +370,49 @@ std::vector<GuiComponent*> ThemeData::makeExtras(
 		ThemeElement& elem = viewIt->second.elements.at(*it);
 		if(elem.extra)
 		{
-			GuiComponent* comp = nullptr;
+			std::unique_ptr<GuiComponent> comp;
 			const std::string& t = elem.type;
 			if(t == "image")
-				comp = new ImageComponent(window);
+				comp = std::make_unique<ImageComponent>(window);
 			else if(t == "text")
-				comp = new TextComponent(window);
+				comp = std::make_unique<TextComponent>(window);
+			else
+				continue;
 
 			comp->applyTheme(theme, view, *it, ThemeFlags::ALL);
-			comps.push_back(comp);
+			comps.push_back(std::move(comp));
 		}
 	}
 
 	return comps;
 }
 
-void ThemeExtras::setExtras(const std::vector<GuiComponent*>& extras)
+void ThemeExtras::setExtras(std::vector<std::unique_ptr<GuiComponent>> extras)
 {
-	// delete old extras (if any)
-	for(auto it = mExtras.begin(); it != mExtras.end(); it++)
-		delete *it;
-
-	mExtras = extras;
-	for(auto it = mExtras.begin(); it != mExtras.end(); it++)
-		addChild(*it);
-}
-
-ThemeExtras::~ThemeExtras()
-{
-	for(auto it = mExtras.begin(); it != mExtras.end(); it++)
-		delete *it;
+	mExtras = std::move(extras); // deletes the old extras, which detach themselves from this parent
+	for(auto& extra : mExtras)
+		addChild(extra.get());
 }
 
 std::map<std::string, ThemeSet> ThemeData::getThemeSets()
 {
 	std::map<std::string, ThemeSet> sets;
 
-	static const size_t pathCount = 2;
-	fs::path paths[pathCount] = {"/etc/emulationstation/themes", getHomePath() + "/.emulationstation/themes"};
+	// lowest priority first: a set in a later directory replaces one with the same name
+	std::vector<fs::path> paths = es::paths::systemDirs(es::paths::Kind::Data);
+	std::reverse(paths.begin(), paths.end());
+	paths.push_back(es::paths::userDir(es::paths::Kind::Data));
 
 	fs::directory_iterator end;
 
-	for(size_t i = 0; i < pathCount; i++)
+	for(auto& path : paths)
 	{
-		if(!fs::is_directory(paths[i]))
+		path /= "themes";
+		std::error_code ec;
+		if(!fs::is_directory(path, ec))
 			continue;
 
-		for(fs::directory_iterator it(paths[i]); it != end; ++it)
+		for(fs::directory_iterator it(path, ec); it != end; it.increment(ec))
 		{
 			if(fs::is_directory(*it))
 			{
