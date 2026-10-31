@@ -19,6 +19,7 @@
 #include "EmulationStation.h"
 #include "Settings.h"
 #include "utils/Paths.h"
+#include "utils/I18n.h"
 #include "Util.h"
 #include <cstdlib>
 #include "ScraperCmdLine.h"
@@ -276,6 +277,8 @@ int main(int argc, char* argv[])
 
 	MusicPlayer::getInstance().init();
 	MusicPlayer::getInstance().play();
+
+	I18n::init(Settings::getInstance()->getString("Language"));
 
 	while(running)
 	{

@@ -12,6 +12,7 @@ set(CORE_HEADERS
 	src/math/Math.h
 	src/platform.h
 	src/utils/Paths.h
+	src/utils/I18n.h
 	src/renderer/Batcher.h
 	src/renderer/GL.h
 	src/renderer/Internal.h
@@ -80,6 +81,7 @@ set(CORE_SOURCES
 	src/math/Math.cpp
 	src/platform.cpp
 	src/utils/Paths.cpp
+	src/utils/I18n.cpp
 	src/renderer/Batcher.cpp
 	src/renderer/Renderer.cpp
 	src/renderer/Renderer_init.cpp
