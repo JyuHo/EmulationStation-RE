@@ -28,7 +28,7 @@
 | 4 — Eigen → glm | **terminée** : glm, `math/Math.h`, captures identiques au pixel près, Eigen retiré ; correctif des chemins `./` des thèmes | #30, #31, #32 |
 | 5 — SDL2 → SDL3 | **terminée** : SDL3 partout, manettes reconnues par `SDL_Gamepad` avec configuration par défaut, captures identiques au pixel près ; testée par le propriétaire avec une vraie manette | #33, #34, #35 (#37) |
 | **6 — OpenGL 3.3 core** | **terminée** (≈ 3 500 i/s au minimum sur APU AMD BC-250, 1 000 jeux, mesuré par le propriétaire) : contexte 3.3 core, module `renderer/`, glad, API sans types GL, shaders, `Batcher`, taille de fenêtre ; #40 avait un rendu faux, corrigé par #42 | #40, #42, #44, #45 |
-| 7 — Images | **fusionnée** : façade `ImageIO::load` (PNG/JPEG/WebP statique+animé/GIF/AVIF), cache VRAM LRU, `AnimatedImageComponent::loadAnimated` | #41, #47, #48, #49 |
+| 7 — Images | **terminée après correction** : façade `ImageIO::load` (PNG/JPEG/WebP fixe et animé/GIF animé), textures animées dans tout `ImageComponent`, décodage asynchrone des images de jeux (`TextureLoader`), cache LRU `MaxVRAM` ; #47–#49 étaient incomplètes (voir le plan, « Écarts constatés ») | #41, #47, #48, #49, correction |
 | 8 — Audio | **fusionnée** : décodage FFmpeg, `SDL_AudioStream` par source, musique de fond | #51, #52 |
 | 9 — Vidéo | **fusionnée** : `VideoPlayer`/`VideoComponent` FFmpeg, piste audio, pause | #54, #55 |
 | 10 à 12 | à faire | — |
@@ -40,8 +40,8 @@ Ce qui existe et que tu dois **réutiliser** (ne le recrée pas) :
 - `CMakePresets.json` : configure/build/test presets `debug` (tests + `-Werror`), `release`,
   `relwithdebinfo`, `asan`, `clang-debug`.
 - `es-app-lib` : toutes les sources de `es-app` sauf `main.cpp` (cible à lier dans les tests).
-- `tests/unit/*.cpp` (Catch2 v3, 45 cas : `ImageIO`, `MetaData`, `ThemeData`, `Paths`,
-  `Util`, `Window`, `Locale`, `Math`, `Input`, `Audio`) et `tests/data/` (fixtures). Ajoute tes tests ici,
+- `tests/unit/*.cpp` (Catch2 v3, 67 cas : `ImageIO`, `TextureLoader`, `MetaData`, `ThemeData`, `Paths`,
+  `Util`, `Window`, `Locale`, `Math`, `Input`, `Audio`, `Renderer`) et `tests/data/` (fixtures). Ajoute tes tests ici,
   un fichier par module (`test_<Module>.cpp`), et déclare-les dans `tests/CMakeLists.txt`.
 - `tests/smoke/run.sh <binaire> [secondes] [capture.png]` : test de fumée Xvfb ; il
   utilise `ES_HOME` et un `HOME` jetable, et échoue si un fichier est écrit hors de `ES_HOME`.
@@ -83,6 +83,11 @@ Ce qui existe et que tu dois **réutiliser** (ne le recrée pas) :
 - `Log::write(level, "format {}", args…)` (std::format) pour tout nouveau message ;
   `LOG(level) << …` reste valable dans le code existant. Log dans
   `$XDG_STATE_HOME/emulationstation/es_log.txt`.
+- Images (phase 7) : `ImageIO::load` (`std::expected`, images animées, lignes de bas en
+  haut), `TextureLoader` (décodage sur des threads, textures créées par
+  `TextureResource::processPendingLoads` sur le thread principal), `LruCache` (budget
+  `MaxVRAM`). `ImageComponent::setImage(chemin, tuile, true)` pour une image chargée en
+  arrière-plan. Fixtures : `tests/data/images/` (voir son `README.md`).
 - `ImageIO` (stb_image + libwebp) : `loadFromMemoryRGBA32` (lignes de bas en haut) et
   `resizeImageFile`.
 - `Util.h` : `applyUserLocale()` (seul appel à `setlocale`), `parseFloat`/`parseInt`
@@ -110,10 +115,13 @@ dans `main.cpp`. #42 a repris 6a et 6b (rendu de la phase 5 rétabli), #44 le re
 
 La mesure de la phase 6 est faite (propriétaire, 31/10/2026) : environ 3 500 i/s au
 minimum en 1080p sur un APU AMD BC-250, mêmes chiffres en 4K (voir « Écarts constatés » du
-plan), `Draws: 56 (32 glDrawArrays)`. La phase 7 n'a pas commencé : #41 n'ajoute que la dépendance
-`libwebpdemux` (déjà dans `pacman` via `libwebp`). Lis la section « Phase 7 » du plan ; le
-chargement asynchrone devra créer les textures sur le thread principal (`createTexture`
-ne doit être appelé qu'avec le contexte courant).
+plan), `Draws: 56 (32 glDrawArrays)`.
+
+**Audit des phases 7 à 10 (31/10/2026).** #47–#49 (phase 7) avaient retiré le chargement
+asynchrone, détruisaient des textures affichées et ne branchaient pas les images animées :
+repris par la PR de correction de la phase 7 (détails dans le plan, « Écarts constatés »).
+Les phases 8 (audio), 9 (vidéo) et le début de la 10 (#57, lecteur `.mo`) sont relues à
+part ; ne t'appuie pas sur leur état « fusionnée » avant ce contrôle.
 
 Inventaire final de la phase 6 : 0 appel `gl*`, en-tête ou type GL hors de
 `es-core/src/renderer/` ; glad n'est inclus que par `renderer/GL.h`.
