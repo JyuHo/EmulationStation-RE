@@ -311,7 +311,6 @@ int main(int argc, char* argv[])
 		if(deltaTime > 1000 || deltaTime < 0)
 			deltaTime = 1000;
 
-		TextureResource::processPending();
 		window.update(deltaTime);
 		window.render();
 		Renderer::swapBuffers();

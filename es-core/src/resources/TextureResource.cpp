@@ -31,35 +31,8 @@ void TextureResource::reload(std::shared_ptr<ResourceManager>& rm)
 	if(mPath.empty())
 		return;
 
-	// SVGs are rasterized synchronously (size-dependent).
-	if(mPath.size() >= 4 && mPath.compare(mPath.size() - 4, 4, ".svg") == 0)
-	{
-		const ResourceData& data = rm->getFileData(mPath);
-		initFromMemory((const char*)data.ptr.get(), data.length);
-		return;
-	}
-
 	const ResourceData& data = rm->getFileData(mPath);
-	std::vector<unsigned char> bytes(data.ptr.get(), data.ptr.get() + data.length);
-	const std::string path = mPath;
-
-	if(mWorker.joinable())
-		mWorker.join();
-
-	mWorker = std::jthread([this, bytes = std::move(bytes)]() {
-		size_t w = 0, h = 0;
-		std::vector<unsigned char> imageRGBA = ImageIO::loadFromMemoryRGBA32(bytes.data(), bytes.size(), w, h);
-		if(imageRGBA.empty())
-		{
-			LOG(LogError) << "Could not initialize texture from memory, invalid data! (file path: " << mPath << ")";
-			return;
-		}
-		std::lock_guard<std::mutex> lock(mPendingMutex);
-		mPendingPixels = std::move(imageRGBA);
-		mPendingW = w;
-		mPendingH = h;
-		mPendingReady = true;
-	});
+	initFromMemory((const char*)data.ptr.get(), data.length);
 }
 
 void TextureResource::initFromPixels(const unsigned char* dataRGBA, size_t width, size_t height)
