@@ -9,7 +9,7 @@
 #include "Util.h"
 
 namespace Renderer {
-std::stack<Eigen::Vector4i> clipStack;
+std::stack<glm::ivec4> clipStack;
 
 void setColor4bArray(GLubyte* array, unsigned int color)
 {
@@ -29,24 +29,24 @@ void buildGLColorArray(GLubyte* ptr, unsigned int color, unsigned int vertCount)
 	}
 }
 
-void pushClipRect(Eigen::Vector2i pos, Eigen::Vector2i dim)
+void pushClipRect(glm::ivec2 pos, glm::ivec2 dim)
 {
-	Eigen::Vector4i box(pos.x(), pos.y(), dim.x(), dim.y());
+	glm::ivec4 box(pos.x, pos.y, dim.x, dim.y);
 	if(box[2] == 0)
-		box[2] = Renderer::getScreenWidth() - box.x();
+		box[2] = Renderer::getScreenWidth() - box.x;
 	if(box[3] == 0)
-		box[3] = Renderer::getScreenHeight() - box.y();
+		box[3] = Renderer::getScreenHeight() - box.y;
 
 	//glScissor starts at the bottom left of the window
 	//so (0, 0, 1, 1) is the bottom left pixel
 	//everything else uses y+ = down, so flip it to be consistent
 	//rect.pos.y = Renderer::getScreenHeight() - rect.pos.y - rect.size.y;
-	box[1] = Renderer::getScreenHeight() - box.y() - box[3];
+	box[1] = Renderer::getScreenHeight() - box.y - box[3];
 
 	//make sure the box fits within clipStack.top(), and clip further accordingly
 	if(clipStack.size())
 	{
-		Eigen::Vector4i& top = clipStack.top();
+		glm::ivec4& top = clipStack.top();
 		if(top[0] > box[0])
 			box[0] = top[0];
 		if(top[1] > box[1])
@@ -82,7 +82,7 @@ void popClipRect()
 	}
 	else
 	{
-		Eigen::Vector4i top = clipStack.top();
+		glm::ivec4 top = clipStack.top();
 		glScissor(top[0], top[1], top[2], top[3]);
 	}
 }
@@ -133,8 +133,8 @@ void setMatrix(float* matrix)
 	glLoadMatrixf(matrix);
 }
 
-void setMatrix(const Eigen::Affine3f& matrix)
+void setMatrix(const glm::mat4& matrix)
 {
-	setMatrix((float*)matrix.data());
+	setMatrix(const_cast<float*>(glm::value_ptr(matrix)));
 }
 }; // namespace Renderer

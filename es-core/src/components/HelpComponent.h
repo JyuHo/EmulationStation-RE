@@ -15,7 +15,7 @@ public:
 	void clearPrompts();
 	void setPrompts(const std::vector<HelpPrompt>& prompts);
 
-	void render(const Eigen::Affine3f& parent) override;
+	void render(const glm::mat4& parent) override;
 	void setOpacity(unsigned char opacity) override;
 
 	void setStyle(const HelpStyle& style);

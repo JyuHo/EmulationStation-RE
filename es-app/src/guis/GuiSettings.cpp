@@ -10,7 +10,7 @@ GuiSettings::GuiSettings(Window* window, const char* title) : GuiComponent(windo
 	mMenu.addButton("BACK", "go back", [this] { delete this; });
 
 	setSize((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
-	mMenu.setPosition((mSize.x() - mMenu.getSize().x()) / 2, Renderer::getScreenHeight() * 0.15f);
+	mMenu.setPosition((mSize.x - mMenu.getSize().x) / 2, Renderer::getScreenHeight() * 0.15f);
 }
 
 GuiSettings::~GuiSettings()

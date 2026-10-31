@@ -26,7 +26,7 @@ public:
 
 	bool input(InputConfig* config, Input input) override;
 	void update(int deltaTime) override;
-	void render(const Eigen::Affine3f& parentTrans) override;
+	void render(const glm::mat4& parentTrans) override;
 
 	std::vector<HelpPrompt> getHelpPrompts() override;
 	HelpStyle getHelpStyle() override;
@@ -35,7 +35,7 @@ protected:
 	void onCursorChanged(const CursorState& state) override;
 
 private:
-	inline Eigen::Vector2f logoSize() const { return Eigen::Vector2f(mSize.x() * 0.25f, mSize.y() * 0.155f); }
+	inline glm::vec2 logoSize() const { return glm::vec2(mSize.x * 0.25f, mSize.y * 0.155f); }
 
 	void populate();
 

@@ -53,7 +53,7 @@ public:
 	void textInput(const char* text) override;
 	bool input(InputConfig* config, Input input) override;
 	void update(int deltaTime) override;
-	void render(const Eigen::Affine3f& parentTrans) override;
+	void render(const glm::mat4& parentTrans) override;
 	std::vector<HelpPrompt> getHelpPrompts() override;
 
 	void onSizeChanged() override;

@@ -29,19 +29,19 @@ DetailedGameListView::DetailedGameListView(Window* window, FileData* root) :
 	mDescContainer(window),
 	mDescription(window)
 {
-	//mHeaderImage.setPosition(mSize.x() * 0.25f, 0);
+	//mHeaderImage.setPosition(mSize.x * 0.25f, 0);
 
 	const float padding = 0.01f;
 
-	mList.setPosition(mSize.x() * (0.50f + padding), mList.getPosition().y());
-	mList.setSize(mSize.x() * (0.50f - padding), mList.getSize().y());
+	mList.setPosition(mSize.x * (0.50f + padding), mList.getPosition().y);
+	mList.setSize(mSize.x * (0.50f - padding), mList.getSize().y);
 	mList.setAlignment(TextListComponent<FileData*>::ALIGN_LEFT);
 	mList.setCursorChangedCallback([&](const CursorState& state) { updateInfoPanel(); });
 
 	// image
 	mImage.setOrigin(0.5f, 0.5f);
-	mImage.setPosition(mSize.x() * 0.25f, mList.getPosition().y() + mSize.y() * 0.2125f);
-	mImage.setMaxSize(mSize.x() * (0.50f - 2 * padding), mSize.y() * 0.4f);
+	mImage.setPosition(mSize.x * 0.25f, mList.getPosition().y + mSize.y * 0.2125f);
+	mImage.setMaxSize(mSize.x * (0.50f - 2 * padding), mSize.y * 0.4f);
 	addChild(&mImage);
 
 	// metadata labels + values
@@ -71,13 +71,13 @@ DetailedGameListView::DetailedGameListView(Window* window, FileData* root) :
 	addChild(&mLblPlayCount);
 	addChild(&mPlayCount);
 
-	mDescContainer.setPosition(mSize.x() * padding, mSize.y() * 0.65f);
-	mDescContainer.setSize(mSize.x() * (0.50f - 2 * padding), mSize.y() - mDescContainer.getPosition().y());
+	mDescContainer.setPosition(mSize.x * padding, mSize.y * 0.65f);
+	mDescContainer.setSize(mSize.x * (0.50f - 2 * padding), mSize.y - mDescContainer.getPosition().y);
 	mDescContainer.setAutoScroll(true);
 	addChild(&mDescContainer);
 
 	mDescription.setFont(Font::get(FONT_SIZE_SMALL));
-	mDescription.setSize(mDescContainer.getSize().x(), 0);
+	mDescription.setSize(mDescContainer.getSize().x, 0);
 	mDescContainer.addChild(&mDescription);
 
 	initMDLabels();
@@ -115,37 +115,36 @@ void DetailedGameListView::onThemeChanged(const std::shared_ptr<ThemeData>& them
 	}
 
 	mDescContainer.applyTheme(theme, getName(), "md_description", POSITION | ThemeFlags::SIZE);
-	mDescription.setSize(mDescContainer.getSize().x(), 0);
+	mDescription.setSize(mDescContainer.getSize().x, 0);
 	mDescription.applyTheme(theme, getName(), "md_description", ALL ^ (POSITION | ThemeFlags::SIZE | TEXT));
 }
 
 void DetailedGameListView::initMDLabels()
 {
-	using namespace Eigen;
 
 	std::vector<TextComponent*> components = getMDLabels();
 
 	const unsigned int colCount = 2;
 	const unsigned int rowCount = components.size() / 2;
 
-	Vector3f start(mSize.x() * 0.01f, mSize.y() * 0.625f, 0.0f);
+	glm::vec3 start(mSize.x * 0.01f, mSize.y * 0.625f, 0.0f);
 
-	const float colSize = (mSize.x() * 0.48f) / colCount;
-	const float rowPadding = 0.01f * mSize.y();
+	const float colSize = (mSize.x * 0.48f) / colCount;
+	const float rowPadding = 0.01f * mSize.y;
 
 	for(unsigned int i = 0; i < components.size(); i++)
 	{
 		const unsigned int row = i % rowCount;
-		Vector3f pos(0.0f, 0.0f, 0.0f);
+		glm::vec3 pos(0.0f, 0.0f, 0.0f);
 		if(row == 0)
 		{
-			pos = start + Vector3f(colSize * (i / rowCount), 0, 0);
+			pos = start + glm::vec3(colSize * (i / rowCount), 0, 0);
 		}
 		else
 		{
 			// work from the last component
 			GuiComponent* lc = components[i - 1];
-			pos = lc->getPosition() + Vector3f(0, lc->getSize().y() + rowPadding, 0);
+			pos = lc->getPosition() + glm::vec3(0, lc->getSize().y + rowPadding, 0);
 		}
 
 		components[i]->setFont(Font::get(FONT_SIZE_SMALL));
@@ -155,7 +154,6 @@ void DetailedGameListView::initMDLabels()
 
 void DetailedGameListView::initMDValues()
 {
-	using namespace Eigen;
 
 	std::vector<TextComponent*> labels = getMDLabels();
 	std::vector<GuiComponent*> values = getMDValues();
@@ -172,20 +170,20 @@ void DetailedGameListView::initMDValues()
 
 	float bottom = 0.0f;
 
-	const float colSize = (mSize.x() * 0.48f) / 2;
+	const float colSize = (mSize.x * 0.48f) / 2;
 	for(unsigned int i = 0; i < labels.size(); i++)
 	{
-		const float heightDiff = (labels[i]->getSize().y() - values[i]->getSize().y()) / 2;
-		values[i]->setPosition(labels[i]->getPosition() + Vector3f(labels[i]->getSize().x(), heightDiff, 0));
-		values[i]->setSize(colSize - labels[i]->getSize().x(), values[i]->getSize().y());
+		const float heightDiff = (labels[i]->getSize().y - values[i]->getSize().y) / 2;
+		values[i]->setPosition(labels[i]->getPosition() + glm::vec3(labels[i]->getSize().x, heightDiff, 0));
+		values[i]->setSize(colSize - labels[i]->getSize().x, values[i]->getSize().y);
 
-		float testBot = values[i]->getPosition().y() + values[i]->getSize().y();
+		float testBot = values[i]->getPosition().y + values[i]->getSize().y;
 		if(testBot > bottom)
 			bottom = testBot;
 	}
 
-	mDescContainer.setPosition(mDescContainer.getPosition().x(), bottom + mSize.y() * 0.01f);
-	mDescContainer.setSize(mDescContainer.getSize().x(), mSize.y() - mDescContainer.getPosition().y());
+	mDescContainer.setPosition(mDescContainer.getPosition().x, bottom + mSize.y * 0.01f);
+	mDescContainer.setSize(mDescContainer.getSize().x, mSize.y - mDescContainer.getPosition().y);
 }
 
 void DetailedGameListView::updateInfoPanel()
@@ -246,9 +244,9 @@ void DetailedGameListView::updateInfoPanel()
 
 void DetailedGameListView::launch(FileData* game)
 {
-	Eigen::Vector3f target(Renderer::getScreenWidth() / 2.0f, Renderer::getScreenHeight() / 2.0f, 0);
+	glm::vec3 target(Renderer::getScreenWidth() / 2.0f, Renderer::getScreenHeight() / 2.0f, 0);
 	if(mImage.hasImage())
-		target << mImage.getCenter().x(), mImage.getCenter().y(), 0;
+		target = {mImage.getCenter().x, mImage.getCenter().y, 0};
 
 	ViewController::get()->launch(game, target);
 }

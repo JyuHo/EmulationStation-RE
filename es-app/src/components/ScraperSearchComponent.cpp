@@ -15,16 +15,14 @@
 #include "guis/GuiTextEditPopup.h"
 
 ScraperSearchComponent::ScraperSearchComponent(Window* window, SearchType type) :
-	GuiComponent(window), mGrid(window, Eigen::Vector2i(4, 3)), mSearchType(type), mBusyAnim(window)
+	GuiComponent(window), mGrid(window, glm::ivec2(4, 3)), mSearchType(type), mBusyAnim(window)
 {
 	addChild(&mGrid);
 
 	mBlockAccept = false;
 
-	using namespace Eigen;
-
 	// left spacer (empty component, needed for borders)
-	mGrid.setEntry(std::make_shared<GuiComponent>(mWindow), Vector2i(0, 0), false, false, Vector2i(1, 3),
+	mGrid.setEntry(std::make_shared<GuiComponent>(mWindow), glm::ivec2(0, 0), false, false, glm::ivec2(1, 3),
 		GridFlags::BORDER_TOP | GridFlags::BORDER_BOTTOM);
 
 	// selected result name
@@ -32,7 +30,7 @@ ScraperSearchComponent::ScraperSearchComponent(Window* window, SearchType type) 
 
 	// selected result thumbnail
 	mResultThumbnail = std::make_shared<ImageComponent>(mWindow);
-	mGrid.setEntry(mResultThumbnail, Vector2i(1, 1), false, false, Vector2i(1, 1));
+	mGrid.setEntry(mResultThumbnail, glm::ivec2(1, 1), false, false, glm::ivec2(1, 1));
 
 	// selected result desc + container
 	mDescContainer = std::make_shared<ScrollableContainer>(mWindow);
@@ -59,16 +57,16 @@ ScraperSearchComponent::ScraperSearchComponent(Window* window, SearchType type) 
 	mMD_Pairs.emplace_back(std::make_shared<TextComponent>(mWindow, "GENRE:", font, mdLblColor), mMD_Genre);
 	mMD_Pairs.emplace_back(std::make_shared<TextComponent>(mWindow, "PLAYERS:", font, mdLblColor), mMD_Players);
 
-	mMD_Grid = std::make_shared<ComponentGrid>(mWindow, Vector2i(2, mMD_Pairs.size() * 2 - 1));
+	mMD_Grid = std::make_shared<ComponentGrid>(mWindow, glm::ivec2(2, mMD_Pairs.size() * 2 - 1));
 	unsigned int i = 0;
 	for(auto it = mMD_Pairs.begin(); it != mMD_Pairs.end(); it++)
 	{
-		mMD_Grid->setEntry(it->first, Vector2i(0, i), false, true);
-		mMD_Grid->setEntry(it->second, Vector2i(1, i), false, it->resize);
+		mMD_Grid->setEntry(it->first, glm::ivec2(0, i), false, true);
+		mMD_Grid->setEntry(it->second, glm::ivec2(1, i), false, it->resize);
 		i += 2;
 	}
 
-	mGrid.setEntry(mMD_Grid, Vector2i(2, 1), false, false);
+	mGrid.setEntry(mMD_Grid, glm::ivec2(2, 1), false, false);
 
 	// result list
 	mResultList = std::make_shared<ComponentList>(mWindow);
@@ -84,7 +82,7 @@ void ScraperSearchComponent::onSizeChanged()
 {
 	mGrid.setSize(mSize);
 
-	if(mSize.x() == 0 || mSize.y() == 0)
+	if(mSize.x == 0 || mSize.y == 0)
 		return;
 
 	// column widths
@@ -98,7 +96,7 @@ void ScraperSearchComponent::onSizeChanged()
 
 	// row heights
 	if(mSearchType == ALWAYS_ACCEPT_FIRST_RESULT)													   // show name
-		mGrid.setRowHeightPerc(0, (mResultName->getFont()->getHeight() * 1.6f) / mGrid.getSize().y()); // result name
+		mGrid.setRowHeightPerc(0, (mResultName->getFont()->getHeight() * 1.6f) / mGrid.getSize().y);   // result name
 	else
 		mGrid.setRowHeightPerc(0, 0.0825f); // hide name but do padding
 
@@ -126,7 +124,7 @@ void ScraperSearchComponent::onSizeChanged()
 	else
 		mDescContainer->setSize(mGrid.getColWidth(3) * boxartCellScale, mResultDesc->getFont()->getHeight() * 8);
 
-	mResultDesc->setSize(mDescContainer->getSize().x(), 0); // make desc text wrap at edge of container
+	mResultDesc->setSize(mDescContainer->getSize().x, 0); // make desc text wrap at edge of container
 
 	mGrid.onSizeChanged();
 
@@ -136,9 +134,9 @@ void ScraperSearchComponent::onSizeChanged()
 void ScraperSearchComponent::resizeMetadata()
 {
 	mMD_Grid->setSize(mGrid.getColWidth(2), mGrid.getRowHeight(1));
-	if(mMD_Grid->getSize().y() > mMD_Pairs.size())
+	if(mMD_Grid->getSize().y > mMD_Pairs.size())
 	{
-		const int fontHeight = (int)(mMD_Grid->getSize().y() / mMD_Pairs.size() * 0.8f);
+		const int fontHeight = (int)(mMD_Grid->getSize().y / mMD_Pairs.size() * 0.8f);
 		auto fontLbl = Font::get(fontHeight, FONT_PATH_REGULAR);
 		auto fontComp = Font::get(fontHeight, FONT_PATH_LIGHT);
 
@@ -148,13 +146,13 @@ void ScraperSearchComponent::resizeMetadata()
 		{
 			it->first->setFont(fontLbl);
 			it->first->setSize(0, 0);
-			if(it->first->getSize().x() > maxLblWidth)
-				maxLblWidth = it->first->getSize().x() + 6;
+			if(it->first->getSize().x > maxLblWidth)
+				maxLblWidth = it->first->getSize().x + 6;
 		}
 
 		for(unsigned int i = 0; i < mMD_Pairs.size(); i++)
 		{
-			mMD_Grid->setRowHeightPerc(i * 2, (fontLbl->getLetterHeight() + 2) / mMD_Grid->getSize().y());
+			mMD_Grid->setRowHeightPerc(i * 2, (fontLbl->getLetterHeight() + 2) / mMD_Grid->getSize().y);
 		}
 
 		// update component fonts
@@ -164,7 +162,7 @@ void ScraperSearchComponent::resizeMetadata()
 		mMD_Genre->setFont(fontComp);
 		mMD_Players->setFont(fontComp);
 
-		mMD_Grid->setColWidthPerc(0, maxLblWidth / mMD_Grid->getSize().x());
+		mMD_Grid->setColWidthPerc(0, maxLblWidth / mMD_Grid->getSize().x);
 
 		// rating is manually sized
 		mMD_Rating->setSize(mMD_Grid->getColWidth(1), fontLbl->getHeight() * 0.65f);
@@ -177,7 +175,6 @@ void ScraperSearchComponent::resizeMetadata()
 
 void ScraperSearchComponent::updateViewStyle()
 {
-	using namespace Eigen;
 
 	// unlink description and result list and result name
 	mGrid.removeEntry(mResultName);
@@ -188,30 +185,30 @@ void ScraperSearchComponent::updateViewStyle()
 	if(mSearchType == ALWAYS_ACCEPT_FIRST_RESULT)
 	{
 		// show name
-		mGrid.setEntry(mResultName, Vector2i(1, 0), false, true, Vector2i(2, 1), GridFlags::BORDER_TOP);
+		mGrid.setEntry(mResultName, glm::ivec2(1, 0), false, true, glm::ivec2(2, 1), GridFlags::BORDER_TOP);
 
 		// need a border on the bottom left
-		mGrid.setEntry(std::make_shared<GuiComponent>(mWindow), Vector2i(0, 2), false, false, Vector2i(3, 1),
+		mGrid.setEntry(std::make_shared<GuiComponent>(mWindow), glm::ivec2(0, 2), false, false, glm::ivec2(3, 1),
 			GridFlags::BORDER_BOTTOM);
 
 		// show description on the right
-		mGrid.setEntry(mDescContainer, Vector2i(3, 0), false, false, Vector2i(1, 3),
+		mGrid.setEntry(mDescContainer, glm::ivec2(3, 0), false, false, glm::ivec2(1, 3),
 			GridFlags::BORDER_TOP | GridFlags::BORDER_BOTTOM);
-		mResultDesc->setSize(mDescContainer->getSize().x(), 0); // make desc text wrap at edge of container
+		mResultDesc->setSize(mDescContainer->getSize().x, 0); // make desc text wrap at edge of container
 	}
 	else
 	{
 		// fake row where name would be
-		mGrid.setEntry(std::make_shared<GuiComponent>(mWindow), Vector2i(1, 0), false, true, Vector2i(2, 1),
+		mGrid.setEntry(std::make_shared<GuiComponent>(mWindow), glm::ivec2(1, 0), false, true, glm::ivec2(2, 1),
 			GridFlags::BORDER_TOP);
 
 		// show result list on the right
-		mGrid.setEntry(mResultList, Vector2i(3, 0), true, true, Vector2i(1, 3),
+		mGrid.setEntry(mResultList, glm::ivec2(3, 0), true, true, glm::ivec2(1, 3),
 			GridFlags::BORDER_LEFT | GridFlags::BORDER_TOP | GridFlags::BORDER_BOTTOM);
 
 		// show description under image/info
-		mGrid.setEntry(mDescContainer, Vector2i(1, 2), false, false, Vector2i(2, 1), GridFlags::BORDER_BOTTOM);
-		mResultDesc->setSize(mDescContainer->getSize().x(), 0); // make desc text wrap at edge of container
+		mGrid.setEntry(mDescContainer, glm::ivec2(1, 2), false, false, glm::ivec2(2, 1), GridFlags::BORDER_BOTTOM);
+		mResultDesc->setSize(mDescContainer->getSize().x, 0); // make desc text wrap at edge of container
 	}
 }
 
@@ -364,18 +361,18 @@ bool ScraperSearchComponent::input(InputConfig* config, Input input)
 	return GuiComponent::input(config, input);
 }
 
-void ScraperSearchComponent::render(const Eigen::Affine3f& parentTrans)
+void ScraperSearchComponent::render(const glm::mat4& parentTrans)
 {
-	Eigen::Affine3f trans = parentTrans * getTransform();
+	glm::mat4 trans = parentTrans * getTransform();
 
 	renderChildren(trans);
 
 	if(mBlockAccept)
 	{
 		Renderer::setMatrix(trans);
-		Renderer::drawRect(0.f, 0.f, mSize.x(), mSize.y(), 0x00000011);
-		//Renderer::drawRect((int)mResultList->getPosition().x(), (int)mResultList->getPosition().y(),
-		//	(int)mResultList->getSize().x(), (int)mResultList->getSize().y(), 0x00000011);
+		Renderer::drawRect(0.f, 0.f, mSize.x, mSize.y, 0x00000011);
+		//Renderer::drawRect((int)mResultList->getPosition().x, (int)mResultList->getPosition().y,
+		//	(int)mResultList->getSize().x, (int)mResultList->getSize().y, 0x00000011);
 
 		mBusyAnim.render(trans);
 	}

@@ -14,15 +14,13 @@
 #include "components/RatingComponent.h"
 #include "guis/GuiTextEditPopup.h"
 
-using namespace Eigen;
-
 GuiMetaDataEd::GuiMetaDataEd(Window* window, MetaDataList* md, const std::vector<MetaDataDecl>& mdd,
 	ScraperSearchParams scraperParams, const std::string& header, std::function<void()> saveCallback,
 	std::function<void()> deleteFunc) :
 	GuiComponent(window),
 	mBackground(window, ":/frame.png"),
 
-	mGrid(window, Vector2i(1, 3)),
+	mGrid(window, glm::ivec2(1, 3)),
 	mScraperParams(scraperParams),
 
 	mMetaDataDecl(mdd),
@@ -33,20 +31,20 @@ GuiMetaDataEd::GuiMetaDataEd(Window* window, MetaDataList* md, const std::vector
 	addChild(&mBackground);
 	addChild(&mGrid);
 
-	mHeaderGrid = std::make_shared<ComponentGrid>(mWindow, Vector2i(1, 5));
+	mHeaderGrid = std::make_shared<ComponentGrid>(mWindow, glm::ivec2(1, 5));
 
 	mTitle =
 		std::make_shared<TextComponent>(mWindow, "EDIT METADATA", Font::get(FONT_SIZE_LARGE), 0x555555FF, ALIGN_CENTER);
 	mSubtitle =
 		std::make_shared<TextComponent>(mWindow, strToUpper(scraperParams.game->getPath().filename().generic_string()),
 			Font::get(FONT_SIZE_SMALL), 0x777777FF, ALIGN_CENTER);
-	mHeaderGrid->setEntry(mTitle, Vector2i(0, 1), false, true);
-	mHeaderGrid->setEntry(mSubtitle, Vector2i(0, 3), false, true);
+	mHeaderGrid->setEntry(mTitle, glm::ivec2(0, 1), false, true);
+	mHeaderGrid->setEntry(mSubtitle, glm::ivec2(0, 3), false, true);
 
-	mGrid.setEntry(mHeaderGrid, Vector2i(0, 0), false, true);
+	mGrid.setEntry(mHeaderGrid, glm::ivec2(0, 0), false, true);
 
 	mList = std::make_shared<ComponentList>(mWindow);
-	mGrid.setEntry(mList, Vector2i(0, 1), true, true);
+	mGrid.setEntry(mList, glm::ivec2(0, 1), true, true);
 
 	// populate list
 	for(auto iter = mdd.begin(); iter != mdd.end(); iter++)
@@ -68,7 +66,7 @@ GuiMetaDataEd::GuiMetaDataEd(Window* window, MetaDataList* md, const std::vector
 		{
 		case MD_RATING: {
 			ed = std::make_shared<RatingComponent>(window);
-			const float height = lbl->getSize().y() * 0.71f;
+			const float height = lbl->getSize().y * 0.71f;
 			ed->setSize(0, height);
 			row.addElement(ed, false, true);
 
@@ -112,7 +110,7 @@ GuiMetaDataEd::GuiMetaDataEd(Window* window, MetaDataList* md, const std::vector
 
 			auto bracket = std::make_shared<ImageComponent>(mWindow);
 			bracket->setImage(":/arrow.svg");
-			bracket->setResize(Eigen::Vector2f(0, lbl->getFont()->getLetterHeight()));
+			bracket->setResize(glm::vec2(0, lbl->getFont()->getLetterHeight()));
 			row.addElement(bracket, false);
 
 			bool multiLine = iter->type == MD_MULTILINE_STRING;
@@ -159,29 +157,29 @@ GuiMetaDataEd::GuiMetaDataEd(Window* window, MetaDataList* md, const std::vector
 	}
 
 	mButtons = makeButtonGrid(mWindow, buttons);
-	mGrid.setEntry(mButtons, Vector2i(0, 2), true, false);
+	mGrid.setEntry(mButtons, glm::ivec2(0, 2), true, false);
 
 	// resize + center
 	setSize(Renderer::getScreenWidth() * 0.5f, Renderer::getScreenHeight() * 0.82f);
-	setPosition((Renderer::getScreenWidth() - mSize.x()) / 2, (Renderer::getScreenHeight() - mSize.y()) / 2);
+	setPosition((Renderer::getScreenWidth() - mSize.x) / 2, (Renderer::getScreenHeight() - mSize.y) / 2);
 }
 
 void GuiMetaDataEd::onSizeChanged()
 {
-	mBackground.fitTo(mSize, Vector3f::Zero(), Vector2f(-32, -32));
+	mBackground.fitTo(mSize, glm::vec3(0.0f), glm::vec2(-32, -32));
 
 	mGrid.setSize(mSize);
 
 	const float titleHeight = mTitle->getFont()->getLetterHeight();
 	const float subtitleHeight = mSubtitle->getFont()->getLetterHeight();
-	const float titleSubtitleSpacing = mSize.y() * 0.03f;
+	const float titleSubtitleSpacing = mSize.y * 0.03f;
 
-	mGrid.setRowHeightPerc(0, (titleHeight + titleSubtitleSpacing + subtitleHeight + TITLE_VERT_PADDING) / mSize.y());
-	mGrid.setRowHeightPerc(2, mButtons->getSize().y() / mSize.y());
+	mGrid.setRowHeightPerc(0, (titleHeight + titleSubtitleSpacing + subtitleHeight + TITLE_VERT_PADDING) / mSize.y);
+	mGrid.setRowHeightPerc(2, mButtons->getSize().y / mSize.y);
 
-	mHeaderGrid->setRowHeightPerc(1, titleHeight / mHeaderGrid->getSize().y());
-	mHeaderGrid->setRowHeightPerc(2, titleSubtitleSpacing / mHeaderGrid->getSize().y());
-	mHeaderGrid->setRowHeightPerc(3, subtitleHeight / mHeaderGrid->getSize().y());
+	mHeaderGrid->setRowHeightPerc(1, titleHeight / mHeaderGrid->getSize().y);
+	mHeaderGrid->setRowHeightPerc(2, titleSubtitleSpacing / mHeaderGrid->getSize().y);
+	mHeaderGrid->setRowHeightPerc(3, subtitleHeight / mHeaderGrid->getSize().y);
 }
 
 void GuiMetaDataEd::save()

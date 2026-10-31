@@ -20,7 +20,7 @@ public:
 		override; // Should be a normalized float (in the range [0..1]) - if it's not, it will be clamped.
 
 	bool input(InputConfig* config, Input input) override;
-	void render(const Eigen::Affine3f& parentTrans) override;
+	void render(const glm::mat4& parentTrans) override;
 
 	void onSizeChanged() override;
 
@@ -36,8 +36,8 @@ private:
 
 	struct Vertex
 	{
-		Eigen::Vector2f pos;
-		Eigen::Vector2f tex;
+		glm::vec2 pos;
+		glm::vec2 tex;
 	} mVertices[12];
 
 	std::shared_ptr<TextureResource> mFilledTexture;

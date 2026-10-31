@@ -12,7 +12,7 @@ std::map<TextureResource::TextureKeyType, std::weak_ptr<TextureResource>> Textur
 std::list<std::weak_ptr<TextureResource>> TextureResource::sTextureList;
 
 TextureResource::TextureResource(const std::string& path, bool tile) :
-	mTextureSize(Eigen::Vector2i::Zero()), mPath(path), mTile(tile), mTextureID(0)
+	mTextureSize(glm::ivec2(0)), mPath(path), mTile(tile), mTextureID(0)
 {}
 
 TextureResource::~TextureResource()
@@ -53,7 +53,7 @@ void TextureResource::initFromPixels(const unsigned char* dataRGBA, size_t width
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapMode);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapMode);
 
-	mTextureSize << width, height;
+	mTextureSize = {width, height};
 }
 
 void TextureResource::initFromMemory(const char* data, size_t length)
@@ -81,7 +81,7 @@ void TextureResource::deinit()
 	}
 }
 
-const Eigen::Vector2i& TextureResource::getSize() const
+const glm::ivec2& TextureResource::getSize() const
 {
 	return mTextureSize;
 }
@@ -153,10 +153,10 @@ bool TextureResource::isInitialized() const
 
 size_t TextureResource::getMemUsage() const
 {
-	if(!mTextureID || mTextureSize.x() == 0 || mTextureSize.y() == 0)
+	if(!mTextureID || mTextureSize.x == 0 || mTextureSize.y == 0)
 		return 0;
 
-	return mTextureSize.x() * mTextureSize.y() * 4;
+	return mTextureSize.x * mTextureSize.y * 4;
 }
 
 size_t TextureResource::getTotalMemUsage()

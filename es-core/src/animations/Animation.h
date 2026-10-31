@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Eigen/Dense>
+#include "math/Math.h"
 
 class Animation
 {

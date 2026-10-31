@@ -3,7 +3,7 @@
 #include "resources/ResourceManager.h"
 
 #include <string>
-#include <Eigen/Dense>
+#include "math/Math.h"
 #include "platform.h"
 #include GLHEADER
 
@@ -21,7 +21,7 @@ public:
 
 	bool isInitialized() const;
 	bool isTiled() const;
-	const Eigen::Vector2i& getSize() const;
+	const glm::ivec2& getSize() const;
 	void bind() const;
 
 	// Warning: will NOT correctly reinitialize when this texture is reloaded (e.g. ES starts/stops playing a game).
@@ -37,7 +37,7 @@ protected:
 	TextureResource(const std::string& path, bool tile);
 	void deinit();
 
-	Eigen::Vector2i mTextureSize;
+	glm::ivec2 mTextureSize;
 	const std::string mPath;
 	const bool mTile;
 

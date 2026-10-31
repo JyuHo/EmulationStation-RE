@@ -14,8 +14,8 @@ TEST_CASE("ThemeData loads a format 3 theme", "[ThemeData]")
 
 	const ThemeData::ThemeElement* image = theme.getElement("detailed", "md_image", "image");
 	REQUIRE(image != nullptr);
-	CHECK(image->get<Eigen::Vector2f>("pos").x() == 0.1f);
-	CHECK(image->get<Eigen::Vector2f>("maxSize").y() == 0.5f);
+	CHECK(image->get<glm::vec2>("pos").x == 0.1f);
+	CHECK(image->get<glm::vec2>("maxSize").y == 0.5f);
 }
 
 TEST_CASE("ThemeData rejects invalid themes", "[ThemeData]")

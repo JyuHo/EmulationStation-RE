@@ -8,18 +8,18 @@
 #include "Util.h"
 #include "resources/SVGResource.h"
 
-Eigen::Vector2i ImageComponent::getTextureSize() const
+glm::ivec2 ImageComponent::getTextureSize() const
 {
 	if(mTexture)
 		return mTexture->getSize();
 	else
-		return Eigen::Vector2i(0, 0);
+		return glm::ivec2(0, 0);
 }
 
-Eigen::Vector2f ImageComponent::getCenter() const
+glm::vec2 ImageComponent::getCenter() const
 {
-	return Eigen::Vector2f(mPosition.x() - (getSize().x() * mOrigin.x()) + getSize().x() / 2,
-		mPosition.y() - (getSize().y() * mOrigin.y()) + getSize().y() / 2);
+	return glm::vec2(mPosition.x - (getSize().x * mOrigin.x) + getSize().x / 2,
+		mPosition.y - (getSize().y * mOrigin.y) + getSize().y / 2);
 }
 
 ImageComponent::ImageComponent(Window* window) :
@@ -43,10 +43,9 @@ void ImageComponent::resize()
 
 	SVGResource* svg = dynamic_cast<SVGResource*>(mTexture.get());
 
-	const Eigen::Vector2f textureSize = svg
-		? svg->getSourceImageSize()
-		: Eigen::Vector2f((float)mTexture->getSize().x(), (float)mTexture->getSize().y());
-	if(textureSize.isZero())
+	const glm::vec2 textureSize =
+		svg ? svg->getSourceImageSize() : glm::vec2((float)mTexture->getSize().x, (float)mTexture->getSize().y);
+	if(textureSize == glm::vec2(0.0f))
 		return;
 
 	if(mTexture->isTiled())
@@ -65,48 +64,48 @@ void ImageComponent::resize()
 		{
 			mSize = textureSize;
 
-			Eigen::Vector2f resizeScale((mTargetSize.x() / mSize.x()), (mTargetSize.y() / mSize.y()));
+			glm::vec2 resizeScale((mTargetSize.x / mSize.x), (mTargetSize.y / mSize.y));
 
-			if(resizeScale.x() < resizeScale.y())
+			if(resizeScale.x < resizeScale.y)
 			{
-				mSize[0] *= resizeScale.x();
-				mSize[1] *= resizeScale.x();
+				mSize[0] *= resizeScale.x;
+				mSize[1] *= resizeScale.x;
 			}
 			else
 			{
-				mSize[0] *= resizeScale.y();
-				mSize[1] *= resizeScale.y();
+				mSize[0] *= resizeScale.y;
+				mSize[1] *= resizeScale.y;
 			}
 
 			// for SVG rasterization, always calculate width from rounded height (see comment above)
 			mSize[1] = round(mSize[1]);
-			mSize[0] = (mSize[1] / textureSize.y()) * textureSize.x();
+			mSize[0] = (mSize[1] / textureSize.y) * textureSize.x;
 		}
 		else
 		{
 			// if both components are set, we just stretch
 			// if no components are set, we don't resize at all
-			mSize = mTargetSize.isZero() ? textureSize : mTargetSize;
+			mSize = mTargetSize == glm::vec2(0.0f) ? textureSize : mTargetSize;
 
 			// if only one component is set, we resize in a way that maintains aspect ratio
 			// for SVG rasterization, we always calculate width from rounded height (see comment above)
-			if(!mTargetSize.x() && mTargetSize.y())
+			if(!mTargetSize.x && mTargetSize.y)
 			{
-				mSize[1] = round(mTargetSize.y());
-				mSize[0] = (mSize.y() / textureSize.y()) * textureSize.x();
+				mSize[1] = round(mTargetSize.y);
+				mSize[0] = (mSize.y / textureSize.y) * textureSize.x;
 			}
-			else if(mTargetSize.x() && !mTargetSize.y())
+			else if(mTargetSize.x && !mTargetSize.y)
 			{
-				mSize[1] = round((mTargetSize.x() / textureSize.x()) * textureSize.y());
-				mSize[0] = (mSize.y() / textureSize.y()) * textureSize.x();
+				mSize[1] = round((mTargetSize.x / textureSize.x) * textureSize.y);
+				mSize[0] = (mSize.y / textureSize.y) * textureSize.x;
 			}
 		}
 	}
 
 	if(svg)
 	{
-		// mSize.y() should already be rounded
-		svg->rasterizeAt((int)round(mSize.x()), (int)round(mSize.y()));
+		// mSize.y should already be rounded
+		svg->rasterizeAt((int)round(mSize.x), (int)round(mSize.y));
 	}
 
 	onSizeChanged();
@@ -145,20 +144,20 @@ void ImageComponent::setImage(const std::shared_ptr<TextureResource>& texture)
 
 void ImageComponent::setOrigin(float originX, float originY)
 {
-	mOrigin << originX, originY;
+	mOrigin = {originX, originY};
 	updateVertices();
 }
 
 void ImageComponent::setResize(float width, float height)
 {
-	mTargetSize << width, height;
+	mTargetSize = {width, height};
 	mTargetIsMax = false;
 	resize();
 }
 
 void ImageComponent::setMaxSize(float width, float height)
 {
-	mTargetSize << width, height;
+	mTargetSize = {width, height};
 	mTargetIsMax = true;
 	resize();
 }
@@ -195,30 +194,30 @@ void ImageComponent::updateVertices()
 
 	// we go through this mess to make sure everything is properly rounded
 	// if we just round vertices at the end, edge cases occur near sizes of 0.5
-	Eigen::Vector2f topLeft(-mSize.x() * mOrigin.x(), -mSize.y() * mOrigin.y());
-	Eigen::Vector2f bottomRight(mSize.x() * (1 - mOrigin.x()), mSize.y() * (1 - mOrigin.y()));
+	glm::vec2 topLeft(-mSize.x * mOrigin.x, -mSize.y * mOrigin.y);
+	glm::vec2 bottomRight(mSize.x * (1 - mOrigin.x), mSize.y * (1 - mOrigin.y));
 
-	const float width = round(bottomRight.x() - topLeft.x());
-	const float height = round(bottomRight.y() - topLeft.y());
+	const float width = round(bottomRight.x - topLeft.x);
+	const float height = round(bottomRight.y - topLeft.y);
 
 	topLeft[0] = floor(topLeft[0]);
 	topLeft[1] = floor(topLeft[1]);
 	bottomRight[0] = topLeft[0] + width;
 	bottomRight[1] = topLeft[1] + height;
 
-	mVertices[0].pos << topLeft.x(), topLeft.y();
-	mVertices[1].pos << topLeft.x(), bottomRight.y();
-	mVertices[2].pos << bottomRight.x(), topLeft.y();
+	mVertices[0].pos = {topLeft.x, topLeft.y};
+	mVertices[1].pos = {topLeft.x, bottomRight.y};
+	mVertices[2].pos = {bottomRight.x, topLeft.y};
 
-	mVertices[3].pos << bottomRight.x(), topLeft.y();
-	mVertices[4].pos << topLeft.x(), bottomRight.y();
-	mVertices[5].pos << bottomRight.x(), bottomRight.y();
+	mVertices[3].pos = {bottomRight.x, topLeft.y};
+	mVertices[4].pos = {topLeft.x, bottomRight.y};
+	mVertices[5].pos = {bottomRight.x, bottomRight.y};
 
 	float px, py;
 	if(mTexture->isTiled())
 	{
-		px = mSize.x() / getTextureSize().x();
-		py = mSize.y() / getTextureSize().y();
+		px = mSize.x / getTextureSize().x;
+		py = mSize.y / getTextureSize().y;
 	}
 	else
 	{
@@ -226,13 +225,13 @@ void ImageComponent::updateVertices()
 		py = 1;
 	}
 
-	mVertices[0].tex << 0, py;
-	mVertices[1].tex << 0, 0;
-	mVertices[2].tex << px, py;
+	mVertices[0].tex = {0, py};
+	mVertices[1].tex = {0, 0};
+	mVertices[2].tex = {px, py};
 
-	mVertices[3].tex << px, py;
-	mVertices[4].tex << 0, 0;
-	mVertices[5].tex << px, 0;
+	mVertices[3].tex = {px, py};
+	mVertices[4].tex = {0, 0};
+	mVertices[5].tex = {px, 0};
 
 	if(mFlipX)
 	{
@@ -251,9 +250,9 @@ void ImageComponent::updateColors()
 	Renderer::buildGLColorArray(mColors, mColorShift, 6);
 }
 
-void ImageComponent::render(const Eigen::Affine3f& parentTrans)
+void ImageComponent::render(const glm::mat4& parentTrans)
 {
-	Eigen::Affine3f trans = roundMatrix(parentTrans * getTransform());
+	glm::mat4 trans = roundMatrix(parentTrans * getTransform());
 	Renderer::setMatrix(trans);
 
 	if(mTexture && mOpacity > 0)
@@ -310,27 +309,26 @@ void ImageComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, const s
 		return;
 	}
 
-	Eigen::Vector2f scale = getParent()
-		? getParent()->getSize()
-		: Eigen::Vector2f((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
+	glm::vec2 scale = getParent() ? getParent()->getSize()
+								  : glm::vec2((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
 
 	if(properties & POSITION && elem->has("pos"))
 	{
-		Eigen::Vector2f denormalized = elem->get<Eigen::Vector2f>("pos").cwiseProduct(scale);
-		setPosition(Eigen::Vector3f(denormalized.x(), denormalized.y(), 0));
+		glm::vec2 denormalized = elem->get<glm::vec2>("pos") * (scale);
+		setPosition(glm::vec3(denormalized.x, denormalized.y, 0));
 	}
 
 	if(properties & ThemeFlags::SIZE)
 	{
 		if(elem->has("size"))
-			setResize(elem->get<Eigen::Vector2f>("size").cwiseProduct(scale));
+			setResize(elem->get<glm::vec2>("size") * (scale));
 		else if(elem->has("maxSize"))
-			setMaxSize(elem->get<Eigen::Vector2f>("maxSize").cwiseProduct(scale));
+			setMaxSize(elem->get<glm::vec2>("maxSize") * (scale));
 	}
 
 	// position + size also implies origin
 	if((properties & ORIGIN || (properties & POSITION && properties & ThemeFlags::SIZE)) && elem->has("origin"))
-		setOrigin(elem->get<Eigen::Vector2f>("origin"));
+		setOrigin(elem->get<glm::vec2>("origin"));
 
 	if(properties & PATH && elem->has("path"))
 	{

@@ -31,11 +31,7 @@ void ViewController::init(Window* window)
 }
 
 ViewController::ViewController(Window* window) :
-	GuiComponent(window),
-	mCurrentView(nullptr),
-	mCamera(Eigen::Affine3f::Identity()),
-	mFadeOpacity(0),
-	mLockInput(false)
+	GuiComponent(window), mCurrentView(nullptr), mCamera(glm::mat4(1.0f)), mFadeOpacity(0), mLockInput(false)
 {
 	mState.viewing = NOTHING;
 }
@@ -67,7 +63,7 @@ void ViewController::goToSystemView(SystemData* system)
 	mState.system = system;
 
 	auto systemList = getSystemListView();
-	systemList->setPosition(getSystemId(system) * (float)Renderer::getScreenWidth(), systemList->getPosition().y());
+	systemList->setPosition(getSystemId(system) * (float)Renderer::getScreenWidth(), systemList->getPosition().y);
 
 	systemList->goToSystem(system, false);
 	mCurrentView = systemList;
@@ -97,11 +93,11 @@ void ViewController::goToGameList(SystemData* system)
 	{
 		// move system list
 		auto sysList = getSystemListView();
-		float offX = sysList->getPosition().x();
+		float offX = sysList->getPosition().x;
 		int sysId = getSystemId(system);
-		sysList->setPosition(sysId * (float)Renderer::getScreenWidth(), sysList->getPosition().y());
-		offX = sysList->getPosition().x() - offX;
-		mCamera.translation().x() -= offX;
+		sysList->setPosition(sysId * (float)Renderer::getScreenWidth(), sysList->getPosition().y);
+		offX = sysList->getPosition().x - offX;
+		mCamera[3].x -= offX;
 	}
 
 	mState.viewing = GAME_LIST;
@@ -113,12 +109,12 @@ void ViewController::goToGameList(SystemData* system)
 
 void ViewController::playViewTransition()
 {
-	Eigen::Vector3f target(Eigen::Vector3f::Identity());
+	glm::vec3 target(1.0f, 0.0f, 0.0f); // was Eigen::Vector3f::Identity(), i.e. the unit x vector
 	if(mCurrentView)
 		target = mCurrentView->getPosition();
 
 	// no need to animate, we're not going anywhere (probably goToNextGamelist() or goToPrevGamelist() when there's only 1 system)
-	if(target == -mCamera.translation() && !isAnimationPlaying(0))
+	if(target == -getTranslation(mCamera) && !isAnimationPlaying(0))
 		return;
 
 	if(Settings::getInstance()->getString("TransitionStyle") == "fade")
@@ -134,13 +130,13 @@ void ViewController::playViewTransition()
 		const static int FADE_DURATION = 240; // fade in/out time
 		const static int FADE_WAIT = 320;	  // time to wait between in/out
 		setAnimation(std::make_unique<LambdaAnimation>(fadeFunc, FADE_DURATION), 0, [this, fadeFunc, target] {
-			this->mCamera.translation() = -target;
+			setTranslation(this->mCamera, -target);
 			updateHelpPrompts();
 			setAnimation(std::make_unique<LambdaAnimation>(fadeFunc, FADE_DURATION), FADE_WAIT, nullptr, true);
 		});
 
 		// fast-forward animation if we're partway faded
-		if(target == -mCamera.translation())
+		if(target == -getTranslation(mCamera))
 		{
 			// not changing screens, so cancel the first half entirely
 			advanceAnimation(0, FADE_DURATION);
@@ -167,7 +163,7 @@ void ViewController::onFileChanged(FileData* file, FileChangeType change)
 		it->second->onFileChanged(file, change);
 }
 
-void ViewController::launch(FileData* game, Eigen::Vector3f center)
+void ViewController::launch(FileData* game, glm::vec3 center)
 {
 	if(game->getType() != GAME)
 	{
@@ -175,8 +171,8 @@ void ViewController::launch(FileData* game, Eigen::Vector3f center)
 		return;
 	}
 
-	Eigen::Affine3f origCamera = mCamera;
-	origCamera.translation() = -mCurrentView->getPosition();
+	glm::mat4 origCamera = mCamera;
+	setTranslation(origCamera, -mCurrentView->getPosition());
 
 	center += mCurrentView->getPosition();
 	stopAnimation(1); // make sure the fade in isn't still playing
@@ -293,14 +289,15 @@ void ViewController::update(int deltaTime)
 	updateSelf(deltaTime);
 }
 
-void ViewController::render(const Eigen::Affine3f& parentTrans)
+void ViewController::render(const glm::mat4& parentTrans)
 {
-	Eigen::Affine3f trans = mCamera * parentTrans;
+	glm::mat4 trans = mCamera * parentTrans;
 
 	// camera position, position + size
-	Eigen::Vector3f viewStart = trans.inverse().translation();
-	Eigen::Vector3f viewEnd =
-		trans.inverse() * Eigen::Vector3f((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight(), 0);
+	const glm::mat4 inverseTrans = glm::inverse(trans);
+	glm::vec3 viewStart = getTranslation(inverseTrans);
+	glm::vec3 viewEnd = transformPoint(
+		inverseTrans, glm::vec3((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight(), 0));
 
 	// draw systemview
 	getSystemListView()->render(trans);
@@ -309,12 +306,10 @@ void ViewController::render(const Eigen::Affine3f& parentTrans)
 	for(auto it = mGameListViews.begin(); it != mGameListViews.end(); it++)
 	{
 		// clipping
-		Eigen::Vector3f guiStart = it->second->getPosition();
-		Eigen::Vector3f guiEnd =
-			it->second->getPosition() + Eigen::Vector3f(it->second->getSize().x(), it->second->getSize().y(), 0);
+		glm::vec3 guiStart = it->second->getPosition();
+		glm::vec3 guiEnd = it->second->getPosition() + glm::vec3(it->second->getSize().x, it->second->getSize().y, 0);
 
-		if(guiEnd.x() >= viewStart.x() && guiEnd.y() >= viewStart.y() && guiStart.x() <= viewEnd.x() &&
-			guiStart.y() <= viewEnd.y())
+		if(guiEnd.x >= viewStart.x && guiEnd.y >= viewStart.y && guiStart.x <= viewEnd.x && guiStart.y <= viewEnd.y)
 			it->second->render(trans);
 	}
 

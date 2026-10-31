@@ -1,11 +1,9 @@
 #include "guis/GuiTextEditPopup.h"
 #include "components/MenuComponent.h"
 
-using namespace Eigen;
-
 GuiTextEditPopup::GuiTextEditPopup(Window* window, const std::string& title, const std::string& initValue,
 	const std::function<void(const std::string&)>& okCallback, bool multiLine, const char* acceptBtnText) :
-	GuiComponent(window), mBackground(window, ":/frame.png"), mGrid(window, Vector2i(1, 3)), mMultiLine(multiLine)
+	GuiComponent(window), mBackground(window, ":/frame.png"), mGrid(window, glm::ivec2(1, 3)), mMultiLine(multiLine)
 {
 	addChild(&mBackground);
 	addChild(&mGrid);
@@ -28,30 +26,30 @@ GuiTextEditPopup::GuiTextEditPopup(Window* window, const std::string& title, con
 
 	mButtonGrid = makeButtonGrid(mWindow, buttons);
 
-	mGrid.setEntry(mTitle, Vector2i(0, 0), false, true);
+	mGrid.setEntry(mTitle, glm::ivec2(0, 0), false, true);
 	mGrid.setEntry(
-		mText, Vector2i(0, 1), true, false, Vector2i(1, 1), GridFlags::BORDER_TOP | GridFlags::BORDER_BOTTOM);
-	mGrid.setEntry(mButtonGrid, Vector2i(0, 2), true, false);
+		mText, glm::ivec2(0, 1), true, false, glm::ivec2(1, 1), GridFlags::BORDER_TOP | GridFlags::BORDER_BOTTOM);
+	mGrid.setEntry(mButtonGrid, glm::ivec2(0, 2), true, false);
 
 	float textHeight = mText->getFont()->getHeight();
 	if(multiLine)
 		textHeight *= 6;
 	mText->setSize(0, textHeight);
 
-	setSize(Renderer::getScreenWidth() * 0.5f,
-		mTitle->getFont()->getHeight() + textHeight + mButtonGrid->getSize().y() + 40);
-	setPosition((Renderer::getScreenWidth() - mSize.x()) / 2, (Renderer::getScreenHeight() - mSize.y()) / 2);
+	setSize(
+		Renderer::getScreenWidth() * 0.5f, mTitle->getFont()->getHeight() + textHeight + mButtonGrid->getSize().y + 40);
+	setPosition((Renderer::getScreenWidth() - mSize.x) / 2, (Renderer::getScreenHeight() - mSize.y) / 2);
 }
 
 void GuiTextEditPopup::onSizeChanged()
 {
-	mBackground.fitTo(mSize, Eigen::Vector3f::Zero(), Eigen::Vector2f(-32, -32));
+	mBackground.fitTo(mSize, glm::vec3(0.0f), glm::vec2(-32, -32));
 
-	mText->setSize(mSize.x() - 40, mText->getSize().y());
+	mText->setSize(mSize.x - 40, mText->getSize().y);
 
 	// update grid
-	mGrid.setRowHeightPerc(0, mTitle->getFont()->getHeight() / mSize.y());
-	mGrid.setRowHeightPerc(2, mButtonGrid->getSize().y() / mSize.y());
+	mGrid.setRowHeightPerc(0, mTitle->getFont()->getHeight() / mSize.y);
+	mGrid.setRowHeightPerc(2, mButtonGrid->getSize().y / mSize.y);
 	mGrid.setSize(mSize);
 }
 

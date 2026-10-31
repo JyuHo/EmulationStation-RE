@@ -34,7 +34,7 @@ GuiScraperStart::GuiScraperStart(Window* window) : GuiComponent(window), mMenu(w
 	mMenu.addButton("START", "start", std::bind(&GuiScraperStart::pressedStart, this));
 	mMenu.addButton("BACK", "back", [&] { delete this; });
 
-	mMenu.setPosition((Renderer::getScreenWidth() - mMenu.getSize().x()) / 2, Renderer::getScreenHeight() * 0.15f);
+	mMenu.setPosition((Renderer::getScreenWidth() - mMenu.getSize().x) / 2, Renderer::getScreenHeight() * 0.15f);
 }
 
 void GuiScraperStart::pressedStart()

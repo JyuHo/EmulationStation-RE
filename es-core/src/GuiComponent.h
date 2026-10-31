@@ -1,8 +1,9 @@
 #pragma once
 
 #include "InputConfig.h"
+#include <functional>
 #include <memory>
-#include <Eigen/Dense>
+#include "math/Math.h"
 #include "HelpStyle.h"
 
 class Window;
@@ -30,19 +31,19 @@ public:
 
 	//Called when it's time to render.  By default, just calls renderChildren(parentTrans * getTransform()).
 	//You probably want to override this like so:
-	//1. Calculate the new transform that your control will draw at with Eigen::Affine3f t = parentTrans * getTransform().
+	//1. Calculate the new transform that your control will draw at with glm::mat4 t = parentTrans * getTransform().
 	//2. Set the renderer to use that new transform as the model matrix - Renderer::setMatrix(t);
 	//3. Draw your component.
 	//4. Tell your children to render, based on your component's transform - renderChildren(t).
-	virtual void render(const Eigen::Affine3f& parentTrans);
+	virtual void render(const glm::mat4& parentTrans);
 
-	Eigen::Vector3f getPosition() const;
-	void setPosition(const Eigen::Vector3f& offset);
+	glm::vec3 getPosition() const;
+	void setPosition(const glm::vec3& offset);
 	void setPosition(float x, float y, float z = 0.0f);
 	virtual void onPositionChanged() {};
 
-	Eigen::Vector2f getSize() const;
-	void setSize(const Eigen::Vector2f& size);
+	glm::vec2 getSize() const;
+	void setSize(const glm::vec2& size);
 	void setSize(float w, float h);
 	virtual void onSizeChanged() {};
 
@@ -74,7 +75,7 @@ public:
 	virtual unsigned char getOpacity() const;
 	virtual void setOpacity(unsigned char opacity);
 
-	const Eigen::Affine3f& getTransform();
+	const glm::mat4& getTransform();
 
 	virtual std::string getValue() const;
 	virtual void setValue(const std::string& value);
@@ -96,7 +97,7 @@ public:
 	virtual HelpStyle getHelpStyle();
 
 protected:
-	void renderChildren(const Eigen::Affine3f& transform) const;
+	void renderChildren(const glm::mat4& transform) const;
 	void updateSelf(int deltaTime);		// updates animations
 	void updateChildren(int deltaTime); // updates animations
 
@@ -106,13 +107,13 @@ protected:
 	GuiComponent* mParent;
 	std::vector<GuiComponent*> mChildren;
 
-	Eigen::Vector3f mPosition;
-	Eigen::Vector2f mSize;
+	glm::vec3 mPosition;
+	glm::vec2 mSize;
 
 public:
 	const static unsigned char MAX_ANIMATIONS = 4;
 
 private:
-	Eigen::Affine3f mTransform; //Don't access this directly! Use getTransform()!
+	glm::mat4 mTransform; //Don't access this directly! Use getTransform()!
 	std::unique_ptr<AnimationController> mAnimationMap[MAX_ANIMATIONS];
 };

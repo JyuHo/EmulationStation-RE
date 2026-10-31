@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Eigen/Dense>
+#include "math/Math.h"
 #include <memory>
 #include <string>
 
@@ -9,7 +9,7 @@ class Font;
 
 struct HelpStyle
 {
-	Eigen::Vector2f position;
+	glm::vec2 position;
 	unsigned int iconColor;
 	unsigned int textColor;
 	std::shared_ptr<Font> font;

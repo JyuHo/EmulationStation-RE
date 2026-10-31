@@ -15,7 +15,7 @@ public:
 	void textInput(const char* text) override;
 	bool input(InputConfig* config, Input input) override;
 	void update(int deltaTime) override;
-	void render(const Eigen::Affine3f& parentTrans) override;
+	void render(const glm::mat4& parentTrans) override;
 
 	void onFocusGained() override;
 	void onFocusLost() override;
@@ -43,8 +43,8 @@ private:
 	void moveCursor(int amt);
 
 	bool isMultiline();
-	Eigen::Vector2f getTextAreaPos() const;
-	Eigen::Vector2f getTextAreaSize() const;
+	glm::vec2 getTextAreaPos() const;
+	glm::vec2 getTextAreaSize() const;
 
 	std::string mText;
 	bool mFocused;
@@ -54,7 +54,7 @@ private:
 	int mCursorRepeatTimer;
 	int mCursorRepeatDir;
 
-	Eigen::Vector2f mScrollOffset;
+	glm::vec2 mScrollOffset;
 
 	NinePatchComponent mBox;
 
