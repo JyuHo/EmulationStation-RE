@@ -77,13 +77,18 @@ add_subdirectory(es-core)
 add_subdirectory(es-app)
 
 # --- Internationalisation (phase 10) ---
-file(GLOB_RECURSE ES_I18N_SOURCES
+# Paths relative to the source tree: the "#:" references of the .pot must not depend on
+# where the repository is checked out (CI compares it with the committed one).
+file(GLOB_RECURSE ES_I18N_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
 	${CMAKE_CURRENT_SOURCE_DIR}/es-core/src/*.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/es-core/src/*.h
 	${CMAKE_CURRENT_SOURCE_DIR}/es-app/src/*.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/es-app/src/*.h
 )
+list(SORT ES_I18N_SOURCES)
+set(ES_POT ${CMAKE_CURRENT_SOURCE_DIR}/locale/emulationstation2.pot)
 
+# --force-po: the header is written even while no string is marked yet
 add_custom_target(es-update-pot
 	COMMAND ${XGETTEXT_EXECUTABLE}
 		--language=C++
@@ -94,42 +99,48 @@ add_custom_target(es-update-pot
 		--keyword=_U
 		--add-comments=TRANSLATORS:
 		--package-name=emulationstation-re
-		-o ${CMAKE_CURRENT_SOURCE_DIR}/locale/emulationstation2.pot
+		--sort-by-file
+		--force-po
+		-o ${ES_POT}
 		${ES_I18N_SOURCES}
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 	COMMENT "Updating locale/emulationstation2.pot"
+	VERBATIM
 )
 
-file(GLOB_RECURSE ES_PO_FILES ${CMAKE_CURRENT_SOURCE_DIR}/locale/lang/*/LC_MESSAGES/*.po)
+file(GLOB_RECURSE ES_PO_FILES ${CMAKE_CURRENT_SOURCE_DIR}/locale/lang/*/LC_MESSAGES/emulationstation2.po)
+set(ES_MO_FILES)
+set(ES_MSGMERGE_COMMANDS)
 foreach(po ${ES_PO_FILES})
-	get_filename_component(lang_dir ${po} DIRECTORY)
-	get_filename_component(lc_dir ${lang_dir} DIRECTORY)
-	get_filename_component(lang_name ${lc_dir} NAME)
-	set(mo ${CMAKE_BINARY_DIR}/locale/${lang_name}/LC_MESSAGES/emulationstation2.mo)
+	# locale/lang/<lang>/LC_MESSAGES/emulationstation2.po
+	get_filename_component(lc_dir ${po} DIRECTORY)
+	get_filename_component(lang_dir ${lc_dir} DIRECTORY)
+	get_filename_component(lang ${lang_dir} NAME)
+	set(mo_dir ${CMAKE_BINARY_DIR}/locale/${lang}/LC_MESSAGES)
+	set(mo ${mo_dir}/emulationstation2.mo)
 	add_custom_command(
 		OUTPUT ${mo}
-		COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/locale/${lang_name}/LC_MESSAGES
+		COMMAND ${CMAKE_COMMAND} -E make_directory ${mo_dir}
 		COMMAND ${MSGFMT_EXECUTABLE} --check -o ${mo} ${po}
 		DEPENDS ${po}
-		COMMENT "Compiling ${po}"
+		COMMENT "Compiling ${lang} translations"
+		VERBATIM
 	)
 	list(APPEND ES_MO_FILES ${mo})
+	list(APPEND ES_MSGMERGE_COMMANDS
+		COMMAND ${MSGMERGE_EXECUTABLE} --update --backup=none --quiet ${po} ${ES_POT})
+	install(FILES ${mo} DESTINATION ${CMAKE_INSTALL_DATADIR}/emulationstation/locale/${lang}/LC_MESSAGES)
 endforeach()
 if(ES_MO_FILES)
 	add_custom_target(es-compile-mo ALL DEPENDS ${ES_MO_FILES})
 endif()
 
-foreach(po ${ES_PO_FILES})
-	get_filename_component(lang_dir ${po} DIRECTORY)
-	get_filename_component(lc_dir ${lang_dir} DIRECTORY)
-	get_filename_component(lang_name ${lc_dir} NAME)
-	install(FILES ${CMAKE_BINARY_DIR}/locale/${lang_name}/LC_MESSAGES/emulationstation2.mo
-		DESTINATION ${CMAKE_INSTALL_DATADIR}/emulationstation/locale/${lang_name}/LC_MESSAGES)
-endforeach()
-
-# es-update-po target
+# merges the .pot into every .po (run es-update-pot first)
 add_custom_target(es-update-po
-	COMMAND ${CMAKE_COMMAND} -E echo "Run msgmerge manually for each .po"
+	${ES_MSGMERGE_COMMANDS}
+	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+	COMMENT "Merging locale/emulationstation2.pot into the .po files"
+	VERBATIM
 )
 
 if(ES_BUILD_TESTS)

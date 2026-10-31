@@ -904,6 +904,13 @@ prioritaires dans `$XDG_DATA_HOME/emulationstation/locale/`).
   boutismes, contexte, pluriels avec évaluateur d'expressions C), `_()` renvoie une
   `std::string`, majuscules latines, grecques et cyrilliques, `test_I18n.cpp` et fixtures
   `tests/data/i18n/`.
+- **#62** (outillage) : fusionnée avant la fin de la CI. Vérification du `.pot` inopérante :
+  le filtre `grep -v POT-Creation-Date | grep '^[+-]'` gardait les lignes `---`/`+++` du
+  diff, donc échouait dès la première chaîne marquée (la date change à chaque exécution), et
+  ne vérifiait rien tant qu'aucune chaîne n'était marquée (`xgettext` n'écrit pas de fichier
+  vide) ; références `#:` en chemins absolus (dépendantes du dossier de la copie de travail) ;
+  `es-update-po` réduite à un `echo`. Corrigé : chemins relatifs triés, `--force-po`,
+  `git diff --exit-code -I 'POT-Creation-Date'`, `msgmerge --update` pour chaque `.po`.
 
 ---
 
