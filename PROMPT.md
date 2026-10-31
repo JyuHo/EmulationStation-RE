@@ -28,7 +28,7 @@
 | 3.E — Finitions de la phase 3 (issues de l'audit) | **terminée** : XDG (#25), job `asan` (#26), locale numérique et restes Windows (#28) | #25, #26, #28 |
 | 4 — Eigen → glm | **terminée** : glm, `math/Math.h`, captures identiques au pixel près, Eigen retiré ; correctif des chemins `./` des thèmes | #30, #31, #32 |
 | 5 — SDL2 → SDL3 | **terminée** : SDL3 partout, manettes reconnues par `SDL_Gamepad` avec configuration par défaut, captures identiques au pixel près ; testée par le propriétaire avec une vraie manette | #33, #34, #35 (#37) |
-| **6 — OpenGL 3.3 core** | **prochaine étape** (voir 0.2) | — |
+| **6 — OpenGL 3.3 core** | **fusionnée** | #40 |
 | 7 à 12 | à faire | — |
 
 Toutes les PR ont été fusionnées par **merge commit** : le commit de reformatage
@@ -85,7 +85,7 @@ Ce qui existe et que tu dois **réutiliser** (ne le recrée pas) :
   dans le conteneur pour `test_Locale`. Boost et Eigen ne sont plus installés. Job
   « Screenshots vs base branch » (PR seulement) : captures de la base et de la PR comparées.
 
-### 0.2 Point de reprise : phase 6 (OpenGL 3.3 core)
+### 0.2 Point de reprise : phase 7 (Images)
 La phase 5 est terminée (PR #33, #34, #37) ; la manette réelle a été validée par le
 propriétaire le 31/10/2026. Commence la phase 6 : **la section 13 de ce fichier est son
 cahier des charges complet** (inventaire chiffré, architecture, contexte SDL3, shaders,

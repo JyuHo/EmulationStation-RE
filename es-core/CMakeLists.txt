@@ -182,6 +182,7 @@ target_link_libraries(es-core PUBLIC
     Freetype::Freetype
     Fontconfig::Fontconfig
     PkgConfig::WEBP
+    PkgConfig::WEBPDEMUX
     SDL3::SDL3
     glm::glm
     CURL::libcurl
