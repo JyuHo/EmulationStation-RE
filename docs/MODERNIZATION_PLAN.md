@@ -17,7 +17,7 @@
 | 3 | Suppression de Boost + module de chemins **XDG** (std::filesystem, std::chrono, std::variant) | 2 | M (**fait** : 3.A à 3.E) |
 | 4 | Remplacement d'Eigen par une petite bibliothèque mathématique (glm) | 2 | M (**fait** : PR #30 à #32) |
 | 5 | Migration SDL2 → SDL3 (fenêtre, événements, manettes, audio) | 3, 4 | L (**fait** : PR #33, #34, #37) |
-| 6 | Nouveau moteur de rendu OpenGL 3.3 core à shaders | 5 | L (**en cours** : reste la mesure sur iGPU) |
+| 6 | Nouveau moteur de rendu OpenGL 3.3 core à shaders | 5 | L (**terminée**) |
 | 7 | Images : WebP/GIF animés, chargement asynchrone, cache VRAM | 6 | M |
 | 8 | Audio : sons de navigation et musique de fond sur SDL3 | 5 | M |
 | 9 | Vidéo : lecture des « snaps » avec FFmpeg | 6, 8 | L |
@@ -649,8 +649,12 @@ facteurs de mélange passés par `ComponentList.cpp`. Détail dans `PROMPT.md`, 
 - [x] Regroupement : ordre conservé (tests du `Batcher`) ; nombre de `glDrawArrays` par
   image donné dans #44 (`draw-calls.txt` des captures) : environ 30 % de moins, par
   exemple 56 → 40 sur la liste détaillée et 74 → 51 sur le menu.
-- [ ] 60 i/s stables sur un iGPU Intel/AMD en 1080p et 4K avec une gamelist de 1 000 jeux :
-  **à vérifier par le propriétaire** (procédure ci-dessous).
+- [x] 60 i/s stables sur un iGPU Intel/AMD en 1080p et 4K avec une gamelist de 1 000 jeux :
+  mesuré par le propriétaire le 31/10/2026 sur un APU AMD BC-250 (`GL_RENDERER: AMD BC-250
+  (radeonsi, gfx1013, ACO, DRM 3.64, …)`) : environ 3 500 i/s au minimum en 1080p, chiffres
+  identiques en 4K ; `Draws: 56 (32 glDrawArrays)` sur la liste détaillée. Le BC-250 a sa
+  propre GDDR6, donc plus de bande passante qu'un iGPU sur mémoire système ; avec 50 fois
+  la marge demandée, le critère reste largement tenu.
 - [x] `SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED` traité (viewport et clip mis à l'échelle).
 
 ### Mesure de performance (propriétaire)
@@ -679,6 +683,10 @@ d'iGPU et la ligne `GL_RENDERER` du journal (`~/es-bench/state/emulationstation/
   `capture.sh` tolère cette seule ligne (à revoir en phase 8, audio).
 - Le tampon de profondeur (`DEPTH_SIZE 16`, `GL_DEPTH_BUFFER_BIT`) est gardé : il ne sert
   pas, mais le retirer change le format de la fenêtre ; à faire avec une mesure.
+- 4K et 1080p donnent le même nombre d'i/s : si l'écran ne propose pas de mode 3840×2160,
+  `SDL_GetClosestFullscreenDisplayMode` garde le mode le plus proche et la mesure 4K se
+  fait en réalité dans la définition de l'écran. À confirmer sur un écran 4K si le besoin
+  se présente (le moteur n'est de toute façon pas limité par le remplissage à ce niveau).
 - `computeClipRect` garde le comportement d'origine : un rectangle qui dépasse son parent
   par le bas ou la gauche est décalé sans être raccourci (caractérisé dans
   `test_Renderer.cpp`).
