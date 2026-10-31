@@ -10,82 +10,81 @@
 
 ## 0. Passation : état du dépôt et point de reprise
 
-> Section à lire en premier. Elle décrit l'état laissé par le développeur précédent à la
-> fin de la phase 2 et dit exactement où reprendre. **Mets-la à jour à la fin de chaque
-> phase** (c'est la mémoire du projet entre deux agents).
+> Section à lire en premier. Elle décrit l'état réel du dépôt et dit exactement où
+> reprendre. **Mets-la à jour à la fin de chaque phase** (c'est la mémoire du projet entre
+> deux agents). Dernière mise à jour : audit du 31/10/2026 ([`docs/AUDIT.md`](docs/AUDIT.md)),
+> `main` au commit `d2e1339`.
 
 ### 0.1 État au moment de la passation
 | Phase | État | PR |
 |-------|------|----|
 | 1 — Build CMake/C++23, CI Arch, FreeImage → stb_image + libwebp | **fusionnée** | #1 |
-| 2 — Zéro avertissement, `-Werror`, clang-format/tidy, tests Catch2, test de fumée, Log | **terminée** (à fusionner si ce n'est pas fait) | #2 |
-| 3.A — XDG paths | **fusionnée** | #3 |
-| 3.B — std::filesystem | **fusionnée** | #4 |
-| 3.C — std::chrono/Assign/Variant/Locale | **fusionnée** | #5 |
-| 3.D — ownership (low-hanging) | **fusionnée** (suite en cours) | #6–#23 |
+| 2 — Zéro avertissement, `-Werror`, clang-format/tidy, tests Catch2, test de fumée, Log | **fusionnée** | #2 |
+| 3.A — Module XDG `es::paths` | **partielle** : seuls le log, `es_systems.cfg` et les gamelists passent par `es::paths` | #3 |
+| 3.B — `std::filesystem` | **fusionnée** | #4 |
+| 3.C — `std::chrono`, Assign, Variant, Locale ; Boost supprimé | **fusionnée** (risque de locale numérique, voir 0.2) | #5 |
+| 3.D — Propriété mémoire (`unique_ptr`) | **partielle** : 18 modules faits, singletons restants | #6–#23 |
+| 3.E — Finitions de la phase 3 (issues de l'audit) | **à faire, prochaine étape** | — |
 | 4 à 12 | à faire | — |
+
+Toutes les PR ont été fusionnées par **merge commit** : le commit de reformatage
+`4b943d7` est dans l'historique et `.git-blame-ignore-revs` est valide.
 
 Ce qui existe et que tu dois **réutiliser** (ne le recrée pas) :
 - `CMakePresets.json` : configure/build/test presets `debug` (tests + `-Werror`), `release`,
   `relwithdebinfo`, `asan`, `clang-debug`.
 - `es-app-lib` : toutes les sources de `es-app` sauf `main.cpp` (cible à lier dans les tests).
-- `tests/unit/*.cpp` (Catch2 v3) et `tests/data/` (fixtures). Ajoute tes tests ici, un
-  fichier par module (`test_<Module>.cpp`), et déclare-les dans `tests/CMakeLists.txt`.
-- `tests/smoke/run.sh <binaire> [secondes] [capture.png]` : test de fumée Xvfb.
+- `tests/unit/*.cpp` (Catch2 v3, 13 cas) et `tests/data/` (fixtures). Ajoute tes tests ici,
+  un fichier par module (`test_<Module>.cpp`), et déclare-les dans `tests/CMakeLists.txt`.
+- `tests/smoke/run.sh <binaire> [secondes] [capture.png]` : test de fumée Xvfb ; il
+  utilise `ES_HOME` pour isoler les fichiers.
+- `es::paths` (`es-core/src/utils/Paths.{h,cpp}`) : `userDir`, `userFile`, `systemDirs`,
+  `find`, `expandUser`, `setHome`, `migrateFromLegacy`. **À compléter, pas à réécrire.**
 - `Log::write(level, "format {}", args…)` (std::format) pour tout nouveau message ;
-  `LOG(level) << …` reste valable dans le code existant.
+  `LOG(level) << …` reste valable dans le code existant. Log dans
+  `$XDG_STATE_HOME/emulationstation/es_log.txt`.
 - `ImageIO` (stb_image + libwebp) : `loadFromMemoryRGBA32` (lignes de bas en haut) et
   `resizeImageFile`.
+- `Util.h` : `string_to_ptime` renvoie `std::optional<std::chrono::sys_seconds>` ;
+  les dates de `gamelist.xml` (`YYYYMMDDTHHMMSS`) sont traitées comme UTC.
 - CI `.github/workflows/build.yml` : Arch (`archlinux:base-devel`), GCC et Clang, build
   `RelWithDebInfo` avec `-Werror`, `ctest`, test de fumée, capture d'écran en artefact.
+  Boost n'est plus installé.
 
-### 0.2 Point de reprise : phase 3
-Fais les PR dans cet ordre (une PR par ligne, chacune verte avant la suivante) :
-1. **`modernize/phase-3a-xdg-paths`** — module `es::paths` (plan, section 3.A) et
-   remplacement de **tous** les chemins listés dans le plan (section 1.3, point 9),
-   migration par copie depuis `~/.emulationstation`, option `--home` / `ES_HOME`,
-   étape CI « no-hardcoded-paths », tests unitaires des chemins. Mets à jour
-   `tests/smoke/run.sh` pour utiliser `ES_HOME` au lieu de `HOME`, et `Log::getLogPath()`
-   pour `$XDG_STATE_HOME`. Le module utilise déjà `std::filesystem`.
-2. **`modernize/phase-3b-std-filesystem`** — Boost.Filesystem → `std::filesystem`.
-3. **`modernize/phase-3c-std-chrono`** — Boost.DateTime → `std::chrono`, Boost.Assign,
-   Boost.Variant, Boost.Locale ; suppression de `find_package(Boost)`.
-4. **`modernize/phase-3d-ownership`** — reliquat de la phase 2 : `new`/`delete` nus →
-   `std::unique_ptr` (plan, phase 2, « Reporté »). Jalons livrés (une PR par module) :
-   - #6 `Window` possède les GUI empilés via `unique_ptr` ;
-   - #7 `ViewController` : `make_shared` ;
-   - #8 `FontFace` : `make_unique` ;
-   - #9 `SystemView` : `make_shared` ;
-   - #10 `ThemeData` : `make_shared` ;
-   - #11 `Scraper` : `make_unique` ;
-   - #12 `GamesDBScraper` : `make_unique` ;
-   - #13 `InputManager` : tableau d'axes `unique_ptr<int[]>`.
-   - #14 `NinePatchComponent` : tableaux `unique_ptr<T[]>`
-   - #15 `ComponentGrid` : tableaux `unique_ptr<float[]>`
-   - #16 `AnimatedImageComponent` : `make_unique`
-   - #17 `AnimationController` : prend `unique_ptr<Animation>`
-   - #18 `Settings` : singleton `unique_ptr`
-   - #19 `SystemData` : `make_unique`
-   - #20 `TheArchiveScraper` : `make_unique`
-   - #21 `Gamelist` : `make_unique`
-   - #22 `Font` : `buildTextCache` `make_unique`
-   - #23 `GuiComponent` animation + `Sound` buffer : `make_unique`/`unique_ptr`
-   Reste (constructeurs privés/protégés ou propriété complexe) : singletons
-   `InputManager`, `AudioManager`, `ResourceManager`, `Sound`, `VolumeControl`,
-   `ViewController`, `TextureResource`, `Font` (constructeur), `ThemeData` extras,
-   `InputManager` (`InputConfig`, `SDL_Event`). À traiter par phase dédiée.
+### 0.2 Point de reprise : phase 3.E, puis phase 4
+Fais les PR dans cet ordre (une PR par ligne, chacune verte avant la suivante). Le détail
+de chaque point est dans le plan, section « 3.E Finitions de la phase 3 ».
+1. **`modernize/phase-3e-xdg-complete`** — terminer XDG. Aujourd'hui encore en dur :
+   `Settings.cpp` (`es_settings.cfg`), `InputManager.cpp` (`es_input.cfg`),
+   `ThemeData.cpp` (`es_theme_default.xml`, dossiers `themes/` dans `/etc/emulationstation`
+   et `~/.emulationstation`), `Scraper.cpp` (`downloaded_images/`), `Font.cpp` (police de
+   repli Debian), replis `"/etc/xdg/…"` et `"/usr/share/…"` de `SystemData.cpp`, et tous
+   les `getHomePath()`. **`migrateFromLegacy()` n'est jamais appelée** : un utilisateur
+   qui a `~/.emulationstation/es_systems.cfg` voit ES écrire un exemple puis quitter.
+   À livrer aussi : `--home`, préfixe d'installation (`configure_file`), repli `getpwuid`,
+   dossiers en `0700`, `tests/unit/test_Paths.cpp`, étape CI « no-hardcoded-paths ».
+2. **`modernize/phase-3e-numeric-locale`** — `main.cpp` appelle `setlocale(LC_ALL, "")` ;
+   sous `fr_FR`, `atof("0.5")` (thèmes, `MetaData`) et `stof` (`RatingComponent`) lisent la
+   virgule comme séparateur décimal. Remets `LC_NUMERIC` à `"C"` et passe à
+   `std::from_chars`, avec un test sous `fr_FR.UTF-8`.
+3. **`ci/asan`** — job CI avec le preset `asan` (tests + test de fumée).
+4. **`chore/remove-windows-leftovers`** — `EmulationStation.rc`, `EmulationStation.aps`,
+   `data/es_icon.ico`, blocs `#ifdef WIN32`/GLES restants.
+5. Ensuite seulement : **phase 4** (Eigen → glm), branche `modernize/phase-4a-…`.
+
+Le reliquat de 3.D (singletons `InputManager`, `AudioManager`, `ResourceManager`,
+`VolumeControl`, `ViewController`, `TextureResource`, `Font`, `InputConfig` ; environ
+36 `new` et 70 `delete` nus) n'a plus de série dédiée : traite-le quand une phase réécrit
+le module (5 pour les entrées et l'audio, 6 pour les textures et les polices).
 
 Les tests existants sont des **tests de caractérisation** : ils fixent le comportement
-actuel. Pendant la phase 3, tu ne changes que les types Boost dans leurs assertions
-(ex. `boost::posix_time::to_iso_string(...)` → `std::format(...)`), jamais les valeurs
-attendues. Si une valeur attendue doit changer, c'est un changement de comportement :
-explique-le dans la PR.
+actuel. Tu n'en changes les valeurs attendues que pour un changement de comportement
+voulu, expliqué dans la PR.
 
 ### 0.3 Pièges déjà rencontrés (ne les redécouvre pas)
 - **Paquets Arch** : `freeimage` n'existe plus ; Arch fournit **Eigen 5** (pas de contrainte
   de version dans `find_package(Eigen3)`, et Eigen 5 n'inclut plus `<cassert>` : inclus
-  toujours ce que tu utilises) ; **Boost 1.89** n'a plus de bibliothèque `boost_system` ;
-  `sdl2-compat` remplace SDL2 (SDL2 au-dessus de SDL3).
+  toujours ce que tu utilises) ; `sdl2-compat` remplace SDL2 (SDL2 au-dessus de SDL3).
 - **pugixml vendored ancien** (`external/pugixml`) : pas de `load_string`, utiliser
   `load(const char*)`. Le remplacer par le paquet Arch `pugixml` est possible (phase au
   choix) à condition de garder la compatibilité.
@@ -94,9 +93,17 @@ explique-le dans la PR.
 - **clang-format** : le CI n'impose pas le format (les versions de clang-format diffèrent
   entre Arch et les postes). Formate seulement tes lignes modifiées avec
   `git clang-format origin/main`. Ne reformate jamais un fichier entier dans un commit
-  qui contient aussi de la logique.
+  qui contient aussi de la logique. Exception : un fichier que tu crées (ex. `Paths.cpp`,
+  qui n'a pas été formaté en 3.A et doit l'être).
 - **clang-tidy `modernize-loop-convert`** : écarté, il nomme les variables de boucle comme
   des membres (`mCell`). Ne l'applique pas en masse.
+- **`std::filesystem` sans `imbue`** : la locale de `boost::filesystem::path` a disparu ;
+  les chemins sont des octets UTF-8 (`generic_string()`), ne cherche pas à la recréer.
+- **Locale** : ne touche jamais `LC_NUMERIC` (voir 0.2, point 2). Toute analyse de nombre
+  dans des fichiers (XML, thèmes) passe par `std::from_chars`.
+- **`ES_HOME`** : ne protège que les chemins qui passent par `es::paths`. Tant que 3.E-1
+  n'est pas livrée, le test de fumée écrit `es_settings.cfg`/`es_input.cfg` dans le vrai
+  `$HOME/.emulationstation`.
 - **Fusion des PR** : par **merge commit** (pas squash), sinon le hash de
   `.git-blame-ignore-revs` devient invalide et l'historique des étapes est perdu.
 - **Logs** : format `YYYY-MM-DD HH:MM:SS.mmm [LEVEL] message`. Le test de fumée échoue
@@ -107,12 +114,18 @@ explique-le dans la PR.
 
 ### 0.4 Collaboration avec le propriétaire
 - Le propriétaire (GitHub `JyuHo`) relit et **fusionne lui-même** les PR. Ne fusionne pas,
-  n'approuve pas, ne pousse pas sur `main`.
-- Une PR par sous-objectif, en français, avec les sections décrites en section 6, étape 8. Ouvre-la en
-  brouillon dès le premier commit pour que la CI tourne, passe-la « prête » quand la CI est
-  verte et que la description est complète.
+  n'approuve pas, **ne pousse jamais sur `main`**, même pour de la documentation : l'audit
+  a relevé deux commits `docs:` poussés directement (`e196fa2`, `a8b6d04`). La mise à jour
+  de la documentation fait partie de la PR qui livre le travail.
+- Une PR par sous-objectif cohérent, en français, avec les sections décrites en section 6,
+  étape 8, et un titre qui décrit **tout** le contenu (pas de « WIP » dans le titre d'une
+  PR prête). Ouvre-la en brouillon dès le premier commit pour que la CI tourne, passe-la
+  « prête » quand la CI est verte et que la description est complète.
+- Évite l'excès inverse : la série 3.D a produit 18 PR de 5 à 30 lignes. Regroupe les
+  changements mécaniques d'un même type dans une PR (< ~1 500 lignes).
 - En fin de phase : mets à jour la section 0 de ce fichier, coche la phase dans le plan,
-  et donne le compte rendu de la section 11.
+  et donne le compte rendu de la section 11. N'annonce une phase « fusionnée » ou
+  « terminée » que si tous ses critères d'acceptation sont remplis.
 
 ---
 
@@ -169,6 +182,7 @@ es-core/                  bibliothèque statique : rendu, entrées, audio, compo
   src/components/         composants UI réutilisables (ImageComponent, TextComponent, ComponentList, ...)
   src/guis/               fenêtres génériques (GuiMsgBox, GuiInputConfig, GuiDetectDevice, ...)
   src/resources/          Font, TextureResource, SVGResource, ResourceManager
+  src/utils/              Paths (module XDG es::paths)
   src/animations/         animations
 es-app/                   exécutable `emulationstation`
   src/                    main.cpp, SystemData, FileData, Gamelist, MetaData, VolumeControl, ...
@@ -177,7 +191,9 @@ es-app/                   exécutable `emulationstation`
   src/scrapers/           TheGamesDB legacy / TheArchive (services morts, voir backlog)
 data/                     ressources embarquées : resources/ (sources), converted/ (C++ générés), Resources.h
 external/                 code tiers vendored : nanosvg, pugixml, stb
-docs/                     MODERNIZATION_PLAN.md (+ THEMES.md, I18N.md à créer)
+tests/                    unit/ (Catch2), data/ (fixtures), smoke/run.sh (test de fumée Xvfb)
+.github/workflows/        build.yml (CI Arch GCC/Clang)
+docs/                     MODERNIZATION_PLAN.md, AUDIT.md (+ THEMES.md, I18N.md à créer)
 PROMPT.md                 ce fichier
 ```
 
@@ -329,8 +345,8 @@ conséquences visibles.
 ## 8. Commandes de vérification
 
 ```bash
-# Dépendances (état après la phase 2 ; adapter selon l'annexe A du plan)
-sudo pacman -S --needed base-devel cmake ninja clang sdl2-compat boost freetype2 eigen \
+# Dépendances (état après la phase 3.C ; adapter selon l'annexe A du plan)
+sudo pacman -S --needed base-devel cmake ninja clang sdl2-compat freetype2 eigen \
     curl alsa-lib libglvnd mesa libwebp catch2 xorg-server-xvfb imagemagick
 
 # Build GCC et Clang
@@ -366,11 +382,12 @@ Le plan contient les tâches détaillées ; voici les pièges propres à chaque 
 **Phase 2 — Hygiène.** Terminée (voir section 0). Si tu appliques encore `clang-tidy
 --fix`, fais-le par familles de règles (un commit par famille) et relis chaque diff.
 
-**Phase 3 — Boost et XDG.** Commence par `Paths` (3.A) car il utilise déjà
-`std::filesystem`. Les dates des `gamelist.xml` sont au format `YYYYMMDDTHHMMSS` sans
-fuseau : traite-les comme UTC et garantis l'aller-retour octet par octet. `std::filesystem`
-lève des exceptions là où le code Boost n'en attendait pas : utilise les surcharges
-`std::error_code` dans le parcours des ROMs.
+**Phase 3 — Boost et XDG.** Boost est supprimé ; il reste 3.E (voir section 0.2).
+Pour XDG, chaque fichier déplacé doit rester trouvable à l'ancien emplacement par la
+migration (copie, jamais déplacement) : teste-le sur un faux `$HOME` qui contient un
+`~/.emulationstation/` complet. `std::filesystem` lève des exceptions là où le code
+Boost n'en attendait pas : utilise les surcharges `std::error_code` dans le parcours des
+ROMs et dans `Paths`.
 
 **Phase 4 — Eigen → glm.** Fais un commit qui introduit des alias de transition, puis
 migre module par module. Attention à `pretranslate`/`prescale` (ordre de multiplication).
