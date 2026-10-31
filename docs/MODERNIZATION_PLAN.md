@@ -15,7 +15,7 @@
 | 1 | Build moderne : CMake 3.25+, C++23, presets, CI Arch ; FreeImage → stb_image + libwebp | — | S (fait, PR #1) |
 | 2 | Hygiène C++23 et outillage (clang-format, clang-tidy, tests, logs) | 1 | M (fait, PR #2) |
 | 3 | Suppression de Boost + module de chemins **XDG** (std::filesystem, std::chrono, std::variant) | 2 | M (**fait** : 3.A à 3.E) |
-| 4 | Remplacement d'Eigen par une petite bibliothèque mathématique (glm) | 2 | M |
+| 4 | Remplacement d'Eigen par une petite bibliothèque mathématique (glm) | 2 | M (**prochaine étape**) |
 | 5 | Migration SDL2 → SDL3 (fenêtre, événements, manettes, audio) | 3, 4 | L |
 | 6 | Nouveau moteur de rendu OpenGL 3.3 core à shaders | 5 | L |
 | 7 | Images : WebP/GIF animés, chargement asynchrone, cache VRAM | 6 | M |
@@ -448,6 +448,12 @@ Attention : en Eigen, `a * b` sur `Affine3f` compose dans le même sens que glm,
 `translate` d'Eigen **post-multiplie** (comme glm) alors que `pretranslate` pré-multiplie :
 vérifier chaque `pretranslate`/`prescale`. Comparer des captures d'écran avant/après
 (test de fumée Xvfb + `import -window root`) pour détecter un décalage.
+
+### Découpage en PR
+Trois PR : `modernize/phase-4a-math-header` (glm, `Math.h`, tests, captures de référence
+prises avec Eigen), `modernize/phase-4b-glm-core` (`es-core`), `modernize/phase-4c-glm-app`
+(`es-app`, tests, retrait d'Eigen). Inventaire chiffré et détail : section 0.2 de
+[`PROMPT.md`](../PROMPT.md).
 
 ### Tâches
 1. Ajouter `es-core/src/math/Math.h` qui inclut glm et définit les alias

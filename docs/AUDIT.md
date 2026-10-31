@@ -6,6 +6,11 @@
 > (l'environnement d'audit n'a pas d'Arch Linux ni GCC 14). La CI GitHub Actions est
 > verte sur `main` jusqu'à la PR #22 (la PR #23 était en cours d'exécution au moment de l'audit).
 >
+> **Suivi (31/10/2026, `main` à `8abbd70`)** : les quatre priorités de la section 4 sont
+> faites (PR #25, #26, #28) et la phase 3 est terminée. Les constats ci-dessous décrivent
+> l'état au moment de l'audit ; l'état courant est dans la section 0 de
+> [`PROMPT.md`](../PROMPT.md).
+>
 > Les actions correctives sont reprises dans [`MODERNIZATION_PLAN.md`](MODERNIZATION_PLAN.md)
 > (phase 3.E) et dans la section 0 de [`PROMPT.md`](../PROMPT.md).
 
@@ -124,9 +129,12 @@ rien ne prouve l'absence de fuite ou de double libération après ces 18 PR.
 
 ## 4. Priorités recommandées
 
-1. **3.E-1** Terminer XDG : tous les chemins via `es::paths`, appel de la migration, `--home`,
+Toutes faites ; la suite est la phase 4.
+
+1. ~~**3.E-1**~~ (PR #25) Terminer XDG : tous les chemins via `es::paths`, appel de la migration, `--home`,
    préfixe d'installation, tests, étape CI « no-hardcoded-paths ».
-2. **3.E-2** Corriger la locale numérique (`LC_NUMERIC`, `std::from_chars`) avec test.
-3. **3.E-3** CI : ajouter un job `asan` (tests + test de fumée).
-4. **3.E-4** Nettoyage : restes Windows, branches fusionnées à supprimer.
+2. ~~**3.E-2**~~ (PR #28) Corriger la locale numérique (`LC_NUMERIC`, `std::from_chars`) avec test.
+3. ~~**3.E-3**~~ (PR #26) CI : ajouter un job `asan` (tests + test de fumée).
+4. ~~**3.E-4**~~ (PR #28) Nettoyage : restes Windows, branches fusionnées à supprimer
+   (le dépôt n'a plus que `main` comme branche distante).
 5. Puis phase 4 (Eigen → glm).

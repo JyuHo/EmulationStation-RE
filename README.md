@@ -52,7 +52,7 @@ Raspberry Pi, Windows, macOS et OpenGL ES ne sont plus pris en charge.
 | 1 | CMake moderne, C++23, CI Arch, FreeImage → stb_image + libwebp | fait (PR #1) |
 | 2 | Zéro avertissement, `-Werror`, clang-format/tidy, tests Catch2, test de fumée, journal | fait (PR #2) |
 | 3 | Suppression de Boost, chemins XDG, propriété mémoire | fait (PR #3 à #28) |
-| 4 | Eigen → glm | à faire |
+| 4 | Eigen → glm | **prochaine étape** |
 | 5 | SDL2 → SDL3 | à faire |
 | 6 | Rendu OpenGL 3.3 core | à faire |
 | 7 | Images animées, chargement asynchrone, cache | à faire |
@@ -262,7 +262,9 @@ cmake --build --preset debug --target es-tidy          # clang-tidy (si run-clan
 
 La CI GitHub Actions compile avec GCC et Clang dans un conteneur `archlinux:base-devel`,
 avec `-Werror`, puis lance les tests unitaires et le test de fumée (la capture d'écran est
-publiée en artefact).
+publiée en artefact). Un troisième job refait la même chose avec AddressSanitizer et
+UBSan. Avant la compilation, la CI refuse les chemins écrits en dur et tout code propre à
+Windows, macOS, Raspberry Pi ou OpenGL ES.
 
 Le code suit `.clang-format` ; ne formatez que les lignes modifiées
 (`git clang-format origin/main`). Pour que `git blame` ignore le commit de reformatage :
