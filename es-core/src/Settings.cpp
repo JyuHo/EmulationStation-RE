@@ -33,6 +33,7 @@ void Settings::setDefaults()
 	mIntMap.clear();
 
 	mBoolMap["BackgroundJoystickInput"] = false;
+	mBoolMap["GamepadSwapAB"] = false; // Nintendo style: A on the east face button of recognized gamepads
 	mBoolMap["ParseGamelistOnly"] = false;
 	mBoolMap["DrawFramerate"] = false;
 	mBoolMap["ShowExit"] = true;
