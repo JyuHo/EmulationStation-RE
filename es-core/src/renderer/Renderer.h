@@ -82,6 +82,16 @@ void popClipRect();
 [[nodiscard]] glm::ivec4 computeClipRect(
 	const std::optional<glm::ivec4>& parent, glm::ivec2 pos, glm::ivec2 dim, glm::ivec2 screenSize);
 
+// Converts a clip rectangle from logical (layout) pixels to window pixels, when the window's
+// pixel size differs from the size at init: the edges are scaled, so that adjacent rectangles
+// stay adjacent. Identity when both sizes are equal. Pure function (no GL).
+[[nodiscard]] glm::ivec4 scaleClipRect(glm::ivec4 box, glm::ivec2 logicalSize, glm::ivec2 pixelSize);
+
+// SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED: the viewport and the clip follow the new pixel size;
+// the logical size (getScreenWidth/Height) and the projection stay those of init, so the
+// image is scaled (no relayout).
+void onPixelSizeChanged();
+
 // model-view matrix of the next draws (stays until the next call)
 void setMatrix(const glm::mat4& transform);
 

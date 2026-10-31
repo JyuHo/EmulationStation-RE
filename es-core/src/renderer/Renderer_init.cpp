@@ -159,6 +159,24 @@ bool createSurface()
 	return true;
 }
 
+void onPixelSizeChanged()
+{
+	if(sdlWindow == nullptr || !isReady())
+		return;
+
+	int width = 0;
+	int height = 0;
+	if(!SDL_GetWindowSizeInPixels(sdlWindow, &width, &height) || width <= 0 || height <= 0)
+	{
+		Log::write(LogWarning, "Could not read the window size in pixels: {}", SDL_GetError());
+		return;
+	}
+
+	Log::write(LogInfo, "Window size in pixels: {}x{} (layout: {}x{})", width, height, display_width, display_height);
+	glViewport(0, 0, width, height);
+	setPixelSize(glm::ivec2(width, height));
+}
+
 void swapBuffers()
 {
 	endFrame();

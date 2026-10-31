@@ -24,6 +24,9 @@ GLuint vbo = 0;
 
 glm::mat4 modelView(1.0f);
 
+glm::ivec2 logicalSize(0);
+glm::ivec2 pixelSize(0);
+
 // between initDrawing and deinitDrawing: a context exists and the GL functions are loaded
 bool ready = false;
 
@@ -87,7 +90,7 @@ void applyScissor()
 		return;
 	}
 
-	const glm::ivec4& box = clipStack.top();
+	const glm::ivec4 box = scaleClipRect(clipStack.top(), logicalSize, pixelSize);
 	glScissor(box[0], box[1], box[2], box[3]);
 	glEnable(GL_SCISSOR_TEST);
 }
@@ -114,6 +117,8 @@ bool initDrawing(glm::ivec2 screenSize)
 		shader->setModelView(glm::mat4(1.0f));
 	}
 	modelView = glm::mat4(1.0f);
+	logicalSize = screenSize;
+	pixelSize = screenSize;
 	batcher.clear();
 	drawCalls = {};
 	lastFrameDrawCalls = {};
@@ -141,6 +146,17 @@ bool initDrawing(glm::ivec2 screenSize)
 	applyScissor();
 	ready = true;
 	return true;
+}
+
+void setPixelSize(glm::ivec2 size)
+{
+	if(size == pixelSize)
+		return;
+
+	// what was drawn at the old size goes first (it is clipped with the old scissor)
+	batcher.flush();
+	pixelSize = size;
+	applyScissor();
 }
 
 bool isReady()
@@ -210,6 +226,22 @@ glm::ivec4 computeClipRect(
 		box[3] = 0;
 
 	return box;
+}
+
+glm::ivec4 scaleClipRect(glm::ivec4 box, glm::ivec2 logical, glm::ivec2 pixels)
+{
+	if(logical == pixels || logical.x <= 0 || logical.y <= 0)
+		return box;
+
+	// scale the edges, not the size
+	const auto scale = [](int value, int from, int to) {
+		return static_cast<int>(static_cast<long long>(value) * to / from);
+	};
+	const int left = scale(box[0], logical.x, pixels.x);
+	const int bottom = scale(box[1], logical.y, pixels.y);
+	const int right = scale(box[0] + box[2], logical.x, pixels.x);
+	const int top = scale(box[1] + box[3], logical.y, pixels.y);
+	return {left, bottom, right - left, top - bottom};
 }
 
 void pushClipRect(glm::ivec2 pos, glm::ivec2 dim)

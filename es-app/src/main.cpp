@@ -289,6 +289,7 @@ int main(int argc, char* argv[])
 			case SDL_EVENT_TEXT_EDITING:
 			case SDL_EVENT_JOYSTICK_ADDED:
 			case SDL_EVENT_JOYSTICK_REMOVED: InputManager::getInstance()->parseEvent(event, &window); break;
+			case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED: Renderer::onPixelSizeChanged(); break;
 			case SDL_EVENT_QUIT: running = false; break;
 			}
 		}
