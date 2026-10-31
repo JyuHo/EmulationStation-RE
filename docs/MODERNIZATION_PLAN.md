@@ -330,6 +330,21 @@ Gamelist,MetaData,ScraperCmdLine}.*`, `es-app/src/scrapers/*`, `es-app/src/guis/
 - #11 `Scraper` : `make_unique`
 - #12 `GamesDBScraper` : `make_unique`
 - #13 `InputManager` : tableau d'axes `unique_ptr<int[]>`
+- #14 `NinePatchComponent` : tableaux `unique_ptr<T[]>`
+- #15 `ComponentGrid` : tableaux `unique_ptr<float[]>`
+- #16 `AnimatedImageComponent` : `make_unique`
+- #17 `AnimationController` : prend `unique_ptr<Animation>`
+- #18 `Settings` : singleton `unique_ptr`
+- #19 `SystemData` : `make_unique`
+- #20 `TheArchiveScraper` : `make_unique`
+- #21 `Gamelist` : `make_unique`
+- #22 `Font` : `buildTextCache` `make_unique`
+- #23 `GuiComponent` animation + `Sound` buffer : `make_unique`/`unique_ptr`
+
+Reste (constructeurs privés/protégés ou propriété complexe) : singletons
+`InputManager`, `AudioManager`, `ResourceManager`, `Sound`, `VolumeControl`,
+`ViewController`, `TextureResource`, `Font` (constructeur), `ThemeData` extras,
+`InputManager` (`InputConfig`, `SDL_Event`). À traiter par phase dédiée.
 
 ## Phase 4 — Remplacement d'Eigen
 

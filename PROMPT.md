@@ -22,7 +22,7 @@
 | 3.A — XDG paths | **fusionnée** | #3 |
 | 3.B — std::filesystem | **fusionnée** | #4 |
 | 3.C — std::chrono/Assign/Variant/Locale | **fusionnée** | #5 |
-| 3.D — ownership (en cours) | en cours | #6–#13 |
+| 3.D — ownership (low-hanging) | **fusionnée** (suite en cours) | #6–#23 |
 | 4 à 12 | à faire | — |
 
 Ce qui existe et que tu dois **réutiliser** (ne le recrée pas) :
@@ -60,9 +60,20 @@ Fais les PR dans cet ordre (une PR par ligne, chacune verte avant la suivante) :
    - #11 `Scraper` : `make_unique` ;
    - #12 `GamesDBScraper` : `make_unique` ;
    - #13 `InputManager` : tableau d'axes `unique_ptr<int[]>`.
-   Reste : singletons (`Settings`, `InputManager`, `AudioManager`, `ResourceManager`, `Sound`,
-   `VolumeControl`), `FileData`/`SystemData` (propriété des enfants), animations, et tableau
-   `mAnimationMap` (bloqué par `ImageGridComponent` non copiable).
+   - #14 `NinePatchComponent` : tableaux `unique_ptr<T[]>`
+   - #15 `ComponentGrid` : tableaux `unique_ptr<float[]>`
+   - #16 `AnimatedImageComponent` : `make_unique`
+   - #17 `AnimationController` : prend `unique_ptr<Animation>`
+   - #18 `Settings` : singleton `unique_ptr`
+   - #19 `SystemData` : `make_unique`
+   - #20 `TheArchiveScraper` : `make_unique`
+   - #21 `Gamelist` : `make_unique`
+   - #22 `Font` : `buildTextCache` `make_unique`
+   - #23 `GuiComponent` animation + `Sound` buffer : `make_unique`/`unique_ptr`
+   Reste (constructeurs privés/protégés ou propriété complexe) : singletons
+   `InputManager`, `AudioManager`, `ResourceManager`, `Sound`, `VolumeControl`,
+   `ViewController`, `TextureResource`, `Font` (constructeur), `ThemeData` extras,
+   `InputManager` (`InputConfig`, `SDL_Event`). À traiter par phase dédiée.
 
 Les tests existants sont des **tests de caractérisation** : ils fixent le comportement
 actuel. Pendant la phase 3, tu ne changes que les types Boost dans leurs assertions
