@@ -19,6 +19,7 @@ public:
 	void setImage(const char* image, size_t length, bool tile = false);
 	//Use an already existing texture.
 	void setImage(const std::shared_ptr<TextureResource>& texture);
+	void setImageFromPixels(const unsigned char* dataRGBA, size_t width, size_t height, bool tile = false);
 
 	void onSizeChanged() override;
 	void setOpacity(unsigned char opacity) override;

@@ -142,6 +142,14 @@ void ImageComponent::setImage(const std::shared_ptr<TextureResource>& texture)
 	resize();
 }
 
+void ImageComponent::setImageFromPixels(const unsigned char* dataRGBA, size_t width, size_t height, bool tile)
+{
+	mTexture.reset();
+	mTexture = TextureResource::get("", tile);
+	mTexture->initFromPixels(dataRGBA, width, height);
+	resize();
+}
+
 void ImageComponent::setOrigin(float originX, float originY)
 {
 	mOrigin = {originX, originY};
