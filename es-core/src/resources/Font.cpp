@@ -1,4 +1,5 @@
 #include "resources/Font.h"
+#include <memory>
 #include <cassert>
 #include <iostream>
 #include <algorithm>
@@ -803,7 +804,7 @@ TextCache* Font::buildTextCache(const std::string& text, Eigen::Vector2f offset,
 
 	//TextCache::CacheMetrics metrics = { sizeText(text, lineSpacing) };
 
-	TextCache* cache = new TextCache();
+	TextCache* cache = std::make_unique<TextCache>().release();
 	cache->vertexLists.resize(vertMap.size());
 	cache->metrics = {sizeText(text, lineSpacing)};
 
