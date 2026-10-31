@@ -725,6 +725,41 @@ stb_image (PNG, JPEG, BMP, TGA, GIF), libwebp (WebP statique), nanosvg (SVG),
 - Pas de saccade en défilement rapide d'une gamelist de 1 000 jeux avec images.
 - Tests unitaires de décodage sur fixtures `tests/data/images/`.
 
+### Réalisation
+- `ImageIO::load` (façade, `std::expected`) : PNG, JPEG, BMP, TGA, GIF (toutes les images),
+  WebP fixe et animé (`WebPAnimDecoder`). Lignes **de bas en haut** comme toutes les
+  textures du moteur ; `loadFromMemoryRGBA32` et `TextureResource` passent par elle.
+  Durées : celles du fichier, 100 ms pour 0 ou 10 ms (comme les navigateurs).
+- Animations : `TextureResource` crée une texture par image et
+  `getTextureHandle(tempsMs)` choisit la bonne ; **tout** `ImageComponent` (élément `image`
+  d'un thème, image d'un jeu, grille) anime donc un GIF ou un WebP animé, sans changer de
+  composant. `AnimatedImageComponent` reste le composant des animations décrites en XML.
+- Chargement asynchrone : `TextureLoader` (2 à 4 `std::jthread`, `std::stop_token`) lit et
+  décode ; `TextureResource::processPendingLoads()`, appelé par `Window::update`, crée au
+  plus 4 textures par image. Seules les images des jeux sont asynchrones
+  (`setImage(chemin, tuile, true)`, `ImageGridComponent`) : les images du thème restent
+  synchrones, car la mise en page de la première image en dépend. La plus récente demande
+  passe en premier ; une demande dont l'image a changé entre-temps est annulée.
+  `ImageComponent` ne dessine rien tant que l'image n'est pas prête puis se redimensionne.
+- Cache : `LruCache` garde en vie les textures récemment utilisées que plus rien
+  n'affiche, jusqu'au budget `MaxVRAM` (Mo, défaut 256, `es_settings.cfg`) ; une texture
+  affichée n'est jamais libérée. Vidé par `Window::deinit` (lancement d'un jeu, sortie).
+
+### Écarts constatés
+- **#47 à #49** (première réalisation) : chargement asynchrone écrit puis retiré
+  (`processPending` jamais appelé, `std::jthread` jamais lancé), cache qui détruisait les
+  textures **affichées** dès le budget dépassé (et les retirait de la liste sans les
+  recharger), `loadAnimated` jamais appelé et qui aurait affiché les images à l'envers,
+  durées des GIF multipliées par 10, AVIF ajouté (dépendance `libavif`) sans thème qui
+  l'utilise ni accord, un seul test sans fixture. Repris par la PR de correction.
+- AVIF : retiré (règle 7 du PROMPT : stb + libwebp). À rajouter si un thème Recalbox
+  l'utilise (phase 11).
+- nanosvg n'est pas mis à jour (copie vendored inchangée) : à faire avec la phase 11 si un
+  thème le demande.
+- Défilement de 1 000 jeux : script `tests/smoke/make-big-gamelist.sh`, mesure à faire
+  sur le matériel du propriétaire (comme la phase 6) ; sous Xvfb (llvmpipe) le décodage ne
+  bloque plus la boucle principale, seule la création de 4 textures au plus par image y reste.
+
 ---
 
 ## Phase 8 — Audio

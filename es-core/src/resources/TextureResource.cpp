@@ -1,5 +1,6 @@
 #include "resources/TextureResource.h"
 #include <cassert>
+#include <span>
 #include "Log.h"
 #include "ImageIO.h"
 #include "Settings.h"
@@ -9,6 +10,14 @@
 
 std::map<TextureResource::TextureKeyType, std::weak_ptr<TextureResource>> TextureResource::sTextureMap;
 std::list<std::weak_ptr<TextureResource>> TextureResource::sTextureList;
+LruCache<TextureResource::TextureKeyType, TextureResource> TextureResource::sCache;
+std::map<TextureLoader::Ticket, TextureResource*> TextureResource::sPendingLoads;
+
+namespace {
+// Uploads per frame: a 1 000-game list scrolled quickly must not stall a frame on GL uploads.
+constexpr std::size_t kMaxUploadsPerFrame = 4;
+constexpr int kDefaultMaxVRAM = 256; // MB
+} // namespace
 
 TextureResource::TextureResource(const std::string& path, bool tile) :
 	mTextureSize(glm::ivec2(0)), mPath(path), mTile(tile), mTexture(0)
@@ -16,13 +25,13 @@ TextureResource::TextureResource(const std::string& path, bool tile) :
 
 TextureResource::~TextureResource()
 {
-	if(mWorker.joinable())
-		mWorker.join();
+	cancelLoad();
 	deinit();
 }
 
 void TextureResource::unload(std::shared_ptr<ResourceManager>& rm)
 {
+	cancelLoad();
 	deinit();
 }
 
@@ -31,8 +40,30 @@ void TextureResource::reload(std::shared_ptr<ResourceManager>& rm)
 	if(mPath.empty())
 		return;
 
+	if(mDynamic)
+	{
+		loadAsync();
+		return;
+	}
+
 	const ResourceData& data = rm->getFileData(mPath);
 	initFromMemory((const char*)data.ptr.get(), data.length);
+}
+
+void TextureResource::loadAsync()
+{
+	cancelLoad();
+	mPendingLoad = TextureLoader::instance().enqueue(mPath);
+	sPendingLoads[mPendingLoad] = this; // erased by cancelLoad(), called by the destructor
+}
+
+void TextureResource::cancelLoad()
+{
+	if(mPendingLoad == 0)
+		return;
+	TextureLoader::instance().cancel(mPendingLoad);
+	sPendingLoads.erase(mPendingLoad);
+	mPendingLoad = 0;
 }
 
 void TextureResource::initFromPixels(const unsigned char* dataRGBA, size_t width, size_t height)
@@ -47,29 +78,67 @@ void TextureResource::initFromPixels(const unsigned char* dataRGBA, size_t width
 	mTextureSize = {width, height};
 }
 
-void TextureResource::initFromMemory(const char* data, size_t length)
+void TextureResource::initFromImage(const ImageIO::Image& image)
 {
-	size_t width, height;
-	std::vector<unsigned char> imageRGBA =
-		ImageIO::loadFromMemoryRGBA32((const unsigned char*)(data), length, width, height);
-
-	if(imageRGBA.size() == 0)
+	if(!image.isAnimated())
 	{
-		LOG(LogError) << "Could not initialize texture from memory, invalid data!  (file path: " << mPath
-					  << ", data ptr: " << (size_t)data << ", reported size: " << length << ")";
+		initFromPixels(image.rgba.data(), image.width, image.height);
 		return;
 	}
 
-	initFromPixels(imageRGBA.data(), width, height);
+	deinit();
+	const glm::ivec2 size(image.width, image.height);
+	int endMs = 0;
+	for(const ImageIO::Frame& frame : image.frames)
+	{
+		endMs += frame.durationMs;
+		mFrames.push_back({Renderer::createTexture(Renderer::TextureFormat::RGBA8,
+							   Renderer::TextureFilter::LinearMinNearestMag, mTile, size, frame.rgba.data()),
+			endMs});
+	}
+	mTexture = mFrames.front().texture;
+	mTextureSize = size;
+}
+
+void TextureResource::initFromMemory(const char* data, size_t length)
+{
+	auto image = ImageIO::load(std::as_bytes(std::span(data, length)));
+	if(!image)
+	{
+		LOG(LogError) << "Could not initialize texture from memory, invalid data!  (file path: " << mPath
+					  << ", data ptr: " << (size_t)data << ", reported size: " << length << "): " << image.error();
+		return;
+	}
+
+	initFromImage(*image);
 }
 
 void TextureResource::deinit()
 {
+	if(!mFrames.empty())
+	{
+		for(const Frame& frame : mFrames)
+			Renderer::destroyTexture(frame.texture);
+		mFrames.clear();
+		mTexture = 0;
+	}
 	if(mTexture != 0)
 	{
 		Renderer::destroyTexture(mTexture);
 		mTexture = 0;
 	}
+}
+
+Renderer::TextureHandle TextureResource::getTextureHandle(int timeMs) const
+{
+	if(mFrames.empty())
+		return mTexture;
+
+	const int position = std::max(timeMs, 0) % mFrames.back().endMs;
+	for(const Frame& frame : mFrames)
+		if(position < frame.endMs)
+			return frame.texture;
+	return mTexture;
 }
 
 const glm::ivec2& TextureResource::getSize() const
@@ -82,7 +151,7 @@ bool TextureResource::isTiled() const
 	return mTile;
 }
 
-std::shared_ptr<TextureResource> TextureResource::get(const std::string& path, bool tile)
+std::shared_ptr<TextureResource> TextureResource::get(const std::string& path, bool tile, bool dynamic)
 {
 	std::shared_ptr<ResourceManager>& rm = ResourceManager::getInstance();
 
@@ -99,20 +168,10 @@ std::shared_ptr<TextureResource> TextureResource::get(const std::string& path, b
 	auto foundTexture = sTextureMap.find(key);
 	if(foundTexture != sTextureMap.end())
 	{
-		if(!foundTexture->second.expired())
+		if(std::shared_ptr<TextureResource> tex = foundTexture->second.lock())
 		{
-			auto locked = foundTexture->second.lock();
-			// LRU: move to back of the list
-			for(auto it = sTextureList.begin(); it != sTextureList.end(); ++it)
-			{
-				if(it->expired() || it->lock() == locked)
-				{
-					if(!it->expired())
-						sTextureList.splice(sTextureList.end(), sTextureList, it);
-					break;
-				}
-			}
-			return locked;
+			sCache.touch(key, tex);
+			return tex;
 		}
 	}
 
@@ -130,86 +189,60 @@ std::shared_ptr<TextureResource> TextureResource::get(const std::string& path, b
 		tex->reload(rm);
 		return tex;
 	}
-	else
-	{
-		// normal texture
-		tex = std::shared_ptr<TextureResource>(new TextureResource(key.first, tile));
-		sTextureMap[key] = std::weak_ptr<TextureResource>(tex);
-		sTextureList.push_back(tex);
-		rm->addReloadable(tex);
-		tex->reload(ResourceManager::getInstance());
-		evictIfNeeded();
-		return tex;
-	}
+
+	// normal texture; embedded resources (":/…") are small and always synchronous
+	tex = std::shared_ptr<TextureResource>(new TextureResource(key.first, tile));
+	tex->mDynamic = dynamic && !key.first.starts_with(":/");
+	sTextureMap[key] = std::weak_ptr<TextureResource>(tex);
+	sTextureList.push_back(tex);
+	sCache.touch(key, tex);
+	rm->addReloadable(tex);
+	tex->reload(rm);
+	if(!tex->isLoading())
+		trimCache();
+	return tex;
 }
 
-void TextureResource::processPending()
+void TextureResource::processPendingLoads()
 {
-	auto it = sTextureList.begin();
-	while(it != sTextureList.end())
-	{
-		if(it->expired())
-		{
-			it = sTextureList.erase(it);
-			continue;
-		}
-		auto locked = it->lock();
-		if(!locked)
-		{
-			++it;
-			continue;
-		}
-		bool ready = false;
-		{
-			std::lock_guard<std::mutex> lock(locked->mPendingMutex);
-			ready = locked->mPendingReady;
-		}
-		if(ready && !locked->isInitialized())
-		{
-			std::vector<unsigned char> pixels;
-			size_t w = 0, h = 0;
-			{
-				std::lock_guard<std::mutex> lock(locked->mPendingMutex);
-				pixels = std::move(locked->mPendingPixels);
-				w = locked->mPendingW;
-				h = locked->mPendingH;
-				locked->mPendingReady = false;
-			}
-			if(!pixels.empty())
-				locked->initFromPixels(pixels.data(), w, h);
-		}
-		++it;
-	}
-}
-
-void TextureResource::evictIfNeeded()
-{
-	const int maxVramMb = Settings::getInstance() ? Settings::getInstance()->getInt("MaxVRAM") : 0;
-	size_t budget = (maxVramMb > 0 ? (size_t)maxVramMb : 256) * 1024 * 1024;
-	if(getTotalMemUsage() <= budget)
+	if(sPendingLoads.empty())
 		return;
 
-	// Evict from the front (least recently used) while over budget.
-	auto it = sTextureList.begin();
-	while(it != sTextureList.end() && getTotalMemUsage() > budget)
+	bool uploaded = false;
+	for(TextureLoader::Result& result : TextureLoader::instance().takeFinished(kMaxUploadsPerFrame))
 	{
-		if(it->expired())
+		const auto pending = sPendingLoads.find(result.ticket);
+		if(pending == sPendingLoads.end())
+			continue; // cancelled after it finished
+		TextureResource* tex = pending->second;
+		sPendingLoads.erase(pending);
+
+		tex->mPendingLoad = 0;
+		if(!result.image)
 		{
-			it = sTextureList.erase(it);
+			LOG(LogError) << "Could not load image \"" << result.path << "\": " << result.image.error();
 			continue;
 		}
-		auto locked = it->lock();
-		// Don't evict textures with multiple references (in use).
-		if(locked && locked.use_count() <= 2)
-		{
-			locked->deinit();
-			it = sTextureList.erase(it);
-		}
-		else
-		{
-			++it;
-		}
+		tex->initFromImage(*result.image);
+		uploaded = true;
 	}
+
+	if(uploaded)
+		trimCache();
+}
+
+void TextureResource::trimCache()
+{
+	const int maxVRAM = Settings::getInstance()->getInt("MaxVRAM");
+	const size_t budget = size_t(maxVRAM > 0 ? maxVRAM : kDefaultMaxVRAM) * 1024 * 1024;
+	const size_t used = getTotalMemUsage();
+	if(used > budget)
+		sCache.trim(used, budget, [](const TextureResource& tex) { return tex.getMemUsage(); });
+}
+
+void TextureResource::clearCache()
+{
+	sCache.clear();
 }
 
 bool TextureResource::isInitialized() const
@@ -222,7 +255,7 @@ size_t TextureResource::getMemUsage() const
 	if(!mTexture || mTextureSize.x == 0 || mTextureSize.y == 0)
 		return 0;
 
-	return mTextureSize.x * mTextureSize.y * 4;
+	return size_t(mTextureSize.x) * mTextureSize.y * 4 * std::max<size_t>(mFrames.size(), 1);
 }
 
 size_t TextureResource::getTotalMemUsage()

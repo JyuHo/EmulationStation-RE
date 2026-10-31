@@ -1,11 +1,17 @@
 #include "ImageIO.h"
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 #include <webp/encode.h>
 
 #include "stb/stb_image_write.h"
 
+#include <array>
+#include <cstdint>
 #include <cstdio>
+#include <cstdlib>
+#include <expected>
+#include <string>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
@@ -98,28 +104,124 @@ TEST_CASE("ImageIO rejects garbage", "[ImageIO]")
 	CHECK(h == 0);
 }
 
-TEST_CASE("ImageIO::load returns an image for PNG", "[ImageIO]")
+namespace {
+std::vector<char> readFixture(const std::string& name)
 {
-	// reuse a generated PNG from the existing helper by writing one in memory
-	// Build via stb_image_write to a buffer.
-	std::vector<unsigned char> buf;
-	auto writeFn = [](void* ctx, void* data, int size) {
-		auto* v = static_cast<std::vector<unsigned char>*>(ctx);
-		const auto* p = static_cast<const unsigned char*>(data);
-		v->insert(v->end(), p, p + size);
-	};
-	const auto pixels = makePixels();
-	stbi_write_png_to_func(writeFn, &buf, 2, 2, 4, pixels.data(), 2 * 4);
-	REQUIRE(!buf.empty());
+	std::ifstream in(std::filesystem::path(ES_TEST_DATA_DIR) / "images" / name, std::ios::binary);
+	REQUIRE(in);
+	return {std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>()};
+}
 
-	std::vector<std::byte> bytes(buf.size());
-	for(size_t i = 0; i < buf.size(); i++)
-		bytes[i] = static_cast<std::byte>(buf[i]);
-	const auto img = ImageIO::load(std::span<const std::byte>(bytes));
-	REQUIRE(img.has_value());
-	CHECK(img->width == 2);
-	CHECK(img->height == 2);
-	CHECK(img->rgba.size() == 2 * 2 * 4);
+std::expected<ImageIO::Image, std::string> loadFixture(const std::string& name)
+{
+	const std::vector<char> bytes = readFixture(name);
+	return ImageIO::load(std::as_bytes(std::span(bytes)));
+}
+
+// RGBA of pixel (x, y), y counted from the top of the picture; rows are stored bottom-up.
+std::array<int, 4> pixelAt(const std::vector<std::uint8_t>& rgba, int width, int height, int x, int y)
+{
+	const std::size_t i = (std::size_t(height - 1 - y) * width + x) * 4;
+	return {rgba[i], rgba[i + 1], rgba[i + 2], rgba[i + 3]};
+}
+
+bool near(const std::array<int, 4>& a, const std::array<int, 4>& b, int tolerance = 0)
+{
+	for(int c = 0; c < 4; c++)
+		if(std::abs(a[c] - b[c]) > tolerance)
+			return false;
+	return true;
+}
+
+constexpr std::array<int, 4> kRed{255, 0, 0, 255};
+constexpr std::array<int, 4> kGreen{0, 255, 0, 255};
+constexpr std::array<int, 4> kBlue{0, 0, 255, 255};
+} // namespace
+
+// tests/data/images: top half red, bottom half blue (still images); red, green, blue
+// frames of 50, 100 and 200 ms (animations). See tests/data/images/README.md.
+TEST_CASE("ImageIO::load decodes still images bottom-up", "[ImageIO]")
+{
+	const auto [name, width, height, tolerance] = GENERATE(table<std::string, int, int, int>({
+		{"still.png", 4, 2, 0}, {"still.webp", 4, 2, 0}, {"still.jpg", 16, 16, 8}, // lossy
+	}));
+	CAPTURE(name);
+
+	const auto image = loadFixture(name);
+	REQUIRE(image.has_value());
+	CHECK(image->width == width);
+	CHECK(image->height == height);
+	CHECK_FALSE(image->isAnimated());
+	REQUIRE(image->rgba.size() == std::size_t(width) * height * 4);
+	CHECK(near(pixelAt(image->rgba, width, height, 0, 0), kRed, tolerance));
+	CHECK(near(pixelAt(image->rgba, width, height, width - 1, height - 1), kBlue, tolerance));
+	// first row in memory = bottom of the picture (OpenGL convention of the renderer)
+	CHECK(near({image->rgba[0], image->rgba[1], image->rgba[2], image->rgba[3]}, kBlue, tolerance));
+}
+
+TEST_CASE("ImageIO::load decodes every frame of animated GIF and WebP", "[ImageIO]")
+{
+	const std::string name = GENERATE("animated.gif", "animated.webp");
+	CAPTURE(name);
+
+	const auto image = loadFixture(name);
+	REQUIRE(image.has_value());
+	CHECK(image->width == 4);
+	CHECK(image->height == 4);
+	REQUIRE(image->isAnimated());
+	REQUIRE(image->frames.size() == 3);
+
+	const std::array<std::array<int, 4>, 3> colors{kRed, kGreen, kBlue};
+	const std::array<int, 3> durations{50, 100, 200};
+	for(std::size_t i = 0; i < 3; i++)
+	{
+		CAPTURE(i);
+		CHECK(image->frames[i].durationMs == durations[i]);
+		REQUIRE(image->frames[i].rgba.size() == 4 * 4 * 4);
+		CHECK(near(pixelAt(image->frames[i].rgba, 4, 4, 0, 0), colors[i]));
+		CHECK(near(pixelAt(image->frames[i].rgba, 4, 4, 3, 3), colors[i]));
+	}
+	// the still image of an animation is its first frame
+	CHECK(image->rgba == image->frames[0].rgba);
+}
+
+TEST_CASE("ImageIO::load reports errors instead of crashing", "[ImageIO]")
+{
+	SECTION("empty data")
+	{
+		CHECK_FALSE(ImageIO::load({}).has_value());
+	}
+	SECTION("SVG is left to SVGResource")
+	{
+		const auto image = loadFixture("logo.svg");
+		REQUIRE_FALSE(image.has_value());
+		CHECK(image.error().find("SVG") != std::string::npos);
+	}
+	SECTION("truncated files")
+	{
+		const std::string name = GENERATE("still.png", "still.jpg", "still.webp", "animated.gif", "animated.webp");
+		CAPTURE(name);
+		std::vector<char> bytes = readFixture(name);
+		bytes.resize(bytes.size() / 2);
+		const auto image = ImageIO::load(std::as_bytes(std::span(bytes)));
+		// stb_image decodes what it can of a truncated JPEG; the others must fail
+		if(image)
+			CHECK(image->rgba.size() == std::size_t(image->width) * image->height * 4);
+		else
+			CHECK_FALSE(image.error().empty());
+	}
+}
+
+TEST_CASE("loadFromMemoryRGBA32 returns the first frame of an animation", "[ImageIO]")
+{
+	const std::vector<char> bytes = readFixture("animated.gif");
+	size_t width = 0, height = 0;
+	const auto rgba = ImageIO::loadFromMemoryRGBA32(
+		reinterpret_cast<const unsigned char*>(bytes.data()), bytes.size(), width, height);
+	REQUIRE(rgba.size() == 4 * 4 * 4);
+	CHECK(width == 4);
+	CHECK(height == 4);
+	CHECK(near(pixelAt(rgba, 4, 4, 0, 0), kRed));
 }
 
 TEST_CASE("ImageIO resizes a file and keeps its format", "[ImageIO]")

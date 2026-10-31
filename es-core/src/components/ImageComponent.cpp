@@ -38,6 +38,7 @@ ImageComponent::~ImageComponent() = default;
 
 void ImageComponent::resize()
 {
+	mSizedForTexture = false;
 	if(!mTexture)
 		return;
 
@@ -47,6 +48,7 @@ void ImageComponent::resize()
 		svg ? svg->getSourceImageSize() : glm::vec2((float)mTexture->getSize().x, (float)mTexture->getSize().y);
 	if(textureSize == glm::vec2(0.0f))
 		return;
+	mSizedForTexture = true;
 
 	if(mTexture->isTiled())
 	{
@@ -116,13 +118,14 @@ void ImageComponent::onSizeChanged()
 	updateVertices();
 }
 
-void ImageComponent::setImage(std::string path, bool tile)
+void ImageComponent::setImage(std::string path, bool tile, bool dynamic)
 {
 	if(path.empty() || !ResourceManager::getInstance()->fileExists(path))
 		mTexture.reset();
 	else
-		mTexture = TextureResource::get(path, tile);
+		mTexture = TextureResource::get(path, tile, dynamic);
 
+	mAnimationStart = std::chrono::steady_clock::now();
 	resize();
 }
 
@@ -138,15 +141,9 @@ void ImageComponent::setImage(const char* path, size_t length, bool tile)
 
 void ImageComponent::setImage(const std::shared_ptr<TextureResource>& texture)
 {
+	if(texture != mTexture)
+		mAnimationStart = std::chrono::steady_clock::now();
 	mTexture = texture;
-	resize();
-}
-
-void ImageComponent::setImageFromPixels(const unsigned char* dataRGBA, size_t width, size_t height, bool tile)
-{
-	mTexture.reset();
-	mTexture = TextureResource::get("", tile);
-	mTexture->initFromPixels(dataRGBA, width, height);
 	resize();
 }
 
@@ -269,8 +266,23 @@ void ImageComponent::render(const glm::mat4& parentTrans)
 	{
 		if(mTexture->isInitialized())
 		{
+			// decoded in the background since the last resize()
+			if(!mSizedForTexture)
+				resize();
+
+			Renderer::TextureHandle texture = mTexture->getTextureHandle();
+			if(mTexture->isAnimated())
+			{
+				using namespace std::chrono;
+				const auto elapsed = duration_cast<milliseconds>(steady_clock::now() - mAnimationStart);
+				texture = mTexture->getTextureHandle(static_cast<int>(elapsed.count()));
+			}
 			// actually draw the image
-			Renderer::drawTriangles(mVertices, mTexture->getTextureHandle());
+			Renderer::drawTriangles(mVertices, texture);
+		}
+		else if(mTexture->isLoading())
+		{
+			// transparent placeholder until the background decoding ends
 		}
 		else
 		{

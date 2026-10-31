@@ -36,7 +36,7 @@ Linux.
 | Build | CMake ≥ 3.25, Ninja, presets |
 | Fenêtre, entrées, audio | **SDL3** (manettes via `SDL_Gamepad`) |
 | Rendu | **OpenGL 3.3 core** à shaders |
-| Images | **stb_image** + **libwebp** + **libavif** (+ nanosvg pour le SVG) |
+| Images | **stb_image** + **libwebp** (+ nanosvg pour le SVG) |
 | Vidéo et musique | **FFmpeg** |
 | JSON | **nlohmann/json**, réservé au scraping (les fichiers XML existants restent en XML) |
 | Thèmes | modèle **Recalbox 10**, compatibilité avec le format Aloshi v3 |
@@ -71,7 +71,7 @@ Détails : [plan de modernisation](docs/MODERNIZATION_PLAN.md) et
 
 ```bash
 sudo pacman -S --needed base-devel cmake ninja clang \
-    sdl3 freetype2 fontconfig glm curl alsa-lib libglvnd mesa libwebp libavif ffmpeg
+    sdl3 freetype2 fontconfig glm curl alsa-lib libglvnd mesa libwebp ffmpeg
 # Pour les tests :
 sudo pacman -S --needed catch2 xorg-server-xvfb imagemagick xdotool
 ```

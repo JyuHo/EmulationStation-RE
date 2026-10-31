@@ -20,7 +20,6 @@ public:
 	AnimatedImageComponent(Window* window);
 
 	void load(const AnimationDef* def); // no reference to def is kept after loading is complete
-	void loadAnimated(const std::string& path); // load an animated WebP/GIF
 
 	void reset(); // set to frame 0
 

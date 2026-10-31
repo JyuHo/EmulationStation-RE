@@ -27,6 +27,11 @@ std::shared_ptr<AudioManager>& AudioManager::getInstance()
 	return sInstance;
 }
 
+void AudioManager::shutdown()
+{
+	sInstance.reset();
+}
+
 void AudioManager::init()
 {
 	if(!SDL_InitSubSystem(SDL_INIT_AUDIO))

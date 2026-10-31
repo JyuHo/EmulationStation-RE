@@ -100,6 +100,7 @@ bool Window::init(unsigned int width, unsigned int height)
 void Window::deinit()
 {
 	InputManager::getInstance()->deinit();
+	TextureResource::clearCache();
 	ResourceManager::getInstance()->unloadAll();
 	Renderer::deinit();
 }
@@ -144,6 +145,9 @@ void Window::input(InputConfig* config, Input input)
 
 void Window::update(int deltaTime)
 {
+	// textures decoded in the background since the last frame
+	TextureResource::processPendingLoads();
+
 	if(mNormalizeNextUpdate)
 	{
 		mNormalizeNextUpdate = false;
