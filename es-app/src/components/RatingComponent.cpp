@@ -21,7 +21,7 @@ void RatingComponent::setValue(const std::string& value)
 	}
 	else
 	{
-		mValue = stof(value);
+		mValue = parseFloat(value);
 		if(mValue > 1.0f)
 			mValue = 1.0f;
 		else if(mValue < 0.0f)

@@ -7,6 +7,7 @@
 #include "resources/TextureResource.h"
 #include "Log.h"
 #include "Settings.h"
+#include "Util.h"
 #include "pugixml/pugixml.hpp"
 
 #include "components/ImageComponent.h"
@@ -279,7 +280,7 @@ void ThemeData::parseElement(
 			std::string first = str.substr(0, divider);
 			std::string second = str.substr(divider, std::string::npos);
 
-			Eigen::Vector2f val(atof(first.c_str()), atof(second.c_str()));
+			Eigen::Vector2f val(parseFloat(first), parseFloat(second));
 
 			element.properties[node.name()] = val;
 			break;

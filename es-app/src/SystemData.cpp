@@ -69,15 +69,9 @@ std::string strreplace(std::string str, const std::string& replace, const std::s
 	return str;
 }
 
-// plaform-specific escape path function
-// on windows: just puts the path in quotes
-// everything else: assume bash and escape special characters with backslashes
+// escapes special characters with backslashes for the shell (sh/bash)
 std::string escapePath(const std::filesystem::path& path)
 {
-#ifdef WIN32
-	// windows escapes stuff by just putting everything in quotes
-	return '"' + fs::path(path).make_preferred().string() + '"';
-#else
 	// a quick and dirty way to insert a backslash before most characters that would mess up a bash path
 	std::string pathStr = path.string();
 
@@ -100,7 +94,6 @@ std::string escapePath(const std::filesystem::path& path)
 	}
 
 	return pathStr;
-#endif
 }
 
 void SystemData::launchGame(Window* window, FileData* game)
@@ -343,8 +336,7 @@ void SystemData::writeExampleConfig(const std::string& path)
 			"		<!-- A \"pretty\" name, displayed in menus and such. -->\n"
 			"		<fullname>Nintendo Entertainment System</fullname>\n"
 			"\n"
-			"		<!-- The path to start searching for ROMs in. '~' will be expanded to $HOME on Linux or %HOMEPATH% "
-			"on Windows. -->\n"
+			"		<!-- The path to start searching for ROMs in. '~' will be expanded to $HOME. -->\n"
 			"		<path>~/roms/nes</path>\n"
 			"\n"
 			"		<!-- A list of extensions to search for, delimited by any of the whitespace characters (\", "
