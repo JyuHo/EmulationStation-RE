@@ -2,6 +2,7 @@
 #include <cassert>
 #include "Log.h"
 #include "ImageIO.h"
+#include "Settings.h"
 #include "renderer/Renderer.h"
 #include "Util.h"
 #include "resources/SVGResource.h"
@@ -97,7 +98,20 @@ std::shared_ptr<TextureResource> TextureResource::get(const std::string& path, b
 	if(foundTexture != sTextureMap.end())
 	{
 		if(!foundTexture->second.expired())
-			return foundTexture->second.lock();
+		{
+			auto locked = foundTexture->second.lock();
+			// LRU: move to back of the list
+			for(auto it = sTextureList.begin(); it != sTextureList.end(); ++it)
+			{
+				if(it->expired() || it->lock() == locked)
+				{
+					if(!it->expired())
+						sTextureList.splice(sTextureList.end(), sTextureList, it);
+					break;
+				}
+			}
+			return locked;
+		}
 	}
 
 	// need to create it
@@ -122,7 +136,38 @@ std::shared_ptr<TextureResource> TextureResource::get(const std::string& path, b
 		sTextureList.push_back(tex);
 		rm->addReloadable(tex);
 		tex->reload(ResourceManager::getInstance());
+		evictIfNeeded();
 		return tex;
+	}
+}
+
+void TextureResource::evictIfNeeded()
+{
+	const int maxVramMb = Settings::getInstance() ? Settings::getInstance()->getInt("MaxVRAM") : 0;
+	size_t budget = (maxVramMb > 0 ? (size_t)maxVramMb : 256) * 1024 * 1024;
+	if(getTotalMemUsage() <= budget)
+		return;
+
+	// Evict from the front (least recently used) while over budget.
+	auto it = sTextureList.begin();
+	while(it != sTextureList.end() && getTotalMemUsage() > budget)
+	{
+		if(it->expired())
+		{
+			it = sTextureList.erase(it);
+			continue;
+		}
+		auto locked = it->lock();
+		// Don't evict textures with multiple references (in use).
+		if(locked && locked.use_count() <= 2)
+		{
+			locked->deinit();
+			it = sTextureList.erase(it);
+		}
+		else
+		{
+			++it;
+		}
 	}
 }
 

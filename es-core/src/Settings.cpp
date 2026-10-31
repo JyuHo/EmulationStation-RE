@@ -54,6 +54,7 @@ void Settings::setDefaults()
 	mIntMap["ScreenSaverTime"] = 5 * 60 * 1000; // 5 minutes
 	mIntMap["ScraperResizeWidth"] = 400;
 	mIntMap["ScraperResizeHeight"] = 0;
+	mIntMap["MaxVRAM"] = 256; // MB budget for texture cache
 
 	mStringMap["TransitionStyle"] = "fade";
 	mStringMap["ThemeSet"] = "";
