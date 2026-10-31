@@ -25,9 +25,13 @@ Window::Window() :
 
 Window::~Window()
 {
-	// delete all our GUIs
-	while(peekGui())
-		removeGui(peekGui());
+	// delete all our GUIs, top first; each destructor calls removeGui(), which finds nothing left to unlink
+	while(!mGuiStack.empty())
+	{
+		std::unique_ptr<GuiComponent> gui = std::move(mGuiStack.back());
+		mGuiStack.pop_back();
+		gui.reset();
+	}
 }
 
 void Window::pushGui(std::unique_ptr<GuiComponent> gui)
@@ -43,6 +47,9 @@ void Window::removeGui(GuiComponent* gui)
 	{
 		if(i->get() == gui)
 		{
+			// Called from ~GuiComponent (a GUI closing with "delete this"): the object is already being
+			// destroyed, so give up ownership instead of deleting it a second time.
+			(void)i->release();
 			i = mGuiStack.erase(i);
 
 			if(i == mGuiStack.end() && mGuiStack.size()) // we just popped the stack and the stack is not empty
