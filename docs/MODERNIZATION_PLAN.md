@@ -586,6 +586,10 @@ comme en phase 4, trois PR.
 **Objectif** : un rendu moderne, batché, à shaders, prérequis pour la vidéo, les effets de
 thèmes (transparence, rotation, dégradés, coins arrondis) et les performances.
 
+Consignes détaillées (inventaire, API, contexte SDL3, shaders GLSL, découpage en PR 6a à
+6d, vérifications, pièges) : [`PROMPT.md`, section 13](../PROMPT.md). Elles priment sur
+cette section en cas d'écart.
+
 ### Conception
 - Chargeur de fonctions : **glad 2** généré pour GL 3.3 core (vendored dans
   `external/glad/`, licence MIT/Apache) ; ou `SDL_GL_GetProcAddress` + en-tête maison.
@@ -596,9 +600,9 @@ thèmes (transparence, rotation, dégradés, coins arrondis) et les performances
   - `struct Vertex { glm::vec2 pos; glm::vec2 tex; uint32_t color; };`
   - Un **batcher** accumule les sommets tant que texture/shader/blend/clip ne changent pas ;
     flush sur changement d'état ou en fin d'image.
-  - Shaders : `texture_rgba` (images, polices), `color` (rectangles), `yuv420p`
-    (vidéo, 3 textures `R8`), `nv12` (vidéo VA-API). Sources GLSL `#version 330 core`
-    embarquées en `constexpr std::string_view`.
+  - Shaders : `texture_rgba` (images, polices), `color` (rectangles, lignes). Sources GLSL
+    `#version 330 core` embarquées en `constexpr std::string_view`. Les shaders vidéo
+    `yuv420p` (3 textures `R8`) et `nv12` (VA-API) viennent avec la phase 9.
   - Matrice de projection orthographique + matrice modèle-vue en uniformes ; la pile de
     transformations des `GuiComponent` est conservée (multiplication CPU).
   - Clip : `glScissor` (comme aujourd'hui) ; prévoir le stencil plus tard pour les
@@ -610,16 +614,29 @@ thèmes (transparence, rotation, dégradés, coins arrondis) et les performances
 - Mode debug : `GL_KHR_debug` → messages dans le log en build Debug.
 
 ### Fichiers concernés
-`Renderer.h`, `Renderer_draw_gl.cpp`, `Renderer_init_sdlgl.cpp`, `platform.h`,
-`components/{ImageComponent,NinePatchComponent,TextComponent,...}`,
+Inventaire à `df6948a` : 118 appels `gl*` dans `Renderer_draw_gl.cpp`,
+`Renderer_init_sdlgl.cpp`, `components/{ComponentGrid,ImageComponent,NinePatchComponent}.cpp`,
 `resources/{Font,TextureResource}.cpp`, `es-app/src/components/RatingComponent.cpp`,
-tout appel direct à `gl*` (`grep -rn "gl[A-Z]" es-core es-app`).
+`es-app/src/main.cpp` ; types GL dans `Renderer.h`, `ImageComponent.h`,
+`NinePatchComponent.h`, `Font.h`, `TextureResource.h`, `platform.h` (`GLHEADER`) ;
+facteurs de mélange passés par `ComponentList.cpp`. Détail dans `PROMPT.md`, 13.2.
+
+### Découpage en PR
+- `modernize/phase-6a-gl-prep` : glad vendored, déplacement vers `es-core/src/renderer/`,
+  journalisation de la version GL, tests de la logique pure, captures étendues ; rendu
+  identique.
+- `modernize/phase-6b-gl33-core` : contexte 3.3 core, shaders, API sans types GL,
+  migration de tous les appels ; un envoi par dessin ; rendu identique.
+- `modernize/phase-6c-gl-batching` : regroupement des dessins, transformation sur le CPU.
+- `modernize/phase-6d-gl-close` : taille de fenêtre, mesure de performance, documentation.
 
 ### Critères d'acceptation
 - Aucun appel GL hors de `es-core/src/renderer/`.
 - Contexte core profile 3.3 ; aucune erreur `GL_KHR_debug` en Debug.
-- 60 i/s stables sur un iGPU Intel/AMD en 1080p et 4K avec une gamelist de 1 000 jeux.
-- Captures identiques à la phase 4 (tolérance).
+- 60 i/s stables sur un iGPU Intel/AMD en 1080p et 4K avec une gamelist de 1 000 jeux
+  (vérifié par le propriétaire sur son matériel).
+- Captures identiques à la phase 5 (0 pixel pour 6a et 6b ; écart du batching mesuré et
+  accepté avec l'étiquette `rendu-modifié`).
 
 ---
 
