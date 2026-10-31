@@ -570,8 +570,9 @@ comme en phase 4, trois PR.
   (8 écrans, RelWithDebInfo et Debug+ASan).
 - [x] Manette : vérifiée avec des joysticks et manettes **virtuels** de SDL (axes, boutons,
   chapeau, configuration par défaut, inversion A/B, `es_input.cfg` prioritaire,
-  `gamecontrollerdb.txt`), puis par le propriétaire avec une vraie manette : fonctionne
-  correctement (31/10/2026). Les autres modèles (Xbox, DualSense, 8BitDo) restent à essayer.
+  `gamecontrollerdb.txt`), puis par le propriétaire avec une vraie manette (DualShock 4) :
+  fonctionne correctement (31/10/2026). Les autres modèles (Xbox, DualSense, 8BitDo) restent
+  à essayer.
 - [x] Branchement à chaud : joystick et manette virtuels branchés et débranchés pendant
   l'exécution (`test_Input.cpp`).
 - [x] Saisie de texte : écran `08-text-input` (« Beta RacerAbc ») en SDL3.
