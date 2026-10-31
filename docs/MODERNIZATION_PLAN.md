@@ -533,6 +533,20 @@ Arch : `sdl3`.
 - `SDL_ShowCursor`/`SDL_HideCursor`.
 - CMake : `find_package(SDL3 CONFIG REQUIRED)` + `SDL3::SDL3`.
 
+### Découpage en PR
+SDL2 et SDL3 ne cohabitent pas dans un même binaire (mêmes noms, signatures différentes) :
+comme en phase 4, trois PR.
+- `modernize/phase-5a-sdl3-prep` : tests de caractérisation sous SDL2 (`test_Input.cpp` :
+  `es_input.cfg`, événements clavier et texte, joystick virtuel branché, utilisé et
+  débranché ; `test_Audio.cpp` : conversion WAV et lecture sur le pilote `dummy`), scénario
+  de captures étendu (options de liste, saisie de texte dans l'éditeur de métadonnées) et sons
+  dans le thème de la fixture.
+- `modernize/phase-5b-sdl3` : migration de tout le code vers SDL3 (5.1, 5.2, 5.4, 5.5 et
+  joysticks via l'API `SDL_Joystick` de SDL3), SDL2 retiré du build ; mêmes tests.
+- `modernize/phase-5c-sdl3-gamepad` : `SDL_Gamepad` (5.3), configuration par défaut des
+  manettes reconnues, `gamecontrollerdb.txt`, clôture (documentation, `sdl2-compat` retiré
+  du job de captures).
+
 ### Critères d'acceptation
 - Plus aucune référence à `SDL2`. Navigation au clavier et à la manette (Xbox, DualSense,
   8BitDo testés si possible), branchement à chaud, saisie de texte, sons de navigation.

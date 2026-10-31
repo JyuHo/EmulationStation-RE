@@ -36,14 +36,15 @@ Ce qui existe et que tu dois **réutiliser** (ne le recrée pas) :
 - `CMakePresets.json` : configure/build/test presets `debug` (tests + `-Werror`), `release`,
   `relwithdebinfo`, `asan`, `clang-debug`.
 - `es-app-lib` : toutes les sources de `es-app` sauf `main.cpp` (cible à lier dans les tests).
-- `tests/unit/*.cpp` (Catch2 v3, 32 cas : `ImageIO`, `MetaData`, `ThemeData`, `Paths`,
-  `Util`, `Window`, `Locale`, `Math`) et `tests/data/` (fixtures). Ajoute tes tests ici,
+- `tests/unit/*.cpp` (Catch2 v3, 42 cas : `ImageIO`, `MetaData`, `ThemeData`, `Paths`,
+  `Util`, `Window`, `Locale`, `Math`, `Input`, `Audio`) et `tests/data/` (fixtures). Ajoute tes tests ici,
   un fichier par module (`test_<Module>.cpp`), et déclare-les dans `tests/CMakeLists.txt`.
 - `tests/smoke/run.sh <binaire> [secondes] [capture.png]` : test de fumée Xvfb ; il
   utilise `ES_HOME` et un `HOME` jetable, et échoue si un fichier est écrit hors de `ES_HOME`.
-- `tests/smoke/capture.sh <binaire> <dossier>` : 6 captures scriptées (xdotool, clavier,
-  fixture `tests/data/capture/` : deux systèmes, thème avec logos SVG, liste détaillée,
-  menus), reproductibles au pixel près ; `tests/smoke/compare.sh <réf> <nouveau> [fuzz]
+- `tests/smoke/capture.sh <binaire> <dossier>` : 8 captures scriptées (xdotool, clavier,
+  fixture `tests/data/capture/` : deux systèmes, thème avec logos SVG et sons, liste
+  détaillée, menus, options de liste, saisie de texte dans l'éditeur de métadonnées), reproductibles
+  au pixel près ; les sons du thème jouent sur le pilote audio `dummy` de SDL ; `tests/smoke/compare.sh <réf> <nouveau> [fuzz]
   [pixels]` les compare. Le job CI « Screenshots vs base branch » le fait pour chaque PR
   (base contre PR, même runner) ; une PR qui change le rendu exprès porte l'étiquette
   `rendu-modifié`. Étends le scénario (`capture.sh`) quand tu touches un écran non couvert.

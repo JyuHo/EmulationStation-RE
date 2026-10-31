@@ -4,7 +4,7 @@
 # Usage: tests/smoke/capture.sh <emulationstation binary> <output directory>
 #
 # Starts ES under Xvfb with the fixture in tests/data/capture (two systems, a theme
-# with SVG logos and origins, a gamelist with box art), drives it with xdotool and
+# with SVG logos, origins and sounds, a gamelist with box art), drives it with xdotool and
 # writes one PNG per screen. Compare two runs with tests/smoke/compare.sh.
 set -euo pipefail
 
@@ -71,6 +71,9 @@ cat > "$home/config/emulationstation/es_input.cfg" <<'XML'
 </inputList>
 XML
 
+# no sound card under Xvfb: the theme sounds play on SDL's dummy driver
+export SDL_AUDIODRIVER=dummy SDL_AUDIO_DRIVER=dummy
+
 status=0
 HOME="$fakehome" ES_HOME="$home" xvfb-run -a -s '-screen 0 1280x720x24' bash -c '
 	set -u
@@ -91,6 +94,13 @@ HOME="$fakehome" ES_HOME="$home" xvfb-run -a -s '-screen 0 1280x720x24' bash -c 
 	key F1; shot 05-menu
 	key Down 0.5; key Down; key Return; shot 06-ui-settings
 	key Escape 1; key Escape 1; key Escape
+	# text input: gamelist options, metadata editor, then typing into the name field
+	key Return; key F2; shot 07-gamelist-options
+	# (the metadata editor itself shows the absolute, random, path of the fixture: no screenshot)
+	key Down 0.5; key Down 0.5; key Return
+	key Return 1; key Return 1
+	xdotool type --window "$win" --delay 100 "Abc"; sleep 2; shot 08-text-input
+	key Escape 1; key Escape 1; key Escape 1; key Escape 1; key Escape
 
 	if ! kill -0 "$pid" 2>/dev/null; then wait "$pid"; echo "emulationstation exited early with code $?"; exit 1; fi
 	kill "$pid"
