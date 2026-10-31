@@ -16,6 +16,8 @@ TextureResource::TextureResource(const std::string& path, bool tile) :
 
 TextureResource::~TextureResource()
 {
+	if(mWorker.joinable())
+		mWorker.join();
 	deinit();
 }
 
@@ -26,11 +28,11 @@ void TextureResource::unload(std::shared_ptr<ResourceManager>& rm)
 
 void TextureResource::reload(std::shared_ptr<ResourceManager>& rm)
 {
-	if(!mPath.empty())
-	{
-		const ResourceData& data = rm->getFileData(mPath);
-		initFromMemory((const char*)data.ptr.get(), data.length);
-	}
+	if(mPath.empty())
+		return;
+
+	const ResourceData& data = rm->getFileData(mPath);
+	initFromMemory((const char*)data.ptr.get(), data.length);
 }
 
 void TextureResource::initFromPixels(const unsigned char* dataRGBA, size_t width, size_t height)
@@ -138,6 +140,45 @@ std::shared_ptr<TextureResource> TextureResource::get(const std::string& path, b
 		tex->reload(ResourceManager::getInstance());
 		evictIfNeeded();
 		return tex;
+	}
+}
+
+void TextureResource::processPending()
+{
+	auto it = sTextureList.begin();
+	while(it != sTextureList.end())
+	{
+		if(it->expired())
+		{
+			it = sTextureList.erase(it);
+			continue;
+		}
+		auto locked = it->lock();
+		if(!locked)
+		{
+			++it;
+			continue;
+		}
+		bool ready = false;
+		{
+			std::lock_guard<std::mutex> lock(locked->mPendingMutex);
+			ready = locked->mPendingReady;
+		}
+		if(ready && !locked->isInitialized())
+		{
+			std::vector<unsigned char> pixels;
+			size_t w = 0, h = 0;
+			{
+				std::lock_guard<std::mutex> lock(locked->mPendingMutex);
+				pixels = std::move(locked->mPendingPixels);
+				w = locked->mPendingW;
+				h = locked->mPendingH;
+				locked->mPendingReady = false;
+			}
+			if(!pixels.empty())
+				locked->initFromPixels(pixels.data(), w, h);
+		}
+		++it;
 	}
 }
 

@@ -191,6 +191,7 @@ target_link_libraries(es-core PUBLIC
     Fontconfig::Fontconfig
     PkgConfig::WEBP
     PkgConfig::WEBPDEMUX
+    PkgConfig::AVIF
     SDL3::SDL3
     glm::glm
     CURL::libcurl

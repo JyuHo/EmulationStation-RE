@@ -1,5 +1,11 @@
 #include "components/AnimatedImageComponent.h"
 #include <cassert>
+#include <filesystem>
+#include <fstream>
+#include <span>
+#include <vector>
+
+#include "ImageIO.h"
 #include "Log.h"
 
 AnimatedImageComponent::AnimatedImageComponent(Window* window) : GuiComponent(window), mEnabled(false) {}
@@ -81,4 +87,40 @@ void AnimatedImageComponent::render(const glm::mat4& trans)
 {
 	if(mFrames.size())
 		mFrames.at(mCurrentFrame).first->render(getTransform() * trans);
+}
+
+void AnimatedImageComponent::loadAnimated(const std::string& path)
+{
+	mFrames.clear();
+
+	std::ifstream in(path, std::ios::binary);
+	if(!in)
+	{
+		LOG(LogError) << "Missing animated image \"" << path << "\"";
+		return;
+	}
+	std::vector<unsigned char> bytes((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+
+	std::vector<std::byte> b(bytes.size());
+	for(size_t i = 0; i < bytes.size(); i++)
+		b[i] = static_cast<std::byte>(bytes[i]);
+	const auto img = ImageIO::load(std::span<const std::byte>(b));
+	if(!img.has_value() || img->frames.empty())
+	{
+		LOG(LogError) << "Could not decode animated image \"" << path << "\"";
+		return;
+	}
+
+	for(const auto& f : img->frames)
+	{
+		auto comp = std::make_unique<ImageComponent>(mWindow);
+		comp->setResize(mSize.x, mSize.y);
+		comp->setImageFromPixels(f.rgba.data(), img->width, img->height, false);
+		mFrames.emplace_back(std::move(comp), f.durationMs > 0 ? f.durationMs : 100);
+	}
+
+	mLoop = true;
+	mCurrentFrame = 0;
+	mFrameAccumulator = 0;
+	mEnabled = true;
 }
