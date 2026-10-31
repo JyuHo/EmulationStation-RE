@@ -22,17 +22,17 @@ float round(float num);
 
 std::string getCanonicalPath(const std::string& str);
 
-// example: removeCommonPath("/home/pi/roms/nes/foo/bar.nes", "/home/pi/roms/nes/") returns "foo/bar.nes"
+// example: removeCommonPath("$HOME/roms/nes/foo/bar.nes", "$HOME/roms/nes/") returns "foo/bar.nes"
 std::filesystem::path removeCommonPath(
 	const std::filesystem::path& path, const std::filesystem::path& relativeTo, bool& contains);
 
 // usage: makeRelativePath("/path/to/my/thing.sfc", "/path/to") -> "./my/thing.sfc"
-// usage: makeRelativePath("/home/pi/my/thing.sfc", "/path/to", true) -> "~/my/thing.sfc"
+// usage: makeRelativePath("$HOME/my/thing.sfc", "/path/to", true) -> "~/my/thing.sfc"
 std::filesystem::path makeRelativePath(
 	const std::filesystem::path& path, const std::filesystem::path& relativeTo, bool allowHome);
 
 // expands "./my/path.sfc" to "[relativeTo]/my/path.sfc"
-// if allowHome is true, also expands "~/my/path.sfc" to "/home/pi/my/path.sfc"
+// if allowHome is true, also expands "~/my/path.sfc" to "$HOME/my/path.sfc"
 std::filesystem::path resolvePath(
 	const std::filesystem::path& path, const std::filesystem::path& relativeTo, bool allowHome);
 

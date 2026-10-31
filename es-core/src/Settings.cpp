@@ -1,4 +1,5 @@
 #include "Settings.h"
+#include "utils/Paths.h"
 #include "Log.h"
 #include "pugixml/pugixml.hpp"
 #include "platform.h"
@@ -82,7 +83,7 @@ template <typename K, typename V> void saveMap(pugi::xml_document& doc, std::map
 
 void Settings::saveFile()
 {
-	const std::string path = getHomePath() + "/.emulationstation/es_settings.cfg";
+	const std::string path = es::paths::userFile(es::paths::Kind::Config, "es_settings.cfg").string();
 
 	pugi::xml_document doc;
 
@@ -103,7 +104,7 @@ void Settings::saveFile()
 
 void Settings::loadFile()
 {
-	const std::string path = getHomePath() + "/.emulationstation/es_settings.cfg";
+	const std::string path = es::paths::userFile(es::paths::Kind::Config, "es_settings.cfg").string();
 
 	if(!std::filesystem::exists(path))
 		return;

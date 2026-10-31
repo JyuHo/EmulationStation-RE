@@ -25,10 +25,19 @@ jobs:
         run: |
           pacman -Syu --noconfirm --needed \
             git cmake ninja clang \
-            sdl2-compat freetype2 eigen curl alsa-lib libglvnd mesa libwebp \
+            sdl2-compat freetype2 fontconfig eigen curl alsa-lib libglvnd mesa libwebp \
             catch2 xorg-server-xvfb imagemagick
 
       - uses: actions/checkout@v5
+
+      - name: No hardcoded paths
+        run: |
+          # Every file location goes through es::paths (es-core/src/utils/Paths.*).
+          if grep -rnE '"/(etc|usr|opt|home)/|\.emulationstation|getenv\("HOME"\)|getHomePath' \
+              es-core/src es-app/src --exclude=Paths.cpp --exclude=Paths.h; then
+            echo "Hardcoded path found: use es::paths instead." >&2
+            exit 1
+          fi
 
       - name: Configure
         run: |

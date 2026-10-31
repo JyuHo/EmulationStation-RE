@@ -1,4 +1,5 @@
 #include "scrapers/Scraper.h"
+#include "utils/Paths.h"
 #include "Log.h"
 #include "Settings.h"
 #include "ImageIO.h"
@@ -215,15 +216,11 @@ std::string getSaveAsPath(const ScraperSearchParams& params, const std::string& 
 	const std::string subdirectory = params.system->getName();
 	const std::string name = params.game->getPath().stem().generic_string() + "-" + suffix;
 
-	std::string path = getHomePath() + "/.emulationstation/downloaded_images/";
+	const std::filesystem::path dir = es::paths::userDir(es::paths::Kind::Data) / "downloaded_images" / subdirectory;
+	std::error_code ec;
+	std::filesystem::create_directories(dir, ec);
 
-	if(!std::filesystem::exists(path))
-		std::filesystem::create_directory(path);
-
-	path += subdirectory + "/";
-
-	if(!std::filesystem::exists(path))
-		std::filesystem::create_directory(path);
+	std::string path = dir.generic_string() + "/";
 
 	size_t dot = url.find_last_of('.');
 	std::string ext;

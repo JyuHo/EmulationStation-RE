@@ -1,4 +1,5 @@
 #include "InputManager.h"
+#include "utils/Paths.h"
 #include <cassert>
 #include "InputConfig.h"
 #include "Settings.h"
@@ -340,9 +341,7 @@ void InputManager::writeDeviceConfig(InputConfig* config)
 
 std::string InputManager::getConfigPath()
 {
-	std::string path = getHomePath();
-	path += "/.emulationstation/es_input.cfg";
-	return path;
+	return es::paths::userFile(es::paths::Kind::Config, "es_input.cfg").string();
 }
 
 bool InputManager::initialized() const

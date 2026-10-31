@@ -6,7 +6,9 @@ seconds="${2:-6}"
 screenshot="${3:-}"
 
 home="$(mktemp -d)"
-trap 'rm -rf "$home"' EXIT
+# a throw-away HOME too: nothing may be written outside ES_HOME
+fakehome="$(mktemp -d)"
+trap 'rm -rf "$home" "$fakehome"' EXIT
 
 mkdir -p "$home/config/emulationstation" "$home/data/emulationstation" "$home/state/emulationstation" "$home/cache/emulationstation" "$home/roms/nes"
 touch "$home/roms/nes/Test Game.nes"
@@ -24,7 +26,7 @@ cat > "$home/config/emulationstation/es_systems.cfg" <<XML
 XML
 
 status=0
-ES_HOME="$home" xvfb-run -a -s '-screen 0 1280x720x24' bash -c '
+HOME="$fakehome" ES_HOME="$home" xvfb-run -a -s '-screen 0 1280x720x24' bash -c '
 	"$1" --windowed --resolution 1280 720 &
 	pid=$!
 	sleep "$2"
@@ -48,6 +50,12 @@ if [ ! -s "$log" ]; then
 fi
 if grep -q ' \[ERROR\] ' "$log"; then
 	echo "FAIL: errors were logged"
+	exit 1
+fi
+leaked="$(find "$fakehome" -path '*emulationstation*' -print)"
+if [ -n "$leaked" ]; then
+	echo "FAIL: files written outside ES_HOME:"
+	echo "$leaked"
 	exit 1
 fi
 echo "PASS"

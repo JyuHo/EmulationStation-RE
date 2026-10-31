@@ -8,9 +8,9 @@ d'Alec « Aloshi » Lofquist (v2.0.1a, 2015), en cours de **modernisation compl�
 Linux.
 
 > **État : en développement.** L'application compile et démarre, mais la migration est en
-> cours (phase 3 sur 12). Les emplacements des fichiers de configuration changent pendant
-> cette phase : lisez la section [Fichiers et emplacements](#fichiers-et-emplacements)
-> avant de l'utiliser avec une configuration existante.
+> cours (phase 3 sur 12). Les fichiers sont désormais rangés dans les dossiers XDG ; une
+> configuration existante dans `~/.emulationstation/` est copiée au premier lancement
+> (voir [Fichiers et emplacements](#fichiers-et-emplacements)).
 
 ## Sommaire
 
@@ -51,7 +51,7 @@ Raspberry Pi, Windows, macOS et OpenGL ES ne sont plus pris en charge.
 |------:|-------|------|
 | 1 | CMake moderne, C++23, CI Arch, FreeImage → stb_image + libwebp | fait (PR #1) |
 | 2 | Zéro avertissement, `-Werror`, clang-format/tidy, tests Catch2, test de fumée, journal | fait (PR #2) |
-| 3 | Suppression de Boost, chemins XDG, propriété mémoire | **en cours** (PR #3 à #23) : Boost supprimé, XDG partiel |
+| 3 | Suppression de Boost, chemins XDG, propriété mémoire | **en cours** : Boost supprimé, XDG en place ; restent la locale numérique, le job `asan` et le nettoyage |
 | 4 | Eigen → glm | à faire |
 | 5 | SDL2 → SDL3 | à faire |
 | 6 | Rendu OpenGL 3.3 core | à faire |
@@ -71,7 +71,7 @@ Détails : [plan de modernisation](docs/MODERNIZATION_PLAN.md) et
 
 ```bash
 sudo pacman -S --needed base-devel cmake ninja clang \
-    sdl2-compat freetype2 eigen curl alsa-lib libglvnd mesa libwebp
+    sdl2-compat freetype2 fontconfig eigen curl alsa-lib libglvnd mesa libwebp
 # Pour les tests :
 sudo pacman -S --needed catch2 xorg-server-xvfb imagemagick
 ```
@@ -125,6 +125,7 @@ emulationstation [options]
 |--------|-------|
 | `--resolution <largeur> <hauteur>` | force une résolution |
 | `--windowed` | fenêtre au lieu du plein écran (à combiner avec `--resolution`) |
+| `--home <dossier>` | mode portable (voir ci-dessous) |
 | `--vsync <1\|on\|0\|off>` | active ou désactive la synchronisation verticale (activée par défaut) |
 | `--gamelist-only` | ne parcourt pas les dossiers de ROMs, lit uniquement les `gamelist.xml` |
 | `--ignore-gamelist` | ignore les `gamelist.xml` (dépannage) |
@@ -134,39 +135,52 @@ emulationstation [options]
 | `--scrape` | scraper en ligne de commande (services actuellement hors ligne, voir plus bas) |
 | `--help`, `-h` | aide |
 
-Variable d'environnement **`ES_HOME=<dossier>`** : mode portable. Les dossiers gérés par
-le module XDG sont alors `<dossier>/{config,data,state,cache}/emulationstation/`
-(voir la limite ci-dessous). Une option `--home` équivalente est prévue.
+Mode portable : **`--home <dossier>`** ou la variable **`ES_HOME=<dossier>`** (l'option
+l'emporte) place tous les fichiers dans `<dossier>/{config,data,state,cache}/emulationstation/`.
+Dans ce mode, `~` dans `es_systems.cfg` désigne toujours le vrai dossier personnel et
+`~/.emulationstation/` n'est pas copié.
 
 **F4** quitte l'application à tout moment.
 
 ## Fichiers et emplacements
 
-Le projet passe de `~/.emulationstation/` aux dossiers XDG. La transition n'est pas
-terminée : aujourd'hui les fichiers sont répartis ainsi.
+EmulationStation-RE suit la spécification
+[XDG Base Directory](https://specifications.freedesktop.org/basedir-spec/latest/).
+Les variables `XDG_*` vides ou relatives sont ignorées.
 
-| Fichier | Emplacement actuel |
-|---------|--------------------|
-| `es_systems.cfg` | `$XDG_CONFIG_HOME/emulationstation/` (par défaut `~/.config/emulationstation/`), puis `$XDG_CONFIG_DIRS/emulationstation/` (par défaut `/etc/xdg/emulationstation/`) |
-| `gamelist.xml` | dossier de ROMs du système, puis `$XDG_DATA_HOME/emulationstation/gamelists/<système>/` (par défaut `~/.local/share/...`), puis `$XDG_DATA_DIRS` |
-| `es_log.txt` | `$XDG_STATE_HOME/emulationstation/` (par défaut `~/.local/state/emulationstation/`) |
-| `es_settings.cfg`, `es_input.cfg` | `~/.emulationstation/` *(passage en XDG prévu)* |
-| `es_theme_default.xml`, `themes/` | `~/.emulationstation/` et `/etc/emulationstation/themes/` *(passage en XDG prévu)* |
-| images téléchargées par le scraper | `~/.emulationstation/downloaded_images/` *(passage en XDG prévu)* |
+| Contenu | Dossier utilisateur (lecture et écriture) | Dossiers système (lecture seule, en repli) |
+|---------|-------------------------------------------|--------------------------------------------|
+| `es_systems.cfg`, `es_settings.cfg`, `es_input.cfg`, `es_theme_default.xml` | `$XDG_CONFIG_HOME/emulationstation/` (défaut `~/.config/emulationstation/`) | `$XDG_CONFIG_DIRS/emulationstation/` (défaut `/etc/xdg/emulationstation/`), puis `<sysconfdir>/xdg/emulationstation/` |
+| `themes/`, `gamelists/<système>/gamelist.xml`, `downloaded_images/` | `$XDG_DATA_HOME/emulationstation/` (défaut `~/.local/share/emulationstation/`) | `$XDG_DATA_DIRS/emulationstation/` (défaut `/usr/local/share` puis `/usr/share`), puis `<datadir>/emulationstation/`, puis `<dossier du binaire>/../share/emulationstation/` |
+| `es_log.txt` | `$XDG_STATE_HOME/emulationstation/` (défaut `~/.local/state/emulationstation/`) | — |
+| caches (à venir) | `$XDG_CACHE_HOME/emulationstation/` (défaut `~/.cache/emulationstation/`) | — |
 
-> **Vous aviez déjà `~/.emulationstation/es_systems.cfg` ?** La migration automatique
-> n'est pas encore active. Copiez le fichier vous-même :
-> `mkdir -p ~/.config/emulationstation && cp ~/.emulationstation/es_systems.cfg ~/.config/emulationstation/`.
-> Sinon ES écrit un fichier d'exemple au nouvel emplacement et s'arrête.
+Les dossiers utilisateur sont créés avec les droits `0700`. Une `gamelist.xml` placée dans
+le dossier de ROMs du système reste prioritaire, comme avant. Un thème du dossier
+utilisateur remplace un thème système de même nom.
 
-À terme (phase 3.E), tout passera par les dossiers XDG, `~/.emulationstation/` sera copié
-(jamais déplacé ni supprimé) au premier lancement, et `ES_HOME` couvrira tous les fichiers.
+**Migration depuis `~/.emulationstation/`** : au premier lancement, les fichiers
+`es_systems.cfg`, `es_settings.cfg`, `es_input.cfg`, `es_theme_default.xml` et les
+dossiers `themes/`, `gamelists/`, `downloaded_images/` sont **copiés** vers les dossiers
+ci-dessus. Rien n'est déplacé, supprimé ni écrasé : un fichier déjà présent côté XDG est
+conservé. Chaque copie est notée dans le journal, et le fichier
+`~/.emulationstation/MIGRATED_TO_XDG.txt` indique où sont passés les fichiers ; tant
+qu'il existe, la migration ne se refait pas. L'ancien dossier peut être gardé : les
+`gamelist.xml` existantes peuvent encore pointer vers des images qui s'y trouvent.
+
+Les anciens emplacements système `/etc/emulationstation/` ne sont plus lus : placez
+`es_systems.cfg` et les thèmes système dans `/etc/xdg/emulationstation/` et
+`/usr/share/emulationstation/themes/`.
+
+Les polices de repli pour le japonais, le chinois et le coréen sont trouvées par
+**fontconfig** (installez par exemple `noto-fonts-cjk`).
 
 ## Configurer les systèmes (`es_systems.cfg`)
 
 `es_systems.cfg` (XML) décrit vos systèmes : nom, dossier des ROMs, extensions et
 commande de lancement. Au premier lancement sans ce fichier, ES écrit un exemple commenté
-dans `~/.config/emulationstation/es_systems.cfg` puis s'arrête. **Les émulateurs
+dans `~/.config/emulationstation/es_systems.cfg` puis s'arrête (sauf si un ancien
+`~/.emulationstation/es_systems.cfg` a été copié). **Les émulateurs
 s'installent et se configurent séparément.**
 
 ```xml
@@ -229,8 +243,10 @@ analyse JSON par nlohmann/json, est prévu.
 ## Thèmes
 
 Le moteur actuel lit les thèmes au format Aloshi v3 (`formatVersion` 3, vues `system`,
-`basic`, `detailed`, `grid`), cherchés dans `~/.emulationstation/themes/` et
-`/etc/emulationstation/themes/`. Sans thème, l'interface est minimale.
+`basic`, `detailed`, `grid`), cherchés dans les dossiers `themes/` décrits dans
+[Fichiers et emplacements](#fichiers-et-emplacements) (par exemple
+`~/.local/share/emulationstation/themes/<nom du thème>/`). Sans thème, l'interface est
+minimale.
 Le format des thèmes Recalbox 10 (options de thème, variables, vidéo, menus thémés)
 arrive en phase 11, avec sa documentation dans `docs/THEMES.md`.
 

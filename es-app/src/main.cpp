@@ -21,6 +21,7 @@
 #include "ScraperCmdLine.h"
 #include <sstream>
 #include <clocale>
+#include <vector>
 
 #ifdef WIN32
 #include <Windows.h>
@@ -78,6 +79,16 @@ bool parseArgs(int argc, char* argv[], unsigned int* width, unsigned int* height
 			Settings::getInstance()->setBool("VSync", vsync);
 			i++; // skip vsync value
 		}
+		else if(strcmp(argv[i], "--home") == 0)
+		{
+			// handled by applyHomeOverride() before anything reads a file
+			if(i >= argc - 1)
+			{
+				std::cerr << "Missing folder for --home.\n";
+				return false;
+			}
+			i++;
+		}
 		else if(strcmp(argv[i], "--scrape") == 0)
 		{
 			scrape_cmdline = true;
@@ -107,6 +118,7 @@ bool parseArgs(int argc, char* argv[], unsigned int* width, unsigned int* height
 						 "--scrape			scrape using command line interface\n"
 						 "--windowed			not fullscreen, should be used with --resolution\n"
 						 "--vsync [1/on or 0/off]		turn vsync on or off (default is on)\n"
+						 "--home [folder]			portable mode: keep every file in [folder] (same as ES_HOME)\n"
 						 "--help, -h			summon a sentient, angry tuba\n\n"
 						 "More information available in README.md.\n";
 			return false; //exit after printing help
@@ -116,16 +128,32 @@ bool parseArgs(int argc, char* argv[], unsigned int* width, unsigned int* height
 	return true;
 }
 
-bool verifyHomeFolderExists()
+// Must run before anything reads or writes a file (Settings is used while parsing arguments).
+void applyHomeOverride(int argc, char* argv[])
 {
 	const char* envHome = std::getenv("ES_HOME");
 	if(envHome && *envHome)
 		es::paths::setHome(envHome);
 
-	es::paths::userDir(es::paths::Kind::Config);
-	es::paths::userDir(es::paths::Kind::Data);
-	es::paths::userDir(es::paths::Kind::State);
-	es::paths::userDir(es::paths::Kind::Cache);
+	for(int i = 1; i < argc - 1; i++)
+	{
+		if(strcmp(argv[i], "--home") == 0)
+			es::paths::setHome(argv[i + 1]);
+	}
+}
+
+bool verifyHomeFolderExists()
+{
+	std::error_code ec;
+	for(auto kind : {es::paths::Kind::Config, es::paths::Kind::Data, es::paths::Kind::State, es::paths::Kind::Cache})
+	{
+		const fs::path dir = es::paths::userDir(kind);
+		if(!fs::is_directory(dir, ec))
+		{
+			std::cerr << "Could not create " << dir.string() << "\n";
+			return false;
+		}
+	}
 	return true;
 }
 
@@ -171,6 +199,9 @@ int main(int argc, char* argv[])
 	std::setlocale(LC_ALL, "");
 	// std::filesystem has no imbue; locale handling dropped
 
+	applyHomeOverride(argc, argv);
+	const std::vector<fs::path> migratedFiles = es::paths::migrateFromLegacy();
+
 	if(!parseArgs(argc, argv, &width, &height))
 		return 0;
 
@@ -209,13 +240,15 @@ int main(int argc, char* argv[])
 	}
 #endif
 
-	//if ~/.emulationstation doesn't exist and cannot be created, bail
+	//if the XDG folders don't exist and cannot be created, bail
 	if(!verifyHomeFolderExists())
 		return 1;
 
 	//start the logger
 	Log::open();
 	LOG(LogInfo) << "EmulationStation - v" << PROGRAM_VERSION_STRING << ", built " << PROGRAM_BUILT_STRING;
+	for(const auto& file : migratedFiles)
+		Log::write(LogInfo, "Copied legacy file to {}", file.string());
 
 	//always close the log on exit
 	atexit(&onExit);

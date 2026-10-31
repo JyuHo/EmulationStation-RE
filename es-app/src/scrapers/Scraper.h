@@ -146,7 +146,7 @@ private:
 	int mMaxHeight;
 };
 
-//About the same as "~/.emulationstation/downloaded_images/[system_name]/[game_name].[url's extension]".
+//About the same as "$XDG_DATA_HOME/emulationstation/downloaded_images/[system_name]/[game_name].[url's extension]".
 //Will create the "downloaded_images" and "subdirectory" directories if they do not exist.
 std::string getSaveAsPath(const ScraperSearchParams& params, const std::string& suffix, const std::string& url);
 
