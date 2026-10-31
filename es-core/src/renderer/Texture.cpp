@@ -1,4 +1,5 @@
 #include "renderer/GL.h"
+#include "renderer/Internal.h"
 #include "renderer/Renderer.h"
 
 namespace Renderer {
@@ -25,6 +26,10 @@ FormatInfo formatInfo(TextureFormat format)
 
 TextureHandle createTexture(TextureFormat format, TextureFilter filter, bool repeat, glm::ivec2 size, const void* data)
 {
+	// no context yet: the resource stays uninitialized until ResourceManager::reloadAll
+	if(!isReady())
+		return 0;
+
 	GLuint texture = 0;
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
@@ -56,7 +61,7 @@ TextureHandle createTexture(TextureFormat format, TextureFilter filter, bool rep
 
 void updateTexture(TextureHandle texture, TextureFormat format, glm::ivec2 pos, glm::ivec2 size, const void* data)
 {
-	if(texture == 0)
+	if(texture == 0 || !isReady())
 		return;
 
 	const FormatInfo info = formatInfo(format);
@@ -67,7 +72,7 @@ void updateTexture(TextureHandle texture, TextureFormat format, glm::ivec2 pos, 
 
 void destroyTexture(TextureHandle texture)
 {
-	if(texture == 0)
+	if(texture == 0 || !isReady())
 		return;
 
 	const GLuint id = texture;

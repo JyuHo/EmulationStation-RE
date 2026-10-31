@@ -10,4 +10,8 @@ namespace Renderer {
 bool initDrawing(glm::ivec2 screenSize);
 void deinitDrawing();
 
+// false before init and after deinit: no GL call may be made (the functions are not loaded).
+// Window and the resources exist before the first init (Window's constructor loads images).
+bool isReady();
+
 } // namespace Renderer

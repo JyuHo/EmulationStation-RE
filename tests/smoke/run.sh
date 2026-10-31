@@ -25,7 +25,7 @@ cat > "$home/config/emulationstation/es_systems.cfg" <<XML
 </systemList>
 XML
 
-# OpenGL debug output (GL_KHR_debug) in release builds too: a GL error is an [ERROR] line
+# OpenGL debug output (KHR_debug extension) in release builds too: a GL error is an [ERROR] line
 export ES_GL_DEBUG=1
 
 status=0

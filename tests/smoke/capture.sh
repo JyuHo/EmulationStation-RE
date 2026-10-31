@@ -73,7 +73,7 @@ XML
 
 # no sound card under Xvfb: the theme sounds play on SDL's dummy driver
 export SDL_AUDIODRIVER=dummy SDL_AUDIO_DRIVER=dummy
-# OpenGL debug output (GL_KHR_debug) in release builds too: a GL error is an [ERROR] line
+# OpenGL debug output (KHR_debug extension) in release builds too: a GL error is an [ERROR] line
 export ES_GL_DEBUG=1
 
 status=0
@@ -125,6 +125,6 @@ if [ "$status" -ne 0 ] || grep -q ' \[ERROR\] ' "$log" 2>/dev/null; then
 	echo "FAIL: capture run did not complete cleanly"
 	exit 1
 fi
-grep -E 'GL_VERSION|GL_RENDERER|OpenGL' "$log" || true
+grep -E '(VERSION|RENDERER|VENDOR): |OpenGL' "$log" || true
 ls "$outdir"/*.png
 echo "PASS"

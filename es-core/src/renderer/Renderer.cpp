@@ -23,6 +23,9 @@ GLuint vbo = 0;
 
 glm::mat4 modelView(1.0f);
 
+// between initDrawing and deinitDrawing: a context exists and the GL functions are loaded
+bool ready = false;
+
 void applyBlend(BlendMode blend)
 {
 	switch(blend)
@@ -37,7 +40,7 @@ void applyBlend(BlendMode blend)
 // one glDrawArrays per call, in call order (no batching yet)
 void draw(GLenum primitive, std::span<const Vertex> vertices, TextureHandle texture, BlendMode blend)
 {
-	if(vertices.empty())
+	if(vertices.empty() || !ready)
 		return;
 
 	const Shader& shader = texture != 0 ? textureShader : colorShader;
@@ -113,11 +116,18 @@ bool initDrawing(glm::ivec2 screenSize)
 
 	clipStack = {};
 	applyScissor();
+	ready = true;
 	return true;
+}
+
+bool isReady()
+{
+	return ready;
 }
 
 void deinitDrawing()
 {
+	ready = false;
 	if(vbo != 0)
 		glDeleteBuffers(1, &vbo);
 	if(vao != 0)
