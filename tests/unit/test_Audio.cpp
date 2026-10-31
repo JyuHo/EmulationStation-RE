@@ -20,7 +20,7 @@ namespace {
 
 // 0.2 s of 440 Hz, 22050 Hz mono 8-bit (also a theme sound of the capture fixture)
 const std::string kBeep = ES_TEST_DATA_DIR "/capture/themes/capture/sounds/beep.wav";
-constexpr unsigned int kBeepFrames = 4410;
+
 
 struct AudioFixture
 {
