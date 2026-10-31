@@ -77,9 +77,11 @@ add_subdirectory(es-core)
 add_subdirectory(es-app)
 
 # --- Internationalisation (phase 10) ---
-set(ES_I18N_SOURCES
-	${CMAKE_CURRENT_SOURCE_DIR}/es-core/src
-	${CMAKE_CURRENT_SOURCE_DIR}/es-app/src
+file(GLOB_RECURSE ES_I18N_SOURCES
+	${CMAKE_CURRENT_SOURCE_DIR}/es-core/src/*.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/es-core/src/*.h
+	${CMAKE_CURRENT_SOURCE_DIR}/es-app/src/*.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/es-app/src/*.h
 )
 
 add_custom_target(es-update-pot
