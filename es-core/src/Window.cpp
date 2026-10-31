@@ -175,8 +175,7 @@ void Window::update(int deltaTime)
 			ss << "\nVRAM: " << totalVramUsageMb << "mb (texs: " << textureVramUsageMb
 			   << "mb, fonts: " << fontVramUsageMb << "mb)";
 
-			mFrameDataText =
-				std::unique_ptr<TextCache>(mDefaultFonts.at(1)->buildTextCache(ss.str(), 50.f, 50.f, 0xFF00FFFF));
+			mFrameDataText = mDefaultFonts.at(1)->buildTextCache(ss.str(), 50.f, 50.f, 0xFF00FFFF);
 		}
 
 		mFrameTimeElapsed = 0;
@@ -256,12 +255,11 @@ void Window::renderLoadingScreen()
 	splash.render(trans);
 
 	auto& font = mDefaultFonts.at(1);
-	TextCache* cache = font->buildTextCache("LOADING...", 0, 0, 0x656565FF);
+	const auto cache = font->buildTextCache("LOADING...", 0, 0, 0x656565FF);
 	trans = trans.translate(Eigen::Vector3f(round((Renderer::getScreenWidth() - cache->metrics.size.x()) / 2.0f),
 		round(Renderer::getScreenHeight() * 0.835f), 0.0f));
 	Renderer::setMatrix(trans);
-	font->renderTextCache(cache);
-	delete cache;
+	font->renderTextCache(cache.get());
 
 	Renderer::swapBuffers();
 }

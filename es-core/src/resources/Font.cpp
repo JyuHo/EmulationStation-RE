@@ -719,8 +719,8 @@ inline float font_round(float v)
 	return round(v);
 }
 
-TextCache* Font::buildTextCache(const std::string& text, Eigen::Vector2f offset, unsigned int color, float xLen,
-	Alignment alignment, float lineSpacing)
+std::unique_ptr<TextCache> Font::buildTextCache(const std::string& text, Eigen::Vector2f offset, unsigned int color,
+	float xLen, Alignment alignment, float lineSpacing)
 {
 	float x = offset[0] + (xLen != 0 ? getNewlineStartOffset(text, 0, xLen, alignment) : 0);
 
@@ -794,7 +794,7 @@ TextCache* Font::buildTextCache(const std::string& text, Eigen::Vector2f offset,
 
 	//TextCache::CacheMetrics metrics = { sizeText(text, lineSpacing) };
 
-	TextCache* cache = std::make_unique<TextCache>().release();
+	auto cache = std::make_unique<TextCache>();
 	cache->vertexLists.resize(vertMap.size());
 	cache->metrics = {sizeText(text, lineSpacing)};
 
@@ -815,7 +815,8 @@ TextCache* Font::buildTextCache(const std::string& text, Eigen::Vector2f offset,
 	return cache;
 }
 
-TextCache* Font::buildTextCache(const std::string& text, float offsetX, float offsetY, unsigned int color)
+std::unique_ptr<TextCache> Font::buildTextCache(
+	const std::string& text, float offsetX, float offsetY, unsigned int color)
 {
 	return buildTextCache(text, Eigen::Vector2f(offsetX, offsetY), color, 0.0f);
 }

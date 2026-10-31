@@ -23,8 +23,8 @@
 | 3.A — Module XDG `es::paths` | **terminée** : tous les chemins, migration, `--home`, tests, étape CI | #3, #25 |
 | 3.B — `std::filesystem` | **fusionnée** | #4 |
 | 3.C — `std::chrono`, Assign, Variant, Locale ; Boost supprimé | **fusionnée** (risque de locale numérique, voir 0.2) | #5 |
-| 3.D — Propriété mémoire (`unique_ptr`) | **partielle** : 18 modules faits, singletons restants | #6–#23 |
-| 3.E — Finitions de la phase 3 (issues de l'audit) | **en cours** : XDG fait (#25) ; locale, `asan`, nettoyage à faire | #25 |
+| 3.D — Propriété mémoire (`unique_ptr`) | **terminée** pour cette phase (reste : arbre `FileData`/`SystemData`, `delete this` des GUI) | #6–#23, #26, #27 |
+| 3.E — Finitions de la phase 3 (issues de l'audit) | **en cours** : XDG (#25) et job `asan` (#26) faits ; locale et nettoyage à faire | #25, #26 |
 | 4 à 12 | à faire | — |
 
 Toutes les PR ont été fusionnées par **merge commit** : le commit de reformatage
@@ -63,15 +63,20 @@ de chaque point est dans le plan, section « 3.E Finitions de la phase 3 ».
    sous `fr_FR`, `atof("0.5")` (thèmes, `MetaData`) et `stof` (`RatingComponent`) lisent la
    virgule comme séparateur décimal. Remets `LC_NUMERIC` à `"C"` et passe à
    `std::from_chars`, avec un test sous `fr_FR.UTF-8`.
-3. **`ci/asan`** — job CI avec le preset `asan` (tests + test de fumée).
+3. ~~`ci/asan`~~ — fait (PR #26).
 4. **`chore/remove-windows-leftovers`** — `EmulationStation.rc`, `EmulationStation.aps`,
    `data/es_icon.ico`, blocs `#ifdef WIN32`/GLES restants.
 5. Ensuite seulement : **phase 4** (Eigen → glm), branche `modernize/phase-4a-…`.
 
-Le reliquat de 3.D (singletons `InputManager`, `AudioManager`, `ResourceManager`,
-`VolumeControl`, `ViewController`, `TextureResource`, `Font`, `InputConfig` ; environ
-36 `new` et 70 `delete` nus) n'a plus de série dédiée : traite-le quand une phase réécrit
-le module (5 pour les entrées et l'audio, 6 pour les textures et les polices).
+Reliquat de 3.D, sans série dédiée : traite-le quand une phase réécrit le module.
+- `new` restants : uniquement dans des pointeurs intelligents pour des constructeurs privés
+  (singletons `InputManager`, `AudioManager`, `ResourceManager`, `VolumeControl`,
+  `Settings`, `ViewController`, fabriques de `Font`, `TextureResource`, `Sound`) et
+  `AsyncReqComponent` (qui se détruit lui-même).
+- Arbre `FileData` (enfants en `FileData*`) et `SystemData::sSystemVector` : propriété
+  brute, utilisée partout. À reprendre avec la phase 11 (collections) ou une PR dédiée.
+- 36 `delete this` dans les GUI : fonctionnent (voir 0.3) mais devraient devenir
+  `mWindow->closeGui(this)` ; à faire avec la refonte des menus thémés (phase 11).
 
 Les tests existants sont des **tests de caractérisation** : ils fixent le comportement
 actuel. Tu n'en changes les valeurs attendues que pour un changement de comportement
@@ -103,6 +108,19 @@ voulu, expliqué dans la PR.
   vrai `$HOME` et la migration est sautée.
 - **Étape CI « No hardcoded paths »** : elle cherche aussi dans les commentaires et les
   messages ; écris `$HOME/…` plutôt que `/home/…` dans un exemple.
+- **Propriété des GUI** : `Window` possède les GUI empilées (`pushGui(unique_ptr)`), mais
+  elles se ferment encore avec `delete this`. `Window::removeGui` **détache sans
+  supprimer** (son appelant est `~GuiComponent`). Ne le change pas sans traiter tous les
+  `delete this` : #6 l'avait fait et chaque fermeture de menu libérait deux fois la
+  mémoire. `tests/unit/test_Window.cpp` couvre ce cas.
+- **`GuiComponent` n'est plus copiable** (il possède ses animations en `unique_ptr`) :
+  stocke les composants dans des `unique_ptr` (ex. `ImageGridComponent::mImages`).
+- **Animations** : le slot est vidé **avant** la destruction du contrôleur, car son
+  `finishedCallback` peut lancer une nouvelle animation dans le même slot ou supprimer le
+  composant.
+- **Navigation scriptée** : le test de fumée ne fait que démarrer et arrêter ES. Pour
+  tester les menus sans écran : `es_input.cfg` clavier dans `ES_HOME`, puis `xdotool key
+  F1 Escape …` sous `xvfb-run`, avec le preset `asan`.
 - **Fusion des PR** : par **merge commit** (pas squash), sinon le hash de
   `.git-blame-ignore-revs` devient invalide et l'historique des étapes est perdu.
 - **Logs** : format `YYYY-MM-DD HH:MM:SS.mmm [LEVEL] message`. Le test de fumée échoue

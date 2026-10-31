@@ -16,15 +16,15 @@ class InputManager
 private:
 	InputManager();
 
-	static InputManager* mInstance;
+	static std::unique_ptr<InputManager> sInstance;
 
 	static const int DEADZONE = 23000;
 
 	void loadDefaultKBConfig();
 
 	std::map<SDL_JoystickID, SDL_Joystick*> mJoysticks;
-	std::map<SDL_JoystickID, InputConfig*> mInputConfigs;
-	InputConfig* mKeyboardInputConfig;
+	std::map<SDL_JoystickID, std::unique_ptr<InputConfig>> mInputConfigs;
+	std::unique_ptr<InputConfig> mKeyboardInputConfig;
 
 	std::map<SDL_JoystickID, std::unique_ptr<int[]>> mPrevAxisValues;
 

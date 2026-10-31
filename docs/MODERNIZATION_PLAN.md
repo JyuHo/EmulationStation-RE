@@ -14,7 +14,7 @@
 |------:|-------|-----------|----------------|
 | 1 | Build moderne : CMake 3.25+, C++23, presets, CI Arch ; FreeImage → stb_image + libwebp | — | S (fait, PR #1) |
 | 2 | Hygiène C++23 et outillage (clang-format, clang-tidy, tests, logs) | 1 | M (fait, PR #2) |
-| 3 | Suppression de Boost + module de chemins **XDG** (std::filesystem, std::chrono, std::variant) | 2 | M (**en cours** : 3.A, 3.B, 3.C faits ; 3.D partiel ; 3.E en cours) |
+| 3 | Suppression de Boost + module de chemins **XDG** (std::filesystem, std::chrono, std::variant) | 2 | M (**en cours** : 3.A à 3.D faits ; 3.E en cours) |
 | 4 | Remplacement d'Eigen par une petite bibliothèque mathématique (glm) | 2 | M |
 | 5 | Migration SDL2 → SDL3 (fenêtre, événements, manettes, audio) | 3, 4 | L |
 | 6 | Nouveau moteur de rendu OpenGL 3.3 core à shaders | 5 | L |
@@ -352,15 +352,17 @@ Jalons livrés, une PR par module :
 - #22 `Font` : `buildTextCache` `make_unique`
 - #23 `GuiComponent` animation + `Sound` buffer : `make_unique`/`unique_ptr`
 
-Reste (constructeurs privés/protégés ou propriété complexe) : singletons
-`InputManager`, `AudioManager`, `ResourceManager`, `Sound`, `VolumeControl`,
-`ViewController`, `TextureResource`, `Font` (constructeur), `ThemeData` extras,
-`InputManager` (`InputConfig`, `SDL_Event`). Environ 36 `new` et 70 `delete` nus
-restent (audit du 31/10/2026). Ils seront traités dans les phases qui réécrivent ces
-modules (5 pour les entrées et l'audio, 6 pour les textures et les polices) plutôt que
-par une série dédiée ; le code nouveau reste sans `new`/`delete` nu. Pour ce type de
-travail, regrouper plusieurs modules voisins dans une même PR (< ~1 500 lignes) au lieu
-d'une PR par fichier.
+- #26 **correctif** : `Window::removeGui` supprimait une seconde fois une GUI fermée par
+  `delete this` (régression de #6) ; job CI `asan`
+- #27 fin de série : `InputConfig` possédés par `InputManager`, `SDL_Event` sur la pile
+  (fuite à chaque F4 / « Quitter »), extras de thème, animations de `GuiComponent`
+  (`unique_ptr`, `GuiComponent` devient non copiable), `ImageGridComponent` (copiait des
+  composants), `ViewController::init`, `Font::buildTextCache` renvoie un `unique_ptr`,
+  tampons de `ResourceManager` et `Sound`
+
+Reliquat assumé (voir `PROMPT.md` §0.2) : `new` dans des pointeurs intelligents pour des
+constructeurs privés ; arbre `FileData` et `SystemData::sSystemVector` en pointeurs bruts ;
+36 `delete this` dans les GUI, qui devraient devenir une fermeture par `Window`.
 
 ### État de la phase 3 (audit du 31/10/2026, détails dans [`AUDIT.md`](AUDIT.md))
 
@@ -369,8 +371,8 @@ d'une PR par fichier.
 | 3.A Module XDG | #3, #25 | **Fait** : #3 avait livré le module ; #25 y fait passer tous les chemins et ajoute la migration, `--home`, le préfixe d'installation, fontconfig, les tests et l'étape CI. |
 | 3.B `std::filesystem` | #4 | Fait. |
 | 3.C `std::chrono`, Assign, Variant, Locale | #5 | Fait ; `find_package(Boost)` supprimé. Risque sur la locale numérique, voir 3.E. |
-| 3.D Propriété mémoire | #6 à #23 | Partiel (voir ci-dessus) ; la suite est rattachée aux phases 5 et 6. |
-| 3.E Finitions | #25 | **En cours** : point 1 fait ; points 2 à 4 à faire avant la phase 4. |
+| 3.D Propriété mémoire | #6 à #23, #26, #27 | Fait pour cette phase (voir ci-dessus) ; reliquat listé. |
+| 3.E Finitions | #25, #26 | **En cours** : points 1 et 3 faits ; points 2 et 4 à faire avant la phase 4. |
 
 ### 3.E Finitions de la phase 3 (issues de l'audit)
 

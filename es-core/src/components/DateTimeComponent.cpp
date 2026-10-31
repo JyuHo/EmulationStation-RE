@@ -262,7 +262,7 @@ void DateTimeComponent::updateTextCache()
 	DisplayMode mode = getCurrentDisplayMode();
 	const std::string dispString = mUppercase ? strToUpper(getDisplayString(mode)) : getDisplayString(mode);
 	std::shared_ptr<Font> font = getFont();
-	mTextCache = std::unique_ptr<TextCache>(font->buildTextCache(dispString, 0, 0, mColor));
+	mTextCache = font->buildTextCache(dispString, 0, 0, mColor);
 
 	if(mAutoSize)
 	{

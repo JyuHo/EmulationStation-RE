@@ -356,10 +356,10 @@ const std::shared_ptr<ThemeData>& ThemeData::getDefault()
 	return theme;
 }
 
-std::vector<GuiComponent*> ThemeData::makeExtras(
+std::vector<std::unique_ptr<GuiComponent>> ThemeData::makeExtras(
 	const std::shared_ptr<ThemeData>& theme, const std::string& view, Window* window)
 {
-	std::vector<GuiComponent*> comps;
+	std::vector<std::unique_ptr<GuiComponent>> comps;
 
 	auto viewIt = theme->mViews.find(view);
 	if(viewIt == theme->mViews.end())
@@ -370,36 +370,28 @@ std::vector<GuiComponent*> ThemeData::makeExtras(
 		ThemeElement& elem = viewIt->second.elements.at(*it);
 		if(elem.extra)
 		{
-			GuiComponent* comp = nullptr;
+			std::unique_ptr<GuiComponent> comp;
 			const std::string& t = elem.type;
 			if(t == "image")
-				comp = new ImageComponent(window);
+				comp = std::make_unique<ImageComponent>(window);
 			else if(t == "text")
-				comp = new TextComponent(window);
+				comp = std::make_unique<TextComponent>(window);
+			else
+				continue;
 
 			comp->applyTheme(theme, view, *it, ThemeFlags::ALL);
-			comps.push_back(comp);
+			comps.push_back(std::move(comp));
 		}
 	}
 
 	return comps;
 }
 
-void ThemeExtras::setExtras(const std::vector<GuiComponent*>& extras)
+void ThemeExtras::setExtras(std::vector<std::unique_ptr<GuiComponent>> extras)
 {
-	// delete old extras (if any)
-	for(auto it = mExtras.begin(); it != mExtras.end(); it++)
-		delete *it;
-
-	mExtras = extras;
-	for(auto it = mExtras.begin(); it != mExtras.end(); it++)
-		addChild(*it);
-}
-
-ThemeExtras::~ThemeExtras()
-{
-	for(auto it = mExtras.begin(); it != mExtras.end(); it++)
-		delete *it;
+	mExtras = std::move(extras); // deletes the old extras, which detach themselves from this parent
+	for(auto& extra : mExtras)
+		addChild(extra.get());
 }
 
 std::map<std::string, ThemeSet> ThemeData::getThemeSets()

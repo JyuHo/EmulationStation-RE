@@ -6,9 +6,6 @@
 
 namespace fs = std::filesystem;
 
-auto array_deleter = [](unsigned char* p) {
-	delete[] p;
-};
 auto nop_deleter = [](unsigned char* p) {
 };
 
@@ -60,8 +57,8 @@ ResourceData ResourceManager::loadFile(const std::string& path) const
 	size_t size = (size_t)stream.tellg();
 	stream.seekg(0, stream.beg);
 
-	//supply custom deleter to properly free array
-	std::shared_ptr<unsigned char> data(new unsigned char[size], array_deleter);
+	auto buffer = std::make_shared_for_overwrite<unsigned char[]>(size);
+	std::shared_ptr<unsigned char> data(buffer, buffer.get()); // shares ownership of the whole array
 	stream.read((char*)data.get(), size);
 	stream.close();
 

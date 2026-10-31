@@ -72,20 +72,20 @@ void Sound::init()
 	SDL_BuildAudioCVT(&cvt, wave.format, wave.channels, wave.freq, AUDIO_S16, 2, 44100);
 	//copy data to conversion buffer
 	cvt.len = dlen;
-	cvt.buf = std::make_unique<Uint8[]>(cvt.len * cvt.len_mult).release();
+	auto buffer = std::make_unique<Uint8[]>(cvt.len * cvt.len_mult);
+	cvt.buf = buffer.get();
 	memcpy(cvt.buf, data, dlen);
 	//convert buffer to stereo, 16bit, 44.1kHz
 	if(SDL_ConvertAudio(&cvt) < 0)
 	{
 		LOG(LogError) << "Error converting sound \"" << mPath << "\" to 44.1kHz, 16bit, stereo format!\n"
 					  << "	" << SDL_GetError();
-		delete[] cvt.buf;
 	}
 	else
 	{
 		//worked. set up member data
 		SDL_LockAudio();
-		mSampleData.reset(cvt.buf);
+		mSampleData = std::move(buffer);
 		mSampleLength = cvt.len_cvt;
 		mSamplePos = 0;
 		mSampleFormat.channels = 2;

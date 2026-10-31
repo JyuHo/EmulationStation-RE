@@ -70,13 +70,12 @@ class ThemeExtras : public GuiComponent
 {
 public:
 	ThemeExtras(Window* window) : GuiComponent(window){};
-	~ThemeExtras() override;
 
-	// will take ownership of the components within extras (delete them in destructor or when setExtras is called again)
-	void setExtras(const std::vector<GuiComponent*>& extras);
+	// replaces (and deletes) the previous extras
+	void setExtras(std::vector<std::unique_ptr<GuiComponent>> extras);
 
 private:
-	std::vector<GuiComponent*> mExtras;
+	std::vector<std::unique_ptr<GuiComponent>> mExtras;
 };
 
 struct ThemeSet
@@ -131,7 +130,7 @@ public:
 	const ThemeElement* getElement(
 		const std::string& view, const std::string& element, const std::string& expectedType) const;
 
-	static std::vector<GuiComponent*> makeExtras(
+	static std::vector<std::unique_ptr<GuiComponent>> makeExtras(
 		const std::shared_ptr<ThemeData>& theme, const std::string& view, Window* window);
 
 	static const std::shared_ptr<ThemeData>& getDefault();

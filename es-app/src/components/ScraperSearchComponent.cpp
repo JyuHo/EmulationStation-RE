@@ -321,7 +321,7 @@ void ScraperSearchComponent::updateInfoPane()
 		const std::string& thumb = res.thumbnailUrl.empty() ? res.imageUrl : res.thumbnailUrl;
 		if(!thumb.empty())
 		{
-			mThumbnailReq = std::unique_ptr<HttpReq>(new HttpReq(thumb));
+			mThumbnailReq = std::make_unique<HttpReq>(thumb);
 		}
 		else
 		{

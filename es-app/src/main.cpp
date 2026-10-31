@@ -255,7 +255,6 @@ int main(int argc, char* argv[])
 
 	Window window;
 	ViewController::init(&window);
-	window.pushGui(std::unique_ptr<GuiComponent>(ViewController::get()));
 
 	if(!scrape_cmdline)
 	{
@@ -287,9 +286,9 @@ int main(int argc, char* argv[])
 
 		// we can't handle es_systems.cfg file problems inside ES itself, so display the error message then quit
 		window.pushGui(std::make_unique<GuiMsgBox>(&window, errorMsg, "QUIT", [] {
-			SDL_Event* quit = new SDL_Event();
-			quit->type = SDL_QUIT;
-			SDL_PushEvent(quit);
+			SDL_Event quit{};
+			quit.type = SDL_QUIT;
+			SDL_PushEvent(&quit); // SDL copies the event
 		}));
 	}
 
