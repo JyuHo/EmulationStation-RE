@@ -19,6 +19,8 @@ class AudioManager
 
 public:
 	static std::shared_ptr<AudioManager>& getInstance();
+	// Destroys the instance, if any (closes the device and the sounds' streams).
+	static void shutdown();
 
 	void init();
 	void deinit();

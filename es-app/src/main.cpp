@@ -331,7 +331,7 @@ int main(int argc, char* argv[])
 	MusicPlayer::getInstance().deinit();
 	// before window.deinit(), whose SDL_Quit() frees the audio streams that the sounds
 	// still point to (the AudioManager destructor runs later, at static destruction)
-	AudioManager::getInstance()->deinit();
+	AudioManager::shutdown();
 	window.deinit();
 
 	SystemData::deleteSystems();
