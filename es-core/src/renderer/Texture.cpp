@@ -64,6 +64,9 @@ void updateTexture(TextureHandle texture, TextureFormat format, glm::ivec2 pos, 
 	if(texture == 0 || !isReady())
 		return;
 
+	// pending vertices may sample the old content
+	flushBatch();
+
 	const FormatInfo info = formatInfo(format);
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glTexSubImage2D(GL_TEXTURE_2D, 0, pos.x, pos.y, size.x, size.y, info.format, GL_UNSIGNED_BYTE, data);
@@ -74,6 +77,9 @@ void destroyTexture(TextureHandle texture)
 {
 	if(texture == 0 || !isReady())
 		return;
+
+	// pending vertices may reference it
+	flushBatch();
 
 	const GLuint id = texture;
 	glDeleteTextures(1, &id);

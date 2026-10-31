@@ -14,4 +14,9 @@ void deinitDrawing();
 // Window and the resources exist before the first init (Window's constructor loads images).
 bool isReady();
 
+// submits the pending batch (before a texture it may use changes or goes away)
+void flushBatch();
+// before the swap: submits the pending batch and closes the frame's draw call count
+void endFrame();
+
 } // namespace Renderer

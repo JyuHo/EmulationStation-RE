@@ -175,7 +175,19 @@ void Window::update(int deltaTime)
 			ss << "\nVRAM: " << totalVramUsageMb << "mb (texs: " << textureVramUsageMb
 			   << "mb, fonts: " << fontVramUsageMb << "mb)";
 
+			const Renderer::DrawCallCount draws = Renderer::getDrawCallCount();
+			ss << "\nDraws: " << draws.requested << " (" << draws.submitted << " glDrawArrays)";
+
 			mFrameDataText = mDefaultFonts.at(1)->buildTextCache(ss.str(), 50.f, 50.f, 0xFF00FFFF);
+		}
+
+		// draw calls per frame, when they change (--debug)
+		const Renderer::DrawCallCount draws = Renderer::getDrawCallCount();
+		if(!(draws == mLoggedDrawCalls))
+		{
+			Log::write(
+				LogDebug, "Draw calls per frame: {} requested, {} glDrawArrays", draws.requested, draws.submitted);
+			mLoggedDrawCalls = draws;
 		}
 
 		mFrameTimeElapsed = 0;

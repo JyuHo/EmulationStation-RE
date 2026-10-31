@@ -1,6 +1,7 @@
 #include "renderer/Renderer.h"
 
 #include "Log.h"
+#include "renderer/Batcher.h"
 #include "renderer/GL.h"
 #include "renderer/Internal.h"
 #include "renderer/Shader.h"
@@ -37,28 +38,45 @@ void applyBlend(BlendMode blend)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-// one glDrawArrays per call, in call order (no batching yet)
-void draw(GLenum primitive, std::span<const Vertex> vertices, TextureHandle texture, BlendMode blend)
+// in the current frame, then in the last complete one
+DrawCallCount drawCalls;
+DrawCallCount lastFrameDrawCalls;
+
+GLenum toGL(Primitive primitive)
 {
-	if(vertices.empty() || !ready)
-		return;
+	return primitive == Primitive::Lines ? GL_LINES : GL_TRIANGLES;
+}
 
-	const Shader& shader = texture != 0 ? textureShader : colorShader;
+// one glDrawArrays per batch; the vertices are already transformed (uModelView is identity)
+void submit(const BatchState& state, std::span<const Vertex> vertices)
+{
+	const Shader& shader = state.texture != 0 ? textureShader : colorShader;
 	shader.use();
-	// the last matrix set stays valid until the next setMatrix (IList relies on it)
-	shader.setModelView(modelView);
 
-	if(texture != 0)
-		glBindTexture(GL_TEXTURE_2D, texture);
+	if(state.texture != 0)
+		glBindTexture(GL_TEXTURE_2D, state.texture);
 
-	applyBlend(blend);
+	applyBlend(state.blend);
 
 	// orphan the previous storage, then upload
 	const GLsizeiptr bytes = static_cast<GLsizeiptr>(vertices.size_bytes());
 	glBufferData(GL_ARRAY_BUFFER, bytes, nullptr, GL_STREAM_DRAW);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, bytes, vertices.data());
 
-	glDrawArrays(primitive, 0, static_cast<GLsizei>(vertices.size()));
+	glDrawArrays(toGL(state.primitive), 0, static_cast<GLsizei>(vertices.size()));
+	++drawCalls.submitted;
+}
+
+Batcher batcher(submit);
+
+void draw(Primitive primitive, std::span<const Vertex> vertices, TextureHandle texture, BlendMode blend)
+{
+	if(vertices.empty() || !ready)
+		return;
+
+	++drawCalls.requested;
+	// the last matrix set stays valid until the next setMatrix (IList relies on it)
+	batcher.add({primitive, texture, blend}, vertices, modelView);
 }
 
 void applyScissor()
@@ -88,12 +106,17 @@ bool initDrawing(glm::ivec2 screenSize)
 	// same projection as the former glOrtho(0, w, h, 0, -1, 1)
 	const glm::mat4 projection =
 		glm::ortho(0.0f, static_cast<float>(screenSize.x), static_cast<float>(screenSize.y), 0.0f, -1.0f, 1.0f);
+	// the batcher transforms the vertices on the CPU: the model-view uniform stays identity
 	for(const Shader* shader : {&textureShader, &colorShader})
 	{
 		shader->use();
 		shader->setProjection(projection);
+		shader->setModelView(glm::mat4(1.0f));
 	}
 	modelView = glm::mat4(1.0f);
+	batcher.clear();
+	drawCalls = {};
+	lastFrameDrawCalls = {};
 
 	// a VAO is mandatory in core: without one glDrawArrays draws nothing
 	glGenVertexArrays(1, &vao);
@@ -125,8 +148,24 @@ bool isReady()
 	return ready;
 }
 
+void flushBatch()
+{
+	batcher.flush();
+}
+
+void endFrame()
+{
+	batcher.flush();
+	lastFrameDrawCalls = drawCalls;
+	drawCalls = {};
+}
+
 void deinitDrawing()
 {
+	// what is pending is drawn while the context still exists
+	if(ready)
+		batcher.flush();
+	batcher.clear();
 	ready = false;
 	if(vbo != 0)
 		glDeleteBuffers(1, &vbo);
@@ -175,6 +214,8 @@ glm::ivec4 computeClipRect(
 
 void pushClipRect(glm::ivec2 pos, glm::ivec2 dim)
 {
+	// glScissor applies when glDrawArrays runs: what was added under the previous clip goes now
+	batcher.flush();
 	const std::optional<glm::ivec4> parent =
 		clipStack.empty() ? std::nullopt : std::optional<glm::ivec4>(clipStack.top());
 	clipStack.push(computeClipRect(
@@ -190,6 +231,7 @@ void popClipRect()
 		return;
 	}
 
+	batcher.flush();
 	clipStack.pop();
 	applyScissor();
 }
@@ -221,18 +263,23 @@ void drawRect(int x, int y, int w, int h, unsigned int color, BlendMode blend)
 		{{left, bottom}, {0.0f, 0.0f}, c},
 		{{right, bottom}, {0.0f, 0.0f}, c},
 	};
-	draw(GL_TRIANGLES, vertices, 0, blend);
+	draw(Primitive::Triangles, vertices, 0, blend);
 }
 
 void drawTriangles(std::span<const Vertex> vertices, TextureHandle texture, BlendMode blend)
 {
-	draw(GL_TRIANGLES, vertices, texture, blend);
+	draw(Primitive::Triangles, vertices, texture, blend);
 }
 
 void drawLines(std::span<const Vertex> vertices, BlendMode blend)
 {
 	// width 1 (glLineWidth > 1 is deprecated in core)
-	draw(GL_LINES, vertices, 0, blend);
+	draw(Primitive::Lines, vertices, 0, blend);
+}
+
+DrawCallCount getDrawCallCount()
+{
+	return lastFrameDrawCalls;
 }
 
 } // namespace Renderer
