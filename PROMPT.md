@@ -28,7 +28,7 @@
 | 3.E — Finitions de la phase 3 (issues de l'audit) | **terminée** : XDG (#25), job `asan` (#26), locale numérique et restes Windows (#28) | #25, #26, #28 |
 | 4 — Eigen → glm | **terminée** : glm, `math/Math.h`, captures identiques au pixel près, Eigen retiré ; correctif des chemins `./` des thèmes | #30, #31, #32 |
 | 5 — SDL2 → SDL3 | **terminée** : SDL3 partout, manettes reconnues par `SDL_Gamepad` avec configuration par défaut, captures identiques au pixel près ; testée par le propriétaire avec une vraie manette | #33, #34, #35 (#37) |
-| **6 — OpenGL 3.3 core** | **fusionnée** | #40 |
+| **6 — OpenGL 3.3 core** | **en cours** : contexte 3.3 core (#40, rendu faux) ; corrigé et remis aux normes de la section 13 (module `renderer/`, glad, API sans types GL, tests) ; restent le regroupement (6c) et la clôture (6d) | #40, en cours |
 | 7 à 12 | à faire | — |
 
 Toutes les PR ont été fusionnées par **merge commit** : le commit de reformatage
@@ -85,9 +85,19 @@ Ce qui existe et que tu dois **réutiliser** (ne le recrée pas) :
   dans le conteneur pour `test_Locale`. Boost et Eigen ne sont plus installés. Job
   « Screenshots vs base branch » (PR seulement) : captures de la base et de la PR comparées.
 
-### 0.2 Point de reprise : phase 7 (Images)
+### 0.2 Point de reprise : phase 6 (OpenGL 3.3 core), regroupement puis clôture
+**Audit du 31/10/2026.** La PR #40 (un seul commit, sans le découpage 6a–6d) est passée en
+3.3 core mais avec les couleurs des sommets dans le mauvais ordre d'octets et les
+séparateurs de `ComponentGrid` en blanc : les 8 captures différaient de la phase 5 (2 000 à
+50 000 pixels) et elle a été fusionnée avec l'étiquette `rendu-modifié` sans explication. Elle
+gardait aussi les types GL dans les en-têtes publics, `GL_GLEXT_PROTOTYPES` au lieu de glad,
+`GL_KHR_debug` seulement en Debug, et un `glGetString` dans `main.cpp`. La PR de correction
+reprend 6a et 6b (section 13) : il reste **6c** (`Batcher`) et **6d** (taille de la fenêtre,
+mesure de performance, documentation). La phase 7 n'a pas commencé (#41 n'ajoute que la
+dépendance `libwebpdemux`).
+
 La phase 5 est terminée (PR #33, #34, #37) ; la manette réelle a été validée par le
-propriétaire le 31/10/2026. Commence la phase 6 : **la section 13 de ce fichier est son
+propriétaire le 31/10/2026. Pour la phase 6 : **la section 13 de ce fichier est son
 cahier des charges complet** (inventaire chiffré, architecture, contexte SDL3, shaders,
 découpage en quatre PR 6a à 6d, vérifications, captures et étiquette `rendu-modifié`,
 pièges, critères d'acceptation, fusion des PR empilées). Lis-la en entier, puis le plan,
