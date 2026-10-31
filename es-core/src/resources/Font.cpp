@@ -381,6 +381,8 @@ std::vector<std::string> getFallbackFontPaths()
 		FcPatternDestroy(match);
 	}
 
+	// releases fontconfig's caches; nothing else in the program uses it
+	FcFini();
 	return fontPaths;
 }
 
