@@ -42,6 +42,7 @@ void Settings::setDefaults()
 	mBoolMap["VSync"] = true;
 
 	mBoolMap["EnableSounds"] = true;
+	mBoolMap["VideoAudio"] = true; // sound track of the videos
 	mBoolMap["BackgroundMusic"] = true;
 	mBoolMap["ShowHelpPrompts"] = true;
 	mBoolMap["ScrapeRatings"] = true;

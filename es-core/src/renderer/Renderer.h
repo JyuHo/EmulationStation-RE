@@ -13,6 +13,7 @@
 
 #include <bit>
 #include <cstdint>
+#include <array>
 #include <optional>
 #include <span>
 
@@ -47,10 +48,12 @@ enum class BlendMode
 };
 
 // Alpha8: one channel, sampled as (1, 1, 1, a) (font atlases)
+// Luma8: one channel, sampled as is (planes of a YUV video frame, for drawYuv)
 enum class TextureFormat
 {
 	RGBA8,
-	Alpha8
+	Alpha8,
+	Luma8
 };
 
 enum class TextureFilter
@@ -99,6 +102,9 @@ void drawRect(float x, float y, float w, float h, unsigned int color, BlendMode 
 void drawRect(int x, int y, int w, int h, unsigned int color, BlendMode blend = BlendMode::Alpha);
 void drawTriangles(std::span<const Vertex> vertices, TextureHandle texture, BlendMode blend = BlendMode::Alpha);
 void drawLines(std::span<const Vertex> vertices, BlendMode blend = BlendMode::Alpha);
+// Video frame: three Luma8 textures (Y, U, V of a YUV 4:2:0 picture, BT.601 limited range)
+// converted to RGB by the shader, multiplied by the vertex colour. Never batched.
+void drawYuv(std::span<const Vertex> vertices, const std::array<TextureHandle, 3>& planes);
 
 // Draws of the last complete frame: `requested` drawRect/drawTriangles/drawLines calls,
 // `submitted` glDrawArrays (consecutive draws with the same texture, blending and primitive

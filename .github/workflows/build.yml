@@ -140,11 +140,9 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          # This job also builds the base branch: libavif is still required there until
-          # the PR that removes it is merged (remove it from this list afterwards).
           pacman -Syu --noconfirm --needed \
             git cmake ninja \
-            sdl3 freetype2 fontconfig glm curl alsa-lib libglvnd mesa libwebp libavif ffmpeg \
+            sdl3 freetype2 fontconfig glm curl alsa-lib libglvnd mesa libwebp ffmpeg \
             xorg-server-xvfb imagemagick xdotool
 
       - uses: actions/checkout@v5

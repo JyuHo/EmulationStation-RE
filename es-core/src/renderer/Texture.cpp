@@ -16,7 +16,8 @@ FormatInfo formatInfo(TextureFormat format)
 {
 	switch(format)
 	{
-	case TextureFormat::Alpha8: return {GL_R8, GL_RED};
+	case TextureFormat::Alpha8:
+	case TextureFormat::Luma8: return {GL_R8, GL_RED};
 	case TextureFormat::RGBA8: break;
 	}
 	return {GL_RGBA8, GL_RGBA};

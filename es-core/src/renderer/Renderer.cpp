@@ -19,6 +19,7 @@ std::stack<glm::ivec4> clipStack;
 
 Shader textureShader; // images, fonts
 Shader colorShader;	  // rectangles, lines
+Shader yuvShader;	  // video frames
 GLuint vao = 0;
 GLuint vbo = 0;
 
@@ -100,7 +101,8 @@ void applyScissor()
 bool initDrawing(glm::ivec2 screenSize)
 {
 	if(!textureShader.build(Shaders::vertex, Shaders::fragmentTexture) ||
-		!colorShader.build(Shaders::vertex, Shaders::fragmentColor))
+		!colorShader.build(Shaders::vertex, Shaders::fragmentColor) ||
+		!yuvShader.build(Shaders::vertex, Shaders::fragmentYuv))
 	{
 		deinitDrawing();
 		return false;
@@ -110,12 +112,16 @@ bool initDrawing(glm::ivec2 screenSize)
 	const glm::mat4 projection =
 		glm::ortho(0.0f, static_cast<float>(screenSize.x), static_cast<float>(screenSize.y), 0.0f, -1.0f, 1.0f);
 	// the batcher transforms the vertices on the CPU: the model-view uniform stays identity
-	for(const Shader* shader : {&textureShader, &colorShader})
+	for(const Shader* shader : {&textureShader, &colorShader, &yuvShader})
 	{
 		shader->use();
 		shader->setProjection(projection);
 		shader->setModelView(glm::mat4(1.0f));
 	}
+	yuvShader.use();
+	glUniform1i(glGetUniformLocation(yuvShader.id(), "uY"), 0);
+	glUniform1i(glGetUniformLocation(yuvShader.id(), "uU"), 1);
+	glUniform1i(glGetUniformLocation(yuvShader.id(), "uV"), 2);
 	modelView = glm::mat4(1.0f);
 	logicalSize = screenSize;
 	pixelSize = screenSize;
@@ -191,6 +197,7 @@ void deinitDrawing()
 	vao = 0;
 	textureShader.destroy();
 	colorShader.destroy();
+	yuvShader.destroy();
 }
 
 glm::ivec4 computeClipRect(
@@ -307,6 +314,31 @@ void drawLines(std::span<const Vertex> vertices, BlendMode blend)
 {
 	// width 1 (glLineWidth > 1 is deprecated in core)
 	draw(Primitive::Lines, vertices, 0, blend);
+}
+
+void drawYuv(std::span<const Vertex> vertices, const std::array<TextureHandle, 3>& planes)
+{
+	if(vertices.empty() || !ready)
+		return;
+
+	// drawn in order with the batched draws around it
+	batcher.flush();
+	++drawCalls.requested;
+
+	yuvShader.use();
+	yuvShader.setModelView(modelView);
+	for(int unit = 2; unit >= 0; unit--)
+	{
+		glActiveTexture(GL_TEXTURE0 + unit);
+		glBindTexture(GL_TEXTURE_2D, planes[unit]);
+	}
+	applyBlend(BlendMode::Alpha);
+
+	const GLsizeiptr bytes = static_cast<GLsizeiptr>(vertices.size_bytes());
+	glBufferData(GL_ARRAY_BUFFER, bytes, nullptr, GL_STREAM_DRAW);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, bytes, vertices.data());
+	glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(vertices.size()));
+	++drawCalls.submitted;
 }
 
 DrawCallCount getDrawCallCount()

@@ -815,6 +815,22 @@ découpler de FFmpeg : `dr_wav`/`dr_mp3`/`stb_vorbis` vendored.
 - Vidéo H.264 720p et H.265 1080p fluides, son synchronisé (< 80 ms d'écart).
 - Navigation rapide sans fuite (vérifier avec le preset `asan`) ni blocage de l'interface.
 
+### Écarts constatés
+- **#54, #55** : `VideoComponent` branché nulle part, décodage sur le thread principal dans
+  `update()`, horloge fondée sur la fréquence d'images, conversion RGBA avec un
+  `SwsContext` recréé à chaque image, `pause()` qui suspendait tout le périphérique audio
+  (sons de navigation compris), `libswscale` utilisée sans être liée, aucun test.
+- **9a** (reprise) : `VideoPlayer` à trois `std::jthread` (démultiplexage, vidéo, audio),
+  files de paquets bornées (64), au plus 4 images décodées, horloge maîtresse = son joué
+  (`VideoAudioSink`, `SdlAudioSink` sur le périphérique de l'`AudioManager`), images en
+  retard abandonnées, arrêt par `std::stop_token`. Rendu : trois textures `Luma8` et
+  `Renderer::drawYuv` (shader BT.601). Option `VideoAudio`. Tests : `test_VideoPlayer.cpp`
+  (fixtures `tests/data/video/`). TSan signale des courses **internes à FFmpeg** avec le
+  décodage multithread (`thread_count = 0`), absentes avec un seul thread : FFmpeg n'est
+  pas instrumenté, ce sont des faux positifs connus.
+- Restent : 9b (élément de thème `video`, champ `<video>`, délai, image de remplacement),
+  9c (économiseur « clips de jeux »), VA-API.
+
 ---
 
 ## Phase 10 — Internationalisation (gettext .pot/.po/.mo)
