@@ -1,4 +1,5 @@
 #include "GuiComponent.h"
+#include <memory>
 #include <cassert>
 #include "Window.h"
 #include "Log.h"
@@ -210,7 +211,7 @@ void GuiComponent::setAnimation(
 	assert(slot < MAX_ANIMATIONS);
 
 	AnimationController* oldAnim = mAnimationMap[slot];
-	mAnimationMap[slot] = new AnimationController(std::move(anim), delay, finishedCallback, reverse);
+	mAnimationMap[slot] = std::make_unique<AnimationController>(std::move(anim), delay, finishedCallback, reverse).release();
 
 	if(oldAnim)
 		delete oldAnim;
