@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include "renderer/Renderer.h"
 #include "AudioManager.h"
+#include "MusicPlayer.h"
 #include "VolumeControl.h"
 #include "Log.h"
 #include "InputManager.h"
@@ -100,6 +101,7 @@ void SystemData::launchGame(Window* window, FileData* game)
 {
 	LOG(LogInfo) << "Attempting to launch game...";
 
+	MusicPlayer::getInstance().deinit();
 	AudioManager::getInstance()->deinit();
 	VolumeControl::getInstance()->deinit();
 	window->deinit();
@@ -127,6 +129,8 @@ void SystemData::launchGame(Window* window, FileData* game)
 	window->init();
 	VolumeControl::getInstance()->init();
 	AudioManager::getInstance()->init();
+	MusicPlayer::getInstance().init();
+	MusicPlayer::getInstance().play();
 	window->normalizeNextUpdate();
 
 	//update number of times the game has been launched

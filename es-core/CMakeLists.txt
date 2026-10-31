@@ -8,6 +8,7 @@ set(CORE_HEADERS
 	src/InputConfig.h
 	src/InputManager.h
 	src/Log.h
+	src/MusicPlayer.h
 	src/math/Math.h
 	src/platform.h
 	src/utils/Paths.h
@@ -73,6 +74,7 @@ set(CORE_SOURCES
 	src/InputConfig.cpp
 	src/InputManager.cpp
 	src/Log.cpp
+	src/MusicPlayer.cpp
 	src/math/Math.cpp
 	src/platform.cpp
 	src/utils/Paths.cpp
