@@ -28,7 +28,11 @@
 			<secondaryColor>80C0FFFF</secondaryColor>
 			<selectorColor>C03028FF</selectorColor>
 			<selectedColor>FFFFFFFF</selectedColor>
+			<scrollSound>./sounds/beep.wav</scrollSound>
 		</textlist>
+		<sound name="menuOpen">
+			<path>./sounds/beep.wav</path>
+		</sound>
 	</view>
 	<view name="detailed">
 		<image name="md_image">
