@@ -2,6 +2,7 @@
 #include "SystemData.h"
 #include "pugixml/pugixml.hpp"
 #include <filesystem>
+#include <memory>
 #include "Log.h"
 #include "Settings.h"
 #include "Util.h"
@@ -50,7 +51,7 @@ FileData* findOrCreateFile(SystemData* system, const std::filesystem::path& path
 				return nullptr;
 			}
 
-			FileData* file = new FileData(type, path, system);
+			FileData* file = std::make_unique<FileData>(type, path, system).release();
 			treeNode->addChild(file);
 			return file;
 		}
@@ -66,7 +67,7 @@ FileData* findOrCreateFile(SystemData* system, const std::filesystem::path& path
 			}
 
 			// create missing folder
-			FileData* folder = new FileData(FOLDER, treeNode->getPath().stem() / *path_it, system);
+			FileData* folder = std::make_unique<FileData>(FOLDER, treeNode->getPath().stem() / *path_it, system).release();
 			treeNode->addChild(folder);
 			treeNode = folder;
 		}
