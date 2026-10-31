@@ -25,7 +25,7 @@ jobs:
         run: |
           pacman -Syu --noconfirm --needed \
             git cmake ninja clang \
-            sdl2-compat freetype2 fontconfig eigen glm curl alsa-lib libglvnd mesa libwebp \
+            sdl2-compat freetype2 fontconfig glm curl alsa-lib libglvnd mesa libwebp \
             catch2 xorg-server-xvfb imagemagick xdotool
           # French locale for test_Locale (decimal comma). The Docker image strips
           # locale sources through NoExtract, so reinstall glibc without it first.
@@ -98,7 +98,7 @@ jobs:
         run: |
           pacman -Syu --noconfirm --needed \
             git cmake ninja \
-            sdl2-compat freetype2 fontconfig eigen glm curl alsa-lib libglvnd mesa libwebp \
+            sdl2-compat freetype2 fontconfig glm curl alsa-lib libglvnd mesa libwebp \
             catch2 xorg-server-xvfb
           # French locale for test_Locale (decimal comma). The Docker image strips
           # locale sources through NoExtract, so reinstall glibc without it first.
@@ -119,3 +119,55 @@ jobs:
 
       - name: Smoke test (Xvfb)
         run: tests/smoke/run.sh build/asan/emulationstation 10
+
+  screenshots:
+    # Rendering must not change unless a PR says so: the screens of tests/smoke/capture.sh are
+    # taken with the base branch and with this branch, on the same machine, and compared.
+    # A PR that changes the rendering on purpose carries the "rendu-modifié" label.
+    name: Screenshots vs base branch (gcc)
+    if: github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'rendu-modifié')
+    runs-on: ubuntu-latest
+    container: archlinux:base-devel
+    steps:
+      - name: Install dependencies
+        run: |
+          # eigen: only for base branches from before the glm migration (phase 4)
+          pacman -Syu --noconfirm --needed \
+            git cmake ninja \
+            sdl2-compat freetype2 fontconfig glm eigen curl alsa-lib libglvnd mesa libwebp \
+            xorg-server-xvfb imagemagick xdotool
+
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Build the base branch
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git worktree add "$RUNNER_TEMP/base" "origin/${{ github.base_ref }}"
+          cmake -S "$RUNNER_TEMP/base" -B build-base -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
+          cmake --build build-base --target emulationstation
+
+      - name: Build this branch
+        run: |
+          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
+          cmake --build build --target emulationstation
+
+      - name: Screenshots
+        # this branch's capture script and fixture drive both binaries
+        run: |
+          tests/smoke/capture.sh build-base/emulationstation captures-base
+          tests/smoke/capture.sh build/emulationstation captures-head
+
+      - name: Compare
+        run: tests/smoke/compare.sh captures-base captures-head
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: captures-base-vs-head
+          path: |
+            captures-base
+            captures-head
+          if-no-files-found: ignore

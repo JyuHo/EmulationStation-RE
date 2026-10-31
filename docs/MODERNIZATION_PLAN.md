@@ -451,16 +451,23 @@ vérifier chaque `pretranslate`/`prescale`. Comparer des captures d'écran avant
 
 ### Découpage en PR
 Trois PR : `modernize/phase-4a-math-header` (glm, `Math.h`, tests d'équivalence Eigen/glm,
-script de captures et références prises avec Eigen), `modernize/phase-4b-glm-core`
-(migration du code), `modernize/phase-4c-glm-app` (retrait d'Eigen, comparaison des
-captures). Inventaire chiffré et détail : section 0.2 de [`PROMPT.md`](../PROMPT.md).
+script de captures), `modernize/phase-4b-glm-core` (migration du code, retrait d'Eigen,
+job CI qui compare les captures avec la branche de base), `modernize/phase-4c-glm-app`
+(clôture : documentation, paquet `eigen` retiré du job de captures). Inventaire chiffré et détail : section 0.2 de [`PROMPT.md`](../PROMPT.md).
 
 Écart constaté (4a) : `es-core` et `es-app` ne peuvent pas migrer dans deux PR séparées.
 Les types traversent l'API (`GuiComponent::getPosition()`, `getSize()`, `render(const
 Affine3f&)`, `ThemeData::get<Vector2f>`…) et la syntaxe diffère (`v.x()` contre `v.x`) :
 un alias ne peut pas désigner les deux à la fois. La 4b migre donc tout le code d'un
-coup (un commit par module), sans alias de transition : le code final écrit directement
-`glm::vec2`, `glm::mat4`. La 4c retire Eigen de CMake, de la CI et des tests.
+coup, sans alias de transition : le code final écrit directement `glm::vec2`,
+`glm::mat4`, et Eigen sort du build dans la même PR.
+
+Références des captures : les artefacts de la CI ne sont pas téléchargeables depuis
+l'environnement de l'agent et les rendus varient d'une distribution à l'autre (polices,
+Mesa). Plutôt que des PNG committés, le job CI « Screenshots vs base branch » compile la
+branche de base et la branche de la PR sur la même machine, prend les captures avec les
+deux et les compare (`compare.sh`, tolérance 2 %, 0 pixel). Une PR qui change le rendu
+volontairement porte l'étiquette `rendu-modifié`.
 
 ### Tâches
 1. Ajouter `es-core/src/math/Math.h` qui inclut glm et définit les alias

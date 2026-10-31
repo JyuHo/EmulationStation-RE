@@ -81,12 +81,13 @@ Découpage proposé (une PR par ligne, chacune verte avant la suivante) :
    `es-core/src/math/Math.h` (glm et aides `getTranslation`, `setTranslation`,
    `transformPoint`, `roundMatrix`, `roundVector`), tests d'équivalence Eigen/glm
    (`tests/unit/test_Math.cpp`), script de captures `tests/smoke/capture.sh` et
-   `compare.sh`, références prises avec Eigen dans `tests/data/capture/reference/`.
+   `compare.sh`, correctif des chemins `./` des thèmes. PR #30.
 2. **`modernize/phase-4b-glm-core`** — migration de tout le code (`es-core`, `es-app`,
-   tests) vers glm, un commit par module : les types traversent l'API, les deux modules
-   ne peuvent pas compiler séparément (écart avec le plan, expliqué dans le plan).
-3. **`modernize/phase-4c-glm-app`** — retrait d'Eigen de CMake, de la CI et des tests ;
-   comparaison des captures avec les références (critère de la phase).
+   tests) vers glm en une fois : les types traversent l'API, les deux modules ne peuvent
+   pas compiler séparément (écart avec le plan, expliqué dans le plan). Retrait d'Eigen
+   de CMake et de la CI ; job CI « Screenshots vs base branch » (critère de la phase).
+3. **`modernize/phase-4c-glm-app`** — clôture : section 0 de ce fichier, plan coché,
+   paquet `eigen` retiré du job de captures une fois la 4b fusionnée.
 
 Reliquat de 3.D, sans série dédiée : traite-le quand une phase réécrit le module.
 - `new` restants : uniquement dans des pointeurs intelligents pour des constructeurs privés
@@ -388,7 +389,7 @@ conséquences visibles.
 
 ```bash
 # Dépendances (état après la phase 3 ; adapter selon l'annexe A du plan)
-sudo pacman -S --needed base-devel cmake ninja clang sdl2-compat freetype2 fontconfig eigen glm \
+sudo pacman -S --needed base-devel cmake ninja clang sdl2-compat freetype2 fontconfig glm \
     curl alsa-lib libglvnd mesa libwebp catch2 xorg-server-xvfb imagemagick xdotool
 
 # Build GCC et Clang
