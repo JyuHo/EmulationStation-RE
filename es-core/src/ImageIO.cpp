@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iterator>
 
+#include <avif/avif.h>
 #include <webp/decode.h>
 #include <webp/demux.h>
 #include <webp/encode.h>
@@ -278,6 +279,54 @@ std::expected<ImageIO::Image, std::string> ImageIO::load(std::span<const std::by
 		stbi_image_free(px);
 		if(!result.frames.empty())
 			result.rgba = result.frames.front().rgba;
+		if(result.frames.size() <= 1)
+			result.frames.clear();
+		return result;
+	}
+
+	// AVIF
+	if(size >= 12 && std::memcmp(bytes + 4, "ftyp", 4) == 0 &&
+	   (std::memcmp(bytes + 8, "avif", 4) == 0 || std::memcmp(bytes + 8, "avis", 4) == 0))
+	{
+		avifDecoder* decoder = avifDecoderCreate();
+		(void)avifDecoderSetIOMemory(decoder, bytes, size);
+		avifResult r = avifDecoderParse(decoder);
+		if(r != AVIF_RESULT_OK)
+		{
+			avifDecoderDestroy(decoder);
+			return std::unexpected(std::string("AVIF parse failed"));
+		}
+		do
+		{
+			r = avifDecoderNextImage(decoder);
+			if(r != AVIF_RESULT_OK)
+				break;
+			avifRGBImage rgb;
+			avifRGBImageSetDefaults(&rgb, decoder->image);
+			rgb.format = AVIF_RGB_FORMAT_RGBA;
+			rgb.depth = 8;
+			(void)avifRGBImageAllocatePixels(&rgb);
+			(void)avifImageYUVToRGB(decoder->image, &rgb);
+			Frame f;
+			f.durationMs = 100;
+			f.rgba.assign(rgb.pixels, rgb.pixels + static_cast<size_t>(rgb.rowBytes) * decoder->image->height);
+			// rowBytes may include padding; ensure exact
+			if(rgb.rowBytes != decoder->image->width * 4)
+			{
+				std::vector<std::uint8_t> tight(static_cast<size_t>(decoder->image->width) * decoder->image->height * 4);
+				for(int y = 0; y < decoder->image->height; y++)
+					std::memcpy(tight.data() + static_cast<size_t>(y) * decoder->image->width * 4,
+						rgb.pixels + static_cast<size_t>(y) * rgb.rowBytes, decoder->image->width * 4);
+				f.rgba = std::move(tight);
+			}
+			result.width = decoder->image->width;
+			result.height = decoder->image->height;
+			result.frames.push_back(std::move(f));
+		} while(decoder->imageIndex + 1 < decoder->imageCount);
+		avifDecoderDestroy(decoder);
+		if(result.frames.empty())
+			return std::unexpected(std::string("AVIF decode failed"));
+		result.rgba = result.frames.front().rgba;
 		if(result.frames.size() <= 1)
 			result.frames.clear();
 		return result;
