@@ -24,3 +24,20 @@ TEST_CASE("ThemeData rejects invalid themes", "[ThemeData]")
 	CHECK_THROWS(theme.loadFile(ES_TEST_DATA_DIR "/themes/no-version.xml"));
 	CHECK_THROWS(theme.loadFile(ES_TEST_DATA_DIR "/themes/does-not-exist.xml"));
 }
+
+TEST_CASE("ThemeData resolves ./ paths and includes relative to the theme file", "[ThemeData]")
+{
+	const std::string dir = ES_TEST_DATA_DIR "/capture/themes/capture";
+	ThemeData theme;
+	REQUIRE_NOTHROW(theme.loadFile(dir + "/nes/theme.xml"));
+
+	// "./../art/logo-nes.svg" in nes/theme.xml
+	const ThemeData::ThemeElement* logo = theme.getElement("system", "logo", "image");
+	REQUIRE(logo != nullptr);
+	CHECK(logo->get<std::string>("path") == dir + "/nes/../art/logo-nes.svg");
+
+	// "./art/background.png" in common.xml, included as "./../common.xml"
+	const ThemeData::ThemeElement* background = theme.getElement("basic", "background", "image");
+	REQUIRE(background != nullptr);
+	CHECK(background->get<std::string>("path") == dir + "/nes/../art/background.png");
+}

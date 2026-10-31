@@ -1,0 +1,14 @@
+<theme>
+	<formatVersion>3</formatVersion>
+	<include>./../common.xml</include>
+	<view name="system">
+		<image name="logo">
+			<path>./../art/logo-nes.svg</path>
+		</image>
+	</view>
+	<view name="basic, detailed">
+		<image name="logo">
+			<path>./../art/logo-nes.svg</path>
+		</image>
+	</view>
+</theme>
