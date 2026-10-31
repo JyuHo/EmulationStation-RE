@@ -12,6 +12,7 @@
 #include "guis/GuiDetectDevice.h"
 #include "guis/GuiMsgBox.h"
 #include "AudioManager.h"
+#include "MusicPlayer.h"
 #include "platform.h"
 #include "Log.h"
 #include "Window.h"
@@ -273,6 +274,9 @@ int main(int argc, char* argv[])
 	Uint64 lastTime = SDL_GetTicks();
 	bool running = true;
 
+	MusicPlayer::getInstance().init();
+	MusicPlayer::getInstance().play();
+
 	while(running)
 	{
 		SDL_Event event;
@@ -311,6 +315,7 @@ int main(int argc, char* argv[])
 		if(deltaTime > 1000 || deltaTime < 0)
 			deltaTime = 1000;
 
+		MusicPlayer::getInstance().update();
 		window.update(deltaTime);
 		window.render();
 		Renderer::swapBuffers();
@@ -320,6 +325,7 @@ int main(int argc, char* argv[])
 
 	while(window.peekGui() != ViewController::get())
 		delete window.peekGui();
+	MusicPlayer::getInstance().deinit();
 	window.deinit();
 
 	SystemData::deleteSystems();
