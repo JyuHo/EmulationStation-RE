@@ -111,7 +111,12 @@ std::string resolvePath(const char* in, const fs::path& relative)
 	}
 	else if(*path.begin() == ".")
 	{
-		path = relPath / (in + 1);
+		// std::filesystem's operator/ replaces the left side when the right side is absolute, so
+		// append the elements after "." one by one ("./art/x.png" must not become "/art/x.png")
+		fs::path resolved = relPath;
+		for(auto it = std::next(path.begin()); it != path.end(); ++it)
+			resolved /= *it;
+		path = resolved;
 	}
 
 	return path.generic_string();

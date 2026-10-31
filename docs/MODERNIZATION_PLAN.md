@@ -450,10 +450,17 @@ vérifier chaque `pretranslate`/`prescale`. Comparer des captures d'écran avant
 (test de fumée Xvfb + `import -window root`) pour détecter un décalage.
 
 ### Découpage en PR
-Trois PR : `modernize/phase-4a-math-header` (glm, `Math.h`, tests, captures de référence
-prises avec Eigen), `modernize/phase-4b-glm-core` (`es-core`), `modernize/phase-4c-glm-app`
-(`es-app`, tests, retrait d'Eigen). Inventaire chiffré et détail : section 0.2 de
-[`PROMPT.md`](../PROMPT.md).
+Trois PR : `modernize/phase-4a-math-header` (glm, `Math.h`, tests d'équivalence Eigen/glm,
+script de captures et références prises avec Eigen), `modernize/phase-4b-glm-core`
+(migration du code), `modernize/phase-4c-glm-app` (retrait d'Eigen, comparaison des
+captures). Inventaire chiffré et détail : section 0.2 de [`PROMPT.md`](../PROMPT.md).
+
+Écart constaté (4a) : `es-core` et `es-app` ne peuvent pas migrer dans deux PR séparées.
+Les types traversent l'API (`GuiComponent::getPosition()`, `getSize()`, `render(const
+Affine3f&)`, `ThemeData::get<Vector2f>`…) et la syntaxe diffère (`v.x()` contre `v.x`) :
+un alias ne peut pas désigner les deux à la fois. La 4b migre donc tout le code d'un
+coup (un commit par module), sans alias de transition : le code final écrit directement
+`glm::vec2`, `glm::mat4`. La 4c retire Eigen de CMake, de la CI et des tests.
 
 ### Tâches
 1. Ajouter `es-core/src/math/Math.h` qui inclut glm et définit les alias
@@ -809,7 +816,7 @@ prioritaires dans `$XDG_DATA_HOME/emulationstation/locale/`).
 | 1 | `base-devel cmake ninja clang sdl2-compat boost freetype2 eigen curl alsa-lib libglvnd mesa libwebp` |
 | 2 | + `catch2 xorg-server-xvfb imagemagick` (tests, test de fumée, capture) |
 | 3 | − `boost`, + `fontconfig` (faits) |
-| 4 | − `eigen`, + `glm` |
+| 4 | − `eigen`, + `glm xdotool` (captures scriptées) |
 | 5 | − `sdl2-compat`, + `sdl3` |
 | 8-9 | + `ffmpeg` (et `libva` pour VA-API) |
 | 10 | + `gettext` |

@@ -78,15 +78,15 @@ utilisées : `translation()` (35), `data()` (25), `translate()` (12), `cwiseProd
 
 Découpage proposé (une PR par ligne, chacune verte avant la suivante) :
 1. **`modernize/phase-4a-math-header`** — paquet `glm` dans la CI et `find_package(glm)`,
-   `es-core/src/math/Math.h` (inclut glm, alias de transition), tests unitaires des
-   opérations utilisées (composition de transformations, `roundMatrix`, `roundVector`),
-   et **captures de référence** prises avec le code Eigen actuel (test de fumée,
-   écran d'accueil, liste de jeux, menu) pour comparer ensuite.
-2. **`modernize/phase-4b-glm-core`** — migration de `es-core` (Renderer, composants,
-   `GuiComponent`, `Util`, polices).
-3. **`modernize/phase-4c-glm-app`** — migration de `es-app` et des tests ; retrait d'Eigen
-   de CMake et de la CI ; suppression des alias de transition si plus rien ne s'en sert.
-   Comparaison des captures avec les références (critère de la phase).
+   `es-core/src/math/Math.h` (glm et aides `getTranslation`, `setTranslation`,
+   `transformPoint`, `roundMatrix`, `roundVector`), tests d'équivalence Eigen/glm
+   (`tests/unit/test_Math.cpp`), script de captures `tests/smoke/capture.sh` et
+   `compare.sh`, références prises avec Eigen dans `tests/data/capture/reference/`.
+2. **`modernize/phase-4b-glm-core`** — migration de tout le code (`es-core`, `es-app`,
+   tests) vers glm, un commit par module : les types traversent l'API, les deux modules
+   ne peuvent pas compiler séparément (écart avec le plan, expliqué dans le plan).
+3. **`modernize/phase-4c-glm-app`** — retrait d'Eigen de CMake, de la CI et des tests ;
+   comparaison des captures avec les références (critère de la phase).
 
 Reliquat de 3.D, sans série dédiée : traite-le quand une phase réécrit le module.
 - `new` restants : uniquement dans des pointeurs intelligents pour des constructeurs privés
@@ -388,8 +388,8 @@ conséquences visibles.
 
 ```bash
 # Dépendances (état après la phase 3 ; adapter selon l'annexe A du plan)
-sudo pacman -S --needed base-devel cmake ninja clang sdl2-compat freetype2 fontconfig eigen \
-    curl alsa-lib libglvnd mesa libwebp catch2 xorg-server-xvfb imagemagick
+sudo pacman -S --needed base-devel cmake ninja clang sdl2-compat freetype2 fontconfig eigen glm \
+    curl alsa-lib libglvnd mesa libwebp catch2 xorg-server-xvfb imagemagick xdotool
 
 # Build GCC et Clang
 cmake --preset debug        && cmake --build --preset debug
@@ -403,6 +403,11 @@ ctest --preset asan
 # Test de fumée sans écran (HOME jetable, un système NES ; affiche le log ; PASS/FAIL)
 tests/smoke/run.sh build/debug/emulationstation 6 /tmp/shot.png
 # Regarde la capture : c'est le seul contrôle visuel disponible sans écran.
+
+# Captures scriptées (6 écrans : systèmes, liste de jeux, menus) et comparaison
+tests/smoke/capture.sh build/debug/emulationstation /tmp/avant
+tests/smoke/capture.sh build/debug/emulationstation /tmp/apres
+tests/smoke/compare.sh /tmp/avant /tmp/apres     # écart toléré : --fuzz 2 %, 0 pixel
 
 # Analyse statique (non bloquante)
 cmake --build --preset debug --target es-tidy

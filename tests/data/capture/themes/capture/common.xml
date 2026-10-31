@@ -1,0 +1,52 @@
+<theme>
+	<formatVersion>3</formatVersion>
+	<view name="system">
+		<image name="background" extra="true">
+			<path>./art/background.png</path>
+			<pos>0 0</pos>
+			<size>1 1</size>
+		</image>
+		<text name="caption" extra="true">
+			<text>CAPTURE THEME</text>
+			<pos>0.2 0.05</pos>
+			<size>0.6 0.06</size>
+			<color>FFFFFFFF</color>
+			<alignment>center</alignment>
+		</text>
+	</view>
+	<view name="basic, detailed">
+		<image name="background">
+			<path>./art/background.png</path>
+			<pos>0 0</pos>
+			<size>1 1</size>
+		</image>
+		<text name="logoText">
+			<color>FFFFFFFF</color>
+		</text>
+		<textlist name="gamelist">
+			<primaryColor>E0E0E0FF</primaryColor>
+			<secondaryColor>80C0FFFF</secondaryColor>
+			<selectorColor>C03028FF</selectorColor>
+			<selectedColor>FFFFFFFF</selectedColor>
+		</textlist>
+	</view>
+	<view name="detailed">
+		<image name="md_image">
+			<pos>0.25 0.45</pos>
+			<origin>0.5 0.5</origin>
+			<maxSize>0.4 0.4</maxSize>
+		</image>
+		<text name="md_lbl_rating, md_lbl_releasedate, md_lbl_developer, md_lbl_publisher, md_lbl_genre, md_lbl_players, md_lbl_lastplayed, md_lbl_playcount">
+			<color>C0C0C0FF</color>
+		</text>
+		<text name="md_developer, md_publisher, md_genre, md_players, md_playcount">
+			<color>FFFFFFFF</color>
+		</text>
+		<datetime name="md_releasedate, md_lastplayed">
+			<color>FFFFFFFF</color>
+		</datetime>
+		<text name="md_description">
+			<color>F0F0F0FF</color>
+		</text>
+	</view>
+</theme>

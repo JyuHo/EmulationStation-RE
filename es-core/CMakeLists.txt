@@ -8,6 +8,7 @@ set(CORE_HEADERS
 	src/InputConfig.h
 	src/InputManager.h
 	src/Log.h
+	src/math/Math.h
 	src/platform.h
 	src/utils/Paths.h
 	src/Renderer.h
@@ -67,6 +68,7 @@ set(CORE_SOURCES
 	src/InputConfig.cpp
 	src/InputManager.cpp
 	src/Log.cpp
+	src/math/Math.cpp
 	src/platform.cpp
 	src/utils/Paths.cpp
 	src/Renderer_draw_gl.cpp
@@ -171,6 +173,9 @@ target_include_directories(es-core PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/generated
 
 target_compile_definitions(es-core PUBLIC
     EIGEN_DONT_ALIGN
+    # zero/identity default construction and no implicit conversions (see math/Math.h)
+    GLM_FORCE_CTOR_INIT
+    GLM_FORCE_EXPLICIT_CTOR
 )
 
 target_link_libraries(es-core PUBLIC
@@ -180,6 +185,7 @@ target_link_libraries(es-core PUBLIC
     PkgConfig::WEBP
     SDL2::SDL2
     Eigen3::Eigen
+    glm::glm
     CURL::libcurl
     ALSA::ALSA
     pugixml
