@@ -62,6 +62,8 @@ set(CORE_HEADERS
 	src/resources/Font.h
 	src/resources/ResourceManager.h
 	src/resources/SVGResource.h
+	src/resources/LruCache.h
+	src/resources/TextureLoader.h
 	src/resources/TextureResource.h
 
 	# Embedded assets (needed by ResourceManager)
@@ -125,6 +127,7 @@ set(CORE_SOURCES
 	src/resources/Font.cpp
 	src/resources/ResourceManager.cpp
 	src/resources/SVGResource.cpp
+	src/resources/TextureLoader.cpp
 	src/resources/TextureResource.cpp
 )
 
@@ -199,7 +202,6 @@ target_link_libraries(es-core PUBLIC
     Fontconfig::Fontconfig
     PkgConfig::WEBP
     PkgConfig::WEBPDEMUX
-    PkgConfig::AVIF
     PkgConfig::FFMPEG
     SDL3::SDL3
     glm::glm

@@ -103,8 +103,9 @@ void ImageGridComponent<T>::add(const std::string& name, const std::string& imag
 	typename IList<ImageGridData, T>::Entry entry;
 	entry.name = name;
 	entry.object = obj;
-	entry.data.texture = ResourceManager::getInstance()->fileExists(imagePath) ? TextureResource::get(imagePath)
-																			   : TextureResource::get(":/button.png");
+	entry.data.texture = ResourceManager::getInstance()->fileExists(imagePath)
+		? TextureResource::get(imagePath, false, true)
+		: TextureResource::get(":/button.png");
 	static_cast<IList<ImageGridData, T>*>(this)->add(entry);
 	mEntriesDirty = true;
 }

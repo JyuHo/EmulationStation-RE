@@ -13,24 +13,27 @@ public:
 	struct Frame
 	{
 		int durationMs = 0;
-		std::vector<std::uint8_t> rgba;
+		std::vector<std::uint8_t> rgba; // width * height * 4 bytes, rows bottom-up
 	};
 
 	struct Image
 	{
 		int width = 0;
 		int height = 0;
-		std::vector<std::uint8_t> rgba; // first frame (or only frame)
-		std::vector<Frame> frames;        // empty for static images
+		std::vector<std::uint8_t> rgba; // first frame, rows bottom-up
+		std::vector<Frame> frames;		// every frame of an animation (2 or more); empty for a still image
+
+		[[nodiscard]] bool isAnimated() const { return !frames.empty(); }
 	};
 
-	// Decodes PNG, JPEG, BMP, TGA, GIF (all frames) or WebP (static or animated)
-	// into 32-bit RGBA. Rows are returned top-down (ImageIO convention for the new
-	// facade); the legacy loader returned bottom-up. On failure returns an error.
+	// Decodes PNG, JPEG, BMP, TGA, GIF (all frames) or WebP (still or animated, through
+	// libwebpdemux) into 32-bit RGBA. The format is detected from the signature. Rows are
+	// bottom-up, the convention of every texture in the renderer. SVG is not handled here:
+	// SVGResource rasterizes it at the displayed size.
+	// Thread-safe: called from the texture loader threads.
 	[[nodiscard]] static std::expected<Image, std::string> load(std::span<const std::byte> data);
 
-	// Legacy API, kept for callers not yet migrated. Decodes into 32-bit RGBA,
-	// bottom-up rows. Returns an empty vector on failure.
+	// First frame only, rows bottom-up. Returns an empty vector on failure.
 	static std::vector<unsigned char> loadFromMemoryRGBA32(
 		const unsigned char* data, const size_t size, size_t& width, size_t& height);
 	static void flipPixelsVert(unsigned char* imagePx, const size_t& width, const size_t& height);

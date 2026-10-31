@@ -5,7 +5,6 @@
 #include <iostream>
 #include <iomanip>
 #include "renderer/Renderer.h"
-#include "resources/TextureResource.h"
 #include "views/ViewController.h"
 #include "SystemData.h"
 #include <filesystem>

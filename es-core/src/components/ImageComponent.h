@@ -3,6 +3,7 @@
 
 #include "GuiComponent.h"
 #include "renderer/Renderer.h"
+#include <chrono>
 #include <string>
 #include <memory>
 #include "resources/TextureResource.h"
@@ -14,12 +15,12 @@ public:
 	~ImageComponent() override;
 
 	//Loads the image at the given filepath. Will tile if tile is true (retrieves texture as tiling, creates vertices accordingly).
-	void setImage(std::string path, bool tile = false);
+	// dynamic: decoded in the background (game media); nothing is drawn until it is ready.
+	void setImage(std::string path, bool tile = false, bool dynamic = false);
 	//Loads an image from memory.
 	void setImage(const char* image, size_t length, bool tile = false);
 	//Use an already existing texture.
 	void setImage(const std::shared_ptr<TextureResource>& texture);
-	void setImageFromPixels(const unsigned char* dataRGBA, size_t width, size_t height, bool tile = false);
 
 	void onSizeChanged() override;
 	void setOpacity(unsigned char opacity) override;
@@ -80,6 +81,9 @@ private:
 	unsigned int mColorShift;
 
 	std::shared_ptr<TextureResource> mTexture;
+	// resize() has seen the size of mTexture (false while it is decoded in the background)
+	bool mSizedForTexture = false;
+	std::chrono::steady_clock::time_point mAnimationStart; // when the current texture was set
 };
 
 #endif
