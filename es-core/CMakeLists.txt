@@ -48,6 +48,8 @@ set(CORE_HEADERS
 	src/components/SwitchComponent.h
 	src/components/TextComponent.h
 	src/components/TextEditComponent.h
+	src/components/VideoComponent.h
+	src/video/VideoPlayer.h
 
 	# Guis
 	src/guis/GuiDetectDevice.h
@@ -108,6 +110,8 @@ set(CORE_SOURCES
 	src/components/SwitchComponent.cpp
 	src/components/TextComponent.cpp
 	src/components/TextEditComponent.cpp
+	src/components/VideoComponent.cpp
+	src/video/VideoPlayer.cpp
 
 	# Guis
 	src/guis/GuiDetectDevice.cpp
