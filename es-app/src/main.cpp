@@ -208,6 +208,9 @@ int main(int argc, char* argv[])
 	//always close the log on exit
 	atexit(&onExit);
 
+	// before any interface is built: every string goes through _()
+	I18n::init(Settings::getInstance()->getString("Language"));
+
 	Window window;
 	ViewController::init(&window);
 
@@ -277,8 +280,6 @@ int main(int argc, char* argv[])
 
 	MusicPlayer::getInstance().init();
 	MusicPlayer::getInstance().play();
-
-	I18n::init(Settings::getInstance()->getString("Language"));
 
 	while(running)
 	{
