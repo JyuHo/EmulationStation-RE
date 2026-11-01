@@ -844,3 +844,6 @@ msgstr "Déjà attribué !"
 #: es-core/src/guis/GuiTextEditPopup.cpp:27
 msgid "discard changes"
 msgstr "abandonner les modifications"
+
+msgid "Theme region"
+msgstr "Région du thème"
