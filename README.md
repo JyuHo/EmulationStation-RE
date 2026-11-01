@@ -23,6 +23,7 @@ Linux.
 - [Manettes et clavier](#manettes-et-clavier)
 - [Listes de jeux et scraping](#listes-de-jeux-et-scraping)
 - [Thèmes](#thèmes)
+- [Langue de l'interface](#langue-de-linterface)
 - [Tests et qualité](#tests-et-qualité)
 - [Contribuer](#contribuer)
 - [Licence et crédits](#licence-et-crédits)
@@ -58,7 +59,7 @@ Raspberry Pi, Windows, macOS et OpenGL ES ne sont plus pris en charge.
 | 7 | Images animées, chargement asynchrone, cache | à faire |
 | 8 | Audio (sons, musique de fond) | à faire |
 | 9 | Vidéo avec FFmpeg | à faire |
-| 10 | Traductions gettext | à faire |
+| 10 | Traductions gettext | fait (PR #57 à #68) : français, anglais, allemand, espagnol, italien |
 | 11 | Thèmes Recalbox 10 | à faire |
 | 12 | Paquet Arch, installation, session kiosque | à faire |
 
@@ -112,8 +113,9 @@ Les builds dans l'arbre source (`cmake .`) sont refusés.
 | `ES_ENABLE_SANITIZERS` | `OFF` | active ASan et UBSan |
 | `ES_ENABLE_LTO` | `OFF` | optimisation à l'édition de liens (builds Release) |
 
-`cmake --install build` installe pour l'instant uniquement le binaire ; l'installation
-des ressources et le paquet Arch arrivent en phase 12.
+`cmake --install build` installe pour l'instant le binaire et les catalogues de traduction
+(`<datadir>/emulationstation/locale/`) ; l'installation des autres ressources et le paquet
+Arch arrivent en phase 12.
 
 ## Lancement
 
@@ -158,6 +160,7 @@ Les variables `XDG_*` vides ou relatives sont ignorées.
 |---------|-------------------------------------------|--------------------------------------------|
 | `es_systems.cfg`, `es_settings.cfg`, `es_input.cfg`, `gamecontrollerdb.txt`, `es_theme_default.xml` | `$XDG_CONFIG_HOME/emulationstation/` (défaut `~/.config/emulationstation/`) | `$XDG_CONFIG_DIRS/emulationstation/` (défaut `/etc/xdg/emulationstation/`), puis `<sysconfdir>/xdg/emulationstation/` |
 | `themes/`, `gamelists/<système>/gamelist.xml`, `downloaded_images/` | `$XDG_DATA_HOME/emulationstation/` (défaut `~/.local/share/emulationstation/`) | `$XDG_DATA_DIRS/emulationstation/` (défaut `/usr/local/share` puis `/usr/share`), puis `<datadir>/emulationstation/`, puis `<dossier du binaire>/../share/emulationstation/` |
+| `locale/<langue>/LC_MESSAGES/emulationstation2.mo` (traductions) | `$XDG_DATA_HOME/emulationstation/` | comme `themes/`, puis `<dossier du binaire>/locale/` (arbre de build, voir [Langue de l'interface](#langue-de-linterface)) |
 | `es_log.txt` | `$XDG_STATE_HOME/emulationstation/` (défaut `~/.local/state/emulationstation/`) | — |
 | caches (à venir) | `$XDG_CACHE_HOME/emulationstation/` (défaut `~/.cache/emulationstation/`) | — |
 
@@ -266,6 +269,26 @@ Le moteur actuel lit les thèmes au format Aloshi v3 (`formatVersion` 3, vues `s
 minimale.
 Le format des thèmes Recalbox 10 (options de thème, variables, vidéo, menus thémés)
 arrive en phase 11, avec sa documentation dans `docs/THEMES.md`.
+
+## Langue de l'interface
+
+Menu principal → **UI settings** (« Options de l'interface ») → **Language** (« Langue ») : English, Français, Deutsch, Español,
+Italiano. Le choix est enregistré dans `es_settings.cfg` (`Language`, par défaut `en`) et
+appliqué en quittant ce menu : vues, aides et menu principal sont reconstruits
+dans la nouvelle langue, sans redémarrage. La traduction ne dépend pas de la locale du
+système (elle fonctionne avec `LANG=C`).
+
+Les catalogues `.mo` sont compilés à chaque build depuis `locale/lang/<langue>/LC_MESSAGES/*.po`
+dans `<dossier de build>/locale/` (par exemple `build/release/locale/fr/LC_MESSAGES/`).
+Ils sont cherchés dans les dossiers de données ([Fichiers et emplacements](#fichiers-et-emplacements)),
+puis à côté du binaire : `./build/release/emulationstation` est donc traduit sans
+installation. Une langue sans catalogue trouvé reste en anglais, et le journal l'indique
+(`No translation found for language …`).
+
+Traduire : `cmake --build --preset debug --target es-update-pot` régénère
+`locale/emulationstation2.pot`, puis `--target es-update-po` le fusionne dans chaque `.po`.
+Une nouvelle langue est un nouveau dossier `locale/lang/<code>/LC_MESSAGES/emulationstation2.po`
+(à ajouter aussi à la liste du menu, `es-app/src/guis/GuiMenu.cpp`).
 
 ## Tests et qualité
 

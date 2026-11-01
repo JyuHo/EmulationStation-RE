@@ -4,11 +4,13 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 
+#include <cstdlib>
 #include <expected>
 #include <filesystem>
 #include <format>
 #include <fstream>
 #include <iterator>
+#include <optional>
 #include <span>
 #include <string>
 #include <vector>
@@ -177,4 +179,36 @@ TEST_CASE("I18n loads a catalog from ES_HOME and translates", "[I18n]")
 	I18n::shutdown();
 	es::paths::clearHome();
 	fs::remove_all(home);
+}
+
+TEST_CASE("I18n::init finds the catalogs compiled in the build tree", "[I18n]")
+{
+	// ./build/release/emulationstation, run without installing: the only catalogs are the ones
+	// es-compile-mo writes to build/release/locale, next to the executable (es-tests lives there too)
+	const auto exeDir = es::paths::executableDir();
+	REQUIRE(exeDir);
+	REQUIRE(fs::equivalent(*exeDir, fs::path(ES_LOCALE_BUILD_DIR).parent_path()));
+
+	const fs::path root = fs::temp_directory_path() / std::format("es-test-i18n-build-{}", ::getpid());
+	fs::create_directories(root / "home");
+	fs::create_directories(root / "share");
+	es::paths::setHome(root / "home");
+	const char* previous = std::getenv("XDG_DATA_DIRS");
+	const std::optional<std::string> saved = previous ? std::optional<std::string>(previous) : std::nullopt;
+	setenv("XDG_DATA_DIRS", (root / "share").c_str(), 1);
+
+	I18n::init("fr_FR.UTF-8");
+	CHECK(_("Language") == "Langue");
+	I18n::init("de");
+	CHECK(_("Language") == "Sprache");
+	I18n::init("en");
+	CHECK(_("Language") == "Language");
+
+	I18n::shutdown();
+	if(saved)
+		setenv("XDG_DATA_DIRS", saved->c_str(), 1);
+	else
+		unsetenv("XDG_DATA_DIRS");
+	es::paths::clearHome();
+	fs::remove_all(root);
 }

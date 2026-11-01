@@ -265,8 +265,18 @@ bool sLoaded = false;
 
 std::optional<std::filesystem::path> findCatalog(const std::string& language)
 {
-	const auto find = [](std::string_view lang) {
-		return es::paths::find(es::paths::Kind::Data, std::format("locale/{}/LC_MESSAGES/emulationstation2.mo", lang));
+	const auto find = [](std::string_view lang) -> std::optional<std::filesystem::path> {
+		const std::string rel = std::format("locale/{}/LC_MESSAGES/emulationstation2.mo", lang);
+		if(auto found = es::paths::find(es::paths::Kind::Data, rel))
+			return found;
+		// build tree: es-compile-mo writes <build>/locale next to <build>/emulationstation
+		if(const auto exeDir = es::paths::executableDir())
+		{
+			std::error_code ec;
+			if(std::filesystem::path candidate = *exeDir / rel; std::filesystem::is_regular_file(candidate, ec))
+				return candidate;
+		}
+		return std::nullopt;
 	};
 	if(auto found = find(language))
 		return found;
