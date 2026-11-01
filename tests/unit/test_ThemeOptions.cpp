@@ -1,5 +1,5 @@
 // Phase 11 (PROMPT.md section 14). Hidden until PR 11b (selection, needed by the loader) and
-// PR 11e (settings key): remove "[.]" from the tags of each case in its PR, never weaken an expected value (rule 14.2-R7).
+// PR 11e (settings key): remove "[]" from the tags of each case in its PR, never weaken an expected value (rule 14.2-R7).
 
 #include "theme/ThemeOptions.h"
 
@@ -19,12 +19,12 @@ ThemeSubset subset(std::string id, std::vector<std::string> names)
 }
 } // namespace
 
-TEST_CASE("Options: settings key", "[.][phase11][11e][ThemeOptions]")
+TEST_CASE("Options: settings key", "[phase11][11e][ThemeOptions]")
 {
 	CHECK(optionSettingKey("recalbox-next", "systemView") == "ThemeOption.recalbox-next.systemView");
 }
 
-TEST_CASE("Options: selection", "[.][phase11][11b][ThemeOptions]")
+TEST_CASE("Options: selection", "[phase11][11b][ThemeOptions]")
 {
 	const std::vector<ThemeSubset> subsets = {
 		subset("colorset", {"blue", "red"}), subset("layout", {"compact", "large"}), subset("empty", {})};

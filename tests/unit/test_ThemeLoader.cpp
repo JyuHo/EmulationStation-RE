@@ -1,4 +1,4 @@
-// Phase 11 (PROMPT.md section 14). Hidden until PR 11b: remove "[.]" from every tag of this file
+// Phase 11 (PROMPT.md section 14). Hidden until PR 11b: remove "[]" from every tag of this file
 // in that PR, never weaken an expected value (rule 14.2-R7). Fixtures: tests/data/themes/recalbox/
 // (own content, never a copy of a Recalbox theme).
 
@@ -67,7 +67,7 @@ std::string value(const LoadedTheme& theme, std::string_view view, std::string_v
 
 } // namespace
 
-TEST_CASE("Loader: root attributes and format version", "[.][phase11][11b][ThemeLoader]")
+TEST_CASE("Loader: root attributes and format version", "[phase11][11b][ThemeLoader]")
 {
 	Diagnostics d;
 	const auto theme = loadTheme(kDir / "theme.xml", context(), d);
@@ -82,7 +82,7 @@ TEST_CASE("Loader: root attributes and format version", "[.][phase11][11b][Theme
 	CHECK(theme->files.front() == kDir / "theme.xml");
 }
 
-TEST_CASE("Loader: includes, variables and merging", "[.][phase11][11b][ThemeLoader]")
+TEST_CASE("Loader: includes, variables and merging", "[phase11][11b][ThemeLoader]")
 {
 	Diagnostics d;
 	const auto theme = loadTheme(kDir / "theme.xml", context(), d);
@@ -115,7 +115,7 @@ TEST_CASE("Loader: includes, variables and merging", "[.][phase11][11b][ThemeLoa
 	CHECK(std::ranges::count(theme->files, kDir / "variables.xml") == 1);
 }
 
-TEST_CASE("Loader: element order and locations", "[.][phase11][11b][ThemeLoader]")
+TEST_CASE("Loader: element order and locations", "[phase11][11b][ThemeLoader]")
 {
 	Diagnostics d;
 	const auto theme = loadTheme(kDir / "theme.xml", context(), d);
@@ -144,7 +144,7 @@ TEST_CASE("Loader: element order and locations", "[.][phase11][11b][ThemeLoader]
 	CHECK(title->type == "text");
 }
 
-TEST_CASE("Loader: conditions", "[.][phase11][11b][ThemeLoader]")
+TEST_CASE("Loader: conditions", "[phase11][11b][ThemeLoader]")
 {
 	Diagnostics d;
 	const auto theme = loadTheme(kDir / "theme.xml", context(), d);
@@ -160,7 +160,7 @@ TEST_CASE("Loader: conditions", "[.][phase11][11b][ThemeLoader]")
 	CHECK(warned);
 }
 
-TEST_CASE("Loader: regions and localized properties", "[.][phase11][11b][ThemeLoader]")
+TEST_CASE("Loader: regions and localized properties", "[phase11][11b][ThemeLoader]")
 {
 	{
 		Diagnostics d;
@@ -179,7 +179,7 @@ TEST_CASE("Loader: regions and localized properties", "[.][phase11][11b][ThemeLo
 	}
 }
 
-TEST_CASE("Loader: subsets and options", "[.][phase11][11b][ThemeLoader]")
+TEST_CASE("Loader: subsets and options", "[phase11][11b][ThemeLoader]")
 {
 	Diagnostics d;
 	const auto theme = loadTheme(kDir / "theme.xml", context("fr"), d);
@@ -217,7 +217,7 @@ TEST_CASE("Loader: subsets and options", "[.][phase11][11b][ThemeLoader]")
 	CHECK(value(*stale, "detailed", "md_description", "color") == "0000FFFF");
 }
 
-TEST_CASE("Loader: header only", "[.][phase11][11b][ThemeLoader]")
+TEST_CASE("Loader: header only", "[phase11][11b][ThemeLoader]")
 {
 	Diagnostics d;
 	const auto header = loadThemeHeader(kDir / "theme.xml", context(), d);
@@ -227,7 +227,7 @@ TEST_CASE("Loader: header only", "[.][phase11][11b][ThemeLoader]")
 	CHECK(header->views.empty());
 }
 
-TEST_CASE("Loader: failures", "[.][phase11][11b][ThemeLoader]")
+TEST_CASE("Loader: failures", "[phase11][11b][ThemeLoader]")
 {
 	{
 		Diagnostics d;
@@ -252,7 +252,7 @@ TEST_CASE("Loader: failures", "[.][phase11][11b][ThemeLoader]")
 	}
 }
 
-TEST_CASE("Loader: format 3 themes still load", "[.][phase11][11b][ThemeLoader]")
+TEST_CASE("Loader: format 3 themes still load", "[phase11][11b][ThemeLoader]")
 {
 	// the capture theme of tests/smoke/capture.sh (format 3, includes, ./ paths)
 	const fs::path dir = fs::path(ES_TEST_DATA_DIR) / "capture" / "themes" / "capture";

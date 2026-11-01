@@ -1,4 +1,4 @@
-// Phase 11 (PROMPT.md section 14). Hidden until PR 11b: remove "[.]" from every tag of this file
+// Phase 11 (PROMPT.md section 14). Hidden until PR 11b: remove "[]" from every tag of this file
 // in that PR, never weaken an expected value (rule 14.2-R7).
 
 #include "theme/ThemeDiagnostics.h"
@@ -12,7 +12,7 @@ namespace {
 const SourceLocation kWhere{"variables.xml", 3};
 }
 
-TEST_CASE("Variables: names", "[.][phase11][11b][ThemeVariables]")
+TEST_CASE("Variables: names", "[phase11][11b][ThemeVariables]")
 {
 	CHECK(ThemeVariables::isValidName("Primary"));
 	CHECK(ThemeVariables::isValidName("_x1"));
@@ -32,7 +32,7 @@ TEST_CASE("Variables: names", "[.][phase11][11b][ThemeVariables]")
 	CHECK(d.all()[0].where == kWhere);
 }
 
-TEST_CASE("Variables: resolution", "[.][phase11][11b][ThemeVariables]")
+TEST_CASE("Variables: resolution", "[phase11][11b][ThemeVariables]")
 {
 	Diagnostics d;
 	ThemeVariables vars;
@@ -57,7 +57,7 @@ TEST_CASE("Variables: resolution", "[.][phase11][11b][ThemeVariables]")
 	CHECK(vars.resolve("${Primary}", d, kWhere) == "000000");
 }
 
-TEST_CASE("Variables: cycles do not hang", "[.][phase11][11b][ThemeVariables]")
+TEST_CASE("Variables: cycles do not hang", "[phase11][11b][ThemeVariables]")
 {
 	Diagnostics d;
 	ThemeVariables vars;
@@ -75,7 +75,7 @@ TEST_CASE("Variables: cycles do not hang", "[.][phase11][11b][ThemeVariables]")
 	CHECK(d2.warningCount() == 1);
 }
 
-TEST_CASE("Variables: legacy substitutions", "[.][phase11][11b][ThemeVariables]")
+TEST_CASE("Variables: legacy substitutions", "[phase11][11b][ThemeVariables]")
 {
 	const LegacySubstitutions values{.system = "nes", .language = "fr", .country = "FR"};
 	CHECK(applyLegacySubstitutions("./$system/logo.png", values) == "./nes/logo.png");
