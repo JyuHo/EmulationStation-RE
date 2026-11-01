@@ -307,6 +307,9 @@ UBSan. Avant la compilation, la CI refuse les chemins écrits en dur et tout cod
 Windows, macOS, Raspberry Pi ou OpenGL ES, ainsi que tout appel ou type OpenGL hors de
 `es-core/src/renderer/`.
 
+Comparer le rendu avec un autre commit, comme le job « Screenshots vs base branch » (9 écrans
+au pixel près) : [`docs/CAPTURES.md`](docs/CAPTURES.md).
+
 Le code suit `.clang-format` ; ne formatez que les lignes modifiées
 (`git clang-format origin/main`). Pour que `git blame` ignore le commit de reformatage :
 

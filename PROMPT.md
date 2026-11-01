@@ -253,8 +253,9 @@ voulu, expliqué dans la PR.
   SDL3 ouvrait la fenêtre sur le vrai bureau et non dans le serveur Xvfb de `xvfb-run` :
   capture noire, et `xdotool search --pid` ne trouvait aucune fenêtre. `run.sh` et
   `capture.sh` font maintenant `unset WAYLAND_DISPLAY` et `SDL_VIDEO_DRIVER=x11`. Si un script
-  à toi lance ES sous Xvfb, fais pareil. Procédure complète de comparaison avec la base :
-  `PROMPT.md` 14.7 (« Captures format 3 »). Ne pousse jamais « pour que la CI vérifie » un
+  à toi lance ES sous Xvfb, fais pareil. N'utilise jamais `xvfb-run … &` suivi de `xdotool`
+  à la main (mauvais écran, mauvais PID). Procédure complète et vérifiée :
+  [`docs/CAPTURES.md`](docs/CAPTURES.md). Ne pousse jamais « pour que la CI vérifie » un
   changement de rendu que tu n'as pas capturé toi-même.
 - **`ThemeExtras` et `addChild`** (régression de #75) : `setExtras` doit rattacher chaque extra
   avec `addChild`. Sinon les éléments `extra="true"` (fond et légende de la vue système du
@@ -1357,7 +1358,8 @@ cmake --build /tmp/build-base --target emulationstation
 tests/smoke/capture.sh /tmp/build-base/emulationstation /tmp/avant
 tests/smoke/capture.sh build/relwithdebinfo/emulationstation /tmp/apres
 tests/smoke/compare.sh /tmp/avant /tmp/apres            # attendu : 9 × OK 0 pixels
-# Sur un bureau Wayland, les scripts forcent X11 (0.3). Si une capture est noire, regarde
+# Procédure détaillée et pièges : docs/CAPTURES.md. Sur un bureau Wayland, les scripts
+# forcent X11 (0.3). Si une capture est noire, regarde
 # d'abord /tmp/apres/draw-calls.txt (0 ou presque : rien n'est dessiné, cherche un composant
 # non rattaché ou une vue vide) puis es_log.txt (avertissements de thème fichier:ligne).
 
