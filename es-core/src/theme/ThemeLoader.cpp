@@ -389,6 +389,7 @@ bool processFile(const fs::path& file, LoadedTheme& theme, LoaderContext& ctx, D
 			RawView& view = theme.views[vname];
 			for(pugi::xml_node child = viewNode.first_child(); child; child = child.next_sibling())
 			{
+				if(child.attribute("region")) theme.usesRegion = true;
 				if(std::string(child.name()) == "extra" || std::string(child.name()) == "extras")
 				{
 					for(pugi::xml_node ec = child.first_child(); ec; ec = ec.next_sibling())

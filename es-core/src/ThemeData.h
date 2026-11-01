@@ -10,6 +10,7 @@
 #include <variant>
 #include "math/Math.h"
 #include "pugixml/pugixml.hpp"
+#include "theme/ThemeLoader.h"
 #include "GuiComponent.h"
 
 template <typename T> class TextListComponent;
@@ -165,6 +166,10 @@ public:
 
 	static const std::shared_ptr<ThemeData>& getDefault();
 
+	// Phase 11e: theme options (subsets) and region support, read at load time.
+	const std::vector<es::theme::ThemeSubset>& getSubsets() const { return mSubsets; }
+	bool usesRegion() const { return mUsesRegion; }
+
 	static std::map<std::string, ThemeSet> getThemeSets();
 	static std::filesystem::path getThemeFromCurrentSet(const std::string& system);
 
@@ -181,4 +186,6 @@ private:
 		ThemeElement& element);
 
 	std::map<std::string, ThemeView> mViews;
+	std::vector<es::theme::ThemeSubset> mSubsets;
+	bool mUsesRegion = false;
 };

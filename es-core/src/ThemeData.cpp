@@ -87,6 +87,8 @@ bool ThemeData::loadFile(const std::string& path, es::theme::Diagnostics& diag, 
 	mVersion = loaded->formatVersion;
 	mPaths.clear();
 	for(const auto& f : loaded->files) mPaths.push_back(f);
+	mSubsets = loaded->subsets;
+	mUsesRegion = loaded->usesRegion;
 
 	// convert views
 	for(const auto& [viewName, rawView] : loaded->views)
