@@ -8,9 +8,7 @@ MenuSectionComponent::MenuSectionComponent(Window* window, const std::string& la
 {
 	const es::theme::MenuTheme& mt = mWindow->getMenuTheme();
 	// absent values: those of menutext, copied by MenuTheme (MenuThemeData.cpp:49), else ES's
-	mFont = mt.section.font
-		? Font::get((int)(mt.section.font->size * Renderer::getScreenHeight()), mt.section.font->path)
-		: Font::get(FONT_SIZE_MEDIUM);
+	mFont = es::theme::menuFontOr(mt.section.font, Font::get(FONT_SIZE_MEDIUM));
 	mAlignment = mt.sectionAlignment.value_or(ALIGN_CENTER);
 	mColor = mt.section.color.value_or(0x777777FF);
 	mSelectedColor = mt.section.selectedColor.value_or(0xFFFFFFFF);

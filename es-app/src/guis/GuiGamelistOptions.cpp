@@ -1,3 +1,5 @@
+#include "Window.h"
+#include "components/MenuComponent.h"
 #include "GuiGamelistOptions.h"
 #include "utils/I18n.h"
 #include "GuiMetaDataEd.h"
@@ -20,7 +22,8 @@ GuiGamelistOptions::GuiGamelistOptions(Window* window, SystemData* system) :
 
 	ComponentListRow row;
 	row.addElement(
-		std::make_shared<TextComponent>(mWindow, _U("Jump to letter"), Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
+		std::make_shared<TextComponent>(mWindow, _U("Jump to letter"), es::theme::menuFontOr(mWindow->getMenuTheme().text.font, Font::get(FONT_SIZE_MEDIUM)),
+			mWindow->getMenuTheme().text.color.value_or(0x777777FF)), true);
 	row.addElement(mJumpToLetterList, false);
 	row.input_handler = [&](InputConfig* config, Input input) {
 		if(config->isMappedTo("a", input) && input.value)
@@ -49,7 +52,8 @@ GuiGamelistOptions::GuiGamelistOptions(Window* window, SystemData* system) :
 	// edit game metadata
 	row.elements.clear();
 	row.addElement(
-		std::make_shared<TextComponent>(mWindow, _U("Edit this game's metadata"), Font::get(FONT_SIZE_MEDIUM), 0x777777FF),
+		std::make_shared<TextComponent>(mWindow, _U("Edit this game's metadata"), es::theme::menuFontOr(mWindow->getMenuTheme().text.font, Font::get(FONT_SIZE_MEDIUM)),
+			mWindow->getMenuTheme().text.color.value_or(0x777777FF)),
 		true);
 	row.addElement(makeArrow(mWindow), false);
 	row.makeAcceptInputHandler(std::bind(&GuiGamelistOptions::openMetaDataEd, this));

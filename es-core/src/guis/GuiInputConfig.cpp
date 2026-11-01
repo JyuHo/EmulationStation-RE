@@ -33,6 +33,7 @@ GuiInputConfig::GuiInputConfig(
 	mTargetConfig(target),
 	mHoldingInput(false)
 {
+	applyMenuFrame(mBackground, mWindow->getMenuTheme()); // theme frame (11f2)
 	LOG(LogInfo) << "Configuring device " << target->getDeviceId() << " (" << target->getDeviceName() << ").";
 
 	if(reconfigureAll)
@@ -48,7 +49,8 @@ GuiInputConfig::GuiInputConfig(
 	mGrid.setEntry(std::make_shared<GuiComponent>(mWindow), glm::ivec2(0, 0), false);
 
 	mTitle =
-		std::make_shared<TextComponent>(mWindow, _U("Configuring"), Font::get(FONT_SIZE_LARGE), 0x555555FF, ALIGN_CENTER);
+		std::make_shared<TextComponent>(mWindow, _U("Configuring"), es::theme::menuFontOr(mWindow->getMenuTheme().title.font, Font::get(FONT_SIZE_LARGE)),
+		mWindow->getMenuTheme().title.color.value_or(0x555555FF), ALIGN_CENTER);
 	mGrid.setEntry(mTitle, glm::ivec2(0, 1), false, true);
 
 	std::stringstream ss;

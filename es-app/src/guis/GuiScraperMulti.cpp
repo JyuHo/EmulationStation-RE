@@ -1,3 +1,4 @@
+#include "Window.h"
 #include "guis/GuiScraperMulti.h"
 #include "utils/I18n.h"
 
@@ -17,6 +18,7 @@
 GuiScraperMulti::GuiScraperMulti(Window* window, const std::queue<ScraperSearchParams>& searches, bool approveResults) :
 	GuiComponent(window), mSearchQueue(searches), mBackground(window, ":/frame.png"), mGrid(window, glm::ivec2(1, 5))
 {
+	applyMenuFrame(mBackground, mWindow->getMenuTheme()); // theme frame (11f2)
 	assert(mSearchQueue.size());
 
 	addChild(&mBackground);
@@ -29,14 +31,16 @@ GuiScraperMulti::GuiScraperMulti(Window* window, const std::queue<ScraperSearchP
 
 	// set up grid
 	mTitle = std::make_shared<TextComponent>(
-		mWindow, _U("Scraping in progress"), Font::get(FONT_SIZE_LARGE), 0x555555FF, ALIGN_CENTER);
+		mWindow, _U("Scraping in progress"), es::theme::menuFontOr(mWindow->getMenuTheme().title.font, Font::get(FONT_SIZE_LARGE)),
+		mWindow->getMenuTheme().title.color.value_or(0x555555FF), ALIGN_CENTER);
 	mGrid.setEntry(mTitle, glm::ivec2(0, 0), false, true);
 
 	mSystem = std::make_shared<TextComponent>(mWindow, "SYSTEM", Font::get(FONT_SIZE_MEDIUM), 0x777777FF, ALIGN_CENTER);
 	mGrid.setEntry(mSystem, glm::ivec2(0, 1), false, true);
 
 	mSubtitle =
-		std::make_shared<TextComponent>(mWindow, "subtitle text", Font::get(FONT_SIZE_SMALL), 0x888888FF, ALIGN_CENTER);
+		std::make_shared<TextComponent>(mWindow, "subtitle text", es::theme::menuFontOr(mWindow->getMenuTheme().textSmall.font, Font::get(FONT_SIZE_SMALL)),
+		mWindow->getMenuTheme().textSmall.color.value_or(0x888888FF), ALIGN_CENTER);
 	mGrid.setEntry(mSubtitle, glm::ivec2(0, 2), false, true);
 
 	mSearchComp = std::make_shared<ScraperSearchComponent>(mWindow,

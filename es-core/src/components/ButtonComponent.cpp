@@ -16,7 +16,7 @@ ButtonComponent::ButtonComponent(
 {
 	const auto& mt = mWindow->getMenuTheme();
 	if(mt.buttonPath) mBox.setImagePath(*mt.buttonPath);
-	if(mt.text.font) mFont = Font::get((unsigned int)(mt.text.font->size * Renderer::getScreenHeight()), mt.text.font->path.c_str());
+	mFont = es::theme::menuFontOr(mt.text.font, mFont);
 	if(mt.text.color) mTextColorUnfocused = *mt.text.color;
 	if(mt.text.selectedColor) mTextColorFocused = *mt.text.selectedColor;
 
@@ -80,9 +80,14 @@ void ButtonComponent::setEnabled(bool enabled)
 
 void ButtonComponent::updateImage()
 {
+	// theme images (Recalbox ButtonComponent.cpp:21-35); the disabled tint has no Recalbox
+	// equivalent and stays
+	const auto& mt = mWindow->getMenuTheme();
+	const std::string filled = mt.buttonFilledPath.value_or(":/button_filled.png");
+	const std::string normal = mt.buttonPath.value_or(":/button.png");
 	if(!mEnabled || !mPressedFunc)
 	{
-		mBox.setImagePath(":/button_filled.png");
+		mBox.setImagePath(filled);
 		mBox.setCenterColor(0x770000FF);
 		mBox.setEdgeColor(0x770000FF);
 		return;
@@ -90,7 +95,7 @@ void ButtonComponent::updateImage()
 
 	mBox.setCenterColor(0xFFFFFFFF);
 	mBox.setEdgeColor(0xFFFFFFFF);
-	mBox.setImagePath(mFocused ? ":/button_filled.png" : ":/button.png");
+	mBox.setImagePath(mFocused ? filled : normal);
 }
 
 void ButtonComponent::render(const glm::mat4& parentTrans)

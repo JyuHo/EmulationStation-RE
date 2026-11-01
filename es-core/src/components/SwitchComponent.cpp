@@ -10,6 +10,9 @@ SwitchComponent::SwitchComponent(Window* window, bool state) : GuiComponent(wind
 	mOffPath = mt.switchOffPath.value_or(":/off.svg");
 	mOnPath = mt.switchOnPath.value_or(":/on.svg");
 	mImage.setImage(mState ? mOnPath : mOffPath);
+	// tint: text color, only when the theme gives one (Recalbox SwitchComponent.cpp:17-21)
+	if(mt.text.color)
+		mImage.setColorShift(*mt.text.color);
 	mImage.setResize(0, Font::get(FONT_SIZE_MEDIUM)->getLetterHeight());
 	mSize = mImage.getSize();
 }

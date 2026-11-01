@@ -104,7 +104,8 @@ void SliderComponent::render(const glm::mat4& parentTrans)
 
 	//render line
 	const float lineWidth = 2;
-	Renderer::drawRect(mKnob.getSize().x / 2, mSize.y / 2 - lineWidth / 2, width, lineWidth, 0x777777FF);
+	Renderer::drawRect(mKnob.getSize().x / 2, mSize.y / 2 - lineWidth / 2, width, lineWidth,
+		mWindow->getMenuTheme().text.color.value_or(0x777777FF)); // Recalbox SliderComponent.cpp:145
 
 	//render knob
 	mKnob.render(trans);
@@ -131,7 +132,7 @@ float SliderComponent::getValue()
 void SliderComponent::onSizeChanged()
 {
 	if(!mSuffix.empty())
-		mFont = Font::get((int)(mSize.y), FONT_PATH_LIGHT);
+		mFont = es::theme::menuFontOr(mWindow->getMenuTheme().textSmall.font, Font::get((int)(mSize.y), FONT_PATH_LIGHT));
 
 	onValueChanged();
 }
@@ -158,7 +159,8 @@ void SliderComponent::onValueChanged()
 
 		glm::vec2 textSize = mFont->sizeText(max);
 		mValueCache = std::shared_ptr<TextCache>(
-			mFont->buildTextCache(val, mSize.x - textSize.x, (mSize.y - textSize.y) / 2, 0x777777FF));
+			mFont->buildTextCache(val, mSize.x - textSize.x, (mSize.y - textSize.y) / 2,
+			mWindow->getMenuTheme().text.color.value_or(0x777777FF)));
 		mValueCache->metrics.size[0] = textSize.x; // fudge the width
 	}
 

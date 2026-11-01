@@ -186,6 +186,9 @@ void ComponentList::render(const glm::mat4& parentTrans)
 	// scroll the camera
 	trans = glm::translate(trans, glm::vec3(0, -round(mCameraOffset), 0));
 
+	const es::theme::MenuTheme& mt = mWindow->getMenuTheme();
+	const bool themed = mt.themedSelector();
+
 	// draw our entries
 	std::vector<GuiComponent*> drawAfterCursor;
 	bool drawAll;
@@ -195,7 +198,9 @@ void ComponentList::render(const glm::mat4& parentTrans)
 		drawAll = !mFocused || i != mCursor;
 		for(auto it = entry.data.elements.begin(); it != entry.data.elements.end(); it++)
 		{
-			if(drawAll || it->invert_when_selected)
+			// themed bar: every element of the selected row is drawn over the bar, in the selected
+			// color (Recalbox ComponentList.cpp:197-202); original bar: inverted in place
+			if(drawAll || (!themed && it->invert_when_selected))
 			{
 				it->component->render(trans);
 			}
@@ -212,9 +217,6 @@ void ComponentList::render(const glm::mat4& parentTrans)
 	// draw selector bar
 	if(mFocused)
 	{
-		const es::theme::MenuTheme& mt = mWindow->getMenuTheme();
-		const bool themed = mt.themedSelector();
-
 		const float selectedRowHeight = getRowHeight(mEntries.at(mCursor).data);
 
 		if(themed)
@@ -259,14 +261,15 @@ void ComponentList::render(const glm::mat4& parentTrans)
 			Renderer::setMatrix(trans);
 	}
 
-	// draw separators
+	// draw separators (Recalbox ComponentList.cpp:214-220)
+	const unsigned int separatorColor = mt.text.separatorColor.value_or(0xC6C7C6FF);
 	float y = 0;
 	for(unsigned int i = 0; i < mEntries.size(); i++)
 	{
-		Renderer::drawRect(0.0f, y, mSize.x, 1.0f, 0xC6C7C6FF);
+		Renderer::drawRect(0.0f, y, mSize.x, 1.0f, separatorColor);
 		y += getRowHeight(mEntries.at(i).data);
 	}
-	Renderer::drawRect(0.0f, y, mSize.x, 1.0f, 0xC6C7C6FF);
+	Renderer::drawRect(0.0f, y, mSize.x, 1.0f, separatorColor);
 
 	Renderer::popClipRect();
 }

@@ -44,7 +44,8 @@ private:
 		OptionListPopup(Window* window, OptionListComponent<T>* parent, const std::string& title) :
 			GuiComponent(window), mMenu(window, title.c_str()), mParent(parent)
 		{
-			auto font = Font::get(FONT_SIZE_MEDIUM);
+			const es::theme::MenuTheme& mt = mWindow->getMenuTheme();
+			auto font = es::theme::menuFontOr(mt.text.font, Font::get(FONT_SIZE_MEDIUM));
 			ComponentListRow row;
 
 			// for select all/none
@@ -53,7 +54,9 @@ private:
 			for(auto it = mParent->mEntries.begin(); it != mParent->mEntries.end(); it++)
 			{
 				row.elements.clear();
-				row.addElement(std::make_shared<TextComponent>(mWindow, strToUpper(it->name), font, 0x777777FF), true);
+				row.addElement(
+					std::make_shared<TextComponent>(mWindow, strToUpper(it->name), font, mt.text.color.value_or(0x777777FF)),
+					true);
 
 				OptionListData& e = *it;
 
@@ -148,9 +151,11 @@ public:
 		mLeftArrow(window),
 		mRightArrow(window)
 	{
-		auto font = Font::get(FONT_SIZE_MEDIUM, FONT_PATH_LIGHT);
+		// value (Recalbox OptionListComponent.h:163-165): theme text font, else the light one
+		const es::theme::MenuTheme& mt = mWindow->getMenuTheme();
+		auto font = es::theme::menuFontOr(mt.text.font, Font::get(FONT_SIZE_MEDIUM, FONT_PATH_LIGHT));
 		mText.setFont(font);
-		mText.setColor(0x777777FF);
+		mText.setColor(mt.text.color.value_or(0x777777FF));
 		mText.setAlignment(ALIGN_CENTER);
 		addChild(&mText);
 
@@ -168,9 +173,25 @@ public:
 			mRightArrow.setImage(":/option_arrow.svg");
 			addChild(&mRightArrow);
 		}
+		// arrows tinted with the text color, only when the theme gives one
+		mTextColor = mText.getColor();
+		mArrowColor = mt.text.color.value_or(0xFFFFFFFF);
+		mLeftArrow.setColorShift(mArrowColor);
+		mRightArrow.setColorShift(mArrowColor);
 
 		setSize(mLeftArrow.getSize().x + mRightArrow.getSize().x, font->getHeight());
 	}
+
+	// selected row of a themed list (ComponentList): the value and the arrows take the selected
+	// color; the normal text color puts the arrows back to their own tint
+	void setColor(unsigned int color) override
+	{
+		mText.setColor(color);
+		const unsigned int arrows = color == mTextColor ? mArrowColor : color;
+		mLeftArrow.setColorShift(arrows);
+		mRightArrow.setColorShift(arrows);
+	}
+	unsigned int getColor() const override { return mText.getColor(); }
 
 	// handles positioning/resizing of text and arrows
 	void onSizeChanged() override
@@ -323,6 +344,8 @@ private:
 	TextComponent mText;
 	ImageComponent mLeftArrow;
 	ImageComponent mRightArrow;
+	unsigned int mTextColor = 0;
+	unsigned int mArrowColor = 0xFFFFFFFF;
 
 	std::vector<OptionListData> mEntries;
 };

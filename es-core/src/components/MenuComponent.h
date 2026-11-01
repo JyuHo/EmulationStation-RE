@@ -17,6 +17,11 @@ std::shared_ptr<ComponentGrid> makeButtonGrid(
 	Window* window, const std::vector<std::shared_ptr<ButtonComponent>>& buttons);
 std::shared_ptr<ImageComponent> makeArrow(Window* window);
 
+// Frame of a menu window (Recalbox guis/Gui.cpp:14,38-40,49, components/BusyComponent.cpp:32-34
+// @10.1.1): theme image, theme color on the center and on the edges. Absent values leave the
+// frame as built (":/frame.png", no tint).
+void applyMenuFrame(NinePatchComponent& frame, const es::theme::MenuTheme& theme);
+
 // Entry icon of a menu row (Recalbox Menu.cpp:38,309-337 @10.1.1): a square of side 0.8 x the
 // row height, centered vertically, at `x` from the left edge of the row; the label moves right
 // by `textOffset`.
@@ -77,8 +82,10 @@ public:
 		bool setCursorHere = false, bool invert_when_selected = true)
 	{
 		ComponentListRow row;
-		row.addElement(
-			std::make_shared<TextComponent>(mWindow, strToUpper(label), Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
+		const es::theme::MenuTheme& mt = getMenuTheme();
+		row.addElement(std::make_shared<TextComponent>(mWindow, strToUpper(label),
+						   es::theme::menuFontOr(mt.text.font, Font::get(FONT_SIZE_MEDIUM)), mt.text.color.value_or(0x777777FF)),
+			true);
 		row.addElement(comp, false, invert_when_selected);
 		addRow(row, setCursorHere);
 	}
@@ -100,6 +107,8 @@ public:
 	std::vector<HelpPrompt> getHelpPrompts() override;
 
 private:
+	const es::theme::MenuTheme& getMenuTheme() const;
+
 	void updateSize();
 	void updateGrid();
 	float getButtonGridHeight() const;
