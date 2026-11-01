@@ -56,7 +56,7 @@ Cible unique : **Linux x86_64, Arch Linux / CachyOS**, GCC 14+ ou Clang 18+, Mes
 | FreeImage | décodage PNG/JPG, redimensionnement du scraper | 2 fichiers | **retiré des dépôts Arch** → stb_image + libwebp (fait en phase 1) |
 | FreeType | rendu des polices | `Font.cpp` | conservé |
 | libcurl | `HttpReq` (scrapers) | 1 fichier | conservé |
-| ALSA | `VolumeControl` | 1 fichier | conservé (option : PipeWire/PulseAudio plus tard) |
+| ALSA | `VolumeControl` | 1 fichier | conservé en secours ; volume par libpulse (PipeWire/PulseAudio) d'abord |
 | pugixml (vendored) | XML (settings, gamelists, thèmes, input) | — | conservé, version système possible |
 | nanosvg (vendored) | SVG | — | conservé (mise à jour du vendored) |
 
@@ -776,8 +776,9 @@ découpler de FFmpeg : `dr_wav`/`dr_mp3`/`stb_vorbis` vendored.
 - **Musique de fond** façon Recalbox : dossier `music/` de `$XDG_DATA_HOME/emulationstation/`
   (et de `$XDG_DATA_DIRS`), et musiques du thème, lecture aléatoire, fondu, pause pendant la vidéo et pendant le jeu, réglage du
   volume dans le menu Son. Options `BackgroundMusic` (bool), `MusicVolume` (0-100).
-- `VolumeControl` (ALSA) conservé ; ajouter plus tard un backend PipeWire/PulseAudio
-  (`libpulse`) car Arch utilise PipeWire par défaut (ALSA reste accessible via pipewire-alsa).
+- `VolumeControl` : volume de la sortie par défaut du serveur de son par **libpulse**
+  (PipeWire via pipewire-pulse, ou PulseAudio), ALSA en secours sans serveur ou quand une
+  carte est choisie dans le menu.
 
 ### Critères d'acceptation
 - Plus d'`SDL_MixAudio` maison ; mixage par plusieurs `SDL_AudioStream` liés au même
@@ -815,8 +816,11 @@ découpler de FFmpeg : `dr_wav`/`dr_mp3`/`stb_vorbis` vendored.
     au système, appliqué au démarrage), `AudioCard` (`""` = automatique : `default` puis
     chaque carte, choix « Carte son » du menu Son), `AudioDevice` (contrôle du mélangeur,
     `""` = automatique : `Master`, `PCM`, `Speaker`, `Headphone`…). Tests : `test_Volume.cpp`.
-    Le backend PipeWire/PulseAudio reste à faire : avec pipewire-alsa, `default` règle déjà
-    la sortie par défaut de PipeWire, celle où joue SDL.
+    Backend PipeWire/PulseAudio ajouté ensuite (`volume::PulseSink`, libpulse) : sur la
+    sortie HDMI du BC-250, le `Master` de pipewire-alsa restait à 0 % (`amixer -D default
+    sget Master` aussi) alors que `wpctl` donnait 1.00 ; ES ne lisait ni ne réglait donc
+    rien, et le curseur revenait à 0 après un redémarrage. En automatique, le serveur de son
+    passe avant ALSA.
     Le choix « Carte son » ne propose que les cartes qui ont un contrôle de volume
     (`listVolumeCards`) : une sortie HDMI ou S/PDIF (ex. `hw:0` de l'APU BC-250) n'en a
     pas, son volume se règle par le serveur de son, donc par « Automatique » (`default`).

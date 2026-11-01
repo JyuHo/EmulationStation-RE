@@ -223,6 +223,7 @@ target_link_libraries(es-core PUBLIC
     glm::glm
     CURL::libcurl
     ALSA::ALSA
+    PkgConfig::PULSE
     pugixml
     nanosvg
     stb

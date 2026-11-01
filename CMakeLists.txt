@@ -65,6 +65,7 @@ find_package(SDL3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(CURL REQUIRED)
 find_package(ALSA REQUIRED)
+pkg_check_modules(PULSE REQUIRED IMPORTED_TARGET libpulse) # system volume through PipeWire/PulseAudio
 find_package(Gettext REQUIRED)
 find_program(XGETTEXT_EXECUTABLE xgettext REQUIRED)
 find_program(MSGMERGE_EXECUTABLE msgmerge REQUIRED)

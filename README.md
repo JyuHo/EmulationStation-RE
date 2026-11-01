@@ -72,7 +72,7 @@ Détails : [plan de modernisation](docs/MODERNIZATION_PLAN.md) et
 
 ```bash
 sudo pacman -S --needed base-devel cmake ninja clang \
-    sdl3 freetype2 fontconfig glm curl alsa-lib libglvnd mesa libwebp ffmpeg gettext
+    sdl3 freetype2 fontconfig glm curl alsa-lib libpulse libglvnd mesa libwebp ffmpeg gettext
 # Pour les tests :
 sudo pacman -S --needed catch2 xorg-server-xvfb imagemagick xdotool
 ```

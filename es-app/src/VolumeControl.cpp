@@ -7,6 +7,9 @@
 #include <array>
 #include <cmath>
 #include <cstdlib>
+#include <pulse/introspect.h>
+#include <pulse/operation.h>
+#include <pulse/volume.h>
 #include <string_view>
 
 namespace volume {
@@ -48,6 +51,178 @@ int chooseControl(const std::vector<std::string>& controls, const std::string& w
 }
 } // namespace volume
 
+// ---- PulseSink ------------------------------------------------------------------------
+
+namespace {
+constexpr const char* kDefaultSink = "@DEFAULT_SINK@";
+
+// Runs `op` to its end; the mainloop lock is held.
+bool finish(pa_threaded_mainloop* loop, pa_operation* op)
+{
+	if(op == nullptr)
+		return false;
+	while(pa_operation_get_state(op) == PA_OPERATION_RUNNING)
+		pa_threaded_mainloop_wait(loop);
+	const bool done = pa_operation_get_state(op) == PA_OPERATION_DONE;
+	pa_operation_unref(op);
+	return done;
+}
+
+struct SinkQuery
+{
+	pa_threaded_mainloop* loop;
+	bool found = false;
+	pa_cvolume volume{};
+	bool muted = false;
+};
+
+struct Success
+{
+	pa_threaded_mainloop* loop;
+	bool ok = false;
+};
+
+void onSinkInfo(pa_context*, const pa_sink_info* info, int eol, void* data)
+{
+	auto* query = static_cast<SinkQuery*>(data);
+	if(eol == 0 && info != nullptr)
+	{
+		query->found = true;
+		query->volume = info->volume;
+		query->muted = info->mute != 0;
+	}
+	pa_threaded_mainloop_signal(query->loop, 0);
+}
+
+void onSuccess(pa_context*, int success, void* data)
+{
+	auto* result = static_cast<Success*>(data);
+	result->ok = success != 0;
+	pa_threaded_mainloop_signal(result->loop, 0);
+}
+
+void onStateChanged(pa_context*, void* loop)
+{
+	pa_threaded_mainloop_signal(static_cast<pa_threaded_mainloop*>(loop), 0);
+}
+
+// the default output's volume, under the lock
+bool querySink(pa_threaded_mainloop* loop, pa_context* context, SinkQuery& query)
+{
+	query.loop = loop;
+	return finish(loop, pa_context_get_sink_info_by_name(context, kDefaultSink, onSinkInfo, &query)) && query.found;
+}
+} // namespace
+
+namespace volume {
+PulseSink::~PulseSink()
+{
+	disconnect();
+}
+
+void PulseSink::disconnect()
+{
+	if(mLoop != nullptr)
+		pa_threaded_mainloop_stop(mLoop);
+	if(mContext != nullptr)
+	{
+		pa_context_disconnect(mContext);
+		pa_context_unref(mContext);
+		mContext = nullptr;
+	}
+	if(mLoop != nullptr)
+	{
+		pa_threaded_mainloop_free(mLoop);
+		mLoop = nullptr;
+	}
+}
+
+bool PulseSink::connect()
+{
+	disconnect();
+	mLoop = pa_threaded_mainloop_new();
+	if(mLoop == nullptr)
+		return false;
+	mContext = pa_context_new(pa_threaded_mainloop_get_api(mLoop), "EmulationStation");
+	if(mContext == nullptr)
+	{
+		disconnect();
+		return false;
+	}
+	pa_context_set_state_callback(mContext, onStateChanged, mLoop);
+	if(pa_context_connect(mContext, nullptr, PA_CONTEXT_NOAUTOSPAWN, nullptr) < 0 ||
+		pa_threaded_mainloop_start(mLoop) < 0)
+	{
+		disconnect();
+		return false;
+	}
+
+	pa_threaded_mainloop_lock(mLoop);
+	pa_context_state_t state;
+	while((state = pa_context_get_state(mContext)) != PA_CONTEXT_READY && PA_CONTEXT_IS_GOOD(state))
+		pa_threaded_mainloop_wait(mLoop);
+	// a server without any output is no use either
+	SinkQuery query{mLoop};
+	const bool usable = state == PA_CONTEXT_READY && querySink(mLoop, mContext, query);
+	pa_threaded_mainloop_unlock(mLoop);
+
+	if(!usable)
+		disconnect();
+	return usable;
+}
+
+bool PulseSink::ready()
+{
+	if(mContext != nullptr && pa_context_get_state(mContext) == PA_CONTEXT_READY)
+		return true;
+	// the server restarted (or went away): one attempt to reach it again
+	return connect();
+}
+
+bool PulseSink::getVolume(int& percent)
+{
+	if(!ready())
+		return false;
+	pa_threaded_mainloop_lock(mLoop);
+	SinkQuery query{mLoop};
+	const bool ok = querySink(mLoop, mContext, query);
+	pa_threaded_mainloop_unlock(mLoop);
+	if(!ok)
+		return false;
+	percent = query.muted ? 0 : toPercent(pa_cvolume_avg(&query.volume), PA_VOLUME_MUTED, PA_VOLUME_NORM);
+	return true;
+}
+
+bool PulseSink::setVolume(int percent)
+{
+	if(!ready())
+		return false;
+	percent = std::clamp(percent, 0, 100);
+	pa_threaded_mainloop_lock(mLoop);
+	SinkQuery query{mLoop};
+	bool ok = querySink(mLoop, mContext, query);
+	if(ok)
+	{
+		// the same level on each channel of the output
+		pa_cvolume target;
+		pa_cvolume_set(
+			&target, query.volume.channels, static_cast<pa_volume_t>(toRaw(percent, PA_VOLUME_MUTED, PA_VOLUME_NORM)));
+		Success volumeSet{mLoop};
+		ok =
+			finish(mLoop, pa_context_set_sink_volume_by_name(mContext, kDefaultSink, &target, onSuccess, &volumeSet)) &&
+			volumeSet.ok;
+		Success muteSet{mLoop};
+		ok = finish(
+				 mLoop, pa_context_set_sink_mute_by_name(mContext, kDefaultSink, percent == 0, onSuccess, &muteSet)) &&
+			muteSet.ok && ok;
+	}
+	pa_threaded_mainloop_unlock(mLoop);
+	return ok;
+}
+} // namespace volume
+
+// ---- VolumeControl --------------------------------------------------------------------
+
 std::weak_ptr<VolumeControl> VolumeControl::sInstance;
 
 VolumeControl::VolumeControl()
@@ -56,7 +231,7 @@ VolumeControl::VolumeControl()
 
 	// the volume chosen in the Sound menu last time
 	const int saved = Settings::getInstance()->getInt("SystemVolume");
-	if(saved >= 0 && mixerElem != nullptr)
+	if(saved >= 0 && (mixerElem != nullptr || mPulse != nullptr))
 	{
 		LOG(LogInfo) << "VolumeControl: restoring the system volume to " << saved << "%";
 		setVolume(saved);
@@ -195,14 +370,33 @@ bool VolumeControl::openMixer(const std::string& card)
 
 void VolumeControl::init()
 {
-	if(mixerHandle != nullptr)
+	if(mixerHandle != nullptr || mPulse != nullptr)
 		return;
 
 	const std::string& wanted = Settings::getInstance()->getString("AudioCard");
-	std::vector<std::string> cards;
 	if(!wanted.empty())
-		cards.push_back(wanted);
-	// automatic, or the chosen card is gone: the default device first, then each card
+	{
+		if(openMixer(wanted))
+			return;
+		LOG(LogWarning) << "VolumeControl: card \"" << wanted
+						<< "\" missing or without a volume control, using the automatic choice (\"Automatic\" in "
+						   "the Sound menu)";
+	}
+
+	// automatic: the sound server first, it drives the output that SDL plays on
+	auto pulse = std::make_unique<volume::PulseSink>();
+	if(pulse->connect())
+	{
+		mPulse = std::move(pulse);
+		mCard = "pulse";
+		mControl = "@DEFAULT_SINK@";
+		LOG(LogInfo) << "VolumeControl: sound server (PipeWire or PulseAudio), default output";
+		return;
+	}
+	LOG(LogDebug) << "VolumeControl: no PipeWire/PulseAudio server, using ALSA";
+
+	// then ALSA: the default device, then each card
+	std::vector<std::string> cards;
 	if(wanted != "default")
 		cards.emplace_back("default");
 	for(const auto& [id, name] : listCards())
@@ -210,23 +404,22 @@ void VolumeControl::init()
 		if(id != wanted)
 			cards.push_back(id);
 	}
-
 	for(const std::string& card : cards)
 	{
 		if(openMixer(card))
-		{
-			if(!wanted.empty() && card != wanted)
-				LOG(LogWarning) << "VolumeControl: card \"" << wanted
-								<< "\" missing or without a volume control, using \"" << card
-								<< "\" (choose \"Automatic\" in the Sound menu)";
 			return;
-		}
 	}
-	LOG(LogWarning) << "VolumeControl: no sound card with a playback volume control";
+	LOG(LogWarning) << "VolumeControl: no sound server nor sound card with a playback volume control";
 }
 
 void VolumeControl::deinit()
 {
+	if(mPulse != nullptr)
+	{
+		mPulse.reset();
+		mCard.clear();
+		mControl.clear();
+	}
 	if(mixerHandle != nullptr)
 	{
 		snd_mixer_close(mixerHandle); // detaches the card and frees the elements
@@ -239,6 +432,14 @@ void VolumeControl::deinit()
 
 int VolumeControl::getVolume() const
 {
+	if(mPulse != nullptr)
+	{
+		int percent = 0;
+		if(!mPulse->getVolume(percent))
+			LOG(LogWarning) << "VolumeControl::getVolume() - the sound server did not answer";
+		return percent;
+	}
+
 	if(mixerElem == nullptr)
 		return 0;
 
@@ -279,6 +480,12 @@ int VolumeControl::getVolume() const
 void VolumeControl::setVolume(int volume)
 {
 	volume = std::clamp(volume, 0, 100);
+	if(mPulse != nullptr)
+	{
+		if(!mPulse->setVolume(volume))
+			LOG(LogWarning) << "VolumeControl::setVolume() - the sound server did not answer";
+		return;
+	}
 	if(mixerElem == nullptr)
 		return;
 

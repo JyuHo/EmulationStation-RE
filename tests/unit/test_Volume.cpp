@@ -7,6 +7,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <SDL3/SDL.h>
 
+#include <cstdlib>
 #include <string>
 #include <vector>
 
@@ -117,4 +118,24 @@ TEST_CASE("the system volume drives the master control of the card", "[Volume]")
 	// AudioDevice names one; gone, the automatic choice applies
 	CHECK(volume::chooseControl({"Master", "PCM"}, "PCM") == 1);
 	CHECK(volume::chooseControl({"Master", "PCM"}, "Headphone") == 0);
+}
+
+TEST_CASE("without a sound server, the system volume falls back to ALSA", "[Volume]")
+{
+	// a server that can't exist: connect() must give up at once, never spawn one nor hang
+	const char* previous = std::getenv("PULSE_SERVER");
+	const std::string saved = previous ? previous : "";
+	setenv("PULSE_SERVER", "unix:/nonexistent/es-test-pulse", 1);
+
+	volume::PulseSink sink;
+	CHECK_FALSE(sink.connect());
+	int percent = -1;
+	CHECK_FALSE(sink.getVolume(percent));
+	CHECK(percent == -1);
+	CHECK_FALSE(sink.setVolume(50));
+
+	if(previous)
+		setenv("PULSE_SERVER", saved.c_str(), 1);
+	else
+		unsetenv("PULSE_SERVER");
 }
