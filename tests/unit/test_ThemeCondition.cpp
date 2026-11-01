@@ -1,4 +1,4 @@
-// Phase 11 (PROMPT.md section 14). Hidden until PR 11b: remove "[.]" from every tag of this file
+// Phase 11 (PROMPT.md section 14). Hidden until PR 11b: remove "[]" from every tag of this file
 // in that PR, never weaken an expected value (rule 14.2-R7).
 
 #include "theme/ThemeCondition.h"
@@ -32,7 +32,7 @@ bool eval(std::string_view expression, Diagnostics& diagnostics)
 
 } // namespace
 
-TEST_CASE("Conditions: identifiers and operators", "[.][phase11][11b][ThemeCondition]")
+TEST_CASE("Conditions: identifiers and operators", "[phase11][11b][ThemeCondition]")
 {
 	Diagnostics d;
 	CHECK(eval("t", d));
@@ -50,7 +50,7 @@ TEST_CASE("Conditions: identifiers and operators", "[.][phase11][11b][ThemeCondi
 	CHECK(d.all().empty());
 }
 
-TEST_CASE("Conditions: left to right, no precedence (Recalbox 10.1.1)", "[.][phase11][11b][ThemeCondition]")
+TEST_CASE("Conditions: left to right, no precedence (Recalbox 10.1.1)", "[phase11][11b][ThemeCondition]")
 {
 	Diagnostics d;
 	// "t | f & f" is "(t | f) & f", not "t | (f & f)"
@@ -60,7 +60,7 @@ TEST_CASE("Conditions: left to right, no precedence (Recalbox 10.1.1)", "[.][pha
 	CHECK(d.all().empty());
 }
 
-TEST_CASE("Conditions: unknown identifier is false with a warning", "[.][phase11][11b][ThemeCondition]")
+TEST_CASE("Conditions: unknown identifier is false with a warning", "[phase11][11b][ThemeCondition]")
 {
 	Diagnostics d;
 	CHECK_FALSE(eval("crt", d));
@@ -74,7 +74,7 @@ TEST_CASE("Conditions: unknown identifier is false with a warning", "[.][phase11
 	CHECK(d.all().size() == 2);
 }
 
-TEST_CASE("Conditions: empty expression is true with a warning", "[.][phase11][11b][ThemeCondition]")
+TEST_CASE("Conditions: empty expression is true with a warning", "[phase11][11b][ThemeCondition]")
 {
 	Diagnostics d;
 	CHECK(eval("", d));
@@ -82,7 +82,7 @@ TEST_CASE("Conditions: empty expression is true with a warning", "[.][phase11][1
 	CHECK(d.warningCount() == 2);
 }
 
-TEST_CASE("Conditions: syntax errors are false with a warning", "[.][phase11][11b][ThemeCondition]")
+TEST_CASE("Conditions: syntax errors are false with a warning", "[phase11][11b][ThemeCondition]")
 {
 	for(const char* bad : {"t &", "& t", "t t", "(t", "t)", "t # t", "!", "()"})
 	{
@@ -94,7 +94,7 @@ TEST_CASE("Conditions: syntax errors are false with a warning", "[.][phase11][11
 	}
 }
 
-TEST_CASE("Conditions: identifiers of this program", "[.][phase11][11b][ThemeCondition]")
+TEST_CASE("Conditions: identifiers of this program", "[phase11][11b][ThemeCondition]")
 {
 	// 11b: complete this test from the identifier table of docs/THEMES.md (one CHECK per
 	// identifier listed there, resolution thresholds included). The checks below are the minimum.

@@ -1,4 +1,4 @@
-// Phase 11 (PROMPT.md section 14). Hidden until PR 11b: remove "[.]" from every tag of this file
+// Phase 11 (PROMPT.md section 14). Hidden until PR 11b: remove "[]" from every tag of this file
 // in that PR, never weaken an expected value (rule 14.2-R7).
 
 #include "theme/ThemeDiagnostics.h"
@@ -7,13 +7,13 @@
 
 using namespace es::theme;
 
-TEST_CASE("Diagnostics: locations", "[.][phase11][11b][ThemeDiagnostics]")
+TEST_CASE("Diagnostics: locations", "[phase11][11b][ThemeDiagnostics]")
 {
 	CHECK(toString({"themes/next/theme.xml", 7}) == "themes/next/theme.xml:7");
 	CHECK(toString({"themes/next/theme.xml", 0}) == "themes/next/theme.xml");
 }
 
-TEST_CASE("Diagnostics: collection", "[.][phase11][11b][ThemeDiagnostics]")
+TEST_CASE("Diagnostics: collection", "[phase11][11b][ThemeDiagnostics]")
 {
 	Diagnostics d;
 	CHECK_FALSE(d.hasErrors());
@@ -28,7 +28,7 @@ TEST_CASE("Diagnostics: collection", "[.][phase11][11b][ThemeDiagnostics]")
 	CHECK(d.all()[2].severity == Severity::Error);
 }
 
-TEST_CASE("Diagnostics: line index", "[.][phase11][11b][ThemeDiagnostics]")
+TEST_CASE("Diagnostics: line index", "[phase11][11b][ThemeDiagnostics]")
 {
 	const LineIndex index("<theme>\n  <view>\r\n\n</theme>");
 	CHECK(index.lineAt(0) == 1);

@@ -66,6 +66,7 @@ public:
 
 private:
 	std::vector<std::size_t> mLineStarts; // byte offset of the first character of each line
+	std::size_t mSize = 0;
 };
 
 } // namespace es::theme
