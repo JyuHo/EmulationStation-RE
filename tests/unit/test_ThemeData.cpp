@@ -1,6 +1,9 @@
 #include "ThemeData.h"
+#include "Window.h"
 
 #include <catch2/catch_test_macros.hpp>
+
+#include <memory>
 
 TEST_CASE("ThemeData loads a format 3 theme", "[ThemeData]")
 {
@@ -56,4 +59,30 @@ TEST_CASE("ThemeData reads the video element", "[ThemeData]")
 	CHECK(video->get<float>("delay") == 1.5f);
 	CHECK(video->get<bool>("showSnapshotNoVideo"));
 	CHECK(video->get<bool>("showSnapshotDelay"));
+}
+
+TEST_CASE("ThemeData extras are drawn as children of ThemeExtras", "[ThemeData]")
+{
+	// #75 dropped the addChild of setExtras: the extras of the system view (background,
+	// caption of the capture theme) were created but never drawn, a black system view.
+	const std::string dir = ES_TEST_DATA_DIR "/capture/themes/capture";
+	auto theme = std::make_shared<ThemeData>();
+	REQUIRE_NOTHROW(theme->loadFile(dir + "/nes/theme.xml"));
+
+	Window window;
+	auto extras = ThemeData::makeExtras(theme, "system", &window);
+	REQUIRE(extras.size() == 2); // image "background" then text "caption", in declaration order
+
+	ThemeExtras holder(&window);
+	holder.setExtras(std::move(extras));
+	CHECK(holder.getChildCount() == 2);
+}
+
+TEST_CASE("ThemeData rejects an element of the wrong type", "[ThemeData]")
+{
+	ThemeData theme;
+	REQUIRE_NOTHROW(theme.loadFile(ES_TEST_DATA_DIR "/themes/minimal.xml"));
+	CHECK(theme.getElement("detailed", "md_description", "text") != nullptr);
+	CHECK(theme.getElement("detailed", "md_description", "image") == nullptr);
+	CHECK(theme.getElement("detailed", "md_description", "") != nullptr);
 }

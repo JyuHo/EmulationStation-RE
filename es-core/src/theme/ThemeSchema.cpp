@@ -1,5 +1,7 @@
 #include "theme/ThemeSchema.h"
 
+#include "utils/Paths.h"
+
 #include "Util.h"
 
 #include <algorithm>
@@ -117,6 +119,13 @@ const PropertySpec* findProperty(const ElementSpec& element, std::string_view na
 std::expected<PropertyValue, std::string> parseProperty(
 	PropertyType type, std::string_view raw, const std::filesystem::path& declaringFile)
 {
+	// format 3 read values with pugixml, which ignores the spaces and new lines around them
+	if(type != PropertyType::String)
+	{
+		const auto first = raw.find_first_not_of(" \t\r\n");
+		raw = first == std::string_view::npos ? std::string_view()
+											  : raw.substr(first, raw.find_last_not_of(" \t\r\n") - first + 1);
+	}
 	switch(type)
 	{
 	case PropertyType::String:
@@ -180,7 +189,8 @@ std::expected<PropertyValue, std::string> parseProperty(
 		{
 			return (declaringFile.parent_path() / v.substr(2)).generic_string();
 		}
-		// ~ expansion not here
+		if(v.rfind("~", 0) == 0)
+			return es::paths::expandUser(v).generic_string();
 		return v;
 	}
 	case PropertyType::PathList:

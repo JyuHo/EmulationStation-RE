@@ -75,6 +75,10 @@ XML
 export SDL_AUDIODRIVER=dummy SDL_AUDIO_DRIVER=dummy
 # OpenGL debug output (KHR_debug extension) in release builds too: a GL error is an [ERROR] line
 export ES_GL_DEBUG=1
+# Run on the Xvfb server only. On a Wayland desktop WAYLAND_DISPLAY is set and SDL3 would open
+# the window on the real desktop: Xvfb stays black and xdotool never finds the window.
+unset WAYLAND_DISPLAY
+export SDL_VIDEO_DRIVER=x11
 
 status=0
 HOME="$fakehome" ES_HOME="$home" xvfb-run -a -s '-screen 0 1280x720x24' bash -c '
