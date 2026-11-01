@@ -78,6 +78,7 @@ cat > "$home/config/emulationstation/es_input.cfg" <<'XML'
 		<input name="b" type="key" id="27" value="1" />
 		<input name="start" type="key" id="1073741882" value="1" />
 		<input name="select" type="key" id="1073741883" value="1" />
+		<input name="y" type="key" id="121" value="1" />
 		<input name="pageup" type="key" id="93" value="1" />
 		<input name="pagedown" type="key" id="91" value="1" />
 	</inputConfig>
@@ -133,10 +134,19 @@ HOME="$fakehome" ES_HOME="$home" xvfb-run -a -s '-screen 0 1280x720x24' bash -c 
 	xdotool key --window "$win" Return; sleep 2
 	xdotool key --window "$win" Return; sleep 2
 	import -window root "$out/$(printf %02d "$n")-keyboard.png"
-	# "1" selected; down to "q", type it, right to "w", type it, start = OK, then back from the
-	# editor and "Yes" to save: the name becomes "Probeqw" (checked in the gamelist below)
+	# b (Escape) cancels, Return opens the keyboard again on "1". Then: down to "q", type it; down
+	# three times to MAJ, press it once; up three times back to "q", type "Q"; y deletes it; right
+	# to "w", type it; start (F1) = OK, back from the editor and "Yes" to save: the name becomes
+	# "Probeqw" (checked in the gamelist below)
+	xdotool key --window "$win" Escape; sleep 1
+	xdotool key --window "$win" Return; sleep 2
 	xdotool key --window "$win" Down; sleep 0.3
 	xdotool key --window "$win" Return; sleep 0.3
+	for _ in 1 2 3; do xdotool key --window "$win" Down; sleep 0.3; done
+	xdotool key --window "$win" Return; sleep 0.3
+	for _ in 1 2 3; do xdotool key --window "$win" Up; sleep 0.3; done
+	xdotool key --window "$win" Return; sleep 0.3
+	xdotool key --window "$win" y; sleep 0.3
 	xdotool key --window "$win" Right; sleep 0.3
 	xdotool key --window "$win" Return; sleep 0.3
 	xdotool key --window "$win" F1; sleep 1
