@@ -8,6 +8,7 @@ set(CORE_HEADERS
 	src/InputConfig.h
 	src/InputManager.h
 	src/Log.h
+	src/MenuTheme.h
 	src/MusicPlayer.h
 	src/audio/AudioDecoder.h
 	src/math/Math.h
@@ -87,6 +88,7 @@ set(CORE_SOURCES
 	src/InputConfig.cpp
 	src/InputManager.cpp
 	src/Log.cpp
+	src/MenuTheme.cpp
 	src/MusicPlayer.cpp
 	src/audio/AudioDecoder.cpp
 	src/math/Math.cpp
