@@ -264,6 +264,10 @@ msgstr ""
 msgid "Theme set"
 msgstr ""
 
+#, c++-format
+msgid "{} configuration"
+msgstr ""
+
 msgid "Theme region"
 msgstr ""
 
