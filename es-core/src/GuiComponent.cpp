@@ -167,6 +167,18 @@ GuiComponent* GuiComponent::getParent() const
 	return mParent;
 }
 
+void GuiComponent::onShow()
+{
+	for(GuiComponent* child : mChildren)
+		child->onShow();
+}
+
+void GuiComponent::onHide()
+{
+	for(GuiComponent* child : mChildren)
+		child->onHide();
+}
+
 unsigned char GuiComponent::getOpacity() const
 {
 	return mOpacity;

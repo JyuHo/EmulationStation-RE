@@ -61,3 +61,26 @@ TEST_CASE("Relative image paths are resolved against the system folder", "[MetaD
 	const MetaDataList md = MetaDataList::createFromXML(GAME_METADATA, in.child("game"), "/roms/nes");
 	CHECK(md.get("image") == "/roms/nes/media/x.png");
 }
+
+TEST_CASE("The video path of a gamelist is resolved and written back relative", "[MetaData]")
+{
+	// written back relative only when the file exists (fs::canonical), as for the images
+	const std::string folder = ES_TEST_DATA_DIR "/video";
+	const char* xml = "<game><name>x</name><video>./clip.mp4</video></game>";
+	pugi::xml_document in;
+	REQUIRE(in.load(xml));
+
+	const MetaDataList md = MetaDataList::createFromXML(GAME_METADATA, in.child("game"), folder);
+	CHECK(md.get("video") == folder + "/clip.mp4");
+
+	pugi::xml_document out;
+	pugi::xml_node game = out.append_child("game");
+	md.appendToXML(game, true, folder);
+	CHECK(toString(game) == xml);
+}
+
+TEST_CASE("Folders have a video too", "[MetaData]")
+{
+	MetaDataList md(FOLDER_METADATA);
+	CHECK(md.get("video").empty());
+}

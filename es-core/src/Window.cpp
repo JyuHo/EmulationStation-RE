@@ -119,6 +119,8 @@ void Window::input(InputConfig* config, Input input)
 		mTimeSinceLastInput = 0;
 		mSleeping = false;
 		onWake();
+		if(!mGuiStack.empty())
+			mGuiStack.front()->onShow();
 		return;
 	}
 
@@ -237,6 +239,8 @@ void Window::render()
 	if(mTimeSinceLastInput >= screensaverTime && screensaverTime != 0 && mAllowSleep)
 	{
 		// go to sleep
+		if(!mSleeping && !mGuiStack.empty())
+			mGuiStack.front()->onHide(); // stops the videos
 		mSleeping = true;
 		onSleep();
 	}

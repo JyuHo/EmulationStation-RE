@@ -66,7 +66,7 @@ void ViewController::goToSystemView(SystemData* system)
 	systemList->setPosition(getSystemId(system) * (float)Renderer::getScreenWidth(), systemList->getPosition().y);
 
 	systemList->goToSystem(system, false);
-	mCurrentView = systemList;
+	setCurrentView(systemList);
 
 	playViewTransition();
 }
@@ -103,8 +103,25 @@ void ViewController::goToGameList(SystemData* system)
 	mState.viewing = GAME_LIST;
 	mState.system = system;
 
-	mCurrentView = getGameListView(system);
+	setCurrentView(getGameListView(system));
 	playViewTransition();
+}
+
+void ViewController::setCurrentView(std::shared_ptr<GuiComponent> view)
+{
+	if(view == mCurrentView)
+		return;
+	if(mCurrentView)
+		mCurrentView->onHide();
+	mCurrentView = std::move(view);
+	if(mCurrentView)
+		mCurrentView->onShow();
+}
+
+void ViewController::onShow()
+{
+	if(mCurrentView)
+		mCurrentView->onShow();
 }
 
 void ViewController::playViewTransition()
@@ -177,6 +194,7 @@ void ViewController::launch(FileData* game, glm::vec3 center)
 	center += mCurrentView->getPosition();
 	stopAnimation(1); // make sure the fade in isn't still playing
 	mLockInput = true;
+	mCurrentView->onHide(); // stops the videos: the game gets the audio device
 
 	if(Settings::getInstance()->getString("TransitionStyle") == "fade")
 	{
@@ -188,6 +206,7 @@ void ViewController::launch(FileData* game, glm::vec3 center)
 		};
 		setAnimation(std::make_unique<LambdaAnimation>(fadeFunc, 800), 0, [this, game, fadeFunc] {
 			game->getSystem()->launchGame(mWindow, game);
+			mCurrentView->onShow();
 			mLockInput = false;
 			setAnimation(std::make_unique<LambdaAnimation>(fadeFunc, 800), 0, nullptr, true);
 			this->onFileChanged(game, FILE_METADATA_CHANGED);
@@ -198,6 +217,7 @@ void ViewController::launch(FileData* game, glm::vec3 center)
 		// move camera to zoom in on center + fade out, launch game, come back in
 		setAnimation(std::make_unique<LaunchAnimation>(mCamera, mFadeOpacity, center, 1500), 0, [this, origCamera, center, game] {
 			game->getSystem()->launchGame(mWindow, game);
+			mCurrentView->onShow();
 			mCamera = origCamera;
 			mLockInput = false;
 			setAnimation(std::make_unique<LaunchAnimation>(mCamera, mFadeOpacity, center, 600), 0, nullptr, true);
@@ -221,7 +241,7 @@ std::shared_ptr<IGameListView> ViewController::getGameListView(SystemData* syste
 	std::vector<FileData*> files = system->getRootFolder()->getFilesRecursive(GAME | FOLDER);
 	for(auto it = files.begin(); it != files.end(); it++)
 	{
-		if(!(*it)->getThumbnailPath().empty())
+		if(!(*it)->getThumbnailPath().empty() || !(*it)->metadata.get("video").empty())
 		{
 			detailed = true;
 			break;
@@ -351,7 +371,7 @@ void ViewController::reloadGameListView(IGameListView* view, bool reloadTheme)
 			newView->setCursor(cursor);
 
 			if(isCurrent)
-				mCurrentView = newView;
+				setCurrentView(newView);
 
 			break;
 		}
@@ -379,12 +399,12 @@ void ViewController::reloadAll()
 	// update mCurrentView since the pointers changed
 	if(mState.viewing == GAME_LIST)
 	{
-		mCurrentView = getGameListView(mState.getSystem());
+		setCurrentView(getGameListView(mState.getSystem()));
 	}
 	else if(mState.viewing == SYSTEM_SELECT)
 	{
 		mSystemListView->goToSystem(mState.getSystem(), false);
-		mCurrentView = mSystemListView;
+		setCurrentView(mSystemListView);
 	}
 	else
 	{

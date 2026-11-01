@@ -7,6 +7,7 @@
 DetailedGameListView::DetailedGameListView(Window* window, FileData* root) :
 	BasicGameListView(window, root),
 	mImage(window),
+	mVideo(window),
 
 	mLblRating(window),
 	mLblReleaseDate(window),
@@ -43,6 +44,7 @@ DetailedGameListView::DetailedGameListView(Window* window, FileData* root) :
 	mImage.setPosition(mSize.x * 0.25f, mList.getPosition().y + mSize.y * 0.2125f);
 	mImage.setMaxSize(mSize.x * (0.50f - 2 * padding), mSize.y * 0.4f);
 	addChild(&mImage);
+	addChild(&mVideo); // draws nothing without the md_video theme element
 
 	// metadata labels + values
 	mLblRating.setText("Rating: ");
@@ -92,6 +94,13 @@ void DetailedGameListView::onThemeChanged(const std::shared_ptr<ThemeData>& them
 	using namespace ThemeFlags;
 	mImage.applyTheme(theme, getName(), "md_image", POSITION | ThemeFlags::SIZE);
 
+	const bool hadVideo = mVideoEnabled;
+	mVideoEnabled = theme->getElement(getName(), "md_video", "video") != nullptr;
+	if(mVideoEnabled)
+		mVideo.applyTheme(theme, getName(), "md_video", ALL);
+	else
+		mVideo.clearVideo();
+
 	initMDLabels();
 	std::vector<TextComponent*> labels = getMDLabels();
 	assert(labels.size() == 8);
@@ -117,6 +126,10 @@ void DetailedGameListView::onThemeChanged(const std::shared_ptr<ThemeData>& them
 	mDescContainer.applyTheme(theme, getName(), "md_description", POSITION | ThemeFlags::SIZE);
 	mDescription.setSize(mDescContainer.getSize().x, 0);
 	mDescription.applyTheme(theme, getName(), "md_description", ALL ^ (POSITION | ThemeFlags::SIZE | TEXT));
+
+	// the constructor filled the panel before the theme said there is a video
+	if(mVideoEnabled && !hadVideo)
+		updateInfoPanel();
 }
 
 void DetailedGameListView::initMDLabels()
@@ -195,11 +208,18 @@ void DetailedGameListView::updateInfoPanel()
 	{
 		//mImage.setImage("");
 		//mDescription.setText("");
+		// no video while scrolling: the delay starts again on the game the list stops on
+		mVideo.clearVideo();
 		fadingOut = true;
 	}
 	else
 	{
 		mImage.setImage(file->metadata.get("image"), false, true);
+		if(mVideoEnabled)
+		{
+			mVideo.setImage(file->metadata.get("image"));
+			mVideo.setVideo(file->metadata.get("video"));
+		}
 		mDescription.setText(file->metadata.get("desc"));
 		mDescContainer.reset();
 
@@ -220,6 +240,8 @@ void DetailedGameListView::updateInfoPanel()
 
 	std::vector<GuiComponent*> comps = getMDValues();
 	comps.push_back(&mImage);
+	if(mVideoEnabled)
+		comps.push_back(&mVideo);
 	comps.push_back(&mDescription);
 	std::vector<TextComponent*> labels = getMDLabels();
 	comps.insert(comps.end(), labels.begin(), labels.end());

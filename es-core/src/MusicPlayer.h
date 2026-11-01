@@ -28,6 +28,7 @@ private:
 	std::vector<float> mPcm;
 	SDL_AudioStream* mStream = nullptr;
 	bool mPlaying = false;
+	bool mPaused = false; // silent while a video with sound plays, the next track too
 	size_t mCurrent = 0;
 
 	void scanTracks();
