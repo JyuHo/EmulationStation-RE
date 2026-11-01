@@ -955,6 +955,17 @@ prioritaires dans `$XDG_DATA_HOME/emulationstation/locale/`).
   Interface : « Language » (en, fr, de, es, it), appliqué à chaud (`I18n::init` puis
   `ViewController::reloadAll()`). Rendu anglais inchangé (9 captures à 0 pixel) : le
   pluriel anglais de « games available » reste tel quel (affiché à partir de 2 jeux).
+- **10d** : catalogues `fr`, `de`, `es`, `it` complets (184 entrées chacun, `Plural-Forms`
+  de chaque langue : `n > 1` en français, `n != 1` ailleurs) ; `en` reste la langue source
+  (pas de `.po`). `test_Translations.cpp` lit les `.mo` compilés par `es-compile-mo` et
+  vérifie que chaque msgid du `.pot` est traduit, avec autant de `{}` et le même saut de
+  ligne final, et les règles de pluriel. Chaînes oubliées en 10c marquées (aides et boutons
+  d'`OptionListComponent`, « add star », « cancel » d'`AsyncReqComponent`), nom des
+  transitions traduit à l'affichage, titre de la liste « Screensaver behavior » (il
+  reprenait « Transition style », hérité d'ES 2.0). Vérification visuelle des 9 captures
+  dans les 4 langues : libellés raccourcis là où le titre était coupé (« Oberfläche »,
+  « Nombre del juego », « Ordenar por »). Le glob des `.po` est en `CONFIGURE_DEPENDS`.
+  Reste : relecture par des locuteurs natifs, polices CJK (tâche 3).
 
 ---
 

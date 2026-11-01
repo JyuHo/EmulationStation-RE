@@ -1,0 +1,838 @@
+# Spanish translations for emulationstation-re.
+# Copyright (C) 2026
+# This file is distributed under the same license as the emulationstation-re package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: emulationstation-re\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-01 00:00+0000\n"
+"PO-Revision-Date: 2026-11-01 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Spanish\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: es-app/src/FileSorts.cpp:6
+msgid "filename, ascending"
+msgstr "nombre de archivo, ascendente"
+
+#: es-app/src/FileSorts.cpp:7
+msgid "filename, descending"
+msgstr "nombre de archivo, descendente"
+
+#: es-app/src/FileSorts.cpp:9
+msgid "rating, ascending"
+msgstr "valoración, ascendente"
+
+#: es-app/src/FileSorts.cpp:10
+msgid "rating, descending"
+msgstr "valoración, descendente"
+
+#: es-app/src/FileSorts.cpp:12
+msgid "times played, ascending"
+msgstr "veces jugado, ascendente"
+
+#: es-app/src/FileSorts.cpp:13
+msgid "times played, descending"
+msgstr "veces jugado, descendente"
+
+#: es-app/src/FileSorts.cpp:15
+msgid "last played, ascending"
+msgstr "última partida, ascendente"
+
+#: es-app/src/FileSorts.cpp:16
+msgid "last played, descending"
+msgstr "última partida, descendente"
+
+#: es-app/src/MetaData.cpp:12
+msgid "enter game name"
+msgstr "nombre del juego"
+
+#: es-app/src/MetaData.cpp:12
+msgid "name"
+msgstr "nombre"
+
+#: es-app/src/MetaData.cpp:13
+msgid "description"
+msgstr "descripción"
+
+#: es-app/src/MetaData.cpp:13
+msgid "enter description"
+msgstr "introducir la descripción"
+
+#: es-app/src/MetaData.cpp:14
+msgid "enter path to image"
+msgstr "introducir la ruta de la imagen"
+
+#: es-app/src/MetaData.cpp:14
+msgid "image"
+msgstr "imagen"
+
+#: es-app/src/MetaData.cpp:15
+msgid "enter path to thumbnail"
+msgstr "introducir la ruta de la miniatura"
+
+#: es-app/src/MetaData.cpp:15
+msgid "thumbnail"
+msgstr "miniatura"
+
+#: es-app/src/MetaData.cpp:16
+msgid "enter path to video"
+msgstr "introducir la ruta del vídeo"
+
+#: es-app/src/MetaData.cpp:16
+msgid "video"
+msgstr "vídeo"
+
+#: es-app/src/MetaData.cpp:17
+msgid "enter rating"
+msgstr "introducir la valoración"
+
+#: es-app/src/MetaData.cpp:17
+msgid "rating"
+msgstr "valoración"
+
+#: es-app/src/MetaData.cpp:18
+msgid "enter release date"
+msgstr "introducir la fecha de lanzamiento"
+
+#: es-app/src/MetaData.cpp:18
+msgid "release date"
+msgstr "fecha de lanzamiento"
+
+#: es-app/src/MetaData.cpp:19
+msgid "developer"
+msgstr "desarrollador"
+
+#: es-app/src/MetaData.cpp:19
+msgid "enter game developer"
+msgstr "introducir el desarrollador del juego"
+
+#: es-app/src/MetaData.cpp:20
+msgid "enter game publisher"
+msgstr "introducir el editor del juego"
+
+#: es-app/src/MetaData.cpp:20
+msgid "publisher"
+msgstr "editor"
+
+#: es-app/src/MetaData.cpp:21
+msgid "enter game genre"
+msgstr "introducir el género del juego"
+
+#: es-app/src/MetaData.cpp:21
+msgid "genre"
+msgstr "género"
+
+#: es-app/src/MetaData.cpp:22
+msgid "enter number of players"
+msgstr "introducir el número de jugadores"
+
+#: es-app/src/MetaData.cpp:22
+msgid "players"
+msgstr "jugadores"
+
+#: es-app/src/MetaData.cpp:23
+msgid "enter number of times played"
+msgstr "introducir el número de partidas"
+
+#: es-app/src/MetaData.cpp:23
+msgid "play count"
+msgstr "veces jugado"
+
+#: es-app/src/MetaData.cpp:24
+msgid "enter last played date"
+msgstr "introducir la fecha de la última partida"
+
+#: es-app/src/MetaData.cpp:24
+msgid "last played"
+msgstr "última partida"
+
+#: es-app/src/components/AsyncReqComponent.cpp:48
+#: es-app/src/guis/GuiGameScraper.cpp:49 es-app/src/guis/GuiMetaDataEd.cpp:145
+msgid "cancel"
+msgstr "cancelar"
+
+#: es-app/src/components/RatingComponent.cpp:158
+msgid "add star"
+msgstr "añadir estrella"
+
+#: es-app/src/components/ScraperSearchComponent.cpp:54
+msgid "Rating:"
+msgstr "Valoración:"
+
+#: es-app/src/components/ScraperSearchComponent.cpp:55
+msgid "Released:"
+msgstr "Lanzamiento:"
+
+#: es-app/src/components/ScraperSearchComponent.cpp:56
+msgid "Developer:"
+msgstr "Desarrollador:"
+
+#: es-app/src/components/ScraperSearchComponent.cpp:57
+msgid "Publisher:"
+msgstr "Editor:"
+
+#: es-app/src/components/ScraperSearchComponent.cpp:58
+msgid "Genre:"
+msgstr "Género:"
+
+#: es-app/src/components/ScraperSearchComponent.cpp:59
+msgid "Players:"
+msgstr "Jugadores:"
+
+#: es-app/src/components/ScraperSearchComponent.cpp:249
+msgid "No games found - skip"
+msgstr "No se encontraron juegos - omitir"
+
+#: es-app/src/components/ScraperSearchComponent.cpp:290
+msgid "Retry"
+msgstr "Reintentar"
+
+#: es-app/src/components/ScraperSearchComponent.cpp:291
+#: es-app/src/guis/GuiGameScraper.cpp:49 es-app/src/guis/GuiMetaDataEd.cpp:145
+#: es-core/src/guis/GuiTextEditPopup.cpp:27
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: es-app/src/components/ScraperSearchComponent.cpp:291
+#: es-app/src/guis/GuiScraperMulti.cpp:60
+msgid "Skip"
+msgstr "Omitir"
+
+#: es-app/src/components/ScraperSearchComponent.cpp:473
+msgid "Search for"
+msgstr "Buscar"
+
+#: es-app/src/components/ScraperSearchComponent.cpp:476
+msgid "Search"
+msgstr "Buscar"
+
+#: es-app/src/components/ScraperSearchComponent.cpp:483
+msgid "accept result"
+msgstr "aceptar resultado"
+
+#: es-app/src/guis/GuiGameScraper.cpp:45 es-app/src/guis/GuiScraperMulti.cpp:55
+msgid "Input"
+msgstr "Introducir"
+
+#: es-app/src/guis/GuiGameScraper.cpp:45 es-app/src/guis/GuiScraperMulti.cpp:55
+msgid "search"
+msgstr "buscar"
+
+#: es-app/src/guis/GuiGamelistOptions.cpp:8
+msgid "Options"
+msgstr "Opciones"
+
+#: es-app/src/guis/GuiGamelistOptions.cpp:17
+#: es-app/src/guis/GuiGamelistOptions.cpp:23
+msgid "Jump to letter"
+msgstr "Ir a la letra"
+
+#: es-app/src/guis/GuiGamelistOptions.cpp:40
+#: es-app/src/guis/GuiGamelistOptions.cpp:47
+msgid "Sort games by"
+msgstr "Ordenar por"
+
+#: es-app/src/guis/GuiGamelistOptions.cpp:52
+msgid "Edit this game's metadata"
+msgstr "Editar los metadatos del juego"
+
+#: es-app/src/guis/GuiGamelistOptions.cpp:139 es-app/src/guis/GuiMenu.cpp:351
+#: es-app/src/guis/GuiMetaDataEd.cpp:284
+#: es-app/src/guis/GuiScraperStart.cpp:124 es-app/src/guis/GuiSettings.cpp:58
+msgid "close"
+msgstr "cerrar"
+
+#: es-app/src/guis/GuiMenu.cpp:28
+msgid "Main menu"
+msgstr "Menú principal"
+
+#: es-app/src/guis/GuiMenu.cpp:43 es-app/src/guis/GuiMenu.cpp:44
+msgid "Scraper"
+msgstr "Scraper"
+
+#: es-app/src/guis/GuiMenu.cpp:47 es-app/src/guis/GuiMenu.cpp:52
+msgid "Scrape from"
+msgstr "Obtener de"
+
+#: es-app/src/guis/GuiMenu.cpp:58
+msgid "Scrape ratings"
+msgstr "Obtener valoraciones"
+
+#: es-app/src/guis/GuiMenu.cpp:72 es-app/src/guis/GuiScraperStart.cpp:11
+msgid "Scrape now"
+msgstr "Obtener ahora"
+
+#: es-app/src/guis/GuiMenu.cpp:81 es-app/src/guis/GuiMenu.cpp:82
+msgid "Sound settings"
+msgstr "Ajustes de sonido"
+
+#: es-app/src/guis/GuiMenu.cpp:87
+msgid "System volume"
+msgstr "Volumen del sistema"
+
+#: es-app/src/guis/GuiMenu.cpp:93
+msgid "Enable sounds"
+msgstr "Activar sonidos"
+
+#: es-app/src/guis/GuiMenu.cpp:100
+msgid "Background music"
+msgstr "Música de fondo"
+
+#: es-app/src/guis/GuiMenu.cpp:103
+msgid "Music volume"
+msgstr "Volumen de la música"
+
+#: es-app/src/guis/GuiMenu.cpp:113
+msgid "Video sound"
+msgstr "Sonido de los vídeos"
+
+#: es-app/src/guis/GuiMenu.cpp:119 es-app/src/guis/GuiMenu.cpp:120
+msgid "UI settings"
+msgstr "Ajustes de la interfaz"
+
+#: es-app/src/guis/GuiMenu.cpp:125
+msgid "Screensaver after"
+msgstr "Salvapantallas tras"
+
+#: es-app/src/guis/GuiMenu.cpp:132 es-app/src/guis/GuiMenu.cpp:139
+msgid "Screensaver behavior"
+msgstr "Tipo de salvapantallas"
+
+#: es-app/src/guis/GuiMenu.cpp:134
+msgid "dim"
+msgstr "atenuar"
+
+#: es-app/src/guis/GuiMenu.cpp:135
+msgid "black"
+msgstr "negro"
+
+#: es-app/src/guis/GuiMenu.cpp:136
+msgid "gameclip"
+msgstr "clips de juegos"
+
+#: es-app/src/guis/GuiMenu.cpp:147
+msgid "Show framerate"
+msgstr "Mostrar FPS"
+
+#: es-app/src/guis/GuiMenu.cpp:153
+msgid "On-screen help"
+msgstr "Ayuda en pantalla"
+
+#: es-app/src/guis/GuiMenu.cpp:159
+msgid "Quick system select"
+msgstr "Selección rápida de sistema"
+
+#: es-app/src/guis/GuiMenu.cpp:165 es-app/src/guis/GuiMenu.cpp:171
+msgid "Transition style"
+msgstr "Estilo de transición"
+
+#: es-app/src/guis/GuiMenu.cpp:167
+msgid "fade"
+msgstr "fundido"
+
+#: es-app/src/guis/GuiMenu.cpp:168
+msgid "slide"
+msgstr "deslizar"
+
+#: es-app/src/guis/GuiMenu.cpp:185 es-app/src/guis/GuiMenu.cpp:188
+msgid "Theme set"
+msgstr "Tema"
+
+#: es-app/src/guis/GuiMenu.cpp:212 es-app/src/guis/GuiMenu.cpp:224
+msgid "Language"
+msgstr "Idioma"
+
+#: es-app/src/guis/GuiMenu.cpp:236 es-core/src/guis/GuiDetectDevice.cpp:29
+msgid "Configure input"
+msgstr "Configurar controles"
+
+#: es-app/src/guis/GuiMenu.cpp:239 es-app/src/guis/GuiMenu.cpp:240
+#: es-app/src/main.cpp:241
+msgid "Quit"
+msgstr "Salir"
+
+#: es-app/src/guis/GuiMenu.cpp:247
+msgid "Really restart?"
+msgstr "¿Reiniciar de verdad?"
+
+#: es-app/src/guis/GuiMenu.cpp:247 es-app/src/guis/GuiMenu.cpp:261
+#: es-app/src/guis/GuiMenu.cpp:277 es-app/src/guis/GuiMetaDataEd.cpp:155
+#: es-app/src/guis/GuiMetaDataEd.cpp:252 es-app/src/guis/GuiScraperStart.cpp:51
+msgid "Yes"
+msgstr "Sí"
+
+#: es-app/src/guis/GuiMenu.cpp:252 es-app/src/guis/GuiMenu.cpp:266
+#: es-app/src/guis/GuiMenu.cpp:283 es-app/src/guis/GuiMetaDataEd.cpp:155
+#: es-app/src/guis/GuiMetaDataEd.cpp:257 es-app/src/guis/GuiScraperStart.cpp:51
+#: es-core/src/guis/GuiMsgBox.cpp:42
+msgid "No"
+msgstr "No"
+
+#: es-app/src/guis/GuiMenu.cpp:255
+msgid "Restart system"
+msgstr "Reiniciar el sistema"
+
+#: es-app/src/guis/GuiMenu.cpp:261
+msgid "Really shut down?"
+msgstr "¿Apagar de verdad?"
+
+#: es-app/src/guis/GuiMenu.cpp:269
+msgid "Shut down system"
+msgstr "Apagar el sistema"
+
+#: es-app/src/guis/GuiMenu.cpp:277
+msgid "Really quit?"
+msgstr "¿Salir de verdad?"
+
+#: es-app/src/guis/GuiMenu.cpp:286
+msgid "Quit EmulationStation"
+msgstr "Salir de EmulationStation"
+
+#: es-app/src/guis/GuiMenu.cpp:297
+#, c++-format
+msgid "EmulationStation v{}"
+msgstr "EmulationStation v{}"
+
+#: es-app/src/guis/GuiMenu.cpp:349 es-app/src/views/SystemView.cpp:341
+#: es-app/src/views/gamelist/BasicGameListView.cpp:95
+#: es-core/src/components/ComponentGrid.cpp:445
+#: es-core/src/components/ComponentGrid.cpp:447
+#: es-core/src/components/ComponentGrid.cpp:449
+#: es-core/src/components/ComponentList.cpp:342
+msgid "choose"
+msgstr "elegir"
+
+#: es-app/src/guis/GuiMenu.cpp:350 es-app/src/views/SystemView.cpp:342
+#: es-core/src/components/ImageComponent.cpp:348
+#: es-core/src/components/OptionListComponent.h:316
+msgid "select"
+msgstr "seleccionar"
+
+#: es-app/src/guis/GuiMetaDataEd.cpp:38
+msgid "Edit metadata"
+msgstr "Editar metadatos"
+
+#: es-app/src/guis/GuiMetaDataEd.cpp:139
+msgid "Scrape"
+msgstr "Obtener"
+
+#: es-app/src/guis/GuiMetaDataEd.cpp:139
+msgid "scrape"
+msgstr "obtener"
+
+#: es-app/src/guis/GuiMetaDataEd.cpp:141
+msgid "Save"
+msgstr "Guardar"
+
+#: es-app/src/guis/GuiMetaDataEd.cpp:141
+msgid "save"
+msgstr "guardar"
+
+#: es-app/src/guis/GuiMetaDataEd.cpp:155
+msgid ""
+"This will delete a file!\n"
+"Are you sure?"
+msgstr ""
+"¡Esto borrará un archivo!\n"
+"¿Seguro?"
+
+#: es-app/src/guis/GuiMetaDataEd.cpp:157
+msgid "Delete"
+msgstr "Borrar"
+
+#: es-app/src/guis/GuiMetaDataEd.cpp:157
+msgid "delete"
+msgstr "borrar"
+
+#: es-app/src/guis/GuiMetaDataEd.cpp:252
+msgid "Save changes?"
+msgstr "¿Guardar los cambios?"
+
+#: es-app/src/guis/GuiMetaDataEd.cpp:283 es-app/src/guis/GuiScraperStart.cpp:36
+#: es-app/src/guis/GuiScraperStart.cpp:123 es-app/src/guis/GuiSettings.cpp:57
+#: es-app/src/views/gamelist/BasicGameListView.cpp:97
+#: es-app/src/views/gamelist/GridGameListView.cpp:57
+#: es-core/src/components/OptionListComponent.h:137
+#: es-core/src/guis/GuiTextEditPopup.cpp:76
+msgid "back"
+msgstr "atrás"
+
+#: es-app/src/guis/GuiScraperMulti.cpp:32
+msgid "Scraping in progress"
+msgstr "Obteniendo datos"
+
+#: es-app/src/guis/GuiScraperMulti.cpp:60
+msgid "skip"
+msgstr "omitir"
+
+#: es-app/src/guis/GuiScraperMulti.cpp:67
+msgid "Stop"
+msgstr "Detener"
+
+#: es-app/src/guis/GuiScraperMulti.cpp:67
+msgid "stop (progress saved)"
+msgstr "detener (progreso guardado)"
+
+#: es-app/src/guis/GuiScraperMulti.cpp:111
+#, c++-format
+msgid "Game {} of {}"
+msgstr "Juego {} de {}"
+
+#: es-app/src/guis/GuiScraperMulti.cpp:144
+msgid "No games were scraped."
+msgstr "No se obtuvo ningún juego."
+
+#: es-app/src/guis/GuiScraperMulti.cpp:148
+#, c++-format
+msgid "{} game successfully scraped!"
+msgid_plural "{} games successfully scraped!"
+msgstr[0] "¡{} juego obtenido con éxito!"
+msgstr[1] "¡{} juegos obtenidos con éxito!"
+
+#: es-app/src/guis/GuiScraperMulti.cpp:154
+#, c++-format
+msgid "{} game skipped."
+msgid_plural "{} games skipped."
+msgstr[0] "{} juego omitido."
+msgstr[1] "{} juegos omitidos."
+
+#: es-app/src/guis/GuiScraperMulti.cpp:157
+#: es-core/src/guis/GuiInputConfig.cpp:166 es-core/src/guis/GuiMsgBox.cpp:42
+#: es-core/src/guis/GuiTextEditPopup.cpp:22
+msgid "OK"
+msgstr "Aceptar"
+
+#: es-app/src/guis/GuiScraperStart.cpp:16
+msgid "Scrape these games"
+msgstr "Obtener estos juegos"
+
+#: es-app/src/guis/GuiScraperStart.cpp:17
+msgid "All games"
+msgstr "Todos los juegos"
+
+#: es-app/src/guis/GuiScraperStart.cpp:19
+msgid "Only missing image"
+msgstr "Solo sin imagen"
+
+#: es-app/src/guis/GuiScraperStart.cpp:20
+msgid "Filter"
+msgstr "Filtro"
+
+#: es-app/src/guis/GuiScraperStart.cpp:23
+msgid "Scrape these systems"
+msgstr "Obtener estos sistemas"
+
+#: es-app/src/guis/GuiScraperStart.cpp:29
+msgid "Systems"
+msgstr "Sistemas"
+
+#: es-app/src/guis/GuiScraperStart.cpp:33
+msgid "User decides on conflicts"
+msgstr "El usuario decide en conflictos"
+
+#: es-app/src/guis/GuiScraperStart.cpp:35
+#: es-core/src/guis/GuiInputConfig.cpp:18
+msgid "Start"
+msgstr "Start"
+
+#: es-app/src/guis/GuiScraperStart.cpp:35
+msgid "start"
+msgstr "iniciar"
+
+#: es-app/src/guis/GuiScraperStart.cpp:36 es-app/src/guis/GuiSettings.cpp:11
+#: es-core/src/components/OptionListComponent.h:95
+msgid "Back"
+msgstr "Atrás"
+
+#: es-app/src/guis/GuiScraperStart.cpp:49
+msgid ""
+"Warning: some of your selected systems do not have a platform set. Results may be even more inaccurate than usual!\n"
+"Continue anyway?"
+msgstr ""
+"Atención: algunos de los sistemas elegidos no tienen plataforma. ¡Los resultados pueden ser aún menos precisos de lo habitual!\n"
+"¿Continuar de todos modos?"
+
+#: es-app/src/guis/GuiScraperStart.cpp:65
+msgid "No games fit that criteria."
+msgstr "Ningún juego cumple ese criterio."
+
+#: es-app/src/guis/GuiSettings.cpp:11
+msgid "go back"
+msgstr "volver"
+
+#: es-app/src/main.cpp:159
+msgid ""
+"It looks like your systems configuration file has not been set up or is invalid. You'll need to do this by hand, unfortunately.\n"
+"\n"
+"Visit emulationstation.org for more information."
+msgstr ""
+"Parece que el archivo de configuración de sistemas no existe o no es válido. Por desgracia, hay que crearlo a mano.\n"
+"\n"
+"Más información en emulationstation.org."
+
+#: es-app/src/main.cpp:169
+msgid ""
+"We can't find any systems!\n"
+"Check that your paths are correct in the systems configuration file, and your game directory has at least one game with the correct extension.\n"
+"\n"
+"Visit emulationstation.org for more information."
+msgstr ""
+"¡No se encontró ningún sistema!\n"
+"Comprueba las rutas del archivo de configuración de sistemas y que la carpeta de juegos tenga al menos un juego con la extensión correcta.\n"
+"\n"
+"Más información en emulationstation.org."
+
+#: es-app/src/views/SystemView.cpp:187
+#, c++-format
+msgid "{} game available"
+msgid_plural "{} games available"
+msgstr[0] "{} juego disponible"
+msgstr[1] "{} juegos disponibles"
+
+#: es-app/src/views/ViewController.cpp:425
+msgid "menu"
+msgstr "menú"
+
+#: es-app/src/views/gamelist/BasicGameListView.cpp:94
+msgid "system"
+msgstr "sistema"
+
+#: es-app/src/views/gamelist/BasicGameListView.cpp:96
+#: es-app/src/views/gamelist/GridGameListView.cpp:56
+msgid "launch"
+msgstr "jugar"
+
+#: es-app/src/views/gamelist/BasicGameListView.cpp:98
+msgid "options"
+msgstr "opciones"
+
+#: es-app/src/views/gamelist/DetailedGameListView.cpp:51
+msgid "Rating: "
+msgstr "Valoración: "
+
+#: es-app/src/views/gamelist/DetailedGameListView.cpp:54
+msgid "Released: "
+msgstr "Lanzamiento: "
+
+#: es-app/src/views/gamelist/DetailedGameListView.cpp:57
+msgid "Developer: "
+msgstr "Desarrollador: "
+
+#: es-app/src/views/gamelist/DetailedGameListView.cpp:60
+msgid "Publisher: "
+msgstr "Editor: "
+
+#: es-app/src/views/gamelist/DetailedGameListView.cpp:63
+msgid "Genre: "
+msgstr "Género: "
+
+#: es-app/src/views/gamelist/DetailedGameListView.cpp:66
+msgid "Players: "
+msgstr "Jugadores: "
+
+#: es-app/src/views/gamelist/DetailedGameListView.cpp:69
+msgid "Last played: "
+msgstr "Última partida: "
+
+#: es-app/src/views/gamelist/DetailedGameListView.cpp:73
+msgid "Times played: "
+msgstr "Veces jugado: "
+
+#: es-app/src/views/gamelist/GridGameListView.cpp:55
+msgid "scroll"
+msgstr "desplazar"
+
+#: es-core/src/Window.cpp:310
+msgid "Loading..."
+msgstr "Cargando..."
+
+#: es-core/src/components/BusyComponent.cpp:22
+msgid "Working..."
+msgstr "Procesando..."
+
+#: es-core/src/components/DateTimeComponent.cpp:220
+msgid "never"
+msgstr "nunca"
+
+#: es-core/src/components/DateTimeComponent.cpp:226
+msgid "just now"
+msgstr "ahora mismo"
+
+#: es-core/src/components/DateTimeComponent.cpp:231
+#, c++-format
+msgid "{} sec ago"
+msgid_plural "{} secs ago"
+msgstr[0] "hace {} s"
+msgstr[1] "hace {} s"
+
+#: es-core/src/components/DateTimeComponent.cpp:236
+#, c++-format
+msgid "{} min ago"
+msgid_plural "{} mins ago"
+msgstr[0] "hace {} min"
+msgstr[1] "hace {} min"
+
+#: es-core/src/components/DateTimeComponent.cpp:241
+#, c++-format
+msgid "{} hour ago"
+msgid_plural "{} hours ago"
+msgstr[0] "hace {} hora"
+msgstr[1] "hace {} horas"
+
+#: es-core/src/components/DateTimeComponent.cpp:244
+#, c++-format
+msgid "{} day ago"
+msgid_plural "{} days ago"
+msgstr[0] "hace {} día"
+msgstr[1] "hace {} días"
+
+#: es-core/src/components/DateTimeComponent.cpp:250
+msgid "unknown"
+msgstr "desconocido"
+
+#: es-core/src/components/OptionListComponent.h:95
+msgid "accept"
+msgstr "aceptar"
+
+#: es-core/src/components/OptionListComponent.h:99
+msgid "Select all"
+msgstr "Marcar todo"
+
+#: es-core/src/components/OptionListComponent.h:99
+msgid "select all"
+msgstr "marcar todo"
+
+#: es-core/src/components/OptionListComponent.h:108
+msgid "Select none"
+msgstr "Desmarcar todo"
+
+#: es-core/src/components/OptionListComponent.h:108
+msgid "select none"
+msgstr "desmarcar todo"
+
+#: es-core/src/components/OptionListComponent.h:314
+#: es-core/src/components/SliderComponent.cpp:151
+#: es-core/src/components/SwitchComponent.cpp:59
+msgid "change"
+msgstr "cambiar"
+
+#: es-core/src/components/TextEditComponent.cpp:306
+msgid "move cursor"
+msgstr "mover cursor"
+
+#: es-core/src/components/TextEditComponent.cpp:307
+msgid "stop editing"
+msgstr "terminar edición"
+
+#: es-core/src/components/TextEditComponent.cpp:311
+msgid "edit"
+msgstr "editar"
+
+#: es-core/src/guis/GuiDetectDevice.cpp:29
+msgid "Welcome"
+msgstr "Bienvenido"
+
+#: es-core/src/guis/GuiDetectDevice.cpp:38
+#, c++-format
+msgid "{} gamepad detected"
+msgid_plural "{} gamepads detected"
+msgstr[0] "{} mando detectado"
+msgstr[1] "{} mandos detectados"
+
+#: es-core/src/guis/GuiDetectDevice.cpp:40
+msgid "No gamepads detected"
+msgstr "No se detectó ningún mando"
+
+#: es-core/src/guis/GuiDetectDevice.cpp:47
+msgid "Hold a button on your device to configure it."
+msgstr "Mantén pulsado un botón del mando para configurarlo."
+
+#: es-core/src/guis/GuiDetectDevice.cpp:50
+msgid "Press Esc to cancel."
+msgstr "Pulsa Esc para cancelar."
+
+#: es-core/src/guis/GuiDetectDevice.cpp:50
+msgid "Press F4 to quit at any time."
+msgstr "Pulsa F4 para salir en cualquier momento."
+
+#: es-core/src/guis/GuiInputConfig.cpp:18
+msgid "Down"
+msgstr "Abajo"
+
+#: es-core/src/guis/GuiInputConfig.cpp:18
+msgid "Left"
+msgstr "Izquierda"
+
+#: es-core/src/guis/GuiInputConfig.cpp:18
+msgid "Page down"
+msgstr "Página abajo"
+
+#: es-core/src/guis/GuiInputConfig.cpp:18
+msgid "Page up"
+msgstr "Página arriba"
+
+#: es-core/src/guis/GuiInputConfig.cpp:18
+msgid "Right"
+msgstr "Derecha"
+
+#: es-core/src/guis/GuiInputConfig.cpp:18
+msgid "Select"
+msgstr "Select"
+
+#: es-core/src/guis/GuiInputConfig.cpp:18
+msgid "Up"
+msgstr "Arriba"
+
+#: es-core/src/guis/GuiInputConfig.cpp:51
+msgid "Configuring"
+msgstr "Configurando"
+
+#: es-core/src/guis/GuiInputConfig.cpp:56
+msgid "Keyboard"
+msgstr "Teclado"
+
+#: es-core/src/guis/GuiInputConfig.cpp:60
+#, c++-format
+msgid "Gamepad {}"
+msgstr "Mando {}"
+
+#: es-core/src/guis/GuiInputConfig.cpp:67
+msgid "Hold any button to skip"
+msgstr "Mantén un botón para omitir"
+
+#: es-core/src/guis/GuiInputConfig.cpp:94
+#: es-core/src/guis/GuiInputConfig.cpp:260
+msgid "-Not defined-"
+msgstr "-Sin asignar-"
+
+#: es-core/src/guis/GuiInputConfig.cpp:166
+#: es-core/src/guis/GuiTextEditPopup.cpp:23
+msgid "ok"
+msgstr "aceptar"
+
+#: es-core/src/guis/GuiInputConfig.cpp:218
+#, c++-format
+msgid "Hold for {}s to skip"
+msgstr "Mantén {} s para omitir"
+
+#: es-core/src/guis/GuiInputConfig.cpp:254
+msgid "Press anything"
+msgstr "Pulsa cualquier botón"
+
+#: es-core/src/guis/GuiInputConfig.cpp:272
+msgid "Already taken"
+msgstr "Ya asignado"
+
+#: es-core/src/guis/GuiInputConfig.cpp:284
+msgid "Already mapped!"
+msgstr "¡Ya asignado!"
+
+#: es-core/src/guis/GuiTextEditPopup.cpp:27
+msgid "discard changes"
+msgstr "descartar cambios"

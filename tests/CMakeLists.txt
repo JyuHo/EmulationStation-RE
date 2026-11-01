@@ -18,10 +18,16 @@ add_executable(es-tests
     unit/test_Screensaver.cpp
     unit/test_Music.cpp
     unit/test_I18n.cpp
+    unit/test_Translations.cpp
     unit/test_TextureLoader.cpp
 )
 target_link_libraries(es-tests PRIVATE es-app-lib Catch2::Catch2WithMain)
-target_compile_definitions(es-tests PRIVATE ES_TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data")
+target_compile_definitions(es-tests PRIVATE
+    ES_TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data"
+    ES_POT_FILE="${ES_POT}"
+    ES_LOCALE_BUILD_DIR="${CMAKE_BINARY_DIR}/locale")
+# test_Translations reads the compiled catalogs
+add_dependencies(es-tests es-compile-mo)
 es_set_warnings(es-tests)
 
 catch_discover_tests(es-tests)

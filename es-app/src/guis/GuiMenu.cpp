@@ -129,7 +129,7 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, _U("Main 
 
 		// screensaver behavior
 		auto screensaver_behavior =
-			std::make_shared<OptionListComponent<std::string>>(mWindow, _U("Transition style"), false);
+			std::make_shared<OptionListComponent<std::string>>(mWindow, _U("Screensaver behavior"), false);
 		std::vector<std::string> screensavers;
 		screensavers.emplace_back(N_("dim"));
 		screensavers.emplace_back(N_("black"));
@@ -167,7 +167,7 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, _U("Main 
 		transitions.emplace_back(N_("fade"));
 		transitions.emplace_back(N_("slide"));
 		for(auto it = transitions.begin(); it != transitions.end(); it++)
-			transition_style->add(*it, *it, Settings::getInstance()->getString("TransitionStyle") == *it);
+			transition_style->add(_(*it), *it, Settings::getInstance()->getString("TransitionStyle") == *it);
 		s->addWithLabel(_U("Transition style"), transition_style);
 		s->addSaveFunc([transition_style] {
 			Settings::getInstance()->setString("TransitionStyle", transition_style->getSelected());

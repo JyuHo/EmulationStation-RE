@@ -2,6 +2,7 @@
 #include "renderer/Renderer.h"
 #include "Window.h"
 #include "Util.h"
+#include "utils/I18n.h"
 #include "resources/SVGResource.h"
 
 RatingComponent::RatingComponent(Window* window) : GuiComponent(window)
@@ -154,6 +155,6 @@ void RatingComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, const 
 std::vector<HelpPrompt> RatingComponent::getHelpPrompts()
 {
 	std::vector<HelpPrompt> prompts;
-	prompts.emplace_back("a", "add star");
+	prompts.emplace_back("a", _("add star"));
 	return prompts;
 }
