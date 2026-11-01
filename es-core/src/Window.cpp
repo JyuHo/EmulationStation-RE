@@ -98,6 +98,15 @@ bool Window::init(unsigned int width, unsigned int height)
 	return true;
 }
 
+void Window::setMainTheme(std::shared_ptr<const ThemeData> theme)
+{
+	mMainTheme = theme;
+	if(theme)
+		mMenuTheme = es::theme::MenuTheme::fromTheme(*theme);
+	else
+		mMenuTheme = es::theme::MenuTheme{};
+}
+
 void Window::deinit()
 {
 	InputManager::getInstance()->deinit();

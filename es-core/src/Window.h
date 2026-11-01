@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GuiComponent.h"
+#include "MenuTheme.h"
 #include <memory>
 #include <vector>
 #include "resources/Font.h"
@@ -57,6 +58,13 @@ private:
 	std::vector<std::unique_ptr<GuiComponent>> mGuiStack;
 
 	std::vector<std::shared_ptr<Font>> mDefaultFonts;
+
+	std::shared_ptr<const ThemeData> mMainTheme;
+	es::theme::MenuTheme mMenuTheme;
+
+public:
+	const es::theme::MenuTheme& getMenuTheme() const { return mMenuTheme; }
+	void setMainTheme(std::shared_ptr<const ThemeData> theme);
 
 	int mFrameTimeElapsed;
 	int mFrameCountElapsed;

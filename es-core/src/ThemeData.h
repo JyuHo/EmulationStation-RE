@@ -174,6 +174,7 @@ public:
 	static std::map<std::string, ThemeSet> getThemeSets();
 	static std::filesystem::path getThemeFromCurrentSet(const std::string& system);
 	static std::string currentThemeSetName();
+	static std::shared_ptr<ThemeData> loadMainTheme();
 
 private:
 	static std::map<std::string, std::map<std::string, ElementPropertyType>> sElementMap;
