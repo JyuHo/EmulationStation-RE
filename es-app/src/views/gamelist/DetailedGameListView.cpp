@@ -44,6 +44,8 @@ DetailedGameListView::DetailedGameListView(Window* window, FileData* root) :
 	mImage.setOrigin(0.5f, 0.5f);
 	mImage.setPosition(mSize.x * 0.25f, mList.getPosition().y + mSize.y * 0.2125f);
 	mImage.setMaxSize(mSize.x * (0.50f - 2 * padding), mSize.y * 0.4f);
+	mImage.setDefaultZIndex(30);
+	mVideo.setDefaultZIndex(30);
 	addChild(&mImage);
 	addChild(&mVideo); // draws nothing without the md_video theme element
 
@@ -77,6 +79,7 @@ DetailedGameListView::DetailedGameListView(Window* window, FileData* root) :
 	mDescContainer.setPosition(mSize.x * padding, mSize.y * 0.65f);
 	mDescContainer.setSize(mSize.x * (0.50f - 2 * padding), mSize.y - mDescContainer.getPosition().y);
 	mDescContainer.setAutoScroll(true);
+	mDescContainer.setDefaultZIndex(40);
 	addChild(&mDescContainer);
 
 	mDescription.setFont(Font::get(FONT_SIZE_SMALL));
@@ -93,7 +96,7 @@ void DetailedGameListView::onThemeChanged(const std::shared_ptr<ThemeData>& them
 	BasicGameListView::onThemeChanged(theme);
 
 	using namespace ThemeFlags;
-	mImage.applyTheme(theme, getName(), "md_image", POSITION | ThemeFlags::SIZE);
+	mImage.applyTheme(theme, getName(), "md_image", POSITION | ThemeFlags::SIZE | Z_INDEX | ROTATION);
 
 	const bool hadVideo = mVideoEnabled;
 	mVideoEnabled = theme->getElement(getName(), "md_video", "video") != nullptr;
@@ -124,13 +127,15 @@ void DetailedGameListView::onThemeChanged(const std::shared_ptr<ThemeData>& them
 		values[i]->applyTheme(theme, getName(), valElements[i], ALL ^ ThemeFlags::TEXT);
 	}
 
-	mDescContainer.applyTheme(theme, getName(), "md_description", POSITION | ThemeFlags::SIZE);
+	mDescContainer.applyTheme(theme, getName(), "md_description", POSITION | ThemeFlags::SIZE | Z_INDEX);
 	mDescription.setSize(mDescContainer.getSize().x, 0);
-	mDescription.applyTheme(theme, getName(), "md_description", ALL ^ (POSITION | ThemeFlags::SIZE | TEXT));
+	mDescription.applyTheme(
+		theme, getName(), "md_description", ALL ^ (POSITION | ThemeFlags::SIZE | TEXT | Z_INDEX | ROTATION));
 
 	// the constructor filled the panel before the theme said there is a video
 	if(mVideoEnabled && !hadVideo)
 		updateInfoPanel();
+	sortChildren();
 }
 
 void DetailedGameListView::initMDLabels()
@@ -163,6 +168,7 @@ void DetailedGameListView::initMDLabels()
 
 		components[i]->setFont(Font::get(FONT_SIZE_SMALL));
 		components[i]->setPosition(pos);
+		components[i]->setDefaultZIndex(40);
 	}
 }
 
@@ -190,6 +196,7 @@ void DetailedGameListView::initMDValues()
 		const float heightDiff = (labels[i]->getSize().y - values[i]->getSize().y) / 2;
 		values[i]->setPosition(labels[i]->getPosition() + glm::vec3(labels[i]->getSize().x, heightDiff, 0));
 		values[i]->setSize(colSize - labels[i]->getSize().x, values[i]->getSize().y);
+		values[i]->setDefaultZIndex(40);
 
 		float testBot = values[i]->getPosition().y + values[i]->getSize().y;
 		if(testBot > bottom)

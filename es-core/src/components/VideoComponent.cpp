@@ -320,4 +320,6 @@ void VideoComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, const s
 		setShowSnapshotNoVideo(elem->get<bool>("showSnapshotNoVideo"));
 	if(elem->has("showSnapshotDelay"))
 		setShowSnapshotDelay(elem->get<bool>("showSnapshotDelay"));
+
+	applyCommonTheme(theme, view, element, properties);
 }

@@ -55,6 +55,8 @@ public:
 	void removeChild(GuiComponent* cmp);
 	void clearChildren();
 	unsigned int getChildCount() const;
+	// stable: children with the same zIndex keep their order
+	void sortChildren();
 	GuiComponent* getChild(unsigned int i) const;
 
 	// animation will be automatically deleted when it completes or is stopped.
@@ -77,6 +79,25 @@ public:
 	virtual void setOpacity(unsigned char opacity);
 
 	const glm::mat4& getTransform();
+
+	// Theme properties common to the elements (docs/THEMES.md section 11, rows "11d").
+	// zIndex: drawing order among the children of the parent, after sortChildren().
+	float getZIndex() const { return mZIndex; }
+	void setZIndex(float zIndex) { mZIndex = zIndex; }
+	// value given to zIndex when the theme element has none (default order of each view); also
+	// the zIndex itself, for a component that its theme does not mention
+	float getDefaultZIndex() const { return mDefaultZIndex; }
+	void setDefaultZIndex(float zIndex) { mDefaultZIndex = mZIndex = zIndex; }
+	// rotation in degrees, clockwise, around rotationOrigin (fractions of the size)
+	float getRotation() const { return mRotation; }
+	void setRotation(float degrees) { mRotation = degrees; }
+	glm::vec2 getRotationOrigin() const { return mRotationOrigin; }
+	void setRotationOrigin(const glm::vec2& origin) { mRotationOrigin = origin; }
+	// a theme-disabled component is not drawn by its parent
+	bool isThemeDisabled() const { return mThemeDisabled; }
+	void setThemeDisabled(bool disabled) { mThemeDisabled = disabled; }
+	// point of the component that its position refers to, in fractions of its size
+	virtual glm::vec2 getOrigin() const { return {0.0f, 0.0f}; }
 
 	virtual std::string getValue() const;
 	virtual void setValue(const std::string& value);
@@ -104,6 +125,10 @@ public:
 
 protected:
 	void renderChildren(const glm::mat4& transform) const;
+	// zIndex, rotation, rotationOrigin and disabled of the theme element, for the
+	// components whose applyTheme does not call GuiComponent::applyTheme
+	void applyCommonTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view,
+		const std::string& element, unsigned int properties);
 	void updateSelf(int deltaTime);		// updates animations
 	void updateChildren(int deltaTime); // updates animations
 
@@ -115,6 +140,12 @@ protected:
 
 	glm::vec3 mPosition;
 	glm::vec2 mSize;
+
+	float mZIndex = 0.0f;
+	float mDefaultZIndex = 0.0f;
+	float mRotation = 0.0f;
+	glm::vec2 mRotationOrigin{0.5f, 0.5f};
+	bool mThemeDisabled = false;
 
 public:
 	const static unsigned char MAX_ANIMATIONS = 4;

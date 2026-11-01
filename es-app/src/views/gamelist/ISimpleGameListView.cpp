@@ -6,7 +6,7 @@
 #include "Settings.h"
 
 ISimpleGameListView::ISimpleGameListView(Window* window, FileData* root) :
-	IGameListView(window, root), mHeaderText(window), mHeaderImage(window), mBackground(window), mThemeExtras(window)
+	IGameListView(window, root), mHeaderText(window), mHeaderImage(window), mBackground(window), mThemeExtras(window, this)
 {
 	mHeaderText.setText("Logo Text");
 	mHeaderText.setSize(mSize.x, 0);
@@ -19,9 +19,13 @@ ISimpleGameListView::ISimpleGameListView(Window* window, FileData* root) :
 
 	mBackground.setResize(mSize.x, mSize.y);
 
+	// default drawing order (docs/THEMES.md section 10): background 0, extras 10 (ThemeExtras
+	// adds them to this view), list 20, media 30, metadata 40, logo 50
+	mHeaderText.setDefaultZIndex(50);
+	mHeaderImage.setDefaultZIndex(50);
+
 	addChild(&mHeaderText);
 	addChild(&mBackground);
-	addChild(&mThemeExtras);
 }
 
 void ISimpleGameListView::onThemeChanged(const std::shared_ptr<ThemeData>& theme)
@@ -42,6 +46,7 @@ void ISimpleGameListView::onThemeChanged(const std::shared_ptr<ThemeData>& theme
 		addChild(&mHeaderText);
 		removeChild(&mHeaderImage);
 	}
+	sortChildren();
 }
 
 void ISimpleGameListView::onFileChanged(FileData* file, FileChangeType change)

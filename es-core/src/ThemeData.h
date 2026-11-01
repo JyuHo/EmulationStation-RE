@@ -39,6 +39,8 @@ enum PropertyFlags : unsigned int
 	TEXT = 512,
 	FORCE_UPPERCASE = 1024,
 	LINE_SPACING = 2048,
+	Z_INDEX = 4096,
+	ROTATION = 8192,
 
 	ALL = 0xFFFFFFFF
 };
@@ -73,12 +75,16 @@ template <typename T> ThemeException& operator<<(ThemeException& e, T appendMsg)
 class ThemeExtras : public GuiComponent
 {
 public:
-	ThemeExtras(Window* window) : GuiComponent(window){};
+	// host: the component whose children the extras become, so that they are drawn between its
+	// other children by zIndex (gamelist views); nullptr: this component (system view)
+	explicit ThemeExtras(Window* window, GuiComponent* host = nullptr) :
+		GuiComponent(window), mHost(host ? host : this){};
 
-	// replaces (and deletes) the previous extras
+	// replaces (and deletes) the previous extras, then sorts the host's children by zIndex
 	void setExtras(std::vector<std::unique_ptr<GuiComponent>> extras);
 
 private:
+	GuiComponent* mHost;
 	std::vector<std::unique_ptr<GuiComponent>> mExtras;
 };
 

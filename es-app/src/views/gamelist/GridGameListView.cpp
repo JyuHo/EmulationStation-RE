@@ -8,6 +8,7 @@ GridGameListView::GridGameListView(Window* window, FileData* root) : ISimpleGame
 {
 	mGrid.setPosition(0, mSize.y * 0.2f);
 	mGrid.setSize(mSize.x, mSize.y * 0.8f);
+	mGrid.setDefaultZIndex(20); // like the list of the other views: the current order
 	addChild(&mGrid);
 
 	populateList(root->getChildren());

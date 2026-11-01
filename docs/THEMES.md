@@ -191,6 +191,37 @@ Vues lues par Recalbox (`ThemeSupport::SupportedViews`, `themes/ThemeSupport.cpp
 | `gamelistlogo` | non prise en charge. **Contradiction** chez Recalbox : testée par `ThemeData::HasLogoView` (`themes/ThemeData.h:93`) mais absente de `SupportedViews` ; à trancher par le propriétaire (R13) |
 | `challenge` | non prise en charge (pas de système de défis) : avertissement, vue ignorée |
 
+### Propriétés communes et ordre de dessin (11d)
+
+Recalbox applique ces propriétés dans `components/base/Themable.cpp:66-77` (sources de
+l'interface, même version que `themes/`) ; ce projet fait de même dans
+`GuiComponent::applyCommonTheme`.
+
+- `zIndex` : les enfants d'une vue sont dessinés du plus petit au plus grand, tri **stable**
+  (`components/base/Component.cpp:176-180`) : à valeur égale, l'ordre de déclaration reste.
+  Sans `zIndex`, l'élément prend la valeur par défaut de son composant (tableau ci-dessous).
+- `rotation` : degrés, sens horaire, autour de `rotationOrigin` (fractions de la taille,
+  depuis le coin haut gauche). Sans `rotation` : 0. Sans `rotationOrigin` : `0 0`, le coin
+  haut gauche (`Themable.cpp:69`) ; la documentation de Recalbox annonce `0.5 0.5` : le code
+  fait foi (décision du propriétaire, 01/11/2026).
+- `disabled` : `true` = l'élément n'est pas dessiné. Lu avec la position (`Themable.cpp:76-77`).
+
+| Vue | Élément | `zIndex` par défaut | Source Recalbox |
+|---|---|---|---|
+| `basic`, `detailed` | `background` | 0 | valeur initiale, `Component.cpp:22` |
+| `basic`, `detailed` | éléments `extra` | 10 | `themes/ThemeData.cpp:605` |
+| `basic`, `detailed` | `gamelist` | 20 | `views/gamelist/DetailedGameListView.cpp:82` |
+| `detailed` | `md_image`, `md_video` | 30 | `DetailedGameListView.cpp:94`, `:112` |
+| `detailed` | étiquettes et valeurs `md_*`, `md_description` | 40 | `DetailedGameListView.cpp:150`, `:349`, `:377` |
+| `basic`, `detailed` | `logo`, `logoText` | 50 | `views/gamelist/ISimpleGameListView.cpp:32`, `:37` |
+| `system` | éléments `extra` | 10, triés entre eux | `themes/ThemeData.cpp:605` |
+
+Ces valeurs suivent l'ordre où ce projet dessinait déjà ces éléments : un thème format 3, sans
+`zIndex`, garde exactement son rendu (R5). Les éléments `extra` d'une vue de liste sont
+désormais des enfants de la vue (`ThemeExtras`, paramètre `host`) pour se placer entre les
+autres éléments. Vue `system` : le carrousel et la barre d'information ne sont pas encore
+thémables, les `extra` restent dessinés derrière eux (PR 11g).
+
 ## 11. Éléments et propriétés
 
 Sources : `themes/ThemeSupport.cpp` @10.1.1. La table élément → propriétés est
@@ -211,8 +242,10 @@ une propriété écrit la valeur du composant dans sa description.
 
 **Statut ici.**
 - `format 3` : déjà lue et appliquée (format d'Aloshi).
-- `11d` : propriétés communes (`zIndex`, `rotation`, `rotationOrigin`, `disabled`) des éléments
-  du format 3.
+- `pris en charge (11d)` : propriétés communes (`zIndex`, `rotation`, `rotationOrigin`,
+  `disabled`), appliquées par `GuiComponent` (`applyTheme`, `applyCommonTheme`) à tout
+  composant qui lit l'élément ; détails et valeurs par défaut en section 10 (« Propriétés
+  communes »).
 - `11f` : éléments des menus thémés et clavier.
 - `11g` : carrousel système.
 - `11h` : le reste.
@@ -241,8 +274,8 @@ ces tableaux et échoue si le schéma (`es-core/src/theme/ThemeSchema.cpp`) en d
 | `maxSize` | NormalizedPair | `ThemeSupport.cpp:184`, nom `:748`, type `:112` | format 3 |
 | `keepratio` | Boolean | `ThemeSupport.cpp:185`, nom `:737`, type `:101` | 11h |
 | `origin` | NormalizedPair | `ThemeSupport.cpp:186`, nom `:750`, type `:114` | format 3 |
-| `rotation` | Float | `ThemeSupport.cpp:187`, nom `:757`, type `:121` | 11d |
-| `rotationOrigin` | NormalizedPair | `ThemeSupport.cpp:188`, nom `:758`, type `:122` | 11d |
+| `rotation` | Float | `ThemeSupport.cpp:187`, nom `:757`, type `:121` | pris en charge (11d) |
+| `rotationOrigin` | NormalizedPair | `ThemeSupport.cpp:188`, nom `:758`, type `:122` | pris en charge (11d) |
 | `path` | Path | `ThemeSupport.cpp:189`, nom `:751`, type `:115` | format 3 |
 | `tile` | Boolean | `ThemeSupport.cpp:190`, nom `:773`, type `:137` | format 3 |
 | `color` | Color | `ThemeSupport.cpp:191`, nom `:659`, type `:23` | format 3 |
@@ -254,8 +287,8 @@ ces tableaux et échoue si le schéma (`es-core/src/theme/ThemeSchema.cpp`) en d
 | `colorTopRight` | Color | `ThemeSupport.cpp:197`, nom `:665`, type `:29` | 11h |
 | `colorBottomLeft` | Color | `ThemeSupport.cpp:198`, nom `:666`, type `:30` | 11h |
 | `colorBottomRight` | Color | `ThemeSupport.cpp:199`, nom `:667`, type `:31` | 11h |
-| `zIndex` | Float | `ThemeSupport.cpp:200`, nom `:776`, type `:141` | 11d |
-| `disabled` | Boolean | `ThemeSupport.cpp:201`, nom `:670`, type `:34` | 11d |
+| `zIndex` | Float | `ThemeSupport.cpp:200`, nom `:776`, type `:141` | pris en charge (11d) |
+| `disabled` | Boolean | `ThemeSupport.cpp:201`, nom `:670`, type `:34` | pris en charge (11d) |
 | `reflection` | NormalizedPair | `ThemeSupport.cpp:202`, nom `:756`, type `:120` | 11h |
 
 #### `box`
@@ -292,11 +325,11 @@ ces tableaux et échoue si le schéma (`es-core/src/theme/ThemeSchema.cpp`) en d
 | `maxSize` | NormalizedPair | `ThemeSupport.cpp:231`, nom `:748`, type `:112` | format 3 |
 | `keepratio` | Boolean | `ThemeSupport.cpp:232`, nom `:737`, type `:101` | 11h |
 | `origin` | NormalizedPair | `ThemeSupport.cpp:233`, nom `:750`, type `:114` | format 3 |
-| `rotation` | Float | `ThemeSupport.cpp:234`, nom `:757`, type `:121` | 11d |
-| `rotationOrigin` | NormalizedPair | `ThemeSupport.cpp:235`, nom `:758`, type `:122` | 11d |
+| `rotation` | Float | `ThemeSupport.cpp:234`, nom `:757`, type `:121` | pris en charge (11d) |
+| `rotationOrigin` | NormalizedPair | `ThemeSupport.cpp:235`, nom `:758`, type `:122` | pris en charge (11d) |
 | `path` | Path | `ThemeSupport.cpp:236`, nom `:751`, type `:115` | 11h |
-| `zIndex` | Float | `ThemeSupport.cpp:237`, nom `:776`, type `:141` | 11d |
-| `disabled` | Boolean | `ThemeSupport.cpp:238`, nom `:670`, type `:34` | 11d |
+| `zIndex` | Float | `ThemeSupport.cpp:237`, nom `:776`, type `:141` | pris en charge (11d) |
+| `disabled` | Boolean | `ThemeSupport.cpp:238`, nom `:670`, type `:34` | pris en charge (11d) |
 | `animations` | String | `ThemeSupport.cpp:239`, nom `:657`, type `:21` | 11h |
 | `loops` | Float | `ThemeSupport.cpp:240`, nom `:746`, type `:110` | 11h |
 | `delay` | Float | `ThemeSupport.cpp:241`, nom `:669`, type `:33` | format 3 |
@@ -315,8 +348,8 @@ ces tableaux et échoue si le schéma (`es-core/src/theme/ThemeSchema.cpp`) en d
 | `pos` | NormalizedPair | `ThemeSupport.cpp:249`, nom `:754`, type `:118` | format 3 |
 | `size` | NormalizedPair | `ThemeSupport.cpp:250`, nom `:769`, type `:133` | format 3 |
 | `origin` | NormalizedPair | `ThemeSupport.cpp:251`, nom `:750`, type `:114` | 11h |
-| `rotation` | Float | `ThemeSupport.cpp:252`, nom `:757`, type `:121` | 11d |
-| `rotationOrigin` | NormalizedPair | `ThemeSupport.cpp:253`, nom `:758`, type `:122` | 11d |
+| `rotation` | Float | `ThemeSupport.cpp:252`, nom `:757`, type `:121` | pris en charge (11d) |
+| `rotationOrigin` | NormalizedPair | `ThemeSupport.cpp:253`, nom `:758`, type `:122` | pris en charge (11d) |
 | `text` | String | `ThemeSupport.cpp:254`, nom `:770`, type `:134` | format 3 |
 | `path` | Path | `ThemeSupport.cpp:255`, nom `:751`, type `:115` | 11h |
 | `backgroundColor` | Color | `ThemeSupport.cpp:256`, nom `:658`, type `:22` | 11h |
@@ -328,8 +361,8 @@ ces tableaux et échoue si le schéma (`es-core/src/theme/ThemeSchema.cpp`) en d
 | `forceUppercase` | Boolean | `ThemeSupport.cpp:262`, nom `:678`, type `:42` | format 3 |
 | `lineSpacing` | Float | `ThemeSupport.cpp:263`, nom `:738`, type `:102` | format 3 |
 | `multiline` | Boolean | `ThemeSupport.cpp:264`, nom `:749`, type `:113` | 11h |
-| `zIndex` | Float | `ThemeSupport.cpp:265`, nom `:776`, type `:141` | 11d |
-| `disabled` | Boolean | `ThemeSupport.cpp:266`, nom `:670`, type `:34` | 11d |
+| `zIndex` | Float | `ThemeSupport.cpp:265`, nom `:776`, type `:141` | pris en charge (11d) |
+| `disabled` | Boolean | `ThemeSupport.cpp:266`, nom `:670`, type `:34` | pris en charge (11d) |
 
 #### `scrolltext`
 
@@ -400,7 +433,7 @@ ces tableaux et échoue si le schéma (`es-core/src/theme/ThemeSchema.cpp`) en d
 | `horizontalMargin` | Float | `ThemeSupport.cpp:328`, nom `:680`, type `:44` | format 3 |
 | `forceUppercase` | Boolean | `ThemeSupport.cpp:329`, nom `:678`, type `:42` | format 3 |
 | `lineSpacing` | Float | `ThemeSupport.cpp:330`, nom `:738`, type `:102` | format 3 |
-| `zIndex` | Float | `ThemeSupport.cpp:331`, nom `:776`, type `:141` | 11d |
+| `zIndex` | Float | `ThemeSupport.cpp:331`, nom `:776`, type `:141` | pris en charge (11d) |
 
 #### `container`
 
@@ -411,8 +444,8 @@ ces tableaux et échoue si le schéma (`es-core/src/theme/ThemeSchema.cpp`) en d
 | `pos` | NormalizedPair | `ThemeSupport.cpp:376`, nom `:754`, type `:118` | format 3 |
 | `size` | NormalizedPair | `ThemeSupport.cpp:377`, nom `:769`, type `:133` | format 3 |
 | `origin` | NormalizedPair | `ThemeSupport.cpp:378`, nom `:750`, type `:114` | 11h |
-| `zIndex` | Float | `ThemeSupport.cpp:379`, nom `:776`, type `:141` | 11d |
-| `disabled` | Boolean | `ThemeSupport.cpp:380`, nom `:670`, type `:34` | 11d |
+| `zIndex` | Float | `ThemeSupport.cpp:379`, nom `:776`, type `:141` | pris en charge (11d) |
+| `disabled` | Boolean | `ThemeSupport.cpp:380`, nom `:670`, type `:34` | pris en charge (11d) |
 
 #### `ninepatch`
 
@@ -423,8 +456,8 @@ ces tableaux et échoue si le schéma (`es-core/src/theme/ThemeSchema.cpp`) en d
 | `pos` | NormalizedPair | `ThemeSupport.cpp:386`, nom `:754`, type `:118` | format 3 |
 | `size` | NormalizedPair | `ThemeSupport.cpp:387`, nom `:769`, type `:133` | format 3 |
 | `path` | Path | `ThemeSupport.cpp:388`, nom `:751`, type `:115` | format 3 |
-| `zIndex` | Float | `ThemeSupport.cpp:389`, nom `:776`, type `:141` | 11d |
-| `disabled` | Boolean | `ThemeSupport.cpp:390`, nom `:670`, type `:34` | 11d |
+| `zIndex` | Float | `ThemeSupport.cpp:389`, nom `:776`, type `:141` | pris en charge (11d) |
+| `disabled` | Boolean | `ThemeSupport.cpp:390`, nom `:670`, type `:34` | pris en charge (11d) |
 
 #### `datetime`
 
@@ -441,8 +474,8 @@ ces tableaux et échoue si le schéma (`es-core/src/theme/ThemeSchema.cpp`) en d
 | `fontSize` | Float | `ThemeSupport.cpp:402`, nom `:675`, type `:39` | format 3 |
 | `alignment` | String | `ThemeSupport.cpp:403`, nom `:656`, type `:20` | 11h |
 | `forceUppercase` | Boolean | `ThemeSupport.cpp:404`, nom `:678`, type `:42` | format 3 |
-| `zIndex` | Float | `ThemeSupport.cpp:405`, nom `:776`, type `:141` | 11d |
-| `disabled` | Boolean | `ThemeSupport.cpp:406`, nom `:670`, type `:34` | 11d |
+| `zIndex` | Float | `ThemeSupport.cpp:405`, nom `:776`, type `:141` | pris en charge (11d) |
+| `disabled` | Boolean | `ThemeSupport.cpp:406`, nom `:670`, type `:34` | pris en charge (11d) |
 | `display` | String | `ThemeSupport.cpp:407`, nom `:671`, type `:35` | 11h |
 
 #### `rating`
@@ -454,12 +487,12 @@ ces tableaux et échoue si le schéma (`es-core/src/theme/ThemeSchema.cpp`) en d
 | `pos` | NormalizedPair | `ThemeSupport.cpp:413`, nom `:754`, type `:118` | format 3 |
 | `size` | NormalizedPair | `ThemeSupport.cpp:414`, nom `:769`, type `:133` | format 3 |
 | `origin` | NormalizedPair | `ThemeSupport.cpp:415`, nom `:750`, type `:114` | 11h |
-| `rotation` | Float | `ThemeSupport.cpp:416`, nom `:757`, type `:121` | 11d |
-| `rotationOrigin` | NormalizedPair | `ThemeSupport.cpp:417`, nom `:758`, type `:122` | 11d |
+| `rotation` | Float | `ThemeSupport.cpp:416`, nom `:757`, type `:121` | pris en charge (11d) |
+| `rotationOrigin` | NormalizedPair | `ThemeSupport.cpp:417`, nom `:758`, type `:122` | pris en charge (11d) |
 | `filledPath` | Path | `ThemeSupport.cpp:418`, nom `:673`, type `:37` | format 3 |
 | `unfilledPath` | Path | `ThemeSupport.cpp:419`, nom `:775`, type `:139` | format 3 |
-| `zIndex` | Float | `ThemeSupport.cpp:420`, nom `:776`, type `:141` | 11d |
-| `disabled` | Boolean | `ThemeSupport.cpp:421`, nom `:670`, type `:34` | 11d |
+| `zIndex` | Float | `ThemeSupport.cpp:420`, nom `:776`, type `:141` | pris en charge (11d) |
+| `disabled` | Boolean | `ThemeSupport.cpp:421`, nom `:670`, type `:34` | pris en charge (11d) |
 
 #### `sound`
 
@@ -725,3 +758,5 @@ ces tableaux et échoue si le schéma (`es-core/src/theme/ThemeSchema.cpp`) en d
   prise en charge ».
 - Suffixes localisés de 5 lettres (`text.fr_FR`) : le chargeur compare aujourd'hui le suffixe à
   la région, à la langue (`fr`) et au pays (`FR`), pas à `fr_FR` (section 9).
+- Élément absent du thème : Recalbox masque le composant (`Themable.cpp:19-21`) ; ce projet le
+  laisse affiché avec ses valeurs, comme le format 3 (R5).

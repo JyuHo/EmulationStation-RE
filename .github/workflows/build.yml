@@ -110,6 +110,18 @@ jobs:
           path: captures-${{ matrix.compiler }}
           if-no-files-found: ignore
 
+      - name: Theme screenshots (Xvfb)
+        # screens of the theme features, checked by pixel probes (PROMPT.md 14.8)
+        run: tests/smoke/capture-themes.sh build/emulationstation themes-${{ matrix.compiler }}
+
+      - name: Upload theme screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: themes-${{ matrix.compiler }}
+          path: themes-${{ matrix.compiler }}
+          if-no-files-found: ignore
+
   asan:
     name: Arch Linux (gcc, ASan + UBSan)
     runs-on: ubuntu-latest
@@ -182,6 +194,19 @@ jobs:
       - name: Compare
         run: tests/smoke/compare.sh captures-base captures-head
 
+      - name: Theme screenshots vs base branch
+        # The base branch's own script and fixture drive both binaries: what the base already
+        # supports must look the same. Skipped while the base has no capture-themes.sh.
+        run: |
+          base="$RUNNER_TEMP/base"
+          if ! git -C "$base" ls-files --error-unmatch tests/smoke/capture-themes.sh >/dev/null 2>&1; then
+            echo "Skipped: the base branch has no tests/smoke/capture-themes.sh"
+            exit 0
+          fi
+          "$base/tests/smoke/capture-themes.sh" build-base/emulationstation themes-base
+          "$base/tests/smoke/capture-themes.sh" build/emulationstation themes-head
+          tests/smoke/compare.sh themes-base themes-head
+
       - name: Upload screenshots
         if: always()
         uses: actions/upload-artifact@v4
@@ -190,4 +215,6 @@ jobs:
           path: |
             captures-base
             captures-head
+            themes-base
+            themes-head
           if-no-files-found: ignore
