@@ -114,6 +114,7 @@ bool parseArgs(int argc, char* argv[], unsigned int* width, unsigned int* height
 						 "--windowed			not fullscreen, should be used with --resolution\n"
 						 "--vsync [1/on or 0/off]		turn vsync on or off (default is on)\n"
 						 "--home [folder]			portable mode: keep every file in [folder] (same as ES_HOME)\n"
+						 "--check-theme [folder] [system]	validate a theme without opening a window\n"
 						 "--help, -h			summon a sentient, angry tuba\n\n"
 						 "More information available in README.md.\n";
 			return false; //exit after printing help
