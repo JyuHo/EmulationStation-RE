@@ -1326,7 +1326,13 @@ jour après la fusion de la précédente. Le détail (fichiers, tests, critères
 | 11c2 | `modernize/phase-11c2-theme-conformity` | mise en conformité de 11a–11c : section 11 de `docs/THEMES.md`, recherche du fichier, contexte du chargeur, tests manquants | — | 400–900 + doc |
 | 11d | `modernize/phase-11d-theme-properties` | propriétés communes (`zIndex`, rotation, opacité, `disabled`, repli de chemins…), `capture-themes.sh` et sondes de pixels | — | 600–1 200 |
 | 11e | `modernize/phase-11e-theme-options` | menu « Options du thème », région, enregistrement, rechargement à chaud, traductions | `[11e]` | 500–900 |
-| 11f | `modernize/phase-11f-themed-menus` | vue `menu` : fond, textes, interrupteurs, curseurs, boutons, icônes ; `delete this` des GUI touchées | — | 800–1 400 |
+| 11e2 | `modernize/phase-11e2-theme-options-fix` | 11e rendue effective : réglages lus au chargement, valeur utilisée affichée, tests, captures, docs | — | 400–800 |
+| 11f | `modernize/phase-11f-themed-menus` | squelette `MenuTheme` (#87), remplacé par 11f1 | — | — |
+| 11f1 | `modernize/phase-11f1-menu-theme-data` | thème principal, lecture de la vue `menu` et de `keyboard`, `MenuTheme` optionnel, aucun rendu changé | — | 500–900 |
+| 11f2 | `modernize/phase-11f2-themed-menus` | fenêtres et composants de menus thémés, barre de sélection de Recalbox, sondes | — | 700–1 200 |
+| 11f3 | `modernize/phase-11f3-close-gui` | `Window::closeGui` à la place des `delete this` des GUI | — | 300–600 |
+| 11f4 | `modernize/phase-11f4-menu-icons-sections` | icônes d'entrée et en-têtes de section (décision du 01/11/2026) | — | 400–800 |
+| 11f5 | `modernize/phase-11f5-virtual-keyboard` | clavier virtuel original, thémé par `keyboard` (décision du 01/11/2026) | — | 700–1 200 |
 | 11g | `modernize/phase-11g-system-carousel` | carrousel système (types, logos, repli texte, transitions), `systemInfo` | — | 600–1 200 |
 | 11h | `modernize/phase-11h-theme-views` | vues restantes de `docs/THEMES.md` (liste de jeux à logos, économiseur `gameclip`…) | — | selon 11a |
 | 11i | `modernize/phase-11i-theme-close` | thème `es-re-default`, installation, étape CI « No phase 11 stubs », docs, section 0 | — | 500–1 500 |

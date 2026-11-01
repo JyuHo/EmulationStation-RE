@@ -8,7 +8,7 @@
 # the "Vérifications effectuées" section of the PR (R14).
 set -uo pipefail
 
-order=(11a 11b 11c 11c2 11d 11e 11f 11g 11h 11i)
+order=(11a 11b 11c 11c2 11d 11e 11e2 11f 11f1 11f2 11f3 11f4 11f5 11g 11h 11i)
 pr="${1:-}"
 found=0
 done_prs=()
@@ -55,6 +55,19 @@ check "0.3: no locale-dependent number parsing in the theme engine" git grep -nE
 check "R5: capture fixture unchanged" git diff --stat "$base" -- tests/data/capture
 check "R7: test_ThemeData.cpp only gains lines" bash -c "git diff -U0 '$base' -- tests/unit/test_ThemeData.cpp | grep -E '^-[^-]'"
 check "R9: no rendu-modifié bypass in the workflow" bash -c "git diff -U0 '$base' -- .github | grep -E '^[+-].*(rendu-modifi|continue-on-error|if: false)'"
+# R10/R14: from 11e2 on, a PR that changes code also adds its own tests, tagged [<PR>]
+# (#86 and #87 were merged with none)
+case "$pr" in
+11a | 11b | 11c | 11c2 | 11d | 11e | 11f) ;;
+*)
+	if git diff "$base" -- tests | grep -qE '^\+TEST_CASE\(.*\['"$pr"'\]'; then
+		echo "OK    R10: the PR adds TEST_CASEs tagged [$pr]"
+	else
+		echo "FAIL  R10: the PR adds no TEST_CASE tagged [$pr]"
+		status=1
+	fi
+	;;
+esac
 
 if [ "$status" -eq 0 ]; then echo "PASS phase11-check $pr"; else echo "FAIL phase11-check $pr"; fi
 exit "$status"
