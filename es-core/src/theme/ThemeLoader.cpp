@@ -308,6 +308,7 @@ bool processFile(const fs::path& file, LoadedTheme& theme, LoaderContext& ctx, D
 	{
 		ctx.selectedOptions = resolveSelectedOptions(theme.subsets, ctx.selectedOptions);
 	}
+	theme.selectedOptions = ctx.selectedOptions;
 
 	// Second pass: process includes (only the selected option of each subset).
 	for(pugi::xml_node inc : includes)

@@ -255,67 +255,62 @@ GuiMenu::GuiMenu(Window* window) :
 			if(sys)
 			{
 				std::shared_ptr<ThemeData> theme = sys->getTheme();
+				const std::string themeSet = ThemeData::currentThemeSetName();
+				bool anyChange = false;
+
 				if(theme && !theme->getSubsets().empty())
 				{
+					const auto& selected = theme->getSelectedOptions();
 					for(const auto& subset : theme->getSubsets())
 					{
 						if(subset.choices.empty()) continue;
-						auto comp = std::make_shared<OptionListComponent<std::string>>(mWindow, _U(subset.title.c_str()), false);
-						// sort choices: numeric if all indexed, else alphabetical
-						std::vector<es::theme::ThemeOptionChoice> sorted = subset.choices;
-						bool allIndexed = true;
-						for(const auto& c : sorted)
-						{
-							if(c.name.empty() || !std::isdigit((unsigned char)c.name[0]))
-							{ allIndexed = false; break; }
-						}
-						if(allIndexed)
-							std::sort(sorted.begin(), sorted.end(), [](const es::theme::ThemeOptionChoice& a, const es::theme::ThemeOptionChoice& b) {
-								return std::stoi(a.name) < std::stoi(b.name);
-							});
-						else
-							std::sort(sorted.begin(), sorted.end(), [](const es::theme::ThemeOptionChoice& a, const es::theme::ThemeOptionChoice& b) {
-								return a.name < b.name;
-							});
-						const std::string key = es::theme::optionSettingKey(Settings::getInstance()->getString("ThemeSet"), subset.id);
-						const std::string current = Settings::getInstance()->getStringOr(key, "");
+						auto sorted = es::theme::sortOptionChoices(subset.choices);
+						auto comp = std::make_shared<OptionListComponent<std::string>>(mWindow, subset.title, false);
+						const std::string key = es::theme::optionSettingKey(themeSet, subset.id);
+						const std::string current = selected.count(subset.id) ? selected.at(subset.id) : std::string();
 						bool found = false;
 						for(const auto& c : sorted)
 						{
-							std::string display = c.displayName;
-							// strip index prefix for display if present
-							bool selected = !found && (current.empty() ? (&c == &sorted.front()) : (c.name == current));
-							found = found || selected;
-							comp->add(display, c.name, selected);
+							bool sel = !found && (current.empty() ? (&c == &sorted.front()) : (c.name == current));
+							found = found || sel;
+							comp->add(es::theme::displayOptionName(c.displayName.empty() ? c.name : c.displayName), c.name, sel);
 						}
-						s->addWithLabel(_U(subset.title.c_str()), comp);
-						s->addSaveFunc([comp, key, subset]() {
+						s->addWithLabel(subset.title, comp);
+						s->addSaveFunc([comp, key, &anyChange] {
 							if(Settings::getInstance()->getStringOr(key, "") != comp->getSelected())
 							{
 								Settings::getInstance()->setString(key, comp->getSelected());
-								Settings::getInstance()->saveFile();
-								ViewController::get()->reloadAll();
+								anyChange = true;
 							}
 						});
 					}
 				}
 				if(theme && theme->usesRegion())
 				{
-					auto region = std::make_shared<OptionListComponent<std::string>>(mWindow, _U("Theme region"), false);
+					auto region = std::make_shared<OptionListComponent<std::string>>(mWindow, "Theme region", false);
 					const std::string cur = Settings::getInstance()->getStringOr("ThemeRegion", "eu");
 					region->add("US", "us", cur == "us");
 					region->add("EU", "eu", cur == "eu");
 					region->add("JP", "jp", cur == "jp");
-					s->addWithLabel(_U("Theme region"), region);
-					s->addSaveFunc([region] {
+					s->addWithLabel("Theme region", region);
+					s->addSaveFunc([region, &anyChange] {
 						if(Settings::getInstance()->getStringOr("ThemeRegion", "eu") != region->getSelected())
 						{
 							Settings::getInstance()->setString("ThemeRegion", region->getSelected());
-							Settings::getInstance()->saveFile();
-							ViewController::get()->reloadAll();
+							anyChange = true;
 						}
 					});
 				}
+				s->addSaveFunc([anyChange]() mutable {
+					if(anyChange)
+					{
+						Settings::getInstance()->saveFile();
+						ViewController::get()->reloadAll();
+						MusicPlayer::getInstance().stop();
+						MusicPlayer::getInstance().init();
+						MusicPlayer::getInstance().play();
+					}
+				});
 			}
 		}
 

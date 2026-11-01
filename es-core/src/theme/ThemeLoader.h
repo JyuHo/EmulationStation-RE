@@ -85,6 +85,7 @@ struct LoadedTheme
 	float formatVersion = 0.0f; // <formatVersion> of the main file
 	ThemeInfo info;
 	std::vector<ThemeSubset> subsets;				   // every option of the theme, for the "Theme options" menu
+	std::map<std::string, std::string, std::less<>> selectedOptions; // result of resolveSelectedOptions
 	std::map<std::string, RawView, std::less<>> views; // lowercase view name -> view
 	std::vector<std::filesystem::path> files;		   // every file read, main file first (hot reload)
 	bool usesRegion = false; // true if any element carries a region attribute

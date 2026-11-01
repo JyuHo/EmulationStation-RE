@@ -168,10 +168,12 @@ public:
 
 	// Phase 11e: theme options (subsets) and region support, read at load time.
 	const std::vector<es::theme::ThemeSubset>& getSubsets() const { return mSubsets; }
+	const std::map<std::string, std::string, std::less<>>& getSelectedOptions() const { return mSelectedOptions; }
 	bool usesRegion() const { return mUsesRegion; }
 
 	static std::map<std::string, ThemeSet> getThemeSets();
 	static std::filesystem::path getThemeFromCurrentSet(const std::string& system);
+	static std::string currentThemeSetName();
 
 private:
 	static std::map<std::string, std::map<std::string, ElementPropertyType>> sElementMap;
@@ -187,5 +189,6 @@ private:
 
 	std::map<std::string, ThemeView> mViews;
 	std::vector<es::theme::ThemeSubset> mSubsets;
+	std::map<std::string, std::string, std::less<>> mSelectedOptions;
 	bool mUsesRegion = false;
 };

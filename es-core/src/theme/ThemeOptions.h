@@ -23,4 +23,11 @@ namespace es::theme {
 [[nodiscard]] std::map<std::string, std::string, std::less<>> resolveSelectedOptions(
 	const std::vector<ThemeSubset>& subsets, const std::map<std::string, std::string, std::less<>>& stored);
 
+// Sorts the choices of an option the way Recalbox does: numerically if every name starts with
+// an index ("10 - b", "2 - a" -> 2 then 10), otherwise alphabetically.
+[[nodiscard]] std::vector<ThemeOptionChoice> sortOptionChoices(const std::vector<ThemeOptionChoice>& choices);
+
+// Display name: drops a leading "<number> - " / "<number>." prefix used for ordering.
+[[nodiscard]] std::string displayOptionName(const std::string& name);
+
 } // namespace es::theme
