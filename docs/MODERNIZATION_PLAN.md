@@ -782,6 +782,23 @@ découpler de FFmpeg : `dr_wav`/`dr_mp3`/`stb_vorbis` vendored.
 - Plus d'`SDL_MixAudio` maison ; mixage par plusieurs `SDL_AudioStream` liés au même
   périphérique logique. Aucun craquement ; latence < 50 ms pour les sons de navigation.
 
+### Écarts constatés
+- **#51, #53** : musique décodée en entier sur le thread principal au démarrage et à chaque
+  piste (blocage de l'interface, mémoire de la piste entière), pas de fondu, pas de musique
+  du thème, aucun réglage au menu Son, même piste possible deux fois de suite, aucun test ;
+  décodage FFmpeg copié entre `Sound` et `MusicPlayer`, sans vidage du rééchantillonneur
+  (fin des sons tronquée). Plantage à la fermeture corrigé par #59.
+- **8b** (reprise) : `AudioDecoder` (es-core/src/audio) décode à la demande en float stéréo
+  48 kHz et vide le rééchantillonneur ; `Sound` s'en sert pour les sons de navigation.
+  `MusicPlayer` : un `std::jthread` garde 0,5 s d'avance dans un `SDL_AudioStream` lié au
+  périphérique de l'`AudioManager`, pistes enchaînées sans blanc, jamais deux fois la même de
+  suite, dossiers `music/` des données utilisateur, de `$XDG_DATA_DIRS` et du jeu de thèmes
+  courant (relu au changement de thème) ; fondu de 1 s au démarrage, à la pause (vidéo avec
+  son) et à la reprise ; menu Son : `BackgroundMusic`, `MusicVolume`, `VideoAudio`. Pause
+  pendant le jeu : arrêt avant le lancement, reprise au retour (`SystemData::launchGame`).
+  Tests : `test_Music.cpp` (décodage, lecture en flux identique au décodage complet,
+  fichiers sans son, tirage, fondus, enchaînement), TSan propre.
+
 ---
 
 ## Phase 9 — Vidéo avec FFmpeg

@@ -2,6 +2,7 @@
 #include "guis/GuiMenu.h"
 #include "Window.h"
 #include "Sound.h"
+#include "MusicPlayer.h"
 #include "Log.h"
 #include "platform.h"
 #include "Settings.h"
@@ -90,6 +91,25 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "MAIN MEN
 		s->addSaveFunc(
 			[sounds_enabled] { Settings::getInstance()->setBool("EnableSounds", sounds_enabled->getState()); });
 
+		// background music
+		auto music_enabled = std::make_shared<SwitchComponent>(mWindow);
+		music_enabled->setState(Settings::getInstance()->getBool("BackgroundMusic"));
+		s->addWithLabel("BACKGROUND MUSIC", music_enabled);
+		auto music_volume = std::make_shared<SliderComponent>(mWindow, 0.f, 100.f, 1.f, "%");
+		music_volume->setValue((float)Settings::getInstance()->getInt("MusicVolume"));
+		s->addWithLabel("MUSIC VOLUME", music_volume);
+		s->addSaveFunc([music_enabled, music_volume] {
+			Settings::getInstance()->setBool("BackgroundMusic", music_enabled->getState());
+			Settings::getInstance()->setInt("MusicVolume", (int)round(music_volume->getValue()));
+			MusicPlayer::getInstance().applySettings(); // the volume fades to its new value
+		});
+
+		// sound of the videos
+		auto video_audio = std::make_shared<SwitchComponent>(mWindow);
+		video_audio->setState(Settings::getInstance()->getBool("VideoAudio"));
+		s->addWithLabel("VIDEO SOUND", video_audio);
+		s->addSaveFunc([video_audio] { Settings::getInstance()->setBool("VideoAudio", video_audio->getState()); });
+
 		mWindow->pushGui(std::move(s));
 	});
 
@@ -172,8 +192,14 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "MAIN MEN
 				Settings::getInstance()->setString("ThemeSet", theme_set->getSelected());
 
 				if(needReload)
+				{
 					ViewController::get()
 						->reloadAll(); // TODO - replace this with some sort of signal-based implementation
+					// the music of the new theme set
+					MusicPlayer::getInstance().stop();
+					MusicPlayer::getInstance().init();
+					MusicPlayer::getInstance().play();
+				}
 			});
 		}
 
