@@ -946,6 +946,15 @@ prioritaires dans `$XDG_DATA_HOME/emulationstation/locale/`).
   vide) ; références `#:` en chemins absolus (dépendantes du dossier de la copie de travail) ;
   `es-update-po` réduite à un `echo`. Corrigé : chemins relatifs triés, `--force-po`,
   `git diff --exit-code -I 'POT-Creation-Date'`, `msgmerge --update` pour chaque `.po`.
+- **10c** : chaînes d'interface d'`es-app` et `es-core` marquées (185 entrées : menus,
+  aides, boutons, messages, noms de métadonnées et de tris, saisie des touches, temps
+  relatifs). Les libellés affichés en capitales gardent un msgid en casse normale et passent
+  par `_U` ; tables statiques marquées `N_` (mot-clé xgettext ajouté) et traduites à
+  l'affichage ; nombres par `_N` et `std::vformat` (`{}`). `HelpPrompt` porte une
+  `std::string` traduite ; `strToUpper` délègue à `I18n::toUpperUtf8` (accents). Menu
+  Interface : « Language » (en, fr, de, es, it), appliqué à chaud (`I18n::init` puis
+  `ViewController::reloadAll()`). Rendu anglais inchangé (9 captures à 0 pixel) : le
+  pluriel anglais de « games available » reste tel quel (affiché à partir de 2 jeux).
 
 ---
 

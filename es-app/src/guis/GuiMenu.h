@@ -14,7 +14,7 @@ public:
 	std::vector<HelpPrompt> getHelpPrompts() override;
 
 private:
-	void addEntry(const char* name, unsigned int color, bool add_arrow, const std::function<void()>& func);
+	void addEntry(const std::string& name, unsigned int color, bool add_arrow, const std::function<void()>& func);
 
 	MenuComponent mMenu;
 	TextComponent mVersion;

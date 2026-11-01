@@ -1,4 +1,5 @@
 #include "views/ViewController.h"
+#include "utils/I18n.h"
 #include <cassert>
 #include "Log.h"
 #include "SystemData.h"
@@ -421,7 +422,7 @@ std::vector<HelpPrompt> ViewController::getHelpPrompts()
 		return prompts;
 
 	prompts = mCurrentView->getHelpPrompts();
-	prompts.emplace_back("start", "menu");
+	prompts.emplace_back("start", _("menu"));
 
 	return prompts;
 }

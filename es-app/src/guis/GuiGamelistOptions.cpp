@@ -1,10 +1,11 @@
 #include "GuiGamelistOptions.h"
+#include "utils/I18n.h"
 #include "GuiMetaDataEd.h"
 #include "views/gamelist/IGameListView.h"
 #include "views/ViewController.h"
 
 GuiGamelistOptions::GuiGamelistOptions(Window* window, SystemData* system) :
-	GuiComponent(window), mMenu(window, "OPTIONS"), mSystem(system)
+	GuiComponent(window), mMenu(window, _U("Options")), mSystem(system)
 {
 	addChild(&mMenu);
 
@@ -13,13 +14,13 @@ GuiGamelistOptions::GuiGamelistOptions(Window* window, SystemData* system) :
 	if(curChar < 'A' || curChar > 'Z')
 		curChar = 'A';
 
-	mJumpToLetterList = std::make_shared<LetterList>(mWindow, "JUMP TO LETTER", false);
+	mJumpToLetterList = std::make_shared<LetterList>(mWindow, _U("Jump to letter"), false);
 	for(char c = 'A'; c <= 'Z'; c++)
 		mJumpToLetterList->add(std::string(1, c), c, c == curChar);
 
 	ComponentListRow row;
 	row.addElement(
-		std::make_shared<TextComponent>(mWindow, "JUMP TO LETTER", Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
+		std::make_shared<TextComponent>(mWindow, _U("Jump to letter"), Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
 	row.addElement(mJumpToLetterList, false);
 	row.input_handler = [&](InputConfig* config, Input input) {
 		if(config->isMappedTo("a", input) && input.value)
@@ -36,19 +37,19 @@ GuiGamelistOptions::GuiGamelistOptions(Window* window, SystemData* system) :
 	mMenu.addRow(row);
 
 	// sort list by
-	mListSort = std::make_shared<SortList>(mWindow, "SORT GAMES BY", false);
+	mListSort = std::make_shared<SortList>(mWindow, _U("Sort games by"), false);
 	for(unsigned int i = 0; i < FileSorts::SortTypes.size(); i++)
 	{
 		const FileData::SortType& sort = FileSorts::SortTypes.at(i);
-		mListSort->add(sort.description, &sort, i == 0); // TODO - actually make the sort type persistent
+		mListSort->add(_(sort.description), &sort, i == 0); // TODO - actually make the sort type persistent
 	}
 
-	mMenu.addWithLabel("SORT GAMES BY", mListSort);
+	mMenu.addWithLabel(_U("Sort games by"), mListSort);
 
 	// edit game metadata
 	row.elements.clear();
 	row.addElement(
-		std::make_shared<TextComponent>(mWindow, "EDIT THIS GAME'S METADATA", Font::get(FONT_SIZE_MEDIUM), 0x777777FF),
+		std::make_shared<TextComponent>(mWindow, _U("Edit this game's metadata"), Font::get(FONT_SIZE_MEDIUM), 0x777777FF),
 		true);
 	row.addElement(makeArrow(mWindow), false);
 	row.makeAcceptInputHandler(std::bind(&GuiGamelistOptions::openMetaDataEd, this));
@@ -135,7 +136,7 @@ bool GuiGamelistOptions::input(InputConfig* config, Input input)
 std::vector<HelpPrompt> GuiGamelistOptions::getHelpPrompts()
 {
 	auto prompts = mMenu.getHelpPrompts();
-	prompts.emplace_back("b", "close");
+	prompts.emplace_back("b", _("close"));
 	return prompts;
 }
 

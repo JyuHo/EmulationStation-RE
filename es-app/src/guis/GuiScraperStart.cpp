@@ -1,4 +1,5 @@
 #include "guis/GuiScraperStart.h"
+#include "utils/I18n.h"
 #include "guis/GuiScraperMulti.h"
 #include "guis/GuiMsgBox.h"
 #include "views/ViewController.h"
@@ -7,32 +8,32 @@
 #include "components/OptionListComponent.h"
 #include "components/SwitchComponent.h"
 
-GuiScraperStart::GuiScraperStart(Window* window) : GuiComponent(window), mMenu(window, "SCRAPE NOW")
+GuiScraperStart::GuiScraperStart(Window* window) : GuiComponent(window), mMenu(window, _U("Scrape now"))
 {
 	addChild(&mMenu);
 
 	// add filters (with first one selected)
-	mFilters = std::make_shared<OptionListComponent<GameFilterFunc>>(mWindow, "SCRAPE THESE GAMES", false);
-	mFilters->add("All Games", [](SystemData*, FileData*) -> bool { return true; }, false);
+	mFilters = std::make_shared<OptionListComponent<GameFilterFunc>>(mWindow, _U("Scrape these games"), false);
+	mFilters->add(_("All games"), [](SystemData*, FileData*) -> bool { return true; }, false);
 	mFilters->add(
-		"Only missing image", [](SystemData*, FileData* g) -> bool { return g->metadata.get("image").empty(); }, true);
-	mMenu.addWithLabel("Filter", mFilters);
+		_("Only missing image"), [](SystemData*, FileData* g) -> bool { return g->metadata.get("image").empty(); }, true);
+	mMenu.addWithLabel(_("Filter"), mFilters);
 
 	//add systems (all with a platformid specified selected)
-	mSystems = std::make_shared<OptionListComponent<SystemData*>>(mWindow, "SCRAPE THESE SYSTEMS", true);
+	mSystems = std::make_shared<OptionListComponent<SystemData*>>(mWindow, _U("Scrape these systems"), true);
 	for(auto it = SystemData::sSystemVector.begin(); it != SystemData::sSystemVector.end(); it++)
 	{
 		if(!(*it)->hasPlatformId(PlatformIds::PLATFORM_IGNORE))
 			mSystems->add((*it)->getFullName(), *it, !(*it)->getPlatformIds().empty());
 	}
-	mMenu.addWithLabel("Systems", mSystems);
+	mMenu.addWithLabel(_("Systems"), mSystems);
 
 	mApproveResults = std::make_shared<SwitchComponent>(mWindow);
 	mApproveResults->setState(true);
-	mMenu.addWithLabel("User decides on conflicts", mApproveResults);
+	mMenu.addWithLabel(_("User decides on conflicts"), mApproveResults);
 
-	mMenu.addButton("START", "start", std::bind(&GuiScraperStart::pressedStart, this));
-	mMenu.addButton("BACK", "back", [&] { delete this; });
+	mMenu.addButton(_U("Start"), _("start"), std::bind(&GuiScraperStart::pressedStart, this));
+	mMenu.addButton(_U("Back"), _("back"), [&] { delete this; });
 
 	mMenu.setPosition((Renderer::getScreenWidth() - mMenu.getSize().x) / 2, Renderer::getScreenHeight() * 0.15f);
 }
@@ -45,9 +46,9 @@ void GuiScraperStart::pressedStart()
 		if((*it)->getPlatformIds().empty())
 		{
 			mWindow->pushGui(std::make_unique<GuiMsgBox>(mWindow,
-				strToUpper("Warning: some of your selected systems do not have a platform set. Results may be even "
-						   "more inaccurate than usual!\nContinue anyway?"),
-				"YES", std::bind(&GuiScraperStart::start, this), "NO", nullptr));
+				_U("Warning: some of your selected systems do not have a platform set. Results may be even "
+				   "more inaccurate than usual!\nContinue anyway?"),
+				_U("Yes"), std::bind(&GuiScraperStart::start, this), _U("No"), nullptr));
 			return;
 		}
 	}
@@ -61,7 +62,7 @@ void GuiScraperStart::start()
 
 	if(searches.empty())
 	{
-		mWindow->pushGui(std::make_unique<GuiMsgBox>(mWindow, "NO GAMES FIT THAT CRITERIA."));
+		mWindow->pushGui(std::make_unique<GuiMsgBox>(mWindow, _U("No games fit that criteria.")));
 	}
 	else
 	{
@@ -119,7 +120,7 @@ bool GuiScraperStart::input(InputConfig* config, Input input)
 std::vector<HelpPrompt> GuiScraperStart::getHelpPrompts()
 {
 	std::vector<HelpPrompt> prompts = mMenu.getHelpPrompts();
-	prompts.emplace_back("b", "back");
-	prompts.emplace_back("start", "close");
+	prompts.emplace_back("b", _("back"));
+	prompts.emplace_back("start", _("close"));
 	return prompts;
 }

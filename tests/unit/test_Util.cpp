@@ -15,6 +15,9 @@ TEST_CASE("strToUpper", "[Util]")
 	std::string s = "mixed Case";
 	strToUpper(s);
 	CHECK(s == "MIXED CASE");
+	// UTF-8 (translated menus): accented letters too
+	CHECK(strToUpper("paramètres été") == "PARAMÈTRES ÉTÉ");
+	CHECK(strToUpper(std::string("Größe")) == "GRÖSSE");
 }
 
 TEST_CASE("resolvePath expands ./ relative to a folder", "[Util]")

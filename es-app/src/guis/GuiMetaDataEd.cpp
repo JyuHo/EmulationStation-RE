@@ -1,4 +1,5 @@
 #include "guis/GuiMetaDataEd.h"
+#include "utils/I18n.h"
 #include <cassert>
 #include "renderer/Renderer.h"
 #include "Log.h"
@@ -34,7 +35,7 @@ GuiMetaDataEd::GuiMetaDataEd(Window* window, MetaDataList* md, const std::vector
 	mHeaderGrid = std::make_shared<ComponentGrid>(mWindow, glm::ivec2(1, 5));
 
 	mTitle =
-		std::make_shared<TextComponent>(mWindow, "EDIT METADATA", Font::get(FONT_SIZE_LARGE), 0x555555FF, ALIGN_CENTER);
+		std::make_shared<TextComponent>(mWindow, _U("Edit metadata"), Font::get(FONT_SIZE_LARGE), 0x555555FF, ALIGN_CENTER);
 	mSubtitle =
 		std::make_shared<TextComponent>(mWindow, strToUpper(scraperParams.game->getPath().filename().generic_string()),
 			Font::get(FONT_SIZE_SMALL), 0x777777FF, ALIGN_CENTER);
@@ -59,7 +60,7 @@ GuiMetaDataEd::GuiMetaDataEd(Window* window, MetaDataList* md, const std::vector
 		// ed's value will be set below
 		ComponentListRow row;
 		auto lbl = std::make_shared<TextComponent>(
-			mWindow, strToUpper(iter->displayName), Font::get(FONT_SIZE_SMALL), 0x777777FF);
+			mWindow, _U(iter->displayName), Font::get(FONT_SIZE_SMALL), 0x777777FF);
 		row.addElement(lbl, true); // label
 
 		switch(iter->type)
@@ -114,7 +115,7 @@ GuiMetaDataEd::GuiMetaDataEd(Window* window, MetaDataList* md, const std::vector
 			row.addElement(bracket, false);
 
 			bool multiLine = iter->type == MD_MULTILINE_STRING;
-			const std::string title = iter->displayPrompt;
+			const std::string title = _(iter->displayPrompt);
 			auto updateVal = [ed](const std::string& newVal) {
 				ed->setValue(newVal);
 			}; // ok callback (apply new value to ed)
@@ -135,13 +136,13 @@ GuiMetaDataEd::GuiMetaDataEd(Window* window, MetaDataList* md, const std::vector
 
 	if(!scraperParams.system->hasPlatformId(PlatformIds::PLATFORM_IGNORE))
 		buttons.push_back(
-			std::make_shared<ButtonComponent>(mWindow, "SCRAPE", "scrape", std::bind(&GuiMetaDataEd::fetch, this)));
+			std::make_shared<ButtonComponent>(mWindow, _U("Scrape"), _("scrape"), std::bind(&GuiMetaDataEd::fetch, this)));
 
-	buttons.push_back(std::make_shared<ButtonComponent>(mWindow, "SAVE", "save", [&] {
+	buttons.push_back(std::make_shared<ButtonComponent>(mWindow, _U("Save"), _("save"), [&] {
 		save();
 		delete this;
 	}));
-	buttons.push_back(std::make_shared<ButtonComponent>(mWindow, "CANCEL", "cancel", [&] { delete this; }));
+	buttons.push_back(std::make_shared<ButtonComponent>(mWindow, _U("Cancel"), _("cancel"), [&] { delete this; }));
 
 	if(mDeleteFunc)
 	{
@@ -151,9 +152,9 @@ GuiMetaDataEd::GuiMetaDataEd(Window* window, MetaDataList* md, const std::vector
 		};
 		auto deleteBtnFunc = [this, deleteFileAndSelf] {
 			mWindow->pushGui(std::make_unique<GuiMsgBox>(
-				mWindow, "THIS WILL DELETE A FILE!\nARE YOU SURE?", "YES", deleteFileAndSelf, "NO", nullptr));
+				mWindow, _U("This will delete a file!\nAre you sure?"), _U("Yes"), deleteFileAndSelf, _U("No"), nullptr));
 		};
-		buttons.push_back(std::make_shared<ButtonComponent>(mWindow, "DELETE", "delete", deleteBtnFunc));
+		buttons.push_back(std::make_shared<ButtonComponent>(mWindow, _U("Delete"), _("delete"), deleteBtnFunc));
 	}
 
 	mButtons = makeButtonGrid(mWindow, buttons);
@@ -248,12 +249,12 @@ void GuiMetaDataEd::close(bool closeAllWindows)
 	{
 		// changes were made, ask if the user wants to save them
 		mWindow->pushGui(std::make_unique<GuiMsgBox>(
-			mWindow, "SAVE CHANGES?", "YES",
+			mWindow, _U("Save changes?"), _U("Yes"),
 			[this, closeFunc] {
 				save();
 				closeFunc();
 			},
-			"NO", closeFunc));
+			_U("No"), closeFunc));
 	}
 	else
 	{
@@ -279,7 +280,7 @@ bool GuiMetaDataEd::input(InputConfig* config, Input input)
 std::vector<HelpPrompt> GuiMetaDataEd::getHelpPrompts()
 {
 	std::vector<HelpPrompt> prompts = mGrid.getHelpPrompts();
-	prompts.emplace_back("b", "back");
-	prompts.emplace_back("start", "close");
+	prompts.emplace_back("b", _("back"));
+	prompts.emplace_back("start", _("close"));
 	return prompts;
 }

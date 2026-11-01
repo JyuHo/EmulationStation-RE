@@ -1,18 +1,19 @@
 #include "FileSorts.h"
+#include "utils/I18n.h"
 #include <chrono>
 
 namespace FileSorts {
-const FileData::SortType typesArr[] = {FileData::SortType(&compareFileName, true, "filename, ascending"),
-	FileData::SortType(&compareFileName, false, "filename, descending"),
+const FileData::SortType typesArr[] = {FileData::SortType(&compareFileName, true, N_("filename, ascending")),
+	FileData::SortType(&compareFileName, false, N_("filename, descending")),
 
-	FileData::SortType(&compareRating, true, "rating, ascending"),
-	FileData::SortType(&compareRating, false, "rating, descending"),
+	FileData::SortType(&compareRating, true, N_("rating, ascending")),
+	FileData::SortType(&compareRating, false, N_("rating, descending")),
 
-	FileData::SortType(&compareTimesPlayed, true, "times played, ascending"),
-	FileData::SortType(&compareTimesPlayed, false, "times played, descending"),
+	FileData::SortType(&compareTimesPlayed, true, N_("times played, ascending")),
+	FileData::SortType(&compareTimesPlayed, false, N_("times played, descending")),
 
-	FileData::SortType(&compareLastPlayed, true, "last played, ascending"),
-	FileData::SortType(&compareLastPlayed, false, "last played, descending")};
+	FileData::SortType(&compareLastPlayed, true, N_("last played, ascending")),
+	FileData::SortType(&compareLastPlayed, false, N_("last played, descending"))};
 
 const std::vector<FileData::SortType> SortTypes(typesArr, typesArr + sizeof(typesArr) / sizeof(typesArr[0]));
 

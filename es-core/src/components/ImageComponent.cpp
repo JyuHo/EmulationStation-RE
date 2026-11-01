@@ -1,4 +1,5 @@
 #include "components/ImageComponent.h"
+#include "utils/I18n.h"
 #include <iostream>
 #include <filesystem>
 #include <math.h>
@@ -344,6 +345,6 @@ void ImageComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, const s
 std::vector<HelpPrompt> ImageComponent::getHelpPrompts()
 {
 	std::vector<HelpPrompt> ret;
-	ret.emplace_back("a", "select");
+	ret.emplace_back("a", _("select"));
 	return ret;
 }

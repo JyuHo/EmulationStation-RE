@@ -1,4 +1,7 @@
 #include "views/SystemView.h"
+#include "utils/I18n.h"
+
+#include <format>
 #include <memory>
 #include "SystemData.h"
 #include "renderer/Renderer.h"
@@ -179,7 +182,9 @@ void SystemView::onCursorChanged(const CursorState& state)
 
 			// only display a game count if there are at least 2 games
 			if(gameCount > 1)
-				ss << gameCount << " GAMES AVAILABLE";
+				// TRANSLATORS: shown only from 2 games on
+				ss << I18n::toUpperUtf8(std::vformat(
+					_N("{} game available", "{} games available", gameCount), std::make_format_args(gameCount)));
 
 			mSystemInfo.setText(ss.str());
 		},
@@ -333,8 +338,8 @@ void SystemView::render(const glm::mat4& parentTrans)
 std::vector<HelpPrompt> SystemView::getHelpPrompts()
 {
 	std::vector<HelpPrompt> prompts;
-	prompts.emplace_back("left/right", "choose");
-	prompts.emplace_back("a", "select");
+	prompts.emplace_back("left/right", _("choose"));
+	prompts.emplace_back("a", _("select"));
 	return prompts;
 }
 

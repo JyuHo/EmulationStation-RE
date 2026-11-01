@@ -1,4 +1,5 @@
 #include "components/DateTimeComponent.h"
+#include "utils/I18n.h"
 #include "renderer/Renderer.h"
 #include "Window.h"
 #include "Log.h"
@@ -216,30 +217,37 @@ std::string DateTimeComponent::getDisplayString(DisplayMode mode) const
 	case DISP_RELATIVE_TO_NOW: {
 		//relative time
 		if(!mTime)
-			return "never";
+			return _("never");
 
 		auto now = std::chrono::system_clock::now();
 		auto dur = std::chrono::duration_cast<std::chrono::seconds>(now - *mTime);
 
 		if(dur < std::chrono::seconds(2))
-			return "just now";
+			return _("just now");
+		auto ago = [](const std::string& format, long long n) { return std::vformat(format, std::make_format_args(n)); };
 		if(dur < std::chrono::seconds(60))
-			return std::to_string(dur.count()) + " secs ago";
+		{
+			const long long secs = dur.count();
+			return ago(_N("{} sec ago", "{} secs ago", secs), secs);
+		}
 		if(dur < std::chrono::minutes(60))
-			return std::to_string(std::chrono::duration_cast<std::chrono::minutes>(dur).count()) + " min" +
-				   (dur < std::chrono::minutes(2) ? "" : "s") + " ago";
+		{
+			const long long mins = std::chrono::duration_cast<std::chrono::minutes>(dur).count();
+			return ago(_N("{} min ago", "{} mins ago", mins), mins);
+		}
 		if(dur < std::chrono::hours(24))
-			return std::to_string(std::chrono::duration_cast<std::chrono::hours>(dur).count()) + " hour" +
-				   (dur < std::chrono::hours(2) ? "" : "s") + " ago";
-
-		long long days = dur.count() / (24 * 3600);
-		return std::to_string(days) + " day" + (days < 2 ? "" : "s") + " ago";
+		{
+			const long long hours = std::chrono::duration_cast<std::chrono::hours>(dur).count();
+			return ago(_N("{} hour ago", "{} hours ago", hours), hours);
+		}
+		const long long days = dur.count() / (24 * 3600);
+		return ago(_N("{} day ago", "{} days ago", days), days);
 	}
 	break;
 	}
 
 	if(!mTime)
-		return "unknown";
+		return _("unknown");
 
 	std::time_t tt = std::chrono::system_clock::to_time_t(*mTime);
 	std::tm* tm = std::gmtime(&tt);

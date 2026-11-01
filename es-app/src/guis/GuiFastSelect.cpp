@@ -1,4 +1,5 @@
 #include "guis/GuiFastSelect.h"
+#include "utils/I18n.h"
 #include "ThemeData.h"
 #include "FileSorts.h"
 #include "SystemData.h"
@@ -127,7 +128,7 @@ void GuiFastSelect::scroll()
 void GuiFastSelect::updateSortText()
 {
 	std::stringstream ss;
-	ss << "<- " << FileSorts::SortTypes.at(mSortId).description << " ->";
+	ss << "<- " << _(FileSorts::SortTypes.at(mSortId).description) << " ->";
 	mSortText.setText(ss.str());
 }
 

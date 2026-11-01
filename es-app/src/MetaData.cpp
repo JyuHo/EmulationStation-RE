@@ -1,4 +1,5 @@
 #include "MetaData.h"
+#include "utils/I18n.h"
 #include "components/TextComponent.h"
 #include "Log.h"
 #include "Util.h"
@@ -8,19 +9,19 @@ namespace fs = std::filesystem;
 
 MetaDataDecl gameDecls[] = {
 	// key,			type,					default,			statistic,	name in GuiMetaDataEd,	prompt in GuiMetaDataEd
-	{"name", MD_STRING, "", false, "name", "enter game name"},
-	{"desc", MD_MULTILINE_STRING, "", false, "description", "enter description"},
-	{"image", MD_IMAGE_PATH, "", false, "image", "enter path to image"},
-	{"thumbnail", MD_IMAGE_PATH, "", false, "thumbnail", "enter path to thumbnail"},
-	{"video", MD_VIDEO_PATH, "", false, "video", "enter path to video"},
-	{"rating", MD_RATING, "0.000000", false, "rating", "enter rating"},
-	{"releasedate", MD_DATE, "not-a-date-time", false, "release date", "enter release date"},
-	{"developer", MD_STRING, "unknown", false, "developer", "enter game developer"},
-	{"publisher", MD_STRING, "unknown", false, "publisher", "enter game publisher"},
-	{"genre", MD_STRING, "unknown", false, "genre", "enter game genre"},
-	{"players", MD_INT, "1", false, "players", "enter number of players"},
-	{"playcount", MD_INT, "0", true, "play count", "enter number of times played"},
-	{"lastplayed", MD_TIME, "0", true, "last played", "enter last played date"}};
+	{"name", MD_STRING, "", false, N_("name"), N_("enter game name")},
+	{"desc", MD_MULTILINE_STRING, "", false, N_("description"), N_("enter description")},
+	{"image", MD_IMAGE_PATH, "", false, N_("image"), N_("enter path to image")},
+	{"thumbnail", MD_IMAGE_PATH, "", false, N_("thumbnail"), N_("enter path to thumbnail")},
+	{"video", MD_VIDEO_PATH, "", false, N_("video"), N_("enter path to video")},
+	{"rating", MD_RATING, "0.000000", false, N_("rating"), N_("enter rating")},
+	{"releasedate", MD_DATE, "not-a-date-time", false, N_("release date"), N_("enter release date")},
+	{"developer", MD_STRING, "unknown", false, N_("developer"), N_("enter game developer")},
+	{"publisher", MD_STRING, "unknown", false, N_("publisher"), N_("enter game publisher")},
+	{"genre", MD_STRING, "unknown", false, N_("genre"), N_("enter game genre")},
+	{"players", MD_INT, "1", false, N_("players"), N_("enter number of players")},
+	{"playcount", MD_INT, "0", true, N_("play count"), N_("enter number of times played")},
+	{"lastplayed", MD_TIME, "0", true, N_("last played"), N_("enter last played date")}};
 const std::vector<MetaDataDecl> gameMDD(gameDecls, gameDecls + sizeof(gameDecls) / sizeof(gameDecls[0]));
 
 MetaDataDecl folderDecls[] = {

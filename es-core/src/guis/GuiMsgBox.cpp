@@ -1,4 +1,5 @@
 #include "guis/GuiMsgBox.h"
+#include "utils/I18n.h"
 #include "renderer/Renderer.h"
 #include "components/TextComponent.h"
 #include "components/ButtonComponent.h"
@@ -38,7 +39,7 @@ GuiMsgBox::GuiMsgBox(Window* window, const std::string& text, const std::string&
 	{
 		for(auto it = mButtons.begin(); it != mButtons.end(); it++)
 		{
-			if(strToUpper((*it)->getText()) == "OK" || strToUpper((*it)->getText()) == "NO")
+			if(strToUpper((*it)->getText()) == _U("OK") || strToUpper((*it)->getText()) == _U("No"))
 			{
 				mAcceleratorFunc = (*it)->getPressedFunc();
 				break;

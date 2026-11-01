@@ -5,7 +5,7 @@
 class GuiSettings : public GuiComponent
 {
 public:
-	GuiSettings(Window* window, const char* title);
+	GuiSettings(Window* window, const std::string& title);
 	~GuiSettings() override; // just calls save();
 
 	void save();
