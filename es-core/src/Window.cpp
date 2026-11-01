@@ -115,12 +115,7 @@ void Window::input(InputConfig* config, Input input)
 {
 	if(mSleeping)
 	{
-		// wake up
-		mTimeSinceLastInput = 0;
-		mSleeping = false;
-		onWake();
-		if(!mGuiStack.empty())
-			mGuiStack.front()->onShow();
+		wake();
 		return;
 	}
 
@@ -202,6 +197,16 @@ void Window::update(int deltaTime)
 
 	mTimeSinceLastInput += deltaTime;
 
+	const unsigned int screensaverTime = (unsigned int)Settings::getInstance()->getInt("ScreenSaverTime");
+	if(!mSleeping && mTimeSinceLastInput >= screensaverTime && screensaverTime != 0 && mAllowSleep)
+		sleep();
+
+	if(mScreensaverActive)
+	{
+		mScreensaver->update(deltaTime);
+		return;
+	}
+
 	if(peekGui())
 		peekGui()->update(deltaTime);
 }
@@ -235,15 +240,41 @@ void Window::render()
 		mDefaultFonts.at(1)->renderTextCache(mFrameDataText.get());
 	}
 
-	unsigned int screensaverTime = (unsigned int)Settings::getInstance()->getInt("ScreenSaverTime");
-	if(mTimeSinceLastInput >= screensaverTime && screensaverTime != 0 && mAllowSleep)
-	{
-		// go to sleep
-		if(!mSleeping && !mGuiStack.empty())
-			mGuiStack.front()->onHide(); // stops the videos
-		mSleeping = true;
+	if(mScreensaverActive)
+		mScreensaver->render();
+	else if(mSleeping)
 		onSleep();
-	}
+}
+
+void Window::sleep()
+{
+	if(!mGuiStack.empty())
+		mGuiStack.front()->onHide(); // stops the videos
+	mSleeping = true;
+	mScreensaverActive = mScreensaver &&
+		Settings::getInstance()->getString("ScreenSaverBehavior") == mScreensaver->behavior() && mScreensaver->start();
+}
+
+void Window::wake()
+{
+	mTimeSinceLastInput = 0;
+	if(!mSleeping)
+		return;
+	if(mScreensaverActive)
+		mScreensaver->stop();
+	mScreensaverActive = false;
+	mSleeping = false;
+	onWake();
+	if(!mGuiStack.empty())
+		mGuiStack.front()->onShow();
+}
+
+void Window::setScreensaver(std::unique_ptr<Screensaver> screensaver)
+{
+	if(mScreensaverActive)
+		mScreensaver->stop();
+	mScreensaverActive = false;
+	mScreensaver = std::move(screensaver);
 }
 
 void Window::normalizeNextUpdate()

@@ -6,6 +6,7 @@
 #include "resources/Font.h"
 #include "InputManager.h"
 #include "renderer/Renderer.h"
+#include "Screensaver.h"
 
 class HelpComponent;
 class ImageComponent;
@@ -34,6 +35,11 @@ public:
 	inline bool isSleeping() const { return mSleeping; }
 	bool getAllowSleep();
 	void setAllowSleep(bool sleep);
+	// shown while sleeping when ScreenSaverBehavior names it
+	void setScreensaver(std::unique_ptr<Screensaver> screensaver);
+	[[nodiscard]] bool isScreensaverActive() const { return mScreensaverActive; }
+	// leaves the sleep, if any (before the audio device goes, at exit)
+	void wake();
 
 	void renderLoadingScreen();
 
@@ -41,6 +47,7 @@ public:
 	void setHelpPrompts(const std::vector<HelpPrompt>& prompts, const HelpStyle& style);
 
 private:
+	void sleep();
 	void onSleep();
 	void onWake();
 
@@ -62,6 +69,8 @@ private:
 
 	bool mAllowSleep;
 	bool mSleeping;
+	std::unique_ptr<Screensaver> mScreensaver;
+	bool mScreensaverActive = false;
 	unsigned int mTimeSinceLastInput;
 
 	bool mRenderedHelpPrompts;

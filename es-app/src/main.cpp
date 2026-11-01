@@ -12,6 +12,7 @@
 #include "guis/GuiMsgBox.h"
 #include "AudioManager.h"
 #include "MusicPlayer.h"
+#include "GameClipScreensaver.h"
 #include "platform.h"
 #include "Log.h"
 #include "Window.h"
@@ -256,6 +257,7 @@ int main(int argc, char* argv[])
 	// preload what we can right away instead of waiting for the user to select it
 	// this makes for no delays when accessing content, but a longer startup time
 	ViewController::get()->preload();
+	window.setScreensaver(std::make_unique<GameClipScreensaver>(&window));
 
 	//choose which GUI to open depending on if an input configuration already exists
 	if(errorMsg == nullptr)
@@ -302,7 +304,8 @@ int main(int argc, char* argv[])
 			}
 		}
 
-		if(window.isSleeping())
+		// asleep: nothing to draw any more, except a screensaver
+		if(window.isSleeping() && !window.isScreensaverActive())
 		{
 			lastTime = SDL_GetTicks();
 			SDL_Delay(
@@ -329,6 +332,7 @@ int main(int argc, char* argv[])
 	while(window.peekGui() != ViewController::get())
 		delete window.peekGui();
 	// stops the videos: their threads feed audio streams that AudioManager::shutdown() frees
+	window.wake(); // stops the game clip screensaver too
 	ViewController::get()->onHide();
 	MusicPlayer::getInstance().deinit();
 	// before window.deinit(), whose SDL_Quit() frees the audio streams that the sounds

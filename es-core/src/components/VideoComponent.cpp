@@ -38,6 +38,7 @@ void VideoComponent::setVideo(const std::string& path)
 	if(path == mPath && (mWaiting || isPlaying()))
 		return;
 	stop();
+	mEnded = false;
 	mPath = path;
 	mWaiting = fileExists(mPath) || fileExists(mDefaultVideo);
 	mWaitLeftMs = mDelayMs;
@@ -48,6 +49,7 @@ void VideoComponent::clearVideo()
 	stop();
 	mPath.clear();
 	mWaiting = false;
+	mEnded = false;
 }
 
 void VideoComponent::setImage(const std::string& path)
@@ -199,7 +201,12 @@ void VideoComponent::update(int deltaTime)
 	// loop: the whole file again once every frame was shown
 	if(mPlayer && mPlayer->finished())
 	{
-		if(auto opened = mPlayer->open(fileExists(mPath) ? mPath : mDefaultVideo); !opened)
+		if(!mLoop)
+		{
+			stop();
+			mEnded = true;
+		}
+		else if(auto opened = mPlayer->open(fileExists(mPath) ? mPath : mDefaultVideo); !opened)
 			stop();
 	}
 

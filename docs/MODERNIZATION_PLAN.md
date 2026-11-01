@@ -839,7 +839,15 @@ découpler de FFmpeg : `dr_wav`/`dr_mp3`/`stb_vorbis` vendored.
   vidéo avec son joue, y compris au changement de piste. Une liste contenant des vidéos
   passe en vue détaillée. Tests : `test_VideoComponent.cpp`, élément `video`
   (`test_ThemeData`), champ `video` (`test_MetaData`).
-- Restent : 9c (économiseur « clips de jeux »), VA-API.
+- **9c** : économiseur « clips de jeux » (`ScreenSaverBehavior` = `gameclip`, au menu
+  Interface) : vidéos des jeux de la collection, en plein écran et au hasard (jamais deux fois
+  la même de suite), bandeau avec le nom du jeu et du système, son selon `VideoAudio`
+  (musique en pause). Sans aucune vidéo, l'écran s'assombrit comme `black`. Interface
+  `Screensaver` dans es-core, branchée sur `Window` ; la mise en veille est décidée dans
+  `Window::update` (testable sans rendu) et la boucle principale continue de dessiner tant
+  qu'un économiseur tourne. Tests : `test_Screensaver.cpp`, lecture sans boucle
+  (`test_VideoComponent`).
+- Reste : VA-API (option `VideoHardwareDecoding`).
 
 ---
 

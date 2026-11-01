@@ -2,6 +2,7 @@ set(ES_HEADERS
     src/EmulationStation.h
     src/FileData.h
     src/FileSorts.h
+    src/GameClipScreensaver.h
     src/MetaData.h
     src/PlatformId.h
     src/ScraperCmdLine.h
@@ -47,6 +48,7 @@ set(ES_HEADERS
 set(ES_SOURCES
     src/FileData.cpp
     src/FileSorts.cpp
+    src/GameClipScreensaver.cpp
     src/MameNameMap.cpp
     src/MetaData.cpp
     src/PlatformId.cpp
