@@ -203,7 +203,7 @@ l'interface, même version que `themes/`) ; ce projet fait de même dans
 - `rotation` : degrés, sens horaire, autour de `rotationOrigin` (fractions de la taille,
   depuis le coin haut gauche). Sans `rotation` : 0. Sans `rotationOrigin` : `0 0`, le coin
   haut gauche (`Themable.cpp:69`) ; la documentation de Recalbox annonce `0.5 0.5` : le code
-  fait foi (section 15).
+  fait foi (décision du propriétaire, 01/11/2026).
 - `disabled` : `true` = l'élément n'est pas dessiné. Lu avec la position (`Themable.cpp:76-77`).
 
 | Vue | Élément | `zIndex` par défaut | Source Recalbox |
@@ -758,7 +758,5 @@ ces tableaux et échoue si le schéma (`es-core/src/theme/ThemeSchema.cpp`) en d
   prise en charge ».
 - Suffixes localisés de 5 lettres (`text.fr_FR`) : le chargeur compare aujourd'hui le suffixe à
   la région, à la langue (`fr`) et au pays (`FR`), pas à `fr_FR` (section 9).
-- `rotationOrigin` absent : `0 0` dans le code de Recalbox (`Themable.cpp:69`), `0.5 0.5` dans
-  sa documentation ; ce projet suit le code (section 10).
 - Élément absent du thème : Recalbox masque le composant (`Themable.cpp:19-21`) ; ce projet le
   laisse affiché avec ses valeurs, comme le format 3 (R5).
