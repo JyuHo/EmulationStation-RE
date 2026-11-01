@@ -156,3 +156,14 @@ std::string Settings::getStringOr(const std::string& name, const std::string& fa
 		return fallback;
 	return it->second;
 }
+
+std::vector<std::pair<std::string, std::string>> Settings::getStringsWithPrefix(const std::string& prefix) const
+{
+	std::vector<std::pair<std::string, std::string>> out;
+	for(const auto& kv : mStringMap)
+	{
+		if(kv.first.rfind(prefix, 0) == 0)
+			out.emplace_back(kv.first, kv.second);
+	}
+	return out;
+}

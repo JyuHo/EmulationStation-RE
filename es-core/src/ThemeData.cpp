@@ -56,7 +56,21 @@ bool ThemeData::loadFile(const std::string& path, es::theme::Diagnostics& diag, 
 	const size_t underscore = locale.find('_');
 	ctx.legacy.language = locale.substr(0, underscore);
 	ctx.legacy.country = underscore == std::string::npos ? std::string() : locale.substr(underscore + 1);
-	ctx.region = "eu";
+	std::string region = Settings::getInstance()->getStringOr("ThemeRegion", "eu");
+	if(region != "us" && region != "eu" && region != "jp")
+	{
+		diag.warn({path, 0}, "invalid ThemeRegion, using eu");
+		region = "eu";
+	}
+	ctx.region = region;
+	// selected options from settings
+	const std::string themeSet = currentThemeSetName();
+	const std::string prefix = "ThemeOption." + themeSet + ".";
+	for(const auto& kv : Settings::getInstance()->getStringsWithPrefix(prefix))
+	{
+		std::string suffix = kv.first.substr(prefix.size());
+		ctx.selectedOptions[suffix] = kv.second;
+	}
 	// ${root} is the root of the theme set (Recalbox ThemeManager.cpp:270): the folder above
 	// <set>/<system>/theme.xml or <set>/default/theme.xml, else the folder of the file
 	fs::path root = fs::path(path).parent_path();
@@ -88,6 +102,7 @@ bool ThemeData::loadFile(const std::string& path, es::theme::Diagnostics& diag, 
 	mPaths.clear();
 	for(const auto& f : loaded->files) mPaths.push_back(f);
 	mSubsets = loaded->subsets;
+	mSelectedOptions = loaded->selectedOptions;
 	mUsesRegion = loaded->usesRegion;
 
 	// convert views
@@ -252,4 +267,15 @@ fs::path ThemeData::getThemeFromCurrentSet(const std::string& system)
 		Settings::getInstance()->setString("ThemeSet", set->first);
 	}
 	return set->second.getThemePath(system);
+}
+
+std::string ThemeData::currentThemeSetName()
+{
+	auto themeSets = ThemeData::getThemeSets();
+	if(themeSets.empty())
+		return Settings::getInstance()->getString("ThemeSet");
+	auto set = themeSets.find(Settings::getInstance()->getString("ThemeSet"));
+	if(set == themeSets.end())
+		set = themeSets.begin();
+	return set->first;
 }

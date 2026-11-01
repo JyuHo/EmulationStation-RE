@@ -2,6 +2,8 @@
 #include <string>
 #include <map>
 #include <memory>
+#include <utility>
+#include <vector>
 
 //This is a singleton for storing settings.
 class Settings
@@ -18,6 +20,7 @@ public:
 	float getFloat(const std::string& name);
 	const std::string& getString(const std::string& name);
 	std::string getStringOr(const std::string& name, const std::string& fallback);
+	std::vector<std::pair<std::string, std::string>> getStringsWithPrefix(const std::string& prefix) const;
 
 	void setBool(const std::string& name, bool value);
 	void setInt(const std::string& name, int value);
