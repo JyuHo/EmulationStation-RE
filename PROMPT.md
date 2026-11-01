@@ -237,7 +237,9 @@ voulu, expliqué dans la PR.
   #71 ; `capture.sh` refuse tout `[ERROR]`, sans exception. N'y remets pas d'erreur.
 - **Volume du système** : `SystemVolume` (0-100, -1 = laissé au système) est enregistré
   seulement si le curseur a bougé et appliqué au démarrage (`main` crée `VolumeControl`) ;
-  carte `AudioCard` (`""` = automatique) et contrôle `AudioDevice` (`""` = `Master`, `PCM`…).
+  carte `AudioCard` (`""` = automatique : serveur de son par libpulse, puis ALSA) et
+  contrôle ALSA `AudioDevice` (`""` = `Master`, `PCM`…). Ne te fie pas au `Master` de
+  pipewire-alsa : il peut rester à 0 % sans rien régler (sortie HDMI) ; compare avec `wpctl`.
   Fonctions pures testées dans `test_Volume.cpp` (`volume::toPercent`/`toRaw`/`chooseControl`).
 - **Curseurs (`SliderComponent`) et hat** : un hat n'envoie qu'un relâchement « centré » pour
   ses quatre directions, que `isMappedTo` associe à toutes. Un composant ne doit jamais
@@ -502,7 +504,7 @@ conséquences visibles.
 ```bash
 # Dépendances (état après la phase 3 ; adapter selon l'annexe A du plan)
 sudo pacman -S --needed base-devel cmake ninja clang sdl3 freetype2 fontconfig glm \
-    curl alsa-lib libglvnd mesa libwebp catch2 xorg-server-xvfb imagemagick xdotool
+    curl alsa-lib libpulse libglvnd mesa libwebp catch2 xorg-server-xvfb imagemagick xdotool
 
 # Build GCC et Clang
 cmake --preset debug        && cmake --build --preset debug
