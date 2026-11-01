@@ -436,3 +436,21 @@ HelpStyle ViewController::getHelpStyle()
 
 	return mCurrentView->getHelpStyle();
 }
+
+std::string ViewController::keyboardThemeView(ViewMode viewing, const std::string& gameListViewName)
+{
+	switch(viewing)
+	{
+		case SYSTEM_SELECT: return "system";
+		case GAME_LIST: return gameListViewName.empty() ? std::string("menu") : gameListViewName;
+		default: return "menu";
+	}
+}
+
+std::string ViewController::keyboardThemeView()
+{
+	std::string gameListView;
+	if(mState.viewing == GAME_LIST && mState.system)
+		gameListView = getGameListView(mState.system)->getName();
+	return keyboardThemeView(mState.viewing, gameListView);
+}
