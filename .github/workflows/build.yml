@@ -76,6 +76,9 @@ jobs:
       - name: Check .pot up to date
         run: |
           cmake --build build --target es-update-pot
+          # the checkout belongs to another user than the container's root: without this,
+          # git refuses the repository and "git diff" falls back to --no-index mode
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           # the creation date changes on every run: every other line must match
           if ! git diff --exit-code -I 'POT-Creation-Date' -- locale/emulationstation2.pot; then
             echo "locale/emulationstation2.pot is out of date: run the es-update-pot target"
