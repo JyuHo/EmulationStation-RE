@@ -681,8 +681,7 @@ d'iGPU et la ligne `GL_RENDERER` du journal (`~/es-bench/state/emulationstation/
   redimensionnable par l'utilisateur.
 - `VolumeControl` (ALSA direct) écrivait un `[ERROR]` au retour d'un jeu sans carte son,
   toléré par `capture.sh` : ce n'est plus qu'un avertissement depuis la correction des
-  réglages de volume (phase 8). `capture.sh` garde l'exception pour le binaire de la base
-  dans le job « Screenshots vs base branch » ; elle pourra être retirée ensuite.
+  réglages de volume (#71, phase 8) ; l'exception de `capture.sh` est retirée depuis.
 - Le tampon de profondeur (`DEPTH_SIZE 16`, `GL_DEPTH_BUFFER_BIT`) est gardé : il ne sert
   pas, mais le retirer change le format de la fenêtre ; à faire avec une mesure.
 - 4K et 1080p donnent le même nombre d'i/s : si l'écran ne propose pas de mode 3840×2160,
@@ -800,7 +799,7 @@ découpler de FFmpeg : `dr_wav`/`dr_mp3`/`stb_vorbis` vendored.
   pendant le jeu : arrêt avant le lancement, reprise au retour (`SystemData::launchGame`).
   Tests : `test_Music.cpp` (décodage, lecture en flux identique au décodage complet,
   fichiers sans son, tirage, fondus, enchaînement), TSan propre.
-- **Réglages de volume** (correction signalée par le propriétaire) :
+- **Réglages de volume** (#71, correction signalée par le propriétaire, validée sur son matériel) :
   - Sur un curseur du menu (volume du système, volume de la musique), une manette dont la
     croix est un *hat* faisait défiler le menu tout seul : le hat n'envoie qu'un seul
     relâchement (« centré ») pour ses quatre directions, que `isMappedTo` associe aussi à
