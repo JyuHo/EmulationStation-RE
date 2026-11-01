@@ -272,6 +272,14 @@ msgstr "Obtener ahora"
 msgid "Sound settings"
 msgstr "Ajustes de sonido"
 
+#: es-app/src/guis/GuiMenu.cpp:89 es-app/src/guis/GuiMenu.cpp:100
+msgid "Audio card"
+msgstr "Tarjeta de sonido"
+
+#: es-app/src/guis/GuiMenu.cpp:92
+msgid "Automatic"
+msgstr "Automático"
+
 #: es-app/src/guis/GuiMenu.cpp:91
 msgid "System volume"
 msgstr "Volumen del sistema"

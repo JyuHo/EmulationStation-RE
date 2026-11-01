@@ -272,6 +272,14 @@ msgstr "Lancer le scraper"
 msgid "Sound settings"
 msgstr "Options du son"
 
+#: es-app/src/guis/GuiMenu.cpp:89 es-app/src/guis/GuiMenu.cpp:100
+msgid "Audio card"
+msgstr "Carte son"
+
+#: es-app/src/guis/GuiMenu.cpp:92
+msgid "Automatic"
+msgstr "Automatique"
+
 #: es-app/src/guis/GuiMenu.cpp:91
 msgid "System volume"
 msgstr "Volume du système"

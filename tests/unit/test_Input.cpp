@@ -249,6 +249,9 @@ TEST_CASE("a joystick can be plugged, used and unplugged", "[Input]")
 	expectOnly(Input(id, TYPE_AXIS, 1, 0, false));
 	SDL_SetJoystickVirtualAxis(joystick, 1, -30000);
 	expectOnly(Input(id, TYPE_AXIS, 1, -1, false));
+	// straight to the other side between two events: reported too, or -1 would stay pressed
+	SDL_SetJoystickVirtualAxis(joystick, 1, 30000);
+	expectOnly(Input(id, TYPE_AXIS, 1, 1, false));
 
 	SDL_SetJoystickVirtualButton(joystick, 2, true);
 	expectOnly(Input(id, TYPE_BUTTON, 2, 1, false));

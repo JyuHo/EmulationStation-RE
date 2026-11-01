@@ -244,7 +244,7 @@ msgstr ""
 msgid "Edit this game's metadata"
 msgstr ""
 
-#: es-app/src/guis/GuiGamelistOptions.cpp:139 es-app/src/guis/GuiMenu.cpp:368
+#: es-app/src/guis/GuiGamelistOptions.cpp:139 es-app/src/guis/GuiMenu.cpp:401
 #: es-app/src/guis/GuiMetaDataEd.cpp:284
 #: es-app/src/guis/GuiScraperStart.cpp:124 es-app/src/guis/GuiSettings.cpp:58
 msgid "close"
@@ -274,134 +274,142 @@ msgstr ""
 msgid "Sound settings"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:91
+#: es-app/src/guis/GuiMenu.cpp:89 es-app/src/guis/GuiMenu.cpp:100
+msgid "Audio card"
+msgstr ""
+
+#: es-app/src/guis/GuiMenu.cpp:92
+msgid "Automatic"
+msgstr ""
+
+#: es-app/src/guis/GuiMenu.cpp:118
 msgid "System volume"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:97
+#: es-app/src/guis/GuiMenu.cpp:130
 msgid "Enable sounds"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:104
+#: es-app/src/guis/GuiMenu.cpp:137
 msgid "Background music"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:107
+#: es-app/src/guis/GuiMenu.cpp:140
 msgid "Music volume"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:117
+#: es-app/src/guis/GuiMenu.cpp:150
 msgid "Video sound"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:123 es-app/src/guis/GuiMenu.cpp:124
+#: es-app/src/guis/GuiMenu.cpp:156 es-app/src/guis/GuiMenu.cpp:157
 msgid "UI settings"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:129
+#: es-app/src/guis/GuiMenu.cpp:162
 msgid "Screensaver after"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:136 es-app/src/guis/GuiMenu.cpp:143
+#: es-app/src/guis/GuiMenu.cpp:169 es-app/src/guis/GuiMenu.cpp:176
 msgid "Screensaver behavior"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:138
+#: es-app/src/guis/GuiMenu.cpp:171
 msgid "dim"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:139
+#: es-app/src/guis/GuiMenu.cpp:172
 msgid "black"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:140
+#: es-app/src/guis/GuiMenu.cpp:173
 msgid "gameclip"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:151
+#: es-app/src/guis/GuiMenu.cpp:184
 msgid "Show framerate"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:157
+#: es-app/src/guis/GuiMenu.cpp:190
 msgid "On-screen help"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:163
+#: es-app/src/guis/GuiMenu.cpp:196
 msgid "Quick system select"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:169 es-app/src/guis/GuiMenu.cpp:175
+#: es-app/src/guis/GuiMenu.cpp:202 es-app/src/guis/GuiMenu.cpp:208
 msgid "Transition style"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:171
+#: es-app/src/guis/GuiMenu.cpp:204
 msgid "fade"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:172
+#: es-app/src/guis/GuiMenu.cpp:205
 msgid "slide"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:189 es-app/src/guis/GuiMenu.cpp:192
+#: es-app/src/guis/GuiMenu.cpp:222 es-app/src/guis/GuiMenu.cpp:225
 msgid "Theme set"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:216 es-app/src/guis/GuiMenu.cpp:228
+#: es-app/src/guis/GuiMenu.cpp:249 es-app/src/guis/GuiMenu.cpp:261
 msgid "Language"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:240 es-core/src/guis/GuiDetectDevice.cpp:29
+#: es-app/src/guis/GuiMenu.cpp:273 es-core/src/guis/GuiDetectDevice.cpp:29
 msgid "Configure input"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:243 es-app/src/guis/GuiMenu.cpp:244
-#: es-app/src/main.cpp:241
+#: es-app/src/guis/GuiMenu.cpp:276 es-app/src/guis/GuiMenu.cpp:277
+#: es-app/src/main.cpp:242
 msgid "Quit"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:251
+#: es-app/src/guis/GuiMenu.cpp:284
 msgid "Really restart?"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:251 es-app/src/guis/GuiMenu.cpp:265
-#: es-app/src/guis/GuiMenu.cpp:281 es-app/src/guis/GuiMetaDataEd.cpp:155
+#: es-app/src/guis/GuiMenu.cpp:284 es-app/src/guis/GuiMenu.cpp:298
+#: es-app/src/guis/GuiMenu.cpp:314 es-app/src/guis/GuiMetaDataEd.cpp:155
 #: es-app/src/guis/GuiMetaDataEd.cpp:252 es-app/src/guis/GuiScraperStart.cpp:51
 msgid "Yes"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:256 es-app/src/guis/GuiMenu.cpp:270
-#: es-app/src/guis/GuiMenu.cpp:287 es-app/src/guis/GuiMetaDataEd.cpp:155
+#: es-app/src/guis/GuiMenu.cpp:289 es-app/src/guis/GuiMenu.cpp:303
+#: es-app/src/guis/GuiMenu.cpp:320 es-app/src/guis/GuiMetaDataEd.cpp:155
 #: es-app/src/guis/GuiMetaDataEd.cpp:257 es-app/src/guis/GuiScraperStart.cpp:51
 #: es-core/src/guis/GuiMsgBox.cpp:42
 msgid "No"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:259
+#: es-app/src/guis/GuiMenu.cpp:292
 msgid "Restart system"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:265
+#: es-app/src/guis/GuiMenu.cpp:298
 msgid "Really shut down?"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:273
+#: es-app/src/guis/GuiMenu.cpp:306
 msgid "Shut down system"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:281
+#: es-app/src/guis/GuiMenu.cpp:314
 msgid "Really quit?"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:290
+#: es-app/src/guis/GuiMenu.cpp:323
 msgid "Quit EmulationStation"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:301
+#: es-app/src/guis/GuiMenu.cpp:334
 #, c++-format
 msgid "EmulationStation v{}"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:366 es-app/src/views/SystemView.cpp:341
+#: es-app/src/guis/GuiMenu.cpp:399 es-app/src/views/SystemView.cpp:341
 #: es-app/src/views/gamelist/BasicGameListView.cpp:95
 #: es-core/src/components/ComponentGrid.cpp:445
 #: es-core/src/components/ComponentGrid.cpp:447
@@ -410,7 +418,7 @@ msgstr ""
 msgid "choose"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:367 es-app/src/views/SystemView.cpp:342
+#: es-app/src/guis/GuiMenu.cpp:400 es-app/src/views/SystemView.cpp:342
 #: es-core/src/components/ImageComponent.cpp:348
 #: es-core/src/components/OptionListComponent.h:316
 msgid "select"
@@ -565,7 +573,7 @@ msgstr ""
 msgid "go back"
 msgstr ""
 
-#: es-app/src/main.cpp:159
+#: es-app/src/main.cpp:160
 msgid ""
 "It looks like your systems configuration file has not been set up or is "
 "invalid. You'll need to do this by hand, unfortunately.\n"
@@ -573,7 +581,7 @@ msgid ""
 "Visit emulationstation.org for more information."
 msgstr ""
 
-#: es-app/src/main.cpp:169
+#: es-app/src/main.cpp:170
 msgid ""
 "We can't find any systems!\n"
 "Check that your paths are correct in the systems configuration file, and "
@@ -711,7 +719,7 @@ msgid "select none"
 msgstr ""
 
 #: es-core/src/components/OptionListComponent.h:314
-#: es-core/src/components/SliderComponent.cpp:151
+#: es-core/src/components/SliderComponent.cpp:172
 #: es-core/src/components/SwitchComponent.cpp:59
 msgid "change"
 msgstr ""
