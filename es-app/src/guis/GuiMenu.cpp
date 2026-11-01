@@ -110,6 +110,7 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "MAIN MEN
 		std::vector<std::string> screensavers;
 		screensavers.emplace_back("dim");
 		screensavers.emplace_back("black");
+		screensavers.emplace_back("gameclip"); // videos of the games, black without any
 		for(auto it = screensavers.begin(); it != screensavers.end(); it++)
 			screensaver_behavior->add(*it, *it, Settings::getInstance()->getString("ScreenSaverBehavior") == *it);
 		s->addWithLabel("SCREENSAVER BEHAVIOR", screensaver_behavior);

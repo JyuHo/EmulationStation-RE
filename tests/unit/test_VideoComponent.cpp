@@ -7,7 +7,9 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <chrono>
 #include <cstdlib>
+#include <thread>
 
 namespace {
 
@@ -148,4 +150,29 @@ TEST_CASE("the music is paused while a video with sound plays", "[VideoComponent
 	}
 	CHECK(VideoComponent::audibleCount() == 0); // destroyed while playing
 	AudioManager::getInstance()->deinit();
+}
+
+TEST_CASE("a video played once ends instead of looping", "[VideoComponent]")
+{
+	NoVideoSound noSound;
+	Window window;
+	VideoComponent video(&window);
+	video.setDelay(0);
+	video.setLoop(false);
+	video.setVideo(kSilent); // 1 s
+	video.update(16);
+	REQUIRE(video.isPlaying());
+
+	const auto end = std::chrono::steady_clock::now() + std::chrono::seconds(10);
+	while(!video.hasEnded() && std::chrono::steady_clock::now() < end)
+	{
+		std::this_thread::sleep_for(std::chrono::milliseconds(20));
+		video.render(glm::mat4(1.0f)); // takes the frames, as on screen
+		video.update(20);
+	}
+	CHECK(video.hasEnded());
+	CHECK_FALSE(video.isPlaying());
+
+	video.setVideo(kSilent); // again
+	CHECK_FALSE(video.hasEnded());
 }

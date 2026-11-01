@@ -35,6 +35,9 @@ public:
 	void setDelay(int milliseconds) { mDelayMs = milliseconds; }
 	void setShowSnapshotNoVideo(bool show) { mShowSnapshotNoVideo = show; }
 	void setShowSnapshotDelay(bool show) { mShowSnapshotDelay = show; }
+	// false: plays the video once, then hasEnded() (the game clip screensaver)
+	void setLoop(bool loop) { mLoop = loop; }
+	[[nodiscard]] bool hasEnded() const { return mEnded; }
 
 	void setOrigin(float originX, float originY);
 	void setOrigin(glm::vec2 origin) { setOrigin(origin.x, origin.y); }
@@ -80,6 +83,8 @@ private:
 	bool mShowSnapshotNoVideo = false;
 	bool mShowSnapshotDelay = false;
 	bool mPausingMusic = false;
+	bool mLoop = true;
+	bool mEnded = false;
 
 	glm::vec2 mOrigin{0.0f};
 	glm::vec2 mTargetSize{0.0f};
