@@ -1065,15 +1065,38 @@ est fourni : il est rempli PR par PR.
 
 ### Écarts constatés (phase 11, état au 01/11/2026)
 
-- **11a** : `docs/THEMES.md` rédigé (PR #73, fusionnée).
-- **11b** : couche 1 implémentée (PR #74, fusionnée).
-- **11c** : schéma + réécriture de `ThemeData` + `--check-theme` (PR #75, ouverte).
-  - `ThemeExtras::setExtras` implémenté (manquait au premier jet).
-  - `ThemeException` conservée car `test_ThemeData` attend `CHECK_THROWS` (contradiction avec R6,
-    à trancher par le propriétaire).
-  - `makeExtras` implémenté à partir de l'ancien code.
-  - `--check-theme` : 0 erreur / 0 avertissement sur `tests/data/capture/themes/capture`.
-- Reste : 11d (rendu), 11e (options dans le menu), 11f–11i (vues, éléments, menus thémés).
+- **11a** : `docs/THEMES.md` (#73, fusionnée). Contrôle du 01/11/2026 : une transcription
+  d'agent collée en fin de fichier (chemins locaux, commandes git), des faits faux (`version`
+  présentée comme version du format, seuils de résolution inventés, `ThemeCondition.h`
+  attribué à Recalbox, clé d'option par système, statuts de vues contraires au plan) et la
+  section 11 sans tableaux par élément. Corrigé dans #76, sauf la section 11 (11c2).
+- **11b** : couche 1 (#74, fusionnée). `optionSettingKey` et son test `[11e]` écrits en
+  avance ; `std::stof`/`std::stoi` dans le chargeur (0.3), remplacés dans #76 ;
+  `recalboxVersion` incohérent (`"10"` → 10, `"10.1"` → 2561), ramené à la version majeure
+  dans #76.
+- **11c** : schéma + `ThemeData` + `--check-theme` (#75, fusionnée **avec le job de captures
+  rouge** pour montrer le problème : 473 k pixels d'écart, écrans système noirs). Causes et
+  corrections dans #76 :
+  - `ThemeExtras::setExtras` ne faisait plus `addChild` : les extras (fond et légende de la
+    vue système du thème de capture) étaient créés mais jamais dessinés ;
+  - comportements perdus à la réécriture : `getElement` ne vérifiait plus le type,
+    `getDefault` ne cherchait plus `es_theme_default.xml` via `es::paths`, plus aucun
+    avertissement pour élément ou propriété inconnus, valeur invalide, fichier introuvable ;
+    espaces autour des valeurs non retirés, `~` non développé ;
+  - conditions de résolution fausses (seuils inventés) et taille d'écran ignorée ;
+  - `--check-theme` lancé après l'ouverture de la fenêtre et sans le schéma ;
+  - `ThemeException` gardée : `test_ThemeData` attend `CHECK_THROWS` pour un fichier
+    principal inutilisable. Décision : seul `ThemeData::loadFile(path)` la lève, tous ses
+    appelants l'attrapent (`SystemData::loadTheme`, `getDefault`), donc R6 est tenue au niveau
+    de ES ; la surcharge `loadFile(path, diag, w, h)` ne lève rien.
+  - Captures locales impossibles chez l'agent : session Wayland, SDL3 ouvrait la fenêtre sur le
+    bureau réel et non dans Xvfb. `run.sh` et `capture.sh` forcent maintenant X11
+    (`PROMPT.md` 0.3).
+- Non conforme et reporté à **11c2** (`docs/phase11/11c2.md`) : tableaux de la section 11 de
+  `docs/THEMES.md`, recherche `default/theme.xml` puis `theme.xml` dans `ThemeSet`, contexte
+  (système, langue, région) passé au chargeur, `PathList` réelle dans `ThemeElement`, tests
+  demandés par 11c et absents (ordre de recherche, format 4 lu par `loadFile`, `PathList`).
+- Reste : 11c2, puis 11d à 11i.
 
 ---
 
