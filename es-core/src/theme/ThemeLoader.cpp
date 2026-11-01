@@ -174,8 +174,7 @@ bool processFile(const fs::path& file, LoadedTheme& theme, LoaderContext& ctx, D
 	{
 		try { theme.formatVersion = std::stof(root.child("formatVersion").text().as_string()); } catch(...) { theme.formatVersion = 0; }
 	}
-	if(theme.formatVersion == 0.0f && theme.files.empty())
-		theme.formatVersion = 3.0f;
+	// no default: a missing formatVersion is a fatal error (test_ThemeData)
 
 	if(theme.files.empty())
 	{
@@ -320,7 +319,19 @@ bool processFile(const fs::path& file, LoadedTheme& theme, LoaderContext& ctx, D
 		std::string resolved = ctx.variables.resolve(incPath, diag, where);
 		resolved = applyLegacySubstitutions(resolved, ctx.legacy);
 		fs::path incFile = resolved;
-		if(incFile.is_relative()) incFile = file.parent_path() / incFile;
+		if(incFile.is_relative())
+		{
+			// resolve "./" without normalizing ".." (matches original resolvePath)
+			if(incFile.string().rfind("./", 0) == 0)
+			{
+				fs::path resolved = file.parent_path();
+				for(auto it = std::next(incFile.begin()); it != incFile.end(); ++it)
+					resolved /= *it;
+				incFile = resolved;
+			}
+			else
+				incFile = file.parent_path() / incFile;
+		}
 		std::error_code ec2;
 		if(!fs::exists(incFile, ec2))
 		{
