@@ -327,9 +327,18 @@ bool processFile(const fs::path& file, LoadedTheme& theme, LoaderContext& ctx, D
 			continue;
 		}
 		// relative to the folder of the including file, never to the working directory
+		// a leading "./" is dropped so that paths read from the included file keep the same form
 		fs::path incFile = resolved;
 		if(incFile.is_relative())
-			incFile = file.parent_path() / incFile;
+		{
+			fs::path joined = file.parent_path();
+			auto it = incFile.begin();
+			while(it != incFile.end() && *it == ".")
+				++it;
+			for(; it != incFile.end(); ++it)
+				joined /= *it;
+			incFile = joined;
+		}
 		std::error_code ec2;
 		if(!fs::is_regular_file(incFile, ec2))
 		{
