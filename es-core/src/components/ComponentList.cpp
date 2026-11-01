@@ -1,4 +1,6 @@
 #include "components/ComponentList.h"
+#include "MenuTheme.h"
+#include "Window.h"
 #include "utils/I18n.h"
 #include <string_view>
 #include "Util.h"
@@ -9,6 +11,7 @@
 ComponentList::ComponentList(Window* window) :
 	IList<ComponentListRow, void*>(window, LIST_SCROLL_STYLE_SLOW, LIST_NEVER_LOOP)
 {
+	mWindowPtr = window;
 	mSelectorBarOffset = 0;
 	mCameraOffset = 0;
 	mFocused = false;
@@ -209,23 +212,47 @@ void ComponentList::render(const glm::mat4& parentTrans)
 	// draw selector bar
 	if(mFocused)
 	{
-		// inversion: src * (1 - dst) + dst * 0 = where src = 1
-		// need a function that goes roughly 0x777777 -> 0xFFFFFF
-		// and 0xFFFFFF -> 0x777777
-		// (1 - dst) + 0x77
+		const auto& mt = mWindowPtr ? mWindowPtr->getMenuTheme() : es::theme::MenuTheme{};
+		const bool themed = mt.text.selectorColor.has_value() || mt.text.selectedColor.has_value() || mt.backgroundColor.has_value();
 
 		const float selectedRowHeight = getRowHeight(mEntries.at(mCursor).data);
-		Renderer::drawRect(
-			0.0f, mSelectorBarOffset, mSize.x, selectedRowHeight, 0xFFFFFFFF, Renderer::BlendMode::InvertDst);
-		Renderer::drawRect(
-			0.0f, mSelectorBarOffset, mSize.x, selectedRowHeight, 0x777777FF, Renderer::BlendMode::Additive);
 
-		// hack to draw 2px dark on left/right of the bar
-		Renderer::drawRect(0.0f, mSelectorBarOffset, 2.0f, selectedRowHeight, 0x878787FF);
-		Renderer::drawRect(mSize.x - 2.0f, mSelectorBarOffset, 2.0f, selectedRowHeight, 0x878787FF);
+		if(themed)
+		{
+			const unsigned int bg = mt.backgroundColor.value_or(0xFFFFFFFFu);
+			const unsigned int sel = mt.text.selectorColor.value_or(0x878787FFu);
+			const unsigned int selectedText = mt.text.selectedColor.value_or(0xFFFFFFFFu);
 
-		for(auto it = drawAfterCursor.begin(); it != drawAfterCursor.end(); it++)
-			(*it)->render(trans);
+			if(sel != bg && (sel & 0x000000FFu) != 0)
+			{
+				Renderer::drawRect(0.0f, mSelectorBarOffset, mSize.x, selectedRowHeight, bg, Renderer::BlendMode::MultiplyInvSrc);
+				Renderer::drawRect(0.0f, mSelectorBarOffset, mSize.x, selectedRowHeight, sel, Renderer::BlendMode::Additive);
+			}
+
+			for(auto it = drawAfterCursor.begin(); it != drawAfterCursor.end(); it++)
+			{
+				// recolor selected row elements
+				unsigned int oldColor = (*it)->getColor();
+				(*it)->setColor(selectedText);
+				(*it)->render(trans);
+				(*it)->setColor(oldColor);
+			}
+		}
+		else
+		{
+			// inversion: src * (1 - dst) + dst * 0 = where src = 1
+			Renderer::drawRect(
+				0.0f, mSelectorBarOffset, mSize.x, selectedRowHeight, 0xFFFFFFFF, Renderer::BlendMode::InvertDst);
+			Renderer::drawRect(
+				0.0f, mSelectorBarOffset, mSize.x, selectedRowHeight, 0x777777FF, Renderer::BlendMode::Additive);
+
+			// hack to draw 2px dark on left/right of the bar
+			Renderer::drawRect(0.0f, mSelectorBarOffset, 2.0f, selectedRowHeight, 0x878787FF);
+			Renderer::drawRect(mSize.x - 2.0f, mSelectorBarOffset, 2.0f, selectedRowHeight, 0x878787FF);
+
+			for(auto it = drawAfterCursor.begin(); it != drawAfterCursor.end(); it++)
+				(*it)->render(trans);
+		}
 
 		// reset matrix if one of these components changed it
 		if(drawAfterCursor.size())
