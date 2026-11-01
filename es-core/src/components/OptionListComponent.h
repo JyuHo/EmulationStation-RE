@@ -10,6 +10,7 @@
 #include "components/MenuComponent.h"
 #include <sstream>
 #include "Log.h"
+#include "utils/I18n.h"
 
 //Used to display a list of options.
 //Can select one or multiple options.
@@ -91,11 +92,11 @@ private:
 				mMenu.addRow(row, (!mParent->mMultiSelect && it->selected));
 			}
 
-			mMenu.addButton("BACK", "accept", [this] { delete this; });
+			mMenu.addButton(_U("Back"), _("accept"), [this] { delete this; });
 
 			if(mParent->mMultiSelect)
 			{
-				mMenu.addButton("SELECT ALL", "select all", [this, checkboxes] {
+				mMenu.addButton(_U("Select all"), _("select all"), [this, checkboxes] {
 					for(unsigned int i = 0; i < mParent->mEntries.size(); i++)
 					{
 						mParent->mEntries.at(i).selected = true;
@@ -104,7 +105,7 @@ private:
 					mParent->onSelectedChanged();
 				});
 
-				mMenu.addButton("SELECT NONE", "select none", [this, checkboxes] {
+				mMenu.addButton(_U("Select none"), _("select none"), [this, checkboxes] {
 					for(unsigned int i = 0; i < mParent->mEntries.size(); i++)
 					{
 						mParent->mEntries.at(i).selected = false;
@@ -133,7 +134,7 @@ private:
 		std::vector<HelpPrompt> getHelpPrompts() override
 		{
 			auto prompts = mMenu.getHelpPrompts();
-			prompts.emplace_back("b", "back");
+			prompts.emplace_back("b", _("back"));
 			return prompts;
 		}
 	};
@@ -310,9 +311,9 @@ private:
 	{
 		std::vector<HelpPrompt> prompts;
 		if(!mMultiSelect)
-			prompts.emplace_back("left/right", "change");
+			prompts.emplace_back("left/right", _("change"));
 
-		prompts.emplace_back("a", "select");
+		prompts.emplace_back("a", _("select"));
 		return prompts;
 	}
 

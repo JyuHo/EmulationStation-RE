@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: emulationstation-re\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-01 00:39+0000\n"
+"POT-Creation-Date: 2026-11-01 00:52+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -154,6 +154,15 @@ msgstr ""
 msgid "last played"
 msgstr ""
 
+#: es-app/src/components/AsyncReqComponent.cpp:48
+#: es-app/src/guis/GuiGameScraper.cpp:49 es-app/src/guis/GuiMetaDataEd.cpp:145
+msgid "cancel"
+msgstr ""
+
+#: es-app/src/components/RatingComponent.cpp:158
+msgid "add star"
+msgstr ""
+
 #: es-app/src/components/ScraperSearchComponent.cpp:54
 msgid "Rating:"
 msgstr ""
@@ -215,10 +224,6 @@ msgstr ""
 
 #: es-app/src/guis/GuiGameScraper.cpp:45 es-app/src/guis/GuiScraperMulti.cpp:55
 msgid "search"
-msgstr ""
-
-#: es-app/src/guis/GuiGameScraper.cpp:49 es-app/src/guis/GuiMetaDataEd.cpp:145
-msgid "cancel"
 msgstr ""
 
 #: es-app/src/guis/GuiGamelistOptions.cpp:8
@@ -297,9 +302,8 @@ msgstr ""
 msgid "Screensaver after"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:132 es-app/src/guis/GuiMenu.cpp:165
-#: es-app/src/guis/GuiMenu.cpp:171
-msgid "Transition style"
+#: es-app/src/guis/GuiMenu.cpp:132 es-app/src/guis/GuiMenu.cpp:139
+msgid "Screensaver behavior"
 msgstr ""
 
 #: es-app/src/guis/GuiMenu.cpp:134
@@ -314,10 +318,6 @@ msgstr ""
 msgid "gameclip"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:139
-msgid "Screensaver behavior"
-msgstr ""
-
 #: es-app/src/guis/GuiMenu.cpp:147
 msgid "Show framerate"
 msgstr ""
@@ -328,6 +328,10 @@ msgstr ""
 
 #: es-app/src/guis/GuiMenu.cpp:159
 msgid "Quick system select"
+msgstr ""
+
+#: es-app/src/guis/GuiMenu.cpp:165 es-app/src/guis/GuiMenu.cpp:171
+msgid "Transition style"
 msgstr ""
 
 #: es-app/src/guis/GuiMenu.cpp:167
@@ -407,6 +411,7 @@ msgstr ""
 
 #: es-app/src/guis/GuiMenu.cpp:350 es-app/src/views/SystemView.cpp:342
 #: es-core/src/components/ImageComponent.cpp:348
+#: es-core/src/components/OptionListComponent.h:316
 msgid "select"
 msgstr ""
 
@@ -452,6 +457,7 @@ msgstr ""
 #: es-app/src/guis/GuiScraperStart.cpp:123 es-app/src/guis/GuiSettings.cpp:57
 #: es-app/src/views/gamelist/BasicGameListView.cpp:97
 #: es-app/src/views/gamelist/GridGameListView.cpp:57
+#: es-core/src/components/OptionListComponent.h:137
 #: es-core/src/guis/GuiTextEditPopup.cpp:76
 msgid "back"
 msgstr ""
@@ -536,6 +542,7 @@ msgid "start"
 msgstr ""
 
 #: es-app/src/guis/GuiScraperStart.cpp:36 es-app/src/guis/GuiSettings.cpp:11
+#: es-core/src/components/OptionListComponent.h:95
 msgid "Back"
 msgstr ""
 
@@ -674,6 +681,27 @@ msgstr[1] ""
 msgid "unknown"
 msgstr ""
 
+#: es-core/src/components/OptionListComponent.h:95
+msgid "accept"
+msgstr ""
+
+#: es-core/src/components/OptionListComponent.h:99
+msgid "Select all"
+msgstr ""
+
+#: es-core/src/components/OptionListComponent.h:99
+msgid "select all"
+msgstr ""
+
+#: es-core/src/components/OptionListComponent.h:108
+msgid "Select none"
+msgstr ""
+
+#: es-core/src/components/OptionListComponent.h:108
+msgid "select none"
+msgstr ""
+
+#: es-core/src/components/OptionListComponent.h:314
 #: es-core/src/components/SliderComponent.cpp:151
 #: es-core/src/components/SwitchComponent.cpp:59
 msgid "change"

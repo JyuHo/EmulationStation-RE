@@ -109,7 +109,8 @@ add_custom_target(es-update-pot
 	VERBATIM
 )
 
-file(GLOB_RECURSE ES_PO_FILES ${CMAKE_CURRENT_SOURCE_DIR}/locale/lang/*/LC_MESSAGES/emulationstation2.po)
+# CONFIGURE_DEPENDS: a new language is picked up without running cmake by hand
+file(GLOB_RECURSE ES_PO_FILES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/locale/lang/*/LC_MESSAGES/emulationstation2.po)
 set(ES_MO_FILES)
 set(ES_MSGMERGE_COMMANDS)
 foreach(po ${ES_PO_FILES})

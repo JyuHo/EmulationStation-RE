@@ -1,5 +1,6 @@
 #include "components/AsyncReqComponent.h"
 #include "renderer/Renderer.h"
+#include "utils/I18n.h"
 
 AsyncReqComponent::AsyncReqComponent(Window* window, std::shared_ptr<HttpReq> req,
 	std::function<void(std::shared_ptr<HttpReq>)> onSuccess, std::function<void()> onCancel) :
@@ -44,6 +45,6 @@ void AsyncReqComponent::render(const glm::mat4& parentTrans)
 std::vector<HelpPrompt> AsyncReqComponent::getHelpPrompts()
 {
 	std::vector<HelpPrompt> prompts;
-	prompts.emplace_back("b", "cancel");
+	prompts.emplace_back("b", _("cancel"));
 	return prompts;
 }
