@@ -183,21 +183,9 @@ bool processFile(const fs::path& file, LoadedTheme& theme, LoaderContext& ctx, D
 		if(root.attribute("name")) theme.info.name = root.attribute("name").as_string();
 		if(root.attribute("author")) theme.info.author = root.attribute("author").as_string();
 		if(root.attribute("version")) theme.info.version = root.attribute("version").as_string();
+		// major version only ("10" and "10.1" -> 10): "10" gave 10 and "10.1" gave 2561 before
 		if(root.attribute("recalbox"))
-		{
-			std::string v = root.attribute("recalbox").as_string();
-			size_t dot = v.find('.');
-			if(dot == std::string::npos)
-			{
-				theme.info.recalboxVersion = parseInt(v);
-			}
-			else
-			{
-				const int major = parseInt(std::string_view(v).substr(0, dot));
-				const int minor = parseInt(std::string_view(v).substr(dot + 1));
-				theme.info.recalboxVersion = (major << 8) + minor;
-			}
-		}
+			theme.info.recalboxVersion = parseInt(root.attribute("recalbox").as_string());
 		if(root.attribute("compatibility"))
 			for(const auto& s : splitComma(root.attribute("compatibility").as_string())) theme.info.compatibility.push_back(s);
 		if(root.attribute("resolutions"))
