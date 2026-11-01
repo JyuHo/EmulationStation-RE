@@ -1,0 +1,6 @@
+<!-- Fixture written for EmulationStation-RE (MIT). Own content (PROMPT.md 14.2-R3). -->
+<theme name="Plain includes" author="EmulationStation-RE" recalbox="10">
+	<formatVersion>4</formatVersion>
+	<include if="hd">../colors/red.xml</include>
+	<include if="tate">../colors/blue.xml</include>
+</theme>

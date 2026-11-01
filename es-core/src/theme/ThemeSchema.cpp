@@ -8,7 +8,6 @@
 #include <charconv>
 #include <cctype>
 #include <filesystem>
-#include <sstream>
 #include <string>
 #include <string_view>
 
@@ -17,64 +16,343 @@ namespace es::theme {
 namespace {
 using PS = PropertySpec;
 
-// Format 3 elements and their properties (ThemeData::sElementMap legacy).
+// Element types and their properties: docs/THEMES.md section 11 (Recalbox 10.1.1
+// ThemeSupport.cpp, plus the format 3 properties of Aloshi that Recalbox dropped). Same order as
+// the document; test_ThemeSchema.cpp compares both.
 const PS imageProps[] = {
-	{"pos", PropertyType::NormalizedPair}, {"size", PropertyType::NormalizedPair},
-	{"maxSize", PropertyType::NormalizedPair}, {"origin", PropertyType::NormalizedPair},
-	{"path", PropertyType::Path}, {"tile", PropertyType::Boolean},
-	{"color", PropertyType::Color}, {"zIndex", PropertyType::Float},
-	{"rotation", PropertyType::Float}, {"rotationOrigin", PropertyType::NormalizedPair},
+	{"pos", PropertyType::NormalizedPair},
+	{"size", PropertyType::NormalizedPair},
+	{"maxSize", PropertyType::NormalizedPair},
+	{"keepratio", PropertyType::Boolean},
+	{"origin", PropertyType::NormalizedPair},
+	{"rotation", PropertyType::Float},
+	{"rotationOrigin", PropertyType::NormalizedPair},
+	{"path", PropertyType::Path},
+	{"tile", PropertyType::Boolean},
+	{"color", PropertyType::Color},
+	{"colorTop", PropertyType::Color},
+	{"colorBottom", PropertyType::Color},
+	{"colorLeft", PropertyType::Color},
+	{"colorRight", PropertyType::Color},
+	{"colorTopLeft", PropertyType::Color},
+	{"colorTopRight", PropertyType::Color},
+	{"colorBottomLeft", PropertyType::Color},
+	{"colorBottomRight", PropertyType::Color},
+	{"zIndex", PropertyType::Float},
+	{"disabled", PropertyType::Boolean},
+	{"reflection", PropertyType::NormalizedPair},
+};
+const PS boxProps[] = {
+	{"pos", PropertyType::NormalizedPair},
+	{"size", PropertyType::NormalizedPair},
+	{"origin", PropertyType::NormalizedPair},
+	{"rotation", PropertyType::Float},
+	{"rotationOrigin", PropertyType::NormalizedPair},
+	{"color", PropertyType::Color},
+	{"colorTop", PropertyType::Color},
+	{"colorBottom", PropertyType::Color},
+	{"colorLeft", PropertyType::Color},
+	{"colorRight", PropertyType::Color},
+	{"colorTopLeft", PropertyType::Color},
+	{"colorTopRight", PropertyType::Color},
+	{"colorBottomLeft", PropertyType::Color},
+	{"colorBottomRight", PropertyType::Color},
+	{"zIndex", PropertyType::Float},
+	{"disabled", PropertyType::Boolean},
 };
 const PS videoProps[] = {
-	{"pos", PropertyType::NormalizedPair}, {"size", PropertyType::NormalizedPair},
-	{"maxSize", PropertyType::NormalizedPair}, {"origin", PropertyType::NormalizedPair},
-	{"default", PropertyType::Path}, {"delay", PropertyType::Float},
-	{"showSnapshotNoVideo", PropertyType::Boolean}, {"showSnapshotDelay", PropertyType::Boolean},
+	{"pos", PropertyType::NormalizedPair},
+	{"size", PropertyType::NormalizedPair},
+	{"maxSize", PropertyType::NormalizedPair},
+	{"keepratio", PropertyType::Boolean},
+	{"origin", PropertyType::NormalizedPair},
+	{"rotation", PropertyType::Float},
+	{"rotationOrigin", PropertyType::NormalizedPair},
+	{"path", PropertyType::Path},
+	{"zIndex", PropertyType::Float},
+	{"disabled", PropertyType::Boolean},
+	{"animations", PropertyType::String},
+	{"loops", PropertyType::Float},
+	{"delay", PropertyType::Float},
+	{"reflection", PropertyType::NormalizedPair},
+	{"link", PropertyType::String},
+	{"default", PropertyType::Path},
+	{"showSnapshotNoVideo", PropertyType::Boolean},
+	{"showSnapshotDelay", PropertyType::Boolean},
 };
 const PS textProps[] = {
-	{"pos", PropertyType::NormalizedPair}, {"size", PropertyType::NormalizedPair},
-	{"text", PropertyType::String}, {"color", PropertyType::Color},
-	{"fontPath", PropertyType::Path}, {"fontSize", PropertyType::Float},
-	{"alignment", PropertyType::String}, {"forceUppercase", PropertyType::Boolean},
+	{"pos", PropertyType::NormalizedPair},
+	{"size", PropertyType::NormalizedPair},
+	{"origin", PropertyType::NormalizedPair},
+	{"rotation", PropertyType::Float},
+	{"rotationOrigin", PropertyType::NormalizedPair},
+	{"text", PropertyType::String},
+	{"path", PropertyType::Path},
+	{"backgroundColor", PropertyType::Color},
+	{"fontPath", PropertyType::Path},
+	{"fontSize", PropertyType::Float},
+	{"fontStyle", PropertyType::String},
+	{"color", PropertyType::Color},
+	{"alignment", PropertyType::String},
+	{"forceUppercase", PropertyType::Boolean},
 	{"lineSpacing", PropertyType::Float},
+	{"multiline", PropertyType::Boolean},
+	{"zIndex", PropertyType::Float},
+	{"disabled", PropertyType::Boolean},
+};
+const PS scrolltextProps[] = {
+	{"pos", PropertyType::NormalizedPair},
+	{"size", PropertyType::NormalizedPair},
+	{"origin", PropertyType::NormalizedPair},
+	{"rotation", PropertyType::Float},
+	{"rotationOrigin", PropertyType::NormalizedPair},
+	{"text", PropertyType::String},
+	{"path", PropertyType::Path},
+	{"backgroundColor", PropertyType::Color},
+	{"fontPath", PropertyType::Path},
+	{"fontSize", PropertyType::Float},
+	{"fontStyle", PropertyType::String},
+	{"color", PropertyType::Color},
+	{"alignment", PropertyType::String},
+	{"forceUppercase", PropertyType::Boolean},
+	{"zIndex", PropertyType::Float},
+	{"disabled", PropertyType::Boolean},
+};
+const PS markdownProps[] = {
+	{"pos", PropertyType::NormalizedPair},
+	{"size", PropertyType::NormalizedPair},
+	{"origin", PropertyType::NormalizedPair},
+	{"rotation", PropertyType::Float},
+	{"rotationOrigin", PropertyType::NormalizedPair},
+	{"text", PropertyType::String},
+	{"path", PropertyType::Path},
+	{"fontPath", PropertyType::Path},
+	{"fontSize", PropertyType::Float},
+	{"color", PropertyType::Color},
+	{"alignment", PropertyType::String},
+	{"forceUppercase", PropertyType::Boolean},
+	{"lineSpacing", PropertyType::Float},
+	{"zIndex", PropertyType::Float},
+	{"disabled", PropertyType::Boolean},
 };
 const PS textlistProps[] = {
-	{"pos", PropertyType::NormalizedPair}, {"size", PropertyType::NormalizedPair},
-	{"selectorColor", PropertyType::Color}, {"selectedColor", PropertyType::Color},
-	{"primaryColor", PropertyType::Color}, {"secondaryColor", PropertyType::Color},
-	{"fontPath", PropertyType::Path}, {"fontSize", PropertyType::Float},
-	{"scrollSound", PropertyType::Path}, {"alignment", PropertyType::String},
-	{"horizontalMargin", PropertyType::Float}, {"forceUppercase", PropertyType::Boolean},
+	{"pos", PropertyType::NormalizedPair},
+	{"size", PropertyType::NormalizedPair},
+	{"origin", PropertyType::NormalizedPair},
+	{"selectorHeight", PropertyType::Float},
+	{"selectorOffsetY", PropertyType::Float},
+	{"selectorColor", PropertyType::Color},
+	{"selectorImagePath", PropertyType::Path},
+	{"selectorImageTile", PropertyType::Boolean},
+	{"selectedColor", PropertyType::Color},
+	{"primaryColor", PropertyType::Color},
+	{"secondaryColor", PropertyType::Color},
+	{"fontPath", PropertyType::Path},
+	{"fontSize", PropertyType::Float},
+	{"scrollSound", PropertyType::Path},
+	{"alignment", PropertyType::String},
+	{"horizontalMargin", PropertyType::Float},
+	{"forceUppercase", PropertyType::Boolean},
 	{"lineSpacing", PropertyType::Float},
+	{"zIndex", PropertyType::Float},
 };
 const PS containerProps[] = {
-	{"pos", PropertyType::NormalizedPair}, {"size", PropertyType::NormalizedPair},
+	{"pos", PropertyType::NormalizedPair},
+	{"size", PropertyType::NormalizedPair},
+	{"origin", PropertyType::NormalizedPair},
+	{"zIndex", PropertyType::Float},
+	{"disabled", PropertyType::Boolean},
 };
 const PS ninepatchProps[] = {
-	{"pos", PropertyType::NormalizedPair}, {"size", PropertyType::NormalizedPair},
+	{"pos", PropertyType::NormalizedPair},
+	{"size", PropertyType::NormalizedPair},
 	{"path", PropertyType::Path},
+	{"zIndex", PropertyType::Float},
+	{"disabled", PropertyType::Boolean},
 };
 const PS datetimeProps[] = {
-	{"pos", PropertyType::NormalizedPair}, {"size", PropertyType::NormalizedPair},
-	{"color", PropertyType::Color}, {"fontPath", PropertyType::Path},
-	{"fontSize", PropertyType::Float}, {"forceUppercase", PropertyType::Boolean},
+	{"pos", PropertyType::NormalizedPair},
+	{"size", PropertyType::NormalizedPair},
+	{"origin", PropertyType::NormalizedPair},
+	{"color", PropertyType::Color},
+	{"backgroundColor", PropertyType::Color},
+	{"fontPath", PropertyType::Path},
+	{"fontSize", PropertyType::Float},
+	{"alignment", PropertyType::String},
+	{"forceUppercase", PropertyType::Boolean},
+	{"zIndex", PropertyType::Float},
+	{"disabled", PropertyType::Boolean},
+	{"display", PropertyType::String},
 };
 const PS ratingProps[] = {
-	{"pos", PropertyType::NormalizedPair}, {"size", PropertyType::NormalizedPair},
-	{"filledPath", PropertyType::Path}, {"unfilledPath", PropertyType::Path},
+	{"pos", PropertyType::NormalizedPair},
+	{"size", PropertyType::NormalizedPair},
+	{"origin", PropertyType::NormalizedPair},
+	{"rotation", PropertyType::Float},
+	{"rotationOrigin", PropertyType::NormalizedPair},
+	{"filledPath", PropertyType::Path},
+	{"unfilledPath", PropertyType::Path},
+	{"zIndex", PropertyType::Float},
+	{"disabled", PropertyType::Boolean},
 };
-const PS soundProps[] = {{"path", PropertyType::Path}};
+const PS soundProps[] = {
+	{"path", PropertyType::Path},
+};
 const PS helpsystemProps[] = {
-	{"pos", PropertyType::NormalizedPair}, {"textColor", PropertyType::Color},
-	{"iconColor", PropertyType::Color}, {"fontPath", PropertyType::Path},
+	{"pos", PropertyType::NormalizedPair},
+	{"size", PropertyType::NormalizedPair},
+	{"textColor", PropertyType::Color},
+	{"iconColor", PropertyType::Color},
+	{"fontPath", PropertyType::Path},
 	{"fontSize", PropertyType::Float},
+	{"iconUpDown", PropertyType::Path},
+	{"iconLeftRight", PropertyType::Path},
+	{"iconUpDownLeftRight", PropertyType::Path},
+	{"iconA", PropertyType::Path},
+	{"iconB", PropertyType::Path},
+	{"iconX", PropertyType::Path},
+	{"iconY", PropertyType::Path},
+	{"iconL", PropertyType::Path},
+	{"iconL2", PropertyType::Path},
+	{"iconL2R2", PropertyType::Path},
+	{"iconL3", PropertyType::Path},
+	{"iconL3R3", PropertyType::Path},
+	{"iconLR", PropertyType::Path},
+	{"iconR", PropertyType::Path},
+	{"iconR2", PropertyType::Path},
+	{"iconR3", PropertyType::Path},
+	{"iconStart", PropertyType::Path},
+	{"iconSelect", PropertyType::Path},
+	{"iconHotkey", PropertyType::Path},
+	{"iconHkA", PropertyType::Path},
+	{"iconHkB", PropertyType::Path},
+	{"iconHkL", PropertyType::Path},
+	{"iconHkR", PropertyType::Path},
+	{"iconHkX", PropertyType::Path},
+	{"iconHkY", PropertyType::Path},
+	{"iconHkLeftRight", PropertyType::Path},
+	{"iconJ1UpDownLeftRight", PropertyType::Path},
+	{"iconJ1UpDown", PropertyType::Path},
+	{"iconJ1LeftRight", PropertyType::Path},
+	{"iconJ2UpDownLeftRight", PropertyType::Path},
+	{"iconJ2UpDown", PropertyType::Path},
+	{"iconJ2LeftRight", PropertyType::Path},
 };
-const PS genericProps[] = {{"pos", PropertyType::NormalizedPair}, {"size", PropertyType::NormalizedPair}};
+const PS carouselProps[] = {
+	{"type", PropertyType::String},
+	{"size", PropertyType::NormalizedPair},
+	{"pos", PropertyType::NormalizedPair},
+	{"origin", PropertyType::NormalizedPair},
+	{"color", PropertyType::Color},
+	{"fontPath", PropertyType::Path},
+	{"fontSize", PropertyType::Float},
+	{"fontColor", PropertyType::Color},
+	{"logoScale", PropertyType::Float},
+	{"logoRotation", PropertyType::Float},
+	{"logoRotationOrigin", PropertyType::NormalizedPair},
+	{"logoSize", PropertyType::NormalizedPair},
+	{"textOnly", PropertyType::Boolean},
+	{"forceUppercase", PropertyType::Boolean},
+	{"logoAlignment", PropertyType::String},
+	{"maxLogoCount", PropertyType::Float},
+	{"selectorColor", PropertyType::Color},
+	{"selectedColor", PropertyType::Color},
+	{"primaryColor", PropertyType::Color},
+	{"secondaryColor", PropertyType::Color},
+	{"selectorHeight", PropertyType::Float},
+	{"selectorOffsetX", PropertyType::Float},
+	{"selectorOffsetY", PropertyType::Float},
+	{"textOffsetX", PropertyType::Float},
+	{"lineSpacing", PropertyType::Float},
+	{"horizontalMargin", PropertyType::Float},
+	{"defaultTransition", PropertyType::String},
+	{"zIndex", PropertyType::Float},
+};
+const PS menuBackgroundProps[] = {
+	{"color", PropertyType::Color},
+	{"path", PropertyType::Path},
+	{"fadePath", PropertyType::Path},
+};
+const PS menuIconsProps[] = {
+	{"iconKodi", PropertyType::Path},
+	{"iconSystem", PropertyType::Path},
+	{"iconUpdates", PropertyType::Path},
+	{"iconControllers", PropertyType::Path},
+	{"iconGames", PropertyType::Path},
+	{"iconUI", PropertyType::Path},
+	{"iconSound", PropertyType::Path},
+	{"iconNetwork", PropertyType::Path},
+	{"iconScraper", PropertyType::Path},
+	{"iconAdvanced", PropertyType::Path},
+	{"iconQuit", PropertyType::Path},
+	{"iconRestart", PropertyType::Path},
+	{"iconShutdown", PropertyType::Path},
+	{"iconFastShutdown", PropertyType::Path},
+	{"iconLicense", PropertyType::Path},
+	{"iconList", PropertyType::Path},
+	{"iconBios", PropertyType::Path},
+	{"iconRecalboxRGBDual", PropertyType::Path},
+	{"iconTate", PropertyType::Path},
+	{"iconArcade", PropertyType::Path},
+	{"iconDownload", PropertyType::Path},
+	{"iconThemes", PropertyType::Path},
+	{"iconCardReader", PropertyType::Path},
+};
+const PS menuSwitchProps[] = {
+	{"pathOn", PropertyType::Path},
+	{"pathOff", PropertyType::Path},
+};
+const PS menuSliderProps[] = {
+	{"path", PropertyType::Path},
+};
+const PS menuButtonProps[] = {
+	{"path", PropertyType::Path},
+	{"filledPath", PropertyType::Path},
+};
+const PS menuTextProps[] = {
+	{"fontPath", PropertyType::Path},
+	{"fontSize", PropertyType::Float},
+	{"color", PropertyType::Color},
+	{"separatorColor", PropertyType::Color},
+	{"selectedColor", PropertyType::Color},
+	{"selectorColor", PropertyType::Color},
+};
+const PS menuTextSmallProps[] = {
+	{"fontPath", PropertyType::Path},
+	{"fontSize", PropertyType::Float},
+	{"color", PropertyType::Color},
+	{"selectedColor", PropertyType::Color},
+	{"selectorColor", PropertyType::Color},
+};
+const PS menuSectionProps[] = {
+	{"fontPath", PropertyType::Path},
+	{"fontSize", PropertyType::Float},
+	{"color", PropertyType::Color},
+	{"selectedColor", PropertyType::Color},
+	{"alignment", PropertyType::String},
+};
+const PS menuSizeProps[] = {
+	{"height", PropertyType::Float},
+};
+const PS keyboardProps[] = {
+	{"keyColor", PropertyType::Color},
+	{"keySelectedColor", PropertyType::Color},
+	{"keyTextColor", PropertyType::Color},
+	{"keyDisabledColor", PropertyType::Color},
+	{"keyModifierColor", PropertyType::Color},
+	{"keyModifierLockedColor", PropertyType::Color},
+	{"keyTitleColor", PropertyType::Color},
+	{"keyEditTextColor", PropertyType::Color},
+	{"fontPath", PropertyType::Path},
+};
 
 const ElementSpec elementTable[] = {
 	{"image", imageProps, true},
+	{"box", boxProps, false},
 	{"video", videoProps, false},
 	{"text", textProps, true},
+	{"scrolltext", scrolltextProps, false},
+	{"markdown", markdownProps, false},
 	{"textlist", textlistProps, false},
 	{"container", containerProps, false},
 	{"ninepatch", ninepatchProps, false},
@@ -82,25 +360,23 @@ const ElementSpec elementTable[] = {
 	{"rating", ratingProps, false},
 	{"sound", soundProps, false},
 	{"helpsystem", helpsystemProps, false},
-	{"carousel", genericProps, false},
-	{"box", genericProps, false},
-	{"scrollText", textProps, false},
-	{"markdown", textProps, false},
-	{"logoList", genericProps, false},
-	{"carouselList", genericProps, false},
-	{"gridList", genericProps, false},
-	{"menuBackground", genericProps, false},
-	{"menuIcons", genericProps, false},
-	{"menuSwitch", genericProps, false},
-	{"menuSlider", genericProps, false},
-	{"menuButton", genericProps, false},
-	{"menuText", genericProps, false},
-	{"menuTextSmall", genericProps, false},
-	{"menuSection", genericProps, false},
-	{"menuSize", genericProps, false},
-	{"keyboard", genericProps, false},
-	{"polymorphic", genericProps, false},
+	{"carousel", carouselProps, false},
+	{"menuBackground", menuBackgroundProps, false},
+	{"menuIcons", menuIconsProps, false},
+	{"menuSwitch", menuSwitchProps, false},
+	{"menuSlider", menuSliderProps, false},
+	{"menuButton", menuButtonProps, false},
+	{"menuText", menuTextProps, false},
+	{"menuTextSmall", menuTextSmallProps, false},
+	{"menuSection", menuSectionProps, false},
+	{"menuSize", menuSizeProps, false},
+	{"keyboard", keyboardProps, false},
 };
+}
+
+std::span<const ElementSpec> allElements()
+{
+	return elementTable;
 }
 
 const ElementSpec* findElement(std::string_view type)
@@ -193,32 +469,6 @@ std::expected<PropertyValue, std::string> parseProperty(
 		if(v.rfind("~", 0) == 0)
 			return es::paths::expandUser(v).generic_string();
 		return v;
-	}
-	case PropertyType::PathList:
-	{
-		PathList pl;
-		std::istringstream iss;
-		iss.str(std::string(raw));
-		std::string token;
-		std::vector<std::string> resolved;
-		while(iss >> token)
-		{
-			std::string v = token;
-			if(v.rfind("./", 0) == 0)
-				v = (declaringFile.parent_path() / v.substr(2)).generic_string();
-			resolved.push_back(v);
-		}
-		if(resolved.empty())
-			resolved.push_back(std::string(raw));
-		// keep the first existing file
-		std::string chosen = resolved.front();
-		for(const auto& r : resolved)
-		{
-			std::error_code ec;
-			if(std::filesystem::exists(r, ec)) { chosen = r; break; }
-		}
-		pl.paths.push_back(chosen);
-		return pl;
 	}
 	}
 	return std::unexpected(std::string("unknown type"));

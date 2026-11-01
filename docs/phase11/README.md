@@ -9,7 +9,7 @@ prime en cas d'écart.
 | 1 | [11a.md](11a.md) | `docs/THEMES.md`, spécification sourcée | squelette fusionné |
 | 2 | [11b.md](11b.md) | couche 1 (chargeur) | 11a fusionnée |
 | 3 | [11c.md](11c.md) | couche 2 + `ThemeData` + `--check-theme` | 11b fusionnée |
-| 4 | [11c2.md](11c2.md) | mise en conformité de 11a–11c (section 11 de `THEMES.md`, recherche du fichier, contexte, `PathList`, tests manquants) | #76 fusionnée |
+| 4 | [11c2.md](11c2.md) | mise en conformité de 11a–11c (section 11 de `THEMES.md`, recherche du fichier, contexte, tests manquants) | #76 fusionnée |
 | 5 | [11d.md](11d.md) | propriétés communes, captures à sondes | 11c2 fusionnée |
 | 6 | [11e.md](11e.md) | menu « Options du thème », région, rechargement | 11d fusionnée |
 | 7 | [11f.md](11f.md) | menus thémés | 11e fusionnée |

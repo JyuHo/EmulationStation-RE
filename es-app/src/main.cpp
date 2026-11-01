@@ -228,17 +228,13 @@ int main(int argc, char* argv[])
 		}
 		const fs::path themeDir = argv[i + 1];
 		const std::string system = argv[i + 2];
-		// lookup order of docs/THEMES.md section 1 (ThemeSet::getThemePath only tries the first one yet)
-		fs::path themeFile = themeDir / system / "theme.xml";
-		if(!fs::exists(themeFile))
-			themeFile = themeDir / "default" / "theme.xml";
-		if(!fs::exists(themeFile))
-			themeFile = themeDir / "theme.xml";
+		// lookup order of docs/THEMES.md section 1
+		const fs::path themeFile = ThemeSet{themeDir}.getThemePath(system);
 
 		es::theme::Diagnostics diag;
 		ThemeData theme;
-		theme.loadFile(
-			themeFile.string(), diag, width ? static_cast<int>(width) : 1920, height ? static_cast<int>(height) : 1080);
+		theme.loadFile(themeFile.string(), diag, width ? static_cast<int>(width) : 1920,
+			height ? static_cast<int>(height) : 1080, {system, system, ""});
 		int errors = 0, warnings = 0;
 		for(const auto& d : diag.all())
 		{

@@ -97,6 +97,14 @@ struct ThemeSet
 	}
 };
 
+// The system a theme is loaded for (docs/THEMES.md sections 5 and 6). Empty: no system.
+struct ThemeSystemInfo
+{
+	std::string themeFolder; // $system: <theme> of es_systems.cfg ("nes")
+	std::string name;		 // ${system.name} ("nes")
+	std::string fullName;	 // ${system} ("Nintendo Entertainment System")
+};
+
 class ThemeData
 {
 public:
@@ -126,10 +134,11 @@ public:
 
 	// Logs the diagnostics once. Throws ThemeException only when the main file is unusable
 	// (missing, malformed, no version); every caller catches it (SystemData, getDefault).
-	void loadFile(const std::string& path, const std::string& systemName = "");
+	void loadFile(const std::string& path, const ThemeSystemInfo& system = {});
 	// Same load, for --check-theme and tests: nothing is logged and nothing is thrown, the
 	// diagnostics go to diag. Returns false when the main file is unusable (theme left empty).
-	bool loadFile(const std::string& path, es::theme::Diagnostics& diag, int screenWidth, int screenHeight);
+	bool loadFile(const std::string& path, es::theme::Diagnostics& diag, int screenWidth, int screenHeight,
+		const ThemeSystemInfo& system = {});
 
 	enum ElementPropertyType
 	{

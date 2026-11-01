@@ -10,6 +10,7 @@
 #include "Util.h"
 
 #include <algorithm>
+#include <array>
 #include <filesystem>
 #include <fstream>
 #include <map>
@@ -60,7 +61,7 @@ bool conditionHolds(const pugi::xml_node& node, LoaderContext& ctx, Diagnostics&
 	if(ie && ie[0])
 	{
 		std::string path = ctx.variables.resolve(ie, diag, where);
-		path = applyLegacySubstitutions(path, ctx.legacy);
+		path = applyLegacySubstitutions(path, ctx.legacy, where.file.parent_path());
 		std::error_code ec;
 		if(!fs::exists(path, ec)) return false;
 	}
@@ -68,7 +69,7 @@ bool conditionHolds(const pugi::xml_node& node, LoaderContext& ctx, Diagnostics&
 	if(ine && ine[0])
 	{
 		std::string path = ctx.variables.resolve(ine, diag, where);
-		path = applyLegacySubstitutions(path, ctx.legacy);
+		path = applyLegacySubstitutions(path, ctx.legacy, where.file.parent_path());
 		std::error_code ec;
 		if(fs::exists(path, ec)) return false;
 	}
@@ -86,6 +87,11 @@ bool conditionHolds(const pugi::xml_node& node, LoaderContext& ctx, Diagnostics&
 // Process one file. Returns false only on fatal error.
 bool processFile(const fs::path& file, LoadedTheme& theme, LoaderContext& ctx, Diagnostics& diag,
 	std::set<fs::path>& includeStack, int depth);
+
+// attributes of an element that are not properties (Recalbox ThemeData.cpp:64-71, plus the
+// two file conditions of section 7)
+constexpr std::array<std::string_view, 8> kElementAttributes{
+	"name", "extra", "if", "ifexists", "ifnotexists", "region", "value", "showIf"};
 
 void processViewElement(pugi::xml_node node, const fs::path& file, LineIndex& li, RawView& view,
 	LoaderContext& ctx, Diagnostics& diag, bool forceExtra)
@@ -114,9 +120,7 @@ void processViewElement(pugi::xml_node node, const fs::path& file, LineIndex& li
 		// collect property candidates
 		struct Cand { std::string base; std::string value; SourceLocation where; fs::path file; bool localized; };
 		std::vector<Cand> cands;
-		for(pugi::xml_node propNode = node.first_child(); propNode; propNode = propNode.next_sibling())
-		{
-			std::string pname = propNode.name();
+		auto addCandidate = [&](const std::string& pname, std::string val, SourceLocation at) {
 			size_t dot = pname.find('.');
 			std::string baseName = (dot == std::string::npos) ? pname : pname.substr(0, dot);
 			bool localized = (dot != std::string::npos);
@@ -124,13 +128,32 @@ void processViewElement(pugi::xml_node node, const fs::path& file, LineIndex& li
 			{
 				std::string suffix = pname.substr(dot + 1);
 				if(suffix != ctx.region && suffix != ctx.legacy.language && suffix != ctx.legacy.country)
-					continue;
+					return;
 			}
-			std::string val = propNode.text().as_string();
-			val = ctx.variables.resolve(val, diag, where);
-			val = applyLegacySubstitutions(val, ctx.legacy);
-			Cand c{baseName, val, SourceLocation{file, (int)li.lineAt(propNode.offset_debug())}, file, localized};
-			cands.push_back(c);
+			val = ctx.variables.resolve(val, diag, at);
+			val = applyLegacySubstitutions(val, ctx.legacy, file.parent_path());
+			cands.push_back(Cand{baseName, std::move(val), std::move(at), file, localized});
+		};
+		// properties given as attributes of the element, then as child nodes, which win
+		// (docs/THEMES.md section 12; Recalbox ThemeData.cpp:377-393)
+		for(pugi::xml_attribute attr : node.attributes())
+		{
+			const std::string_view aname = attr.name();
+			if(std::ranges::find(kElementAttributes, aname) != kElementAttributes.end())
+				continue;
+			addCandidate(std::string(aname), attr.as_string(), where);
+		}
+		// a child node has its own conditions and may give its value in a `value` attribute
+		// (Recalbox ThemeData.cpp:395-412)
+		for(pugi::xml_node propNode = node.first_child(); propNode; propNode = propNode.next_sibling())
+		{
+			if(propNode.type() != pugi::node_element)
+				continue;
+			SourceLocation at{file, (int)li.lineAt(propNode.offset_debug())};
+			if(!conditionHolds(propNode, ctx, diag, at))
+				continue;
+			const pugi::xml_attribute valueAttr = propNode.attribute("value");
+			addCandidate(propNode.name(), valueAttr ? valueAttr.as_string() : propNode.text().as_string(), at);
 		}
 		// deduplicate: localized wins over base, last declaration wins within same kind
 		std::map<std::string, Cand> chosen;
@@ -161,15 +184,24 @@ bool processFile(const fs::path& file, LoadedTheme& theme, LoaderContext& ctx, D
 {
 	if(depth > 64) { diag.warn({file,0}, "include depth exceeded"); return true; }
 	if(includeStack.count(file)) { diag.warn({file,0}, "include cycle detected"); return true; }
+	// an unusable main file is an error; an unusable included file only drops that include
+	// (docs/THEMES.md section 13, R6)
+	auto fail = [&](SourceLocation where, std::string message) {
+		if(depth == 0)
+			diag.error(std::move(where), std::move(message));
+		else
+			diag.warn(std::move(where), std::move(message));
+		return false;
+	};
 	std::error_code ec;
 	std::string text = readFile(file, ec);
-	if(ec) { diag.error({file,0}, "cannot read file"); return false; }
+	if(ec) return fail({file, 0}, "cannot read file");
 	LineIndex li(text);
 	pugi::xml_document doc;
 	pugi::xml_parse_result res = doc.load(text.c_str());
-	if(!res) { diag.error({file, (int)li.lineAt((std::ptrdiff_t)res.offset)}, "XML parsing error"); return false; }
+	if(!res) return fail({file, (int)li.lineAt((std::ptrdiff_t)res.offset)}, "XML parsing error");
 	pugi::xml_node root = doc.child("theme");
-	if(!root) { diag.error({file,0}, "missing <theme> tag"); return false; }
+	if(!root) return fail({file, 0}, "missing <theme> tag");
 
 	if(root.child("formatVersion"))
 	{
@@ -284,48 +316,54 @@ bool processFile(const fs::path& file, LoadedTheme& theme, LoaderContext& ctx, D
 		const char* subsetAttr = inc.attribute("subset").value();
 		const char* nameAttr = inc.attribute("name").value();
 		const char* pathAttr = inc.attribute("path").value();
+		// only the selected option of a subset is included, whether the path is the text or `path`
+		// (its condition was evaluated by the first pass); a plain include has its own condition
+		const bool option = subsetAttr && subsetAttr[0] && nameAttr && nameAttr[0];
+		if(option)
+		{
+			auto sit = ctx.selectedOptions.find(subsetAttr);
+			std::string selected = (sit != ctx.selectedOptions.end()) ? sit->second : std::string();
+			if(selected.empty())
+			{
+				for(const auto& ss : theme.subsets)
+					if(ss.id == subsetAttr && !ss.choices.empty()) { selected = ss.choices.front().name; break; }
+			}
+			if(selected != nameAttr)
+				continue;
+		}
+		else if(!conditionHolds(inc, ctx, diag, where))
+			continue;
 		std::string incPath;
 		if(pathAttr && pathAttr[0]) incPath = pathAttr;
 		else
 		{
-			if(subsetAttr && subsetAttr[0] && nameAttr && nameAttr[0])
-			{
-				auto sit = ctx.selectedOptions.find(subsetAttr);
-				std::string selected = (sit != ctx.selectedOptions.end()) ? sit->second : std::string();
-				if(selected.empty())
-				{
-					for(const auto& ss : theme.subsets)
-						if(ss.id == subsetAttr && !ss.choices.empty()) { selected = ss.choices.front().name; break; }
-				}
-				if(selected != nameAttr)
-					continue;
-			}
 			std::string text = inc.text().as_string();
 			size_t a = text.find_first_not_of(" \t\n\r");
 			size_t b = text.find_last_not_of(" \t\n\r");
 			if(a != std::string::npos) incPath = text.substr(a, b - a + 1);
 		}
 		std::string resolved = ctx.variables.resolve(incPath, diag, where);
-		resolved = applyLegacySubstitutions(resolved, ctx.legacy);
+		resolved = applyLegacySubstitutions(resolved, ctx.legacy, where.file.parent_path());
+		if(resolved.empty())
+		{
+			diag.warn(where, "empty include, ignored");
+			continue;
+		}
+		// relative to the folder of the including file, never to the working directory
+		// a leading "./" is dropped so that paths read from the included file keep the same form
 		fs::path incFile = resolved;
 		if(incFile.is_relative())
 		{
-			if(fs::exists(incFile))
-			{
-				// use as-is
-			}
-			else if(incFile.string().rfind("./", 0) == 0)
-			{
-				fs::path resolved = file.parent_path();
-				for(auto it = std::next(incFile.begin()); it != incFile.end(); ++it)
-					resolved /= *it;
-				incFile = resolved;
-			}
-			else
-				incFile = file.parent_path() / incFile;
+			fs::path joined = file.parent_path();
+			auto it = incFile.begin();
+			while(it != incFile.end() && *it == ".")
+				++it;
+			for(; it != incFile.end(); ++it)
+				joined /= *it;
+			incFile = joined;
 		}
 		std::error_code ec2;
-		if(!fs::exists(incFile, ec2))
+		if(!fs::is_regular_file(incFile, ec2))
 		{
 			diag.warn(where, "missing include " + incPath);
 			continue;
@@ -375,13 +413,6 @@ std::optional<LoadedTheme> loadTheme(const fs::path& file, const LoaderContext& 
 	std::set<fs::path> stack;
 	if(!processFile(file, theme, ctx, diagnostics, stack, 0))
 		return std::nullopt;
-	// resolve selected options
-	auto sel = resolveSelectedOptions(theme.subsets, ctx.selectedOptions);
-	ctx.selectedOptions = sel;
-	// apply selected options includes? Already processed during load; selectedOptions affects which includes? 
-	// In our model, subsets choices include paths; selected option's include should have been processed.
-	// We processed all includes unconditionally. For option-specific includes, we need filter.
-	// Simplification: accept.
 	return theme;
 }
 

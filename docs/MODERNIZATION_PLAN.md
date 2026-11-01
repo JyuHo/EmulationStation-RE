@@ -1042,7 +1042,8 @@ prioritaires dans `$XDG_DATA_HOME/emulationstation/locale/`), puis, en dernier r
   1. **Chargeur** : lit le XML, résout `<include>`, variables et conditions → arbre
      d'éléments normalisé.
   2. **Schéma** : table déclarative des éléments et types de propriétés
-     (`std::variant<glm::vec2, std::string, uint32_t, float, bool, PathList>`), avec
+     (`std::variant<glm::vec2, std::string, uint32_t, float, bool>`, sans liste de chemins :
+     Recalbox n'en a pas, décision du 01/11/2026), avec
      messages d'erreur précis (fichier:ligne, via `pugixml::xml_node::offset_debug`).
   3. **Application** : `applyTheme()` de chaque composant, inchangé dans son principe.
 - Validation non bloquante : un élément inconnu produit un avertissement, pas un échec du
@@ -1096,7 +1097,19 @@ est fourni : il est rempli PR par PR.
   `docs/THEMES.md`, recherche `default/theme.xml` puis `theme.xml` dans `ThemeSet`, contexte
   (système, langue, région) passé au chargeur, `PathList` réelle dans `ThemeElement`, tests
   demandés par 11c et absents (ordre de recherche, format 4 lu par `loadFile`, `PathList`).
-- Reste : 11c2, puis 11d à 11i.
+- **11c2** (#78, fusionnée) : recherche du fichier dans `ThemeSet::getThemePath` faite ; le
+  reste de 11c2 manquait (la description le reconnaissait) : section 11 sans types ni sources,
+  `loadFile(path, systemName)` qui ignorait son paramètre (`$system` toujours `default`), aucun
+  test. Complété dans la PR « fin de 11c2 » :
+  - section 11 de `docs/THEMES.md` : 24 éléments, une ligne sourcée par propriété
+    (`ThemeSupport.cpp` @10.1.1), statut par PR ; schéma identique, vérifié par un test qui lit
+    le document ;
+  - `PathList` retirée (absente de Recalbox ; décision du propriétaire) ;
+  - contexte du système (`ThemeSystemInfo`) : `${root}` = jeu de thèmes, `${system.name}`,
+    `${system}`, `$system` avec repli sur `default`, `$language`/`$country` ;
+  - tests : recherche du fichier, repli de `$system`, `${root}`, thème format 4 lu par
+    `ThemeData`.
+- Reste : 11d à 11i.
 
 ---
 

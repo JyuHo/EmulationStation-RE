@@ -105,4 +105,25 @@ std::string applyLegacySubstitutions(std::string_view text, const LegacySubstitu
 	return result;
 }
 
+std::string applyLegacySubstitutions(
+	std::string_view text, const LegacySubstitutions& values, const std::filesystem::path& baseDir)
+{
+	std::string result = applyLegacySubstitutions(text, values);
+	if(values.system.empty() || values.system == "default" || text.find("$system") == std::string_view::npos)
+		return result;
+	auto exists = [&](const std::string& candidate) {
+		std::filesystem::path file(candidate);
+		if(file.is_relative())
+			file = baseDir / file;
+		std::error_code ec;
+		return std::filesystem::exists(file, ec);
+	};
+	if(exists(result))
+		return result;
+	LegacySubstitutions fallback = values;
+	fallback.system = "default";
+	std::string other = applyLegacySubstitutions(text, fallback);
+	return exists(other) ? other : result;
+}
+
 } // namespace es::theme

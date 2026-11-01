@@ -25,13 +25,13 @@ namespace fs = std::filesystem;
 
 ThemeData::ThemeData() : mVersion(0) {}
 
-void ThemeData::loadFile(const std::string& path, const std::string& systemName)
+void ThemeData::loadFile(const std::string& path, const ThemeSystemInfo& system)
 {
 	es::theme::Diagnostics diag;
 	// conditions such as "hd" depend on the real screen; 1920 x 1080 before Renderer::init
 	const int width = Renderer::getScreenWidth() > 0 ? static_cast<int>(Renderer::getScreenWidth()) : 1920;
 	const int height = Renderer::getScreenHeight() > 0 ? static_cast<int>(Renderer::getScreenHeight()) : 1080;
-	const bool loaded = loadFile(path, diag, width, height);
+	const bool loaded = loadFile(path, diag, width, height, system);
 	diag.log();
 	if(!loaded)
 	{
@@ -41,22 +41,37 @@ void ThemeData::loadFile(const std::string& path, const std::string& systemName)
 	}
 }
 
-bool ThemeData::loadFile(const std::string& path, es::theme::Diagnostics& diag, int screenWidth, int screenHeight)
+bool ThemeData::loadFile(const std::string& path, es::theme::Diagnostics& diag, int screenWidth, int screenHeight,
+	const ThemeSystemInfo& system)
 {
 	mViews.clear();
 	mPaths.clear();
 	mPaths.push_back(path);
 
-	// build loader context
+	// build loader context (docs/THEMES.md sections 5 and 6)
 	es::theme::LoaderContext ctx;
-	ctx.legacy.system = "default";
-	ctx.legacy.language = Settings::getInstance()->getString("Language");
+	ctx.legacy.system = system.themeFolder;
+	// "fr_FR" -> $language "fr", $country "FR"
+	const std::string locale = Settings::getInstance()->getString("Language");
+	const size_t underscore = locale.find('_');
+	ctx.legacy.language = locale.substr(0, underscore);
+	ctx.legacy.country = underscore == std::string::npos ? std::string() : locale.substr(underscore + 1);
 	ctx.region = "eu";
-	ctx.variables.set("root", fs::path(path).parent_path().generic_string(), diag, {path, 0});
+	// ${root} is the root of the theme set (Recalbox ThemeManager.cpp:270): the folder above
+	// <set>/<system>/theme.xml or <set>/default/theme.xml, else the folder of the file
+	fs::path root = fs::path(path).parent_path();
+	const std::string folder = root.filename().string();
+	if(folder == "default" || (!system.themeFolder.empty() && folder == system.themeFolder))
+		root = root.parent_path();
+	ctx.variables.set("root", root.generic_string(), diag, {path, 0});
+	if(!system.name.empty())
+		ctx.variables.set("system.name", system.name, diag, {path, 0});
+	if(!system.fullName.empty())
+		ctx.variables.set("system", system.fullName, diag, {path, 0});
 	es::theme::ConditionEnvironment env;
 	env.screenWidth = screenWidth;
 	env.screenHeight = screenHeight;
-	env.systemName = "";
+	env.systemName = system.name;
 	ctx.conditions = es::theme::makeConditionResolver(env);
 
 	auto loaded = es::theme::loadTheme(path, ctx, diag);
@@ -110,22 +125,8 @@ bool ThemeData::loadFile(const std::string& path, es::theme::Diagnostics& diag, 
 						}
 						if(parsed.has_value())
 						{
-							// convert PropertyValue to variant used by ThemeElement
-							std::visit([&](auto&& v) {
-								using T = std::decay_t<decltype(v)>;
-								if constexpr (std::is_same_v<T, glm::vec2>)
-									elem.properties[rp.name] = v;
-								else if constexpr (std::is_same_v<T, std::string>)
-									elem.properties[rp.name] = v;
-								else if constexpr (std::is_same_v<T, unsigned int>)
-									elem.properties[rp.name] = v;
-								else if constexpr (std::is_same_v<T, float>)
-									elem.properties[rp.name] = v;
-								else if constexpr (std::is_same_v<T, bool>)
-									elem.properties[rp.name] = v;
-								else if constexpr (std::is_same_v<T, es::theme::PathList>)
-									elem.properties[rp.name] = v.paths.empty() ? std::string() : v.paths.front();
-							}, *parsed);
+							// same alternatives, same order (ThemeSchema.h)
+							std::visit([&](const auto& v) { elem.properties[rp.name] = v; }, *parsed);
 						}
 					}
 				}

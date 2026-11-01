@@ -265,3 +265,64 @@ TEST_CASE("Loader: format 3 themes still load", "[phase11][11b][ThemeLoader]")
 	CHECK(value(*theme, "system", "logo", "path") == "./../art/logo-nes.svg");
 	CHECK(d.all().empty());
 }
+
+TEST_CASE("Loader: unusable includes are skipped with a warning", "[phase11][11c2][ThemeLoader]")
+{
+	// docs/THEMES.md section 13: only the main file can fail the load
+	Diagnostics d;
+	const auto theme = loadTheme(kDir / "includes" / "theme.xml", context(), d);
+	REQUIRE(theme.has_value());
+	CHECK_FALSE(d.hasErrors());
+	const auto said = [&](std::string_view text) {
+		return std::ranges::count_if(d.all(), [&](const Diagnostic& x) { return x.message.find(text) != std::string::npos; });
+	};
+	CHECK(said("empty include") == 2);
+	CHECK(said("XML parsing error") == 1);
+	CHECK(said("missing <theme> tag") == 0);
+	// the rest of the file is still read
+	CHECK(value(*theme, "detailed", "md_title", "fontSize") == "0.03");
+}
+
+TEST_CASE("Loader: include conditions and options given by path", "[phase11][11c2][ThemeLoader]")
+{
+	{
+		// the false "if" of a plain include keeps red.xml out; the first option is blue
+		Diagnostics d;
+		const auto theme = loadTheme(kDir / "includes" / "theme.xml", context(), d);
+		REQUIRE(theme.has_value());
+		CHECK(value(*theme, "detailed", "md_description", "color") == "0000FFFF");
+	}
+	{
+		Diagnostics d;
+		const auto theme = loadTheme(kDir / "includes" / "theme.xml", context("en", "eu", {{"tint", "red"}}), d);
+		REQUIRE(theme.has_value());
+		CHECK(value(*theme, "detailed", "md_description", "color") == "FF0000FF");
+	}
+	{
+		// hd is true, tate is false: only red.xml is included
+		Diagnostics d;
+		const auto theme = loadTheme(kDir / "includes" / "plain.xml", context(), d);
+		REQUIRE(theme.has_value());
+		CHECK(value(*theme, "detailed", "md_description", "color") == "FF0000FF");
+		CHECK_FALSE(d.hasErrors());
+	}
+}
+
+TEST_CASE("Loader: properties as attributes, value attribute and property conditions", "[phase11][11c2][ThemeLoader]")
+{
+	// docs/THEMES.md section 12 (Recalbox ThemeData.cpp:377-412)
+	Diagnostics d;
+	const auto theme = loadTheme(kDir / "attributes.xml", context("fr"), d);
+	REQUIRE(theme.has_value());
+	CHECK(value(*theme, "detailed", "md_title", "pos") == "0.1 0.2");
+	CHECK(value(*theme, "detailed", "md_title", "fontSize") == "0.02"); // "tate" is false
+	CHECK(value(*theme, "detailed", "md_title", "size") == "0.3 0.4");
+	CHECK(value(*theme, "detailed", "md_title", "color") == "112233FF");
+	CHECK(value(*theme, "detailed", "md_title", "text") == "Bonjour");
+	// attributes that are not properties
+	CHECK(value(*theme, "detailed", "md_title", "showIf") == "<no property>");
+	CHECK(value(*theme, "detailed", "md_title", "name") == "<no property>");
+	// a child node wins over the attribute
+	CHECK(value(*theme, "detailed", "md_image", "pos") == "0.6 0.6");
+	CHECK_FALSE(d.hasErrors());
+}

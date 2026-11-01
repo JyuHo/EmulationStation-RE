@@ -5,7 +5,12 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <fstream>
+#include <map>
+#include <set>
 #include <string>
+#include <utility>
+#include <vector>
 
 using namespace es::theme;
 namespace fs = std::filesystem;
@@ -115,4 +120,56 @@ TEST_CASE("Schema: parsing ignores the locale", "[phase11][11c][ThemeSchema]")
 	auto f = parseProperty(PropertyType::Float, "1.5", file);
 	REQUIRE(f.has_value());
 	CHECK(std::get<float>(*f) == 1.5f);
+}
+
+TEST_CASE("Schema: matches docs/THEMES.md section 11", "[ThemeSchema]")
+{
+	// The document is the source (PROMPT.md 14.2-R4): every row of its tables is in the schema
+	// with the same type, and the schema has nothing more.
+	std::ifstream doc(ES_TEST_DATA_DIR "/../../docs/THEMES.md");
+	REQUIRE(doc.is_open());
+	const std::map<std::string, PropertyType> types = {{"NormalizedPair", PropertyType::NormalizedPair},
+		{"Path", PropertyType::Path}, {"String", PropertyType::String}, {"Color", PropertyType::Color},
+		{"Float", PropertyType::Float}, {"Boolean", PropertyType::Boolean}};
+
+	std::vector<std::pair<std::string, std::string>> documented; // element, property
+	std::string line, element;
+	bool inSection = false;
+	while(std::getline(doc, line))
+	{
+		if(line.starts_with("## "))
+			inSection = line.starts_with("## 11.");
+		if(!inSection)
+			continue;
+		if(line.starts_with("#### `"))
+		{
+			element = line.substr(6, line.find('`', 6) - 6);
+			CAPTURE(element);
+			CHECK(findElement(element) != nullptr);
+			continue;
+		}
+		if(element.empty() || !line.starts_with("| `"))
+			continue;
+		const std::string name = line.substr(3, line.find('`', 3) - 3);
+		const size_t typeStart = line.find("| ", 3) + 2;
+		const std::string type = line.substr(typeStart, line.find(' ', typeStart) - typeStart);
+		CAPTURE(element, name, type);
+		const ElementSpec* spec = findElement(element);
+		REQUIRE(spec != nullptr);
+		const PropertySpec* property = findProperty(*spec, name);
+		REQUIRE(property != nullptr);
+		REQUIRE(types.contains(type));
+		CHECK(property->type == types.at(type));
+		documented.emplace_back(element, name);
+	}
+	CHECK(documented.size() > 200); // the parser read the tables (278 rows on 01/11/2026)
+
+	const std::set<std::pair<std::string, std::string>> inDoc(documented.begin(), documented.end());
+	CHECK(inDoc.size() == documented.size()); // no row written twice
+	for(const ElementSpec& spec : allElements())
+		for(const PropertySpec& property : spec.properties)
+		{
+			CAPTURE(spec.type, property.name);
+			CHECK(inDoc.contains({std::string(spec.type), std::string(property.name)}));
+		}
 }
