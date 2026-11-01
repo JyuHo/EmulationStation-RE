@@ -1,4 +1,5 @@
 #include "renderer/Renderer.h"
+#include <cstdio>
 
 #include "Log.h"
 #include "renderer/Batcher.h"
@@ -54,6 +55,7 @@ GLenum toGL(Primitive primitive)
 // one glDrawArrays per batch; the vertices are already transformed (uModelView is identity)
 void submit(const BatchState& state, std::span<const Vertex> vertices)
 {
+	fprintf(stderr, "submit tex=%u verts=%zu\n", state.texture, vertices.size());
 	const Shader& shader = state.texture != 0 ? textureShader : colorShader;
 	shader.use();
 

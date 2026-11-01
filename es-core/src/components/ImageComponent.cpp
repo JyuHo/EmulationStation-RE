@@ -320,6 +320,12 @@ void ImageComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, const s
 		setPosition(glm::vec3(denormalized.x, denormalized.y, 0));
 	}
 
+	if(properties & PATH && elem->has("path"))
+	{
+		bool tile = (elem->has("tile") && elem->get<bool>("tile"));
+		setImage(elem->get<std::string>("path"), tile);
+	}
+
 	if(properties & ThemeFlags::SIZE)
 	{
 		if(elem->has("size"))
@@ -331,12 +337,6 @@ void ImageComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, const s
 	// position + size also implies origin
 	if((properties & ORIGIN || (properties & POSITION && properties & ThemeFlags::SIZE)) && elem->has("origin"))
 		setOrigin(elem->get<glm::vec2>("origin"));
-
-	if(properties & PATH && elem->has("path"))
-	{
-		bool tile = (elem->has("tile") && elem->get<bool>("tile"));
-		setImage(elem->get<std::string>("path"), tile);
-	}
 
 	if(properties & COLOR && elem->has("color"))
 		setColorShift(elem->get<unsigned int>("color"));
