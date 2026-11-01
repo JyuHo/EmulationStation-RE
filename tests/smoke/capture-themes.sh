@@ -86,7 +86,7 @@ export SDL_VIDEO_DRIVER=x11
 status=0
 HOME="$fakehome" ES_HOME="$home" xvfb-run -a -s '-screen 0 1280x720x24' bash -c '
 	set -u
-	out="$2"; shift 2
+	out="$1"; shift
 	"$0" --windowed --resolution 1280 720 --debug 2>"$ES_HOME/stderr.txt" &
 	pid=$!
 	sleep 8
