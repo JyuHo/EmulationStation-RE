@@ -189,6 +189,416 @@ Sources : `themes/ElementTypes.h` (types d'éléments), `themes/PropertyNames.h`
 Types de propriété : `NormalizedPair`, `Path`, `PathList`, `String`, `Color`, `Float`,
 `Boolean` (`themes/PropertyTypes.h`).
 
+
+
+### 11.1 Propriétés par type d'élément (source : ThemeSupport.cpp ElementMap)
+
+
+#### Image
+
+| Propriété | Type | Statut |
+|---|---|---|
+| pos | (voir schéma) | non vérifié |
+| size | (voir schéma) | non vérifié |
+| maxSize | (voir schéma) | non vérifié |
+| keepRatio | (voir schéma) | non vérifié |
+| origin | (voir schéma) | non vérifié |
+| rotation | (voir schéma) | non vérifié |
+| rotationOrigin | (voir schéma) | non vérifié |
+| path | (voir schéma) | non vérifié |
+| tile | (voir schéma) | non vérifié |
+| color | (voir schéma) | non vérifié |
+| colorTop | (voir schéma) | non vérifié |
+| colorBottom | (voir schéma) | non vérifié |
+| colorLeft | (voir schéma) | non vérifié |
+| colorRight | (voir schéma) | non vérifié |
+| colorTopLeft | (voir schéma) | non vérifié |
+| colorTopRight | (voir schéma) | non vérifié |
+| colorBottomLeft | (voir schéma) | non vérifié |
+| colorBottomRight | (voir schéma) | non vérifié |
+| zIndex | (voir schéma) | non vérifié |
+| disabled | (voir schéma) | non vérifié |
+| reflection | (voir schéma) | non vérifié |
+
+#### Box
+
+| Propriété | Type | Statut |
+|---|---|---|
+| pos | (voir schéma) | non vérifié |
+| size | (voir schéma) | non vérifié |
+| origin | (voir schéma) | non vérifié |
+| rotation | (voir schéma) | non vérifié |
+| rotationOrigin | (voir schéma) | non vérifié |
+| color | (voir schéma) | non vérifié |
+| colorTop | (voir schéma) | non vérifié |
+| colorBottom | (voir schéma) | non vérifié |
+| colorLeft | (voir schéma) | non vérifié |
+| colorRight | (voir schéma) | non vérifié |
+| colorTopLeft | (voir schéma) | non vérifié |
+| colorTopRight | (voir schéma) | non vérifié |
+| colorBottomLeft | (voir schéma) | non vérifié |
+| colorBottomRight | (voir schéma) | non vérifié |
+| zIndex | (voir schéma) | non vérifié |
+| disabled | (voir schéma) | non vérifié |
+
+#### Video
+
+| Propriété | Type | Statut |
+|---|---|---|
+| pos | (voir schéma) | non vérifié |
+| size | (voir schéma) | non vérifié |
+| maxSize | (voir schéma) | non vérifié |
+| keepRatio | (voir schéma) | non vérifié |
+| origin | (voir schéma) | non vérifié |
+| rotation | (voir schéma) | non vérifié |
+| rotationOrigin | (voir schéma) | non vérifié |
+| path | (voir schéma) | non vérifié |
+| zIndex | (voir schéma) | non vérifié |
+| disabled | (voir schéma) | non vérifié |
+| animations | (voir schéma) | non vérifié |
+| loops | (voir schéma) | non vérifié |
+| delay | (voir schéma) | non vérifié |
+| reflection | (voir schéma) | non vérifié |
+| link | (voir schéma) | non vérifié |
+| default | (voir schéma) | non vérifié |
+| showSnapshotNoVideo | (voir schéma) | non vérifié |
+| showSnapshotDelay | (voir schéma) | non vérifié |
+
+#### Text
+
+| Propriété | Type | Statut |
+|---|---|---|
+| pos | (voir schéma) | non vérifié |
+| size | (voir schéma) | non vérifié |
+| origin | (voir schéma) | non vérifié |
+| rotation | (voir schéma) | non vérifié |
+| rotationOrigin | (voir schéma) | non vérifié |
+| text | (voir schéma) | non vérifié |
+| path | (voir schéma) | non vérifié |
+| backgroundColor | (voir schéma) | non vérifié |
+| fontPath | (voir schéma) | non vérifié |
+| fontSize | (voir schéma) | non vérifié |
+| fontStyle | (voir schéma) | non vérifié |
+| color | (voir schéma) | non vérifié |
+| alignment | (voir schéma) | non vérifié |
+| forceUppercase | (voir schéma) | non vérifié |
+| lineSpacing | (voir schéma) | non vérifié |
+| multiline | (voir schéma) | non vérifié |
+| zIndex | (voir schéma) | non vérifié |
+| disabled | (voir schéma) | non vérifié |
+
+#### Markdown
+
+| Propriété | Type | Statut |
+|---|---|---|
+| pos | (voir schéma) | non vérifié |
+| size | (voir schéma) | non vérifié |
+| origin | (voir schéma) | non vérifié |
+| rotation | (voir schéma) | non vérifié |
+| rotationOrigin | (voir schéma) | non vérifié |
+| text | (voir schéma) | non vérifié |
+| path | (voir schéma) | non vérifié |
+| fontPath | (voir schéma) | non vérifié |
+| fontSize | (voir schéma) | non vérifié |
+| color | (voir schéma) | non vérifié |
+| alignment | (voir schéma) | non vérifié |
+| forceUppercase | (voir schéma) | non vérifié |
+| lineSpacing | (voir schéma) | non vérifié |
+| zIndex | (voir schéma) | non vérifié |
+| disabled | (voir schéma) | non vérifié |
+
+#### ScrollText
+
+| Propriété | Type | Statut |
+|---|---|---|
+| pos | (voir schéma) | non vérifié |
+| size | (voir schéma) | non vérifié |
+| origin | (voir schéma) | non vérifié |
+| rotation | (voir schéma) | non vérifié |
+| rotationOrigin | (voir schéma) | non vérifié |
+| text | (voir schéma) | non vérifié |
+| path | (voir schéma) | non vérifié |
+| backgroundColor | (voir schéma) | non vérifié |
+| fontPath | (voir schéma) | non vérifié |
+| fontSize | (voir schéma) | non vérifié |
+| fontStyle | (voir schéma) | non vérifié |
+| color | (voir schéma) | non vérifié |
+| alignment | (voir schéma) | non vérifié |
+| forceUppercase | (voir schéma) | non vérifié |
+| zIndex | (voir schéma) | non vérifié |
+| disabled | (voir schéma) | non vérifié |
+
+#### TextList
+
+| Propriété | Type | Statut |
+|---|---|---|
+| pos | (voir schéma) | non vérifié |
+| size | (voir schéma) | non vérifié |
+| origin | (voir schéma) | non vérifié |
+| selectorHeight | (voir schéma) | non vérifié |
+| selectorOffsetY | (voir schéma) | non vérifié |
+| selectorColor | (voir schéma) | non vérifié |
+| selectorImagePath | (voir schéma) | non vérifié |
+| selectorImageTile | (voir schéma) | non vérifié |
+| selectedColor | (voir schéma) | non vérifié |
+| primaryColor | (voir schéma) | non vérifié |
+| secondaryColor | (voir schéma) | non vérifié |
+| fontPath | (voir schéma) | non vérifié |
+| fontSize | (voir schéma) | non vérifié |
+| scrollSound | (voir schéma) | non vérifié |
+| alignment | (voir schéma) | non vérifié |
+| horizontalMargin | (voir schéma) | non vérifié |
+| forceUppercase | (voir schéma) | non vérifié |
+| lineSpacing | (voir schéma) | non vérifié |
+| zIndex | (voir schéma) | non vérifié |
+
+#### LogoList
+
+| Propriété | Type | Statut |
+|---|---|---|
+| pos | (voir schéma) | non vérifié |
+| size | (voir schéma) | non vérifié |
+| origin | (voir schéma) | non vérifié |
+| selectorHeight | (voir schéma) | non vérifié |
+| selectorColor | (voir schéma) | non vérifié |
+| selectedColor | (voir schéma) | non vérifié |
+| primaryColor | (voir schéma) | non vérifié |
+| secondaryColor | (voir schéma) | non vérifié |
+| fontPath | (voir schéma) | non vérifié |
+| fontSize | (voir schéma) | non vérifié |
+| alignment | (voir schéma) | non vérifié |
+| horizontalMargin | (voir schéma) | non vérifié |
+| verticalMargin | (voir schéma) | non vérifié |
+| forceUppercase | (voir schéma) | non vérifié |
+| lineSpacing | (voir schéma) | non vérifié |
+| zIndex | (voir schéma) | non vérifié |
+
+#### CarouselList
+
+| Propriété | Type | Statut |
+|---|---|---|
+| pos | (voir schéma) | non vérifié |
+| size | (voir schéma) | non vérifié |
+| origin | (voir schéma) | non vérifié |
+| zIndex | (voir schéma) | non vérifié |
+
+#### GridList
+
+| Propriété | Type | Statut |
+|---|---|---|
+| pos | (voir schéma) | non vérifié |
+| size | (voir schéma) | non vérifié |
+| origin | (voir schéma) | non vérifié |
+| zIndex | (voir schéma) | non vérifié |
+
+#### Container
+
+| Propriété | Type | Statut |
+|---|---|---|
+| pos | (voir schéma) | non vérifié |
+| size | (voir schéma) | non vérifié |
+| origin | (voir schéma) | non vérifié |
+| zIndex | (voir schéma) | non vérifié |
+| disabled | (voir schéma) | non vérifié |
+
+#### NinePatch
+
+| Propriété | Type | Statut |
+|---|---|---|
+| pos | (voir schéma) | non vérifié |
+| size | (voir schéma) | non vérifié |
+| path | (voir schéma) | non vérifié |
+| zIndex | (voir schéma) | non vérifié |
+| disabled | (voir schéma) | non vérifié |
+
+#### DateTime
+
+| Propriété | Type | Statut |
+|---|---|---|
+| pos | (voir schéma) | non vérifié |
+| size | (voir schéma) | non vérifié |
+| origin | (voir schéma) | non vérifié |
+| color | (voir schéma) | non vérifié |
+| backgroundColor | (voir schéma) | non vérifié |
+| fontPath | (voir schéma) | non vérifié |
+| fontSize | (voir schéma) | non vérifié |
+| alignment | (voir schéma) | non vérifié |
+| forceUppercase | (voir schéma) | non vérifié |
+| zIndex | (voir schéma) | non vérifié |
+| disabled | (voir schéma) | non vérifié |
+| display | (voir schéma) | non vérifié |
+
+#### Rating
+
+| Propriété | Type | Statut |
+|---|---|---|
+| pos | (voir schéma) | non vérifié |
+| size | (voir schéma) | non vérifié |
+| origin | (voir schéma) | non vérifié |
+| rotation | (voir schéma) | non vérifié |
+| rotationOrigin | (voir schéma) | non vérifié |
+| filledPath | (voir schéma) | non vérifié |
+| unfilledPath | (voir schéma) | non vérifié |
+| zIndex | (voir schéma) | non vérifié |
+| disabled | (voir schéma) | non vérifié |
+
+#### Sound
+
+| Propriété | Type | Statut |
+|---|---|---|
+| path | (voir schéma) | non vérifié |
+
+#### HelpSystem
+
+| Propriété | Type | Statut |
+|---|---|---|
+| pos | (voir schéma) | non vérifié |
+| size | (voir schéma) | non vérifié |
+| textColor | (voir schéma) | non vérifié |
+| iconColor | (voir schéma) | non vérifié |
+| fontPath | (voir schéma) | non vérifié |
+| fontSize | (voir schéma) | non vérifié |
+
+#### Carousel
+
+| Propriété | Type | Statut |
+|---|---|---|
+| type | (voir schéma) | non vérifié |
+| size | (voir schéma) | non vérifié |
+| pos | (voir schéma) | non vérifié |
+| origin | (voir schéma) | non vérifié |
+| color | (voir schéma) | non vérifié |
+| fontPath | (voir schéma) | non vérifié |
+| fontSize | (voir schéma) | non vérifié |
+| fontColor | (voir schéma) | non vérifié |
+| logoScale | (voir schéma) | non vérifié |
+| logoRotation | (voir schéma) | non vérifié |
+| logoRotationOrigin | (voir schéma) | non vérifié |
+| logoSize | (voir schéma) | non vérifié |
+| textOnly | (voir schéma) | non vérifié |
+| forceUppercase | (voir schéma) | non vérifié |
+| logoAlignment | (voir schéma) | non vérifié |
+| maxLogoCount | (voir schéma) | non vérifié |
+| selectorColor | (voir schéma) | non vérifié |
+| selectedColor | (voir schéma) | non vérifié |
+| primaryColor | (voir schéma) | non vérifié |
+| secondaryColor | (voir schéma) | non vérifié |
+| selectorHeight | (voir schéma) | non vérifié |
+| selectorOffsetX | (voir schéma) | non vérifié |
+| selectorOffsetY | (voir schéma) | non vérifié |
+| textOffsetX | (voir schéma) | non vérifié |
+| lineSpacing | (voir schéma) | non vérifié |
+| horizontalMargin | (voir schéma) | non vérifié |
+| defaultTransition | (voir schéma) | non vérifié |
+| zIndex | (voir schéma) | non vérifié |
+
+#### MenuBackground
+
+| Propriété | Type | Statut |
+|---|---|---|
+| color | (voir schéma) | non vérifié |
+| path | (voir schéma) | non vérifié |
+| fadePath | (voir schéma) | non vérifié |
+
+#### MenuIcons
+
+| Propriété | Type | Statut |
+|---|---|---|
+| iconKodi | (voir schéma) | non vérifié |
+| iconSystem | (voir schéma) | non vérifié |
+| iconUpdates | (voir schéma) | non vérifié |
+| iconControllers | (voir schéma) | non vérifié |
+| iconGames | (voir schéma) | non vérifié |
+| iconUI | (voir schéma) | non vérifié |
+| iconSound | (voir schéma) | non vérifié |
+| iconNetwork | (voir schéma) | non vérifié |
+| iconScraper | (voir schéma) | non vérifié |
+| iconAdvanced | (voir schéma) | non vérifié |
+| iconQuit | (voir schéma) | non vérifié |
+| iconRestart | (voir schéma) | non vérifié |
+| iconShutdown | (voir schéma) | non vérifié |
+| iconFastShutdown | (voir schéma) | non vérifié |
+| iconLicense | (voir schéma) | non vérifié |
+| iconLists | (voir schéma) | non vérifié |
+| iconBios | (voir schéma) | non vérifié |
+| iconRecalboxRGBDual | (voir schéma) | non vérifié |
+| iconTate | (voir schéma) | non vérifié |
+| iconArcade | (voir schéma) | non vérifié |
+| iconDownload | (voir schéma) | non vérifié |
+| iconThemes | (voir schéma) | non vérifié |
+| iconCardReader | (voir schéma) | non vérifié |
+
+#### MenuSwitch
+
+| Propriété | Type | Statut |
+|---|---|---|
+| pathOn | (voir schéma) | non vérifié |
+| pathOff | (voir schéma) | non vérifié |
+
+#### MenuSlider
+
+| Propriété | Type | Statut |
+|---|---|---|
+| path | (voir schéma) | non vérifié |
+
+#### MenuButton
+
+| Propriété | Type | Statut |
+|---|---|---|
+| path | (voir schéma) | non vérifié |
+| filledPath | (voir schéma) | non vérifié |
+
+#### MenuText
+
+| Propriété | Type | Statut |
+|---|---|---|
+| fontPath | (voir schéma) | non vérifié |
+| fontSize | (voir schéma) | non vérifié |
+| color | (voir schéma) | non vérifié |
+| separatorColor | (voir schéma) | non vérifié |
+| selectedColor | (voir schéma) | non vérifié |
+| selectorColor | (voir schéma) | non vérifié |
+
+#### MenuTextSmall
+
+| Propriété | Type | Statut |
+|---|---|---|
+| fontPath | (voir schéma) | non vérifié |
+| fontSize | (voir schéma) | non vérifié |
+| color | (voir schéma) | non vérifié |
+| selectedColor | (voir schéma) | non vérifié |
+| selectorColor | (voir schéma) | non vérifié |
+
+#### MenuSection
+
+| Propriété | Type | Statut |
+|---|---|---|
+| fontPath | (voir schéma) | non vérifié |
+| fontSize | (voir schéma) | non vérifié |
+| color | (voir schéma) | non vérifié |
+| selectedColor | (voir schéma) | non vérifié |
+| alignment | (voir schéma) | non vérifié |
+
+#### MenuSize
+
+| Propriété | Type | Statut |
+|---|---|---|
+| height | (voir schéma) | non vérifié |
+
+#### Keyboard
+
+| Propriété | Type | Statut |
+|---|---|---|
+| keyColor | (voir schéma) | non vérifié |
+| keySelectedColor | (voir schéma) | non vérifié |
+| keyTextColor | (voir schéma) | non vérifié |
+| keyDisabledColor | (voir schéma) | non vérifié |
+| keyModifierColor | (voir schéma) | non vérifié |
+| keyModifierLockedColor | (voir schéma) | non vérifié |
+| keyTitleColor | (voir schéma) | non vérifié |
+| keyEditTextColor | (voir schéma) | non vérifié |
+| fontPath | (voir schéma) | non vérifié |
+
 ## 12. Attributs d'élément
 
 - `name` : nom de l'élément ; plusieurs noms séparés par des virgules définissent plusieurs

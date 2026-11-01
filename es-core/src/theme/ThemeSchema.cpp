@@ -8,6 +8,7 @@
 #include <charconv>
 #include <cctype>
 #include <filesystem>
+#include <sstream>
 #include <string>
 #include <string_view>
 
@@ -196,7 +197,27 @@ std::expected<PropertyValue, std::string> parseProperty(
 	case PropertyType::PathList:
 	{
 		PathList pl;
-		pl.paths.push_back(std::string(raw));
+		std::istringstream iss;
+		iss.str(std::string(raw));
+		std::string token;
+		std::vector<std::string> resolved;
+		while(iss >> token)
+		{
+			std::string v = token;
+			if(v.rfind("./", 0) == 0)
+				v = (declaringFile.parent_path() / v.substr(2)).generic_string();
+			resolved.push_back(v);
+		}
+		if(resolved.empty())
+			resolved.push_back(std::string(raw));
+		// keep the first existing file
+		std::string chosen = resolved.front();
+		for(const auto& r : resolved)
+		{
+			std::error_code ec;
+			if(std::filesystem::exists(r, ec)) { chosen = r; break; }
+		}
+		pl.paths.push_back(chosen);
 		return pl;
 	}
 	}

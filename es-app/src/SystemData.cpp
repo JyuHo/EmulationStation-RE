@@ -452,7 +452,7 @@ void SystemData::loadTheme()
 
 	try
 	{
-		mTheme->loadFile(path);
+		mTheme->loadFile(path, mName);
 	}
 	catch(ThemeException& e)
 	{
