@@ -7,6 +7,7 @@
 #include "theme/ThemeOptions.h"
 
 #include "pugixml/pugixml.hpp"
+#include "Util.h"
 
 #include <algorithm>
 #include <filesystem>
@@ -172,7 +173,8 @@ bool processFile(const fs::path& file, LoadedTheme& theme, LoaderContext& ctx, D
 
 	if(root.child("formatVersion"))
 	{
-		try { theme.formatVersion = std::stof(root.child("formatVersion").text().as_string()); } catch(...) { theme.formatVersion = 0; }
+		// parseFloat (std::from_chars): std::stof follows the C locale, test_Locale sets fr_FR (PROMPT.md 0.3)
+		theme.formatVersion = parseFloat(root.child("formatVersion").text().as_string());
 	}
 	// no default: a missing formatVersion is a fatal error (test_ThemeData)
 
@@ -187,13 +189,12 @@ bool processFile(const fs::path& file, LoadedTheme& theme, LoaderContext& ctx, D
 			size_t dot = v.find('.');
 			if(dot == std::string::npos)
 			{
-				try { theme.info.recalboxVersion = std::stoi(v); } catch(...) { theme.info.recalboxVersion = 0; }
+				theme.info.recalboxVersion = parseInt(v);
 			}
 			else
 			{
-				int major=0, minor=0;
-				try { major = std::stoi(v.substr(0,dot)); } catch(...) {}
-				try { minor = std::stoi(v.substr(dot+1)); } catch(...) {}
+				const int major = parseInt(std::string_view(v).substr(0, dot));
+				const int minor = parseInt(std::string_view(v).substr(dot + 1));
 				theme.info.recalboxVersion = (major << 8) + minor;
 			}
 		}

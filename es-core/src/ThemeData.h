@@ -14,6 +14,10 @@
 
 template <typename T> class TextListComponent;
 
+namespace es::theme {
+class Diagnostics;
+}
+
 class Sound;
 class ImageComponent;
 class NinePatchComponent;
@@ -113,8 +117,12 @@ private:
 public:
 	ThemeData();
 
-	// throws ThemeException
+	// Logs the diagnostics once. Throws ThemeException only when the main file is unusable
+	// (missing, malformed, no version); every caller catches it (SystemData, getDefault).
 	void loadFile(const std::string& path);
+	// Same load, for --check-theme and tests: nothing is logged and nothing is thrown, the
+	// diagnostics go to diag. Returns false when the main file is unusable (theme left empty).
+	bool loadFile(const std::string& path, es::theme::Diagnostics& diag, int screenWidth, int screenHeight);
 
 	enum ElementPropertyType
 	{

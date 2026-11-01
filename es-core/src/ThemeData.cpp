@@ -27,6 +27,22 @@ ThemeData::ThemeData() : mVersion(0) {}
 
 void ThemeData::loadFile(const std::string& path)
 {
+	es::theme::Diagnostics diag;
+	// conditions such as "hd" depend on the real screen; 1920 x 1080 before Renderer::init
+	const int width = Renderer::getScreenWidth() > 0 ? static_cast<int>(Renderer::getScreenWidth()) : 1920;
+	const int height = Renderer::getScreenHeight() > 0 ? static_cast<int>(Renderer::getScreenHeight()) : 1080;
+	const bool loaded = loadFile(path, diag, width, height);
+	diag.log();
+	if(!loaded)
+	{
+		ThemeException e;
+		e.msg = "could not load theme";
+		throw e;
+	}
+}
+
+bool ThemeData::loadFile(const std::string& path, es::theme::Diagnostics& diag, int screenWidth, int screenHeight)
+{
 	mViews.clear();
 	mPaths.clear();
 	mPaths.push_back(path);
@@ -36,23 +52,21 @@ void ThemeData::loadFile(const std::string& path)
 	ctx.legacy.system = "";
 	ctx.legacy.language = Settings::getInstance()->getString("Language");
 	ctx.region = "eu";
-	es::theme::Diagnostics diag;
 	ctx.variables.set("root", fs::path(path).parent_path().generic_string(), diag, {path, 0});
 	es::theme::ConditionEnvironment env;
-	// conditions such as "hd" depend on the real screen; 1920 x 1080 before Renderer::init
-	env.screenWidth = Renderer::getScreenWidth() > 0 ? static_cast<int>(Renderer::getScreenWidth()) : 1920;
-	env.screenHeight = Renderer::getScreenHeight() > 0 ? static_cast<int>(Renderer::getScreenHeight()) : 1080;
+	env.screenWidth = screenWidth;
+	env.screenHeight = screenHeight;
 	env.systemName = "";
 	ctx.conditions = es::theme::makeConditionResolver(env);
 
 	auto loaded = es::theme::loadTheme(path, ctx, diag);
 
+	if(loaded && loaded->formatVersion == 0.0f)
+		diag.error({path, 0}, "theme has no <formatVersion>, theme ignored");
 	if(!loaded || loaded->formatVersion == 0.0f)
 	{
-		diag.log();
-		ThemeException e;
-		e.msg = "could not load theme";
-		throw e;
+		mVersion = 0;
+		return false;
 	}
 
 	mVersion = loaded->formatVersion;
@@ -121,7 +135,7 @@ void ThemeData::loadFile(const std::string& path)
 		}
 		mViews[viewName] = std::move(view);
 	}
-	diag.log();
+	return true;
 }
 
 const ThemeData::ThemeElement* ThemeData::getElement(const std::string& view, const std::string& element, const std::string& expectedType) const

@@ -1,4 +1,5 @@
 #include "ThemeData.h"
+#include "theme/ThemeDiagnostics.h"
 #include "Window.h"
 
 #include <catch2/catch_test_macros.hpp>
@@ -85,4 +86,41 @@ TEST_CASE("ThemeData rejects an element of the wrong type", "[ThemeData]")
 	CHECK(theme.getElement("detailed", "md_description", "text") != nullptr);
 	CHECK(theme.getElement("detailed", "md_description", "image") == nullptr);
 	CHECK(theme.getElement("detailed", "md_description", "") != nullptr);
+}
+
+TEST_CASE("ThemeData ignores what it does not know, with a file:line warning", "[ThemeData]")
+{
+	// R6: an unknown property, an invalid value or an unknown element only drops that node
+	const std::string file = ES_TEST_DATA_DIR "/themes/lenient.xml";
+	ThemeData theme;
+	es::theme::Diagnostics diag;
+	REQUIRE(theme.loadFile(file, diag, 1920, 1080));
+
+	const ThemeData::ThemeElement* text = theme.getElement("detailed", "md_description", "text");
+	REQUIRE(text != nullptr);
+	CHECK(text->get<unsigned int>("color") == 0x11223344u);
+	CHECK_FALSE(text->has("sparkle"));
+	const ThemeData::ThemeElement* image = theme.getElement("detailed", "md_image", "image");
+	REQUIRE(image != nullptr);
+	CHECK(image->get<glm::vec2>("pos") == glm::vec2(0.1f, 0.2f));
+	CHECK_FALSE(image->has("color"));
+
+	std::vector<int> lines;
+	for(const auto& d : diag.all())
+	{
+		CHECK(d.severity == es::theme::Severity::Warning);
+		CHECK(d.where.file.filename() == "lenient.xml");
+		lines.push_back(d.where.line);
+	}
+	// sparkle (line 6), invalid color (line 10), unknown element hologram (line 12)
+	CHECK(lines == std::vector<int>{6, 10, 12});
+}
+
+TEST_CASE("ThemeData reports an unusable main file without throwing", "[ThemeData]")
+{
+	es::theme::Diagnostics diag;
+	ThemeData theme;
+	CHECK_FALSE(theme.loadFile(ES_TEST_DATA_DIR "/themes/no-version.xml", diag, 1920, 1080));
+	CHECK(diag.hasErrors());
+	CHECK(theme.getElement("detailed", "md_description", "text") == nullptr);
 }
