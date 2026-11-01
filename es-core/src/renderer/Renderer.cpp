@@ -37,6 +37,7 @@ void applyBlend(BlendMode blend)
 	{
 	case BlendMode::Additive: glBlendFunc(GL_ONE, GL_ONE); return;
 	case BlendMode::InvertDst: glBlendFunc(GL_ONE_MINUS_DST_COLOR, GL_ZERO); return;
+	case BlendMode::MultiplyInvSrc: glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR); return;
 	case BlendMode::Alpha: break;
 	}
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

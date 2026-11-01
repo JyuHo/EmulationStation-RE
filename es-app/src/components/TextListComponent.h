@@ -79,6 +79,7 @@ public:
 	inline void setSelectorColor(unsigned int color) { mSelectorColor = color; }
 	inline void setSelectedColor(unsigned int color) { mSelectedColor = color; }
 	inline void setScrollSound(const std::shared_ptr<Sound>& sound) { mScrollSound = sound; }
+	using GuiComponent::setColor;
 	inline void setColor(unsigned int id, unsigned int color) { mColors[id] = color; }
 	inline void setSound(const std::shared_ptr<Sound>& sound) { mScrollSound = sound; }
 	inline void setLineSpacing(float lineSpacing) { mLineSpacing = lineSpacing; }

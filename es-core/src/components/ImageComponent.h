@@ -45,6 +45,8 @@ public:
 
 	// Multiply all pixels in the image by this color when rendering.
 	void setColorShift(unsigned int color);
+	void setColor(unsigned int color) override { setColorShift(color); }
+	unsigned int getColor() const override { return mColorShift; }
 
 	void setFlipX(bool flip); // Mirror on the X axis.
 	void setFlipY(bool flip); // Mirror on the Y axis.

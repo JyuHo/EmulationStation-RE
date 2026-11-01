@@ -47,6 +47,8 @@ public:
 	void setSize(const glm::vec2& size);
 	void setSize(float w, float h);
 	virtual void onSizeChanged() {};
+	virtual void setColor(unsigned int /*color*/) {}
+	virtual unsigned int getColor() const { return 0; }
 
 	void setParent(GuiComponent* parent);
 	GuiComponent* getParent() const;
