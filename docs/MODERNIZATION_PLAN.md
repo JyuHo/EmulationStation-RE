@@ -783,7 +783,7 @@ découpler de FFmpeg : `dr_wav`/`dr_mp3`/`stb_vorbis` vendored.
   périphérique logique. Aucun craquement ; latence < 50 ms pour les sons de navigation.
 
 ### Écarts constatés
-- **#51, #53** : musique décodée en entier sur le thread principal au démarrage et à chaque
+- **#51, #52** : musique décodée en entier sur le thread principal au démarrage et à chaque
   piste (blocage de l'interface, mémoire de la piste entière), pas de fondu, pas de musique
   du thème, aucun réglage au menu Son, même piste possible deux fois de suite, aucun test ;
   décodage FFmpeg copié entre `Sound` et `MusicPlayer`, sans vidage du rééchantillonneur
