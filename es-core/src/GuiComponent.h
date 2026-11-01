@@ -84,9 +84,10 @@ public:
 	// zIndex: drawing order among the children of the parent, after sortChildren().
 	float getZIndex() const { return mZIndex; }
 	void setZIndex(float zIndex) { mZIndex = zIndex; }
-	// value given to zIndex when the theme element has none (default order of each view)
+	// value given to zIndex when the theme element has none (default order of each view); also
+	// the zIndex itself, for a component that its theme does not mention
 	float getDefaultZIndex() const { return mDefaultZIndex; }
-	void setDefaultZIndex(float zIndex) { mDefaultZIndex = zIndex; }
+	void setDefaultZIndex(float zIndex) { mDefaultZIndex = mZIndex = zIndex; }
 	// rotation in degrees, clockwise, around rotationOrigin (fractions of the size)
 	float getRotation() const { return mRotation; }
 	void setRotation(float degrees) { mRotation = degrees; }

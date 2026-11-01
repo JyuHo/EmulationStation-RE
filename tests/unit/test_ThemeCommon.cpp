@@ -47,6 +47,13 @@ TEST_CASE("Common properties: zIndex and its default", "[phase11][11d][ThemeComm
 	withDefault.applyTheme(theme, "detailed", "e_plain", ThemeFlags::ALL);
 	CHECK(withDefault.getZIndex() == 30.0f);
 
+	// a component that the theme does not mention keeps its default: a view element absent
+	// from a format 3 theme (md_rating of the capture theme) stays at its place
+	GuiComponent absent(&window);
+	absent.setDefaultZIndex(40);
+	absent.applyTheme(theme, "detailed", "md_rating", ThemeFlags::ALL);
+	CHECK(absent.getZIndex() == 40.0f);
+
 	// without the Z_INDEX flag the theme value is not used (Recalbox Themable.cpp:73-74)
 	GuiComponent notThemed(&window);
 	notThemed.setDefaultZIndex(20);
