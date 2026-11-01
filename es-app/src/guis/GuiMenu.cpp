@@ -287,12 +287,12 @@ GuiMenu::GuiMenu(Window* window) :
 				}
 				if(theme && theme->usesRegion())
 				{
-					auto region = std::make_shared<OptionListComponent<std::string>>(mWindow, "Theme region", false);
+					auto region = std::make_shared<OptionListComponent<std::string>>(mWindow, _U("Theme region"), false);
 					const std::string cur = Settings::getInstance()->getStringOr("ThemeRegion", "eu");
 					region->add("US", "us", cur == "us");
 					region->add("EU", "eu", cur == "eu");
 					region->add("JP", "jp", cur == "jp");
-					s->addWithLabel("Theme region", region);
+					s->addWithLabel(_U("Theme region"), region);
 					s->addSaveFunc([region, &anyChange] {
 						if(Settings::getInstance()->getStringOr("ThemeRegion", "eu") != region->getSelected())
 						{
