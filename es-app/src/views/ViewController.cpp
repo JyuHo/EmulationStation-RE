@@ -381,6 +381,8 @@ void ViewController::reloadGameListView(IGameListView* view, bool reloadTheme)
 
 void ViewController::reloadAll()
 {
+	mWindow->setMainTheme(ThemeData::loadMainTheme());
+
 	std::map<SystemData*, FileData*> cursorMap;
 	for(auto it = mGameListViews.begin(); it != mGameListViews.end(); it++)
 	{

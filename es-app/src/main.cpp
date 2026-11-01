@@ -260,6 +260,7 @@ int main(int argc, char* argv[])
 		}
 
 		window.renderLoadingScreen();
+		window.setMainTheme(ThemeData::loadMainTheme());
 	}
 
 	const char* errorMsg = nullptr;

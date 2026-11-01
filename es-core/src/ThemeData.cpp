@@ -279,3 +279,21 @@ std::string ThemeData::currentThemeSetName()
 		set = themeSets.begin();
 	return set->first;
 }
+
+std::shared_ptr<ThemeData> ThemeData::loadMainTheme()
+{
+	std::shared_ptr<ThemeData> theme = std::make_shared<ThemeData>();
+	std::string path = getThemeFromCurrentSet("").generic_string();
+	if(path.empty() || !fs::exists(path))
+		return nullptr;
+	try
+	{
+		theme->loadFile(path);
+	}
+	catch(ThemeException& e)
+	{
+		LOG(LogWarning) << e.what();
+		return nullptr;
+	}
+	return theme;
+}

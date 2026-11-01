@@ -1,55 +1,72 @@
 #pragma once
 
 #include "ThemeData.h"
-#include "math/Math.h"
-#include "renderer/Renderer.h"
 
+#include <map>
+#include <optional>
 #include <string>
 
 namespace es::theme {
 
-// Menu theme: values from the "menu" view of the current theme, with ES defaults.
+enum class MenuIcon
+{
+	Kodi, System, Updates, Controllers, Games, UI, Sound, Network, Scraper, Advanced, Quit, Restart, Shutdown,
+	FastShutdown, License, Lists, Bios, RecalboxRGBDual, Tate, Arcade, Download, Themes, CardReader, Count
+};
+
+struct MenuFont
+{
+	std::string path;
+	float size = 0.0f;
+};
+
+struct MenuTextStyle
+{
+	std::optional<MenuFont> font;
+	std::optional<unsigned int> color;
+	std::optional<unsigned int> selectedColor;
+	std::optional<unsigned int> selectorColor;
+	std::optional<unsigned int> separatorColor;
+};
+
+struct KeyboardTheme
+{
+	std::optional<unsigned int> keyColor;
+	std::optional<unsigned int> keySelectedColor;
+	std::optional<unsigned int> keyTextColor;
+	std::optional<unsigned int> keyDisabledColor;
+	std::optional<unsigned int> keyModifierColor;
+	std::optional<unsigned int> keyModifierLockedColor;
+	std::optional<unsigned int> keyTitleColor;
+	std::optional<unsigned int> keyEditTextColor;
+	std::optional<std::string> fontPath;
+
+	static KeyboardTheme fromTheme(const ThemeData& theme, const std::string& view);
+};
+
 struct MenuTheme
 {
-	// background
-	unsigned int backgroundColor = 0x000000FF;
-	std::string backgroundPath;
+	std::optional<float> height;
+	std::optional<std::string> backgroundPath;
+	std::optional<std::string> fadePath;
+	std::optional<unsigned int> backgroundColor;
 
-	// title text
-	unsigned int titleColor = 0xFFFFFFFF;
-	std::string titleFontPath;
-	float titleFontSize = 0.045f;
+	MenuTextStyle title;
+	MenuTextStyle footer;
+	MenuTextStyle text;
+	MenuTextStyle textSmall;
+	MenuTextStyle section;
+	std::optional<int> sectionAlignment; // 0 left, 1 right, 2 center
 
-	// entry text
-	unsigned int entryColor = 0xFFFFFFFF;
-	unsigned int selectedColor = 0xFFFFFFFF;
-	unsigned int separatorColor = 0x777777FF;
+	std::optional<std::string> buttonPath;
+	std::optional<std::string> buttonFilledPath;
+	std::optional<std::string> switchOnPath;
+	std::optional<std::string> switchOffPath;
+	std::optional<std::string> sliderKnobPath;
 
-	// selection
-	unsigned int selectorColor = 0x777777FF;
+	std::map<MenuIcon, std::string> icons;
 
-	// small text
-	unsigned int smallColor = 0xFFFFFFFF;
-	float smallFontSize = 0.035f;
-
-	// switches
-	std::string switchOnPath;
-	std::string switchOffPath;
-
-	// slider
-	std::string sliderPath;
-
-	// button
-	std::string buttonPath;
-	std::string buttonFilledPath;
-
-	// help
-	unsigned int helpTextColor = 0x777777FF;
-	unsigned int helpIconColor = 0x777777FF;
-	std::string helpFontPath;
-	float helpFontSize = 0.035f;
-
-	static MenuTheme fromTheme(const std::shared_ptr<ThemeData>& theme);
+	static MenuTheme fromTheme(const ThemeData& theme);
 };
 
 } // namespace es::theme
