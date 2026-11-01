@@ -1037,6 +1037,13 @@ prioritaires dans `$XDG_DATA_HOME/emulationstation/locale/`), puis, en dernier r
   sélectionnables ; écarts documentés dans `docs/THEMES.md`.
 - Documentation du format pour les créateurs : `docs/THEMES.md`.
 
+### 11.5 Découpage et consignes
+Cahier des charges détaillé (règles absolues, sources Recalbox `10.1.1`, architecture,
+découpage en neuf PR 11a–11i, critères) : `PROMPT.md` section 14 ; prompts par PR :
+[`docs/phase11/`](phase11/README.md). Le squelette (`es-core/src/theme/`, tests cachés
+`[.][phase11]`, fixtures `tests/data/themes/recalbox/`, `tests/smoke/fetch-reference-theme.sh`)
+est fourni : il est rempli PR par PR.
+
 ---
 
 ## Phase 12 — Distribution Arch

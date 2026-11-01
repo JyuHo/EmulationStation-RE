@@ -1,0 +1,9 @@
+<theme>
+	<formatVersion>4</formatVersion>
+	<include>./cycle-b.xml</include>
+	<view name="basic">
+		<image name="background">
+			<path>./art/background.png</path>
+		</image>
+	</view>
+</theme>

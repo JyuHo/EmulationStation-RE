@@ -1,0 +1,7 @@
+<theme>
+	<view name="system">
+		<image name="logo">
+			<path>./../art/nes.svg</path>
+		</image>
+	</view>
+</theme>

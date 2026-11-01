@@ -559,9 +559,10 @@ VA-API optionnel avec repli logiciel automatique et silencieux.
 pas de `locale-gen`) ; la langue vient de `es_settings.cfg` (`Language`). Majuscules
 appliquées *après* traduction avec une fonction UTF-8. Livre `fr` complet.
 
-**Phase 11 — Thèmes Recalbox 10.** Étudie d'abord la source et la documentation officielles
-de Recalbox (moteur de thèmes de `recalbox-emulationstation` pour la version 10, thème par
-défaut) et écris `docs/THEMES.md` **avant** le code : liste exacte des balises, attributs,
+**Phase 11 — Thèmes Recalbox 10.** Consignes complètes en section 14 et prompts par PR dans
+`docs/phase11/`. Étudie d'abord la source officielle de Recalbox (tag `10.1.1` du dépôt
+`recalbox/recalbox`, dossier `projects/frontend`, voir 14.3, et le thème `recalbox-next`)
+et écris `docs/THEMES.md` **avant** le code : liste exacte des balises, attributs,
 vues, éléments, propriétés, mécanismes d'options et de conditions, avec la source de
 chaque information. Garde la compatibilité avec le format Aloshi v3. Les erreurs de thème
 sont des avertissements localisés (fichier:ligne), jamais un écran noir.
@@ -596,7 +597,8 @@ En français, court :
 
 ## 12. Questions ouvertes (à confirmer avec le propriétaire)
 
-- Format exact des thèmes Recalbox 10 et thème de référence à viser pour les tests.
+- Format exact des thèmes Recalbox 10 : à établir par la PR 11a (section 14). Thème de
+  référence retenu : `recalbox-next` au commit épinglé de `tests/smoke/fetch-reference-theme.sh`.
 - Liste des langues à livrer en plus de `fr` et `en`.
 - Scraper à implémenter en remplacement des services morts (ScreenScraper ?).
 
@@ -1091,3 +1093,269 @@ Performance (critère du plan, non mesurable en CI : llvmpipe sous Xvfb n'est pa
   propriétaire** selon la procédure de la PR 6d.
 - [ ] `SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED` traité (13.6).
 - [ ] Documentation : README, plan, annexe A, section 0 de ce fichier, compte rendu.
+
+---
+
+## 14. Phase 11 — Consignes détaillées (thèmes sur le modèle de Recalbox 10)
+
+> Cahier des charges de la phase 11, préparé le 01/11/2026 sur `main` après la phase 10. Il
+> complète le plan (« Phase 11 ») et prime sur lui en cas d'écart. Les prompts à donner à
+> l'agent, un par PR, sont dans [`docs/phase11/`](docs/phase11/README.md) ; ils renvoient ici.
+> Le squelette du code (module `es-core/src/theme/`, tests cachés, fixtures) est déjà dans le
+> dépôt : **tu le remplis, tu ne le remplaces pas**.
+
+### 14.1 Objectif et périmètre
+Lire les thèmes au format Recalbox 10 (options, variables, conditions, régions, langues,
+nouvelles propriétés, menus thémés, carrousel) **sans rien changer** à l'affichage des thèmes
+au format 3 d'Aloshi, et sans jamais afficher un écran noir à cause d'un thème.
+
+Dans le périmètre :
+- `docs/THEMES.md` écrit **avant** le code, chaque information appuyée sur une source (14.3) ;
+- moteur en trois couches (plan, 11.3) : chargeur, schéma, application ; `ThemeData` garde son
+  API publique pour les composants ;
+- options de thème (« subsets ») sélectionnables et enregistrées, rechargement à chaud ;
+- propriétés communes de Recalbox (`zIndex`, rotation, opacité, `disabled`, chemins de repli…),
+  menus thémés, carrousel système, vues et éléments listés dans `docs/THEMES.md` ;
+- thème par défaut créé pour le projet (`themes/es-re-default/`) ;
+- diagnostics `fichier:ligne`, outil `--check-theme`, tests, captures.
+
+Hors périmètre (ne l'écris pas, ce serait du code mort, section 10) :
+- fonctions propres au matériel Recalbox (CRT, JAMMA, écrans TATE, GPi Case) : leurs
+  identifiants de condition valent `false`, sans autre code ;
+- serveur web, gestionnaire de thèmes en ligne, téléchargement de thèmes depuis ES ;
+- collections automatiques (backlog du plan), scraper ;
+- éléments que `docs/THEMES.md` classe « non pris en charge » (avertissement, élément ignoré).
+
+### 14.2 Règles absolues de la phase (non négociables)
+Elles s'ajoutent à la section 4 et la rappellent là où elle a été enfreinte. Une PR qui en
+viole une est refusée sans relecture du reste.
+
+- **R1 — Lire avant d'écrire.** Avant chaque PR : cette section en entier, le prompt de la PR
+  (`docs/phase11/`), `docs/THEMES.md` (à partir de 11b) et **en entier** chaque fichier que tu
+  modifies (pas seulement les lignes trouvées par `grep`).
+- **R2 — Inventaire écrit.** La description de chaque PR commence par l'inventaire : fichiers
+  touchés, sites d'appel trouvés (commande `grep` exacte et nombre de résultats), et ce qui a
+  changé par rapport à l'inventaire de la PR précédente.
+- **R3 — Licences.** Le code de Recalbox est une **référence fonctionnelle** : tu le lis, tu ne
+  le recopies pas (le dépôt `recalbox/recalbox` est sous une licence non commerciale,
+  incompatible avec MIT, même si `projects/frontend/LICENSE.md` reprend la licence MIT
+  d'origine). Les thèmes Recalbox (`recalbox-next`…) sont sous **CC BY-NC-ND 4.0** : aucun de
+  leurs fichiers (XML, images, polices, sons) n'entre dans le dépôt, pas même comme fixture de
+  test ; on les télécharge hors du dépôt avec `tests/smoke/fetch-reference-theme.sh`.
+- **R4 — Ne rien inventer.** Chaque balise, attribut, élément, propriété, valeur par défaut,
+  identifiant de condition et variable que tu implémentes figure dans `docs/THEMES.md` avec
+  sa source (`chemin:ligne` au tag `10.1.1`, ou fichier du thème au commit épinglé). Ce que
+  tu ne peux pas vérifier est marqué « non vérifié » dans `docs/THEMES.md` **et** dans la PR,
+  et reste hors du code tant que le propriétaire ne l'a pas tranché.
+- **R5 — Compatibilité format 3.** Les 9 captures de `tests/smoke/capture.sh` restent
+  **identiques au pixel près** (job « Screenshots vs base branch » vert, **sans** étiquette)
+  dans **toutes** les PR de la phase. `tests/unit/test_ThemeData.cpp` passe sans qu'une valeur
+  attendue change. Aucune exception n'est prévue : si tu penses en avoir besoin, arrête-toi et
+  explique pourquoi dans la PR (section 10).
+- **R6 — Jamais d'écran noir.** Aucune exception (`ThemeException` ou autre) ne sort du
+  chargement d'un thème. Problème local (propriété, élément, include, condition) :
+  avertissement `fichier:ligne`, nœud ignoré. Fichier principal inutilisable : erreur
+  journalisée, puis thème vide ou thème par défaut, et ES continue.
+- **R7 — Tests du squelette.** Les tests de `tests/unit/test_Theme*.cpp` (sauf
+  `test_ThemeData.cpp`) sont cachés par l'étiquette Catch2 `[.]`. Dans la PR indiquée par
+  leur étiquette (`[11b]`, `[11c]`, `[11e]`), tu retires `[.]` et ils doivent passer. Tu
+  **ajoutes** des cas ; tu ne retires ni n'affaiblis aucune vérification. Si une valeur attendue
+  te paraît fausse, tu ne la changes pas : tu l'écris dans la PR avec la source qui la
+  contredit, et le propriétaire décide.
+- **R8 — Bouchons.** Les fonctions du squelette contiennent `PHASE11-STUB(<PR>)`. À la fin de
+  la PR `<PR>`, `grep -rn 'PHASE11-STUB(<PR>)' es-core es-app tests` ne renvoie rien. Tu ne
+  crées pas d'autre bouchon, de `TODO` ni de code commenté.
+- **R9 — CI.** Tu ne contournes jamais la CI : pas de test désactivé ou caché pour passer, pas
+  d'avertissement retiré, pas d'étape supprimée ou rendue non bloquante, pas d'étiquette
+  `rendu-modifié` (tu ne la poses pas, tu ne la demandes pas en phase 11, voir R5). Une PR
+  n'est « prête » que quand les 4 jobs sont verts sur son **dernier** commit.
+- **R10 — Vérifications locales.** Avant de passer une PR « prête » : build GCC **et** Clang
+  avec `-Werror`, `ctest` (debug et `asan`), test de fumée, captures et comparaison avec
+  `main`, `--check-theme` sur la fixture et sur le thème de référence (à partir de 11c), et
+  chaque commande de critère du prompt de la PR. Les lignes significatives de leur sortie
+  vont dans *Vérifications effectuées*.
+- **R11 — Une PR à la fois, fusion par le propriétaire.** Tu pars de `main` à jour, après la
+  fusion de la PR précédente (sinon lis 13.10). Tu ne fusionnes pas, n'approuves pas, ne
+  pousses jamais sur `main`. Format de PR : section 6, étape 8, en français.
+- **R12 — Section 0 et plan.** Tu ne marques la phase 11 (ou une de ses PR) « terminée » ou
+  « fusionnée » dans la section 0 ou dans le plan **qu'après sa fusion réelle** par le
+  propriétaire, constatée sur GitHub. La section 0 n'est mise à jour que par la PR de
+  clôture (11i) ; les autres PR ajoutent leurs « Écarts constatés » au plan.
+- **R13 — Arrêt sur contradiction.** Si le code, la source Recalbox ou cette section se
+  contredisent, ou si un critère est impossible à tenir : tu t'arrêtes, tu décris l'écart dans
+  la PR (brouillon) et tu proposes une correction. Tu ne choisis pas seul de l'ignorer.
+
+### 14.3 Sources de référence
+- Moteur : dépôt GitLab `recalbox/recalbox`, tag **`10.1.1`** (17/09/2026), dossier
+  `projects/frontend/`. Fichiers principaux : `es-core/src/themes/ThemeData.{h,cpp}`
+  (chargement, `parseIncludes`, `parseVariables`, `CrawlSubsets`, `Condition`,
+  `EvaluateExpression`, `EvaluateIdentifier`, `resolveSystemVariable`,
+  `ExtractLocalizedCode`), `ThemeVariablesHolder.cpp` (variables `${…}`), `ThemeManager.cpp`
+  (variables du programme : `root`, `system.*`, `game.*` ; ordre de recherche du fichier de
+  thème), `ElementTypes.h`, `PropertyNames.h`, `ThemeSupport.cpp` (éléments et propriétés),
+  `MenuThemeData.{h,cpp}` (menus), `es-core/src/utils/eval/SimpleTokenizer.cpp` (conditions).
+  Téléchargement : `https://gitlab.com/api/v4/projects/recalbox%2Frecalbox/repository/archive.tar.gz?sha=10.1.1&path=projects/frontend`.
+- `projects/frontend/THEMES.md` est **en retard sur le code** (il annonce le format 4 et ne
+  décrit ni `if`, ni les variables `${…}`, ni `<subset>`) : le code fait foi, la documentation
+  sert d'appoint.
+- L'ancien dépôt `recalbox/recalbox-emulationstation` (dernier commit 2022) n'est **pas** la
+  version 10 : ne t'en sers pas.
+- Thème de référence : `recalbox/recalbox-themes`, `themes/recalbox-next` (« Recalbox NEXT
+  2025 », `recalbox="10"`, `<formatVersion>4</formatVersion>`), commit épinglé `febce03`
+  dans `tests/smoke/fetch-reference-theme.sh`.
+
+Faits déjà vérifiés dans ces sources (à reprendre et compléter dans `docs/THEMES.md`) :
+- version de format minimale 4 et courante 5 côté Recalbox ; le format 3 d'Aloshi reste lu par
+  ce projet ;
+- racine `<theme name author version recalbox compatibility resolutions>` ;
+- `<variables><variable name value/></variables>`, références `${nom}` (espaces ignorés),
+  noms `[A-Za-z_][A-Za-z0-9_]*` avec points simples ;
+- `<include>` (chemin en texte ou attribut `path`), attributs `subset`, `name`, `name.<code>` ;
+  `<subset subset title help title.<code> help.<code>/>` ;
+- conditions `if`, `ifexists`, `ifnotexists` sur tout nœud ; opérateurs `! not & and | or ( )`,
+  évaluation de gauche à droite sans priorité ;
+- attribut `region` (liste), propriétés localisées `<nom>.<code>` prioritaires sur `<nom>` ;
+- substitutions historiques `$system`, `$language`, `$country` dans les chemins ;
+- recherche du fichier : `<racine>/<système>/theme.xml`, puis `<racine>/default/theme.xml`,
+  puis `<racine>/theme.xml` (`ThemeManager.cpp`).
+
+### 14.4 Thème de référence et fixtures
+- `tests/smoke/fetch-reference-theme.sh <dossier hors dépôt>` télécharge `recalbox-next` au
+  commit épinglé. Il refuse un dossier du dépôt. Ne change le commit que dans une PR qui dit
+  pourquoi.
+- Fixtures du projet (contenu original, MIT) : `tests/data/themes/recalbox/` (format Recalbox :
+  variables, includes, options, conditions, régions, langues, cycle, XML cassé) et
+  `tests/data/capture/` (format 3, captures). Tu en ajoutes dans `tests/data/themes/` ; tu ne
+  modifies pas les lignes existantes des fixtures du squelette (les tests y font référence par
+  numéro de ligne).
+- Le squelette a été vérifié ainsi : une implémentation de référence privée (non commitée) de
+  la couche 1 passe les 24 cas cachés `[11b]`/`[11e]` et charge `recalbox-next` (système `nes`,
+  1920 × 1080) avec 12 fichiers, 9 options, 6 vues et 0 avertissement. Les tests sont donc
+  réalisables tels quels.
+
+### 14.5 Architecture cible
+```
+es-core/src/theme/           (squelette fourni)
+  ThemeDiagnostics.h/.cpp    SourceLocation, Diagnostic, Diagnostics, LineIndex       → 11b
+  ThemeCondition.h/.cpp      evaluateCondition, makeConditionResolver                 → 11b
+  ThemeVariables.h/.cpp      ThemeVariables (${…}), applyLegacySubstitutions          → 11b
+  ThemeLoader.h/.cpp         couche 1 : loadTheme, loadThemeHeader → LoadedTheme      → 11b
+  ThemeOptions.h/.cpp        resolveSelectedOptions (11b), optionSettingKey (11e)
+  ThemeSchema.h/.cpp         couche 2 : findElement, findProperty, parseProperty      → 11c
+es-core/src/ThemeData.{h,cpp}   couche 3 : API inchangée pour les composants         → 11c
+```
+Flux : `SystemData::loadTheme` → `ThemeData::loadFile` construit un `LoaderContext` (langue de
+`I18n`, région, options enregistrées, résolveur de conditions, variables `root`, `system.name`
+…), appelle `loadTheme`, convertit chaque `RawProperty` avec le schéma, remplit ses
+`ThemeView`/`ThemeElement`, puis `Diagnostics::log()` une seule fois.
+
+Décisions déjà prises (ne les rediscute pas sans R13) :
+- `ThemeElement::properties` reste un `std::variant` dont les cinq premières alternatives ne
+  changent pas (`glm::vec2, std::string, unsigned int, float, bool`) ; `PathList` est ajoutée à
+  la fin. Une propriété `Path` reste une `std::string` ; seule une propriété déclarée
+  `PathList` dans le schéma produit une `PathList`.
+- `ThemeData::loadFile` ne lève plus d'exception (R6) ; `ThemeException` disparaît en 11c
+  avec ses appelants (`SystemData`, `getDefault`), ou reste interne si un appelant l'exige
+  (écris pourquoi).
+- Les couches 1 et 2 ne dépendent ni de `Settings`, ni de `ResourceManager`, ni du rendu :
+  tout passe par `LoaderContext` (testable sans fenêtre).
+- Options : clé `ThemeOption.<jeu de thèmes>.<subset>` dans `es_settings.cfg` (chaîne).
+  Option absente ou disparue : première option disponible. Lecture sans `[ERROR]` (aujourd'hui
+  `Settings::getString` sur une clé inconnue écrit `LogError` : ajoute une lecture qui ne le
+  fait pas).
+- Région : réglage `ThemeRegion` (`us`, `eu`, `jp`, défaut `eu`), langue : celle de `I18n`.
+- Rechargement à chaud : changer une option ou la région recharge les thèmes puis appelle
+  `ViewController::reloadAll()`, comme le changement de jeu de thèmes.
+- Les entrées de menu nouvelles (options du thème, région) ne s'affichent que si le thème
+  courant en a l'usage : l'écran 06 des captures reste identique (R5).
+
+### 14.6 Découpage en PR
+Neuf PR, dans l'ordre, chacune partant de `main` à jour après la fusion de la précédente. Le
+détail (fichiers, tests, critères) est dans `docs/phase11/11<x>.md`.
+
+| PR | Branche | Contenu | Tests à révéler | Taille visée |
+|----|---------|---------|-----------------|--------------|
+| 11a | `modernize/phase-11a-themes-spec` | `docs/THEMES.md` (spécification sourcée), aucune ligne de C++ | — | doc |
+| 11b | `modernize/phase-11b-theme-loader` | couche 1 : diagnostics, conditions, variables, sélection des options, chargeur | `[11b]` | 800–1 200 |
+| 11c | `modernize/phase-11c-theme-schema` | couche 2 + `ThemeData` sur les couches 1 et 2, recherche du fichier, formats 4 et 5, `--check-theme` | `[11c]` | 800–1 300 |
+| 11d | `modernize/phase-11d-theme-properties` | propriétés communes (`zIndex`, rotation, opacité, `disabled`, repli de chemins…), `capture-themes.sh` et sondes de pixels | — | 600–1 200 |
+| 11e | `modernize/phase-11e-theme-options` | menu « Options du thème », région, enregistrement, rechargement à chaud, traductions | `[11e]` | 500–900 |
+| 11f | `modernize/phase-11f-themed-menus` | vue `menu` : fond, textes, interrupteurs, curseurs, boutons, icônes ; `delete this` des GUI touchées | — | 800–1 400 |
+| 11g | `modernize/phase-11g-system-carousel` | carrousel système (types, logos, repli texte, transitions), `systemInfo` | — | 600–1 200 |
+| 11h | `modernize/phase-11h-theme-views` | vues restantes de `docs/THEMES.md` (liste de jeux à logos, économiseur `gameclip`…) | — | selon 11a |
+| 11i | `modernize/phase-11i-theme-close` | thème `es-re-default`, installation, étape CI « No phase 11 stubs », docs, section 0 | — | 500–1 500 |
+
+Si 11a montre qu'un lot est plus gros que prévu, propose dans 11a un découpage plus fin
+(11g1, 11g2…) ; le propriétaire le valide en fusionnant 11a.
+
+### 14.7 Vérifications (en plus de la section 8)
+```bash
+# Bouchons et tests cachés restants (à zéro pour la PR <x> concernée, tout à zéro en 11i)
+grep -rn 'PHASE11-STUB' es-core es-app tests
+grep -rn '\[\.\]\[phase11\]' tests
+
+# Tests du moteur de thèmes
+ctest --preset debug -R 'Theme|Conditions|Variables|Loader|Schema|Options|Diagnostics' --output-on-failure
+ctest --preset asan -R 'Theme|Conditions|Variables|Loader|Schema|Options|Diagnostics'
+
+# Aucun thème Recalbox dans le dépôt (doit ne rien afficher)
+git ls-files | grep -iE 'recalbox-next|recalbox-themes'
+git grep -lI -e 'Bounitos' -e 'BY-NC-ND' -- ':!PROMPT.md' ':!docs/' ':!tests/smoke/fetch-reference-theme.sh'
+
+# Thème de référence (à partir de 11c) : code de sortie 0, aucune ligne [ERROR]
+tests/smoke/fetch-reference-theme.sh /tmp/ref
+build/debug/emulationstation --check-theme /tmp/ref/recalbox-next nes
+build/debug/emulationstation --check-theme tests/data/themes/recalbox nes
+
+# Captures format 3 : 0 pixel (R5)
+git worktree add /tmp/base origin/main
+cmake -S /tmp/base -B /tmp/build-base -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
+cmake --build /tmp/build-base --target emulationstation
+tests/smoke/capture.sh /tmp/build-base/emulationstation /tmp/avant
+tests/smoke/capture.sh build/relwithdebinfo/emulationstation /tmp/apres
+tests/smoke/compare.sh /tmp/avant /tmp/apres            # attendu : 9 × OK 0 pixels
+
+# Captures des nouveautés (à partir de 11d) : sondes de pixels, sans référence
+tests/smoke/capture-themes.sh build/relwithdebinfo/emulationstation /tmp/themes
+```
+
+### 14.8 Pièges connus
+- **Ordre de lecture** : les `<include>` d'un fichier sont lus **avant** ses `<view>` (format 3
+  et Recalbox) ; un élément redéfini garde la place de sa première déclaration et fusionne ses
+  propriétés (la dernière valeur gagne).
+- **Options en deux passes** : pour choisir « la première option disponible », il faut
+  connaître toutes les options avant de suivre les includes ; lis d'abord les `<subset>` et les
+  `<include subset>` (en évaluant leurs conditions), puis charge avec la sélection.
+- **Propriétés localisées** : `text.fr` gagne sur `text` quel que soit l'ordre de déclaration.
+- **Nombres** : `parseFloat`/`parseInt` (`std::from_chars`) uniquement ; `test_Locale` met
+  `fr_FR` dans le même processus de test (0.3).
+- **Chemins** : `fs::path / "/x"` remplace le chemin de gauche (0.3) ; `./` est relatif au
+  fichier **qui déclare** la propriété (`RawProperty::file`), pas au fichier principal.
+- **Lignes** : `pugi::xml_node::offset_debug()` donne un décalage dans le tampon ; garde le
+  texte du fichier et un `LineIndex` par fichier. pugixml vendored est ancien (0.3) :
+  `load_buffer`, pas `load_string`.
+- **Le job de captures lance le script de la PR avec les deux binaires** : un écran qui utilise
+  une nouveauté diffère forcément de la base. Les nouveautés vont donc dans
+  `capture-themes.sh` (11d), vérifié par des sondes de pixels ; le job ne le compare à la base
+  que quand la base contient déjà ce script (11d le met en place).
+- **Base qui rejette le thème** : l'ancien `ThemeData` lève une exception sur toute propriété
+  inconnue ; n'ajoute aucune propriété nouvelle à `tests/data/capture/` (R5).
+- **`Settings::getString` d'une clé inconnue** écrit `[ERROR]`, ce qui fait échouer le test de
+  fumée.
+- **Rechargement** : `ViewController::reloadAll()` reconstruit les vues ; les textures et sons
+  du thème précédent doivent être libérés (vérifie avec `asan`).
+- **`delete this`** (0.2, 0.3) : ne change `Window::removeGui` qu'en traitant toutes les GUI
+  concernées dans la même PR (11f), avec `test_Window.cpp` étendu.
+
+### 14.9 Critères d'acceptation de la phase 11
+- [ ] `docs/THEMES.md` complet et sourcé ; écarts avec Recalbox listés.
+- [ ] Tous les tests `test_Theme*.cpp` révélés et verts ; `grep` de 14.7 à zéro ; étape CI
+      « No phase 11 stubs » en place.
+- [ ] Thèmes format 3 : 9 captures identiques au pixel près dans toutes les PR (R5).
+- [ ] `recalbox-next` : `--check-theme` sans erreur, options listées et sélectionnables, rendu
+      vérifié par le propriétaire sur son matériel (procédure dans 11i).
+- [ ] Aucune exception de thème ne sort du chargement ; diagnostics `fichier:ligne`.
+- [ ] Options, région et langue appliquées à chaud, sans fuite (`asan`).
+- [ ] Thème `es-re-default` livré, installé et trouvé par `Paths`.
+- [ ] README, plan, `docs/THEMES.md`, section 0 à jour (après fusion réelle, R12) ; compte
+      rendu de la section 11.

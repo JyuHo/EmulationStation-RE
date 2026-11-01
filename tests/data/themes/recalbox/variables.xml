@@ -1,0 +1,6 @@
+<theme>
+	<variables>
+		<variable name="Primary" value="2e447c"/>
+		<variable name="PrimaryAlpha" value="${Primary}80"/>
+	</variables>
+</theme>

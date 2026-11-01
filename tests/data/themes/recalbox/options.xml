@@ -1,0 +1,7 @@
+<theme>
+	<subset subset="colorset" title="Colors" title.fr="Couleurs" help="Pick the colors" help.fr="Choisir les couleurs"/>
+	<include subset="colorset" name="blue" name.fr="bleu">${root}/colors/blue.xml</include>
+	<include subset="colorset" name="red" name.fr="rouge">${root}/colors/red.xml</include>
+	<include subset="colorset" if="crt" name="crt only">${root}/colors/red.xml</include>
+	<include subset="layout" name="compact">${root}/layout/compact.xml</include>
+</theme>
