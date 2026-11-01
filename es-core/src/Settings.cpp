@@ -57,6 +57,7 @@ void Settings::setDefaults()
 	mIntMap["ScraperResizeWidth"] = 400;
 	mIntMap["ScraperResizeHeight"] = 0;
 	mIntMap["MusicVolume"] = 50;
+	mIntMap["SystemVolume"] = -1; // 0-100 from the Sound menu, -1: never set, left to the system
 	mIntMap["MaxVRAM"] = 256; // MB budget for texture cache
 
 	mStringMap["TransitionStyle"] = "fade";
@@ -64,6 +65,8 @@ void Settings::setDefaults()
 	mStringMap["ThemeSet"] = "";
 	mStringMap["ScreenSaverBehavior"] = "dim";
 	mStringMap["Scraper"] = "TheGamesDB";
+	mStringMap["AudioCard"] = "";	// ALSA card of the system volume, "" = automatic
+	mStringMap["AudioDevice"] = ""; // its mixer control, "" = automatic (Master, PCM, ...)
 }
 
 template <typename K, typename V> void saveMap(pugi::xml_document& doc, std::map<K, V>& map, const char* type)

@@ -272,6 +272,14 @@ msgstr "Scarica ora"
 msgid "Sound settings"
 msgstr "Impostazioni audio"
 
+#: es-app/src/guis/GuiMenu.cpp:89 es-app/src/guis/GuiMenu.cpp:100
+msgid "Audio card"
+msgstr "Scheda audio"
+
+#: es-app/src/guis/GuiMenu.cpp:92
+msgid "Automatic"
+msgstr "Automatica"
+
 #: es-app/src/guis/GuiMenu.cpp:91
 msgid "System volume"
 msgstr "Volume di sistema"

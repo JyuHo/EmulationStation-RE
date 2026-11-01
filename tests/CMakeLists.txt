@@ -20,6 +20,7 @@ add_executable(es-tests
     unit/test_I18n.cpp
     unit/test_Translations.cpp
     unit/test_TextureLoader.cpp
+    unit/test_Volume.cpp
 )
 target_link_libraries(es-tests PRIVATE es-app-lib Catch2::Catch2WithMain)
 target_compile_definitions(es-tests PRIVATE

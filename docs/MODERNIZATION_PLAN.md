@@ -679,8 +679,10 @@ d'iGPU et la ligne `GL_RENDERER` du journal (`~/es-bench/state/emulationstation/
 - Le relayout complet quand la taille de la fenêtre change reste hors périmètre : l'image
   est mise à l'échelle, la mise en page garde la taille du lancement. La fenêtre n'est pas
   redimensionnable par l'utilisateur.
-- `VolumeControl` (ALSA direct) écrit un `[ERROR]` au retour d'un jeu sans carte son :
-  `capture.sh` tolère cette seule ligne (à revoir en phase 8, audio).
+- `VolumeControl` (ALSA direct) écrivait un `[ERROR]` au retour d'un jeu sans carte son,
+  toléré par `capture.sh` : ce n'est plus qu'un avertissement depuis la correction des
+  réglages de volume (phase 8). `capture.sh` garde l'exception pour le binaire de la base
+  dans le job « Screenshots vs base branch » ; elle pourra être retirée ensuite.
 - Le tampon de profondeur (`DEPTH_SIZE 16`, `GL_DEPTH_BUFFER_BIT`) est gardé : il ne sert
   pas, mais le retirer change le format de la fenêtre ; à faire avec une mesure.
 - 4K et 1080p donnent le même nombre d'i/s : si l'écran ne propose pas de mode 3840×2160,
@@ -798,6 +800,24 @@ découpler de FFmpeg : `dr_wav`/`dr_mp3`/`stb_vorbis` vendored.
   pendant le jeu : arrêt avant le lancement, reprise au retour (`SystemData::launchGame`).
   Tests : `test_Music.cpp` (décodage, lecture en flux identique au décodage complet,
   fichiers sans son, tirage, fondus, enchaînement), TSan propre.
+- **Réglages de volume** (correction signalée par le propriétaire) :
+  - Sur un curseur du menu (volume du système, volume de la musique), une manette dont la
+    croix est un *hat* faisait défiler le menu tout seul : le hat n'envoie qu'un seul
+    relâchement (« centré ») pour ses quatre directions, que `isMappedTo` associe aussi à
+    gauche/droite ; `SliderComponent` le consommait, et la liste ne voyait jamais le
+    relâchement de haut/bas. Le curseur laisse désormais passer tout relâchement
+    (`classifySliderInput`), s'arrête quand il perd le focus, et un axe qui passe d'un côté
+    à l'autre entre deux événements est signalé (`InputManager`).
+  - Volume du système : il n'était jamais enregistré (relu du mélangeur à chaque ouverture),
+    `VolumeControl` n'était créé qu'à l'ouverture du menu Son, ne cherchait que le contrôle
+    `Master` de la carte `default` (absent sur beaucoup de cartes USB, HDMI ou Raspberry Pi),
+    ne réglait que les canaux avant gauche/droite, ignorait la coupure (*switch*) et perdait
+    1 % à chaque enregistrement (troncature). Réglages : `SystemVolume` (0-100, -1 = laissé
+    au système, appliqué au démarrage), `AudioCard` (`""` = automatique : `default` puis
+    chaque carte, choix « Carte son » du menu Son), `AudioDevice` (contrôle du mélangeur,
+    `""` = automatique : `Master`, `PCM`, `Speaker`, `Headphone`…). Tests : `test_Volume.cpp`.
+    Le backend PipeWire/PulseAudio reste à faire : avec pipewire-alsa, `default` règle déjà
+    la sortie par défaut de PipeWire, celle où joue SDL.
 
 ---
 

@@ -204,17 +204,14 @@ bool InputManager::parseEvent(const SDL_Event& ev, Window* window)
 	{
 	case SDL_EVENT_JOYSTICK_AXIS_MOTION: {
 		const int device = (int)ev.jaxis.which;
-		//if it switched boundaries
-		if((abs(ev.jaxis.value) > DEADZONE) != (abs(mPrevAxisValues[ev.jaxis.which][ev.jaxis.axis]) > DEADZONE))
+		// -1/0/1 around the dead zone; report each change, including a flip from one side to
+		// the other between two events (the release of the first side was never reported)
+		const auto zone = [](int value) {
+			return value > DEADZONE ? 1 : (value < -DEADZONE ? -1 : 0);
+		};
+		const int normValue = zone(ev.jaxis.value);
+		if(normValue != zone(mPrevAxisValues[ev.jaxis.which][ev.jaxis.axis]))
 		{
-			int normValue;
-			if(abs(ev.jaxis.value) <= DEADZONE)
-				normValue = 0;
-			else if(ev.jaxis.value > 0)
-				normValue = 1;
-			else
-				normValue = -1;
-
 			window->input(getInputConfigByDevice(device), Input(device, TYPE_AXIS, ev.jaxis.axis, normValue, false));
 			causedEvent = true;
 		}

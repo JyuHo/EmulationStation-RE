@@ -85,11 +85,44 @@ GuiMenu::GuiMenu(Window* window) :
 	addEntry(_U("Sound settings"), 0x777777FF, true, [this] {
 		auto s = std::make_unique<GuiSettings>(mWindow, _U("Sound settings"));
 
+		// sound card driven by the system volume
+		auto audio_card = std::make_shared<OptionListComponent<std::string>>(mWindow, _U("Audio card"), false);
+		const std::string current_card = Settings::getInstance()->getString("AudioCard");
+		bool card_listed = current_card.empty();
+		audio_card->add(_U("Automatic"), "", current_card.empty());
+		for(const auto& [id, name] : VolumeControl::listCards())
+		{
+			audio_card->add(I18n::toUpperUtf8(name), id, id == current_card);
+			card_listed = card_listed || id == current_card;
+		}
+		if(!card_listed) // set by hand ("default", "hw:1,0"...) or unplugged
+			audio_card->add(current_card, current_card, true);
+		s->addWithLabel(_U("Audio card"), audio_card);
+		s->addSaveFunc([audio_card] {
+			const std::string card = audio_card->getSelected();
+			if(card == Settings::getInstance()->getString("AudioCard"))
+				return;
+			Settings::getInstance()->setString("AudioCard", card);
+			auto& control = VolumeControl::getInstance();
+			control->deinit();
+			control->init();
+			// the volume chosen before follows to the new card
+			if(const int saved = Settings::getInstance()->getInt("SystemVolume"); saved >= 0)
+				control->setVolume(saved);
+		});
+
 		// volume
 		auto volume = std::make_shared<SliderComponent>(mWindow, 0.f, 100.f, 1.f, "%");
-		volume->setValue((float)VolumeControl::getInstance()->getVolume());
+		const int system_volume = VolumeControl::getInstance()->getVolume();
+		volume->setValue((float)system_volume);
 		s->addWithLabel(_U("System volume"), volume);
-		s->addSaveFunc([volume] { VolumeControl::getInstance()->setVolume((int)round(volume->getValue())); });
+		s->addSaveFunc([volume, system_volume] {
+			const int chosen = (int)round(volume->getValue());
+			if(chosen == system_volume)
+				return; // untouched: the volume set outside ES stays
+			VolumeControl::getInstance()->setVolume(chosen);
+			Settings::getInstance()->setInt("SystemVolume", chosen); // applied again at the next start
+		});
 
 		// disable sounds
 		auto sounds_enabled = std::make_shared<SwitchComponent>(mWindow);
