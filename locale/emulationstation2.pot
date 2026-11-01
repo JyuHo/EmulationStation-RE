@@ -397,6 +397,7 @@ msgid "Quit EmulationStation"
 msgstr ""
 
 #: es-app/src/guis/GuiMenu.cpp:297
+#, c++-format
 msgid "EmulationStation v{}"
 msgstr ""
 
@@ -479,6 +480,7 @@ msgid "stop (progress saved)"
 msgstr ""
 
 #: es-app/src/guis/GuiScraperMulti.cpp:111
+#, c++-format
 msgid "Game {} of {}"
 msgstr ""
 
@@ -487,12 +489,14 @@ msgid "No games were scraped."
 msgstr ""
 
 #: es-app/src/guis/GuiScraperMulti.cpp:148
+#, c++-format
 msgid "{} game successfully scraped!"
 msgid_plural "{} games successfully scraped!"
 msgstr[0] ""
 msgstr[1] ""
 
 #: es-app/src/guis/GuiScraperMulti.cpp:154
+#, c++-format
 msgid "{} game skipped."
 msgid_plural "{} games skipped."
 msgstr[0] ""
@@ -579,6 +583,7 @@ msgid ""
 msgstr ""
 
 #: es-app/src/views/SystemView.cpp:187
+#, c++-format
 msgid "{} game available"
 msgid_plural "{} games available"
 msgstr[0] ""
@@ -654,24 +659,28 @@ msgid "just now"
 msgstr ""
 
 #: es-core/src/components/DateTimeComponent.cpp:231
+#, c++-format
 msgid "{} sec ago"
 msgid_plural "{} secs ago"
 msgstr[0] ""
 msgstr[1] ""
 
 #: es-core/src/components/DateTimeComponent.cpp:236
+#, c++-format
 msgid "{} min ago"
 msgid_plural "{} mins ago"
 msgstr[0] ""
 msgstr[1] ""
 
 #: es-core/src/components/DateTimeComponent.cpp:241
+#, c++-format
 msgid "{} hour ago"
 msgid_plural "{} hours ago"
 msgstr[0] ""
 msgstr[1] ""
 
 #: es-core/src/components/DateTimeComponent.cpp:244
+#, c++-format
 msgid "{} day ago"
 msgid_plural "{} days ago"
 msgstr[0] ""
@@ -724,6 +733,7 @@ msgid "Welcome"
 msgstr ""
 
 #: es-core/src/guis/GuiDetectDevice.cpp:38
+#, c++-format
 msgid "{} gamepad detected"
 msgid_plural "{} gamepads detected"
 msgstr[0] ""
@@ -782,6 +792,7 @@ msgid "Keyboard"
 msgstr ""
 
 #: es-core/src/guis/GuiInputConfig.cpp:60
+#, c++-format
 msgid "Gamepad {}"
 msgstr ""
 
@@ -800,6 +811,7 @@ msgid "ok"
 msgstr ""
 
 #: es-core/src/guis/GuiInputConfig.cpp:218
+#, c++-format
 msgid "Hold for {}s to skip"
 msgstr ""
 
