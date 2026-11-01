@@ -1,0 +1,11 @@
+<!-- Fixture written for EmulationStation-RE (MIT). Recalbox format, own content: no file of a
+     Recalbox theme may be copied here (their license forbids it, PROMPT.md 14.2-R3). -->
+<theme name="Common properties" author="EmulationStation-RE" recalbox="10">
+	<formatVersion>4</formatVersion>
+	<view name="detailed">
+		<image name="e_front" extra="true" zIndex="5" rotation="90" rotationOrigin="0.5 0.5"/>
+		<image name="e_hidden" extra="true" disabled="true"/>
+		<image name="e_plain" extra="true"/>
+		<text name="md_title" pos="0.1 0.1" zIndex="45"/>
+	</view>
+</theme>

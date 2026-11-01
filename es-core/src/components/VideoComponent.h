@@ -41,6 +41,7 @@ public:
 
 	void setOrigin(float originX, float originY);
 	void setOrigin(glm::vec2 origin) { setOrigin(origin.x, origin.y); }
+	glm::vec2 getOrigin() const override { return mOrigin; }
 	// like ImageComponent: a 0 component keeps the aspect ratio
 	void setResize(float width, float height);
 	void setResize(const glm::vec2& size) { setResize(size.x, size.y); }

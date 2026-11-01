@@ -1,0 +1,10 @@
+<!-- Fixture written for EmulationStation-RE (MIT): Recalbox format 4, own content.
+     Probes: tests/smoke/capture-themes.sh. Screen 1280x720, probes above the logo band. -->
+<theme>
+	<formatVersion>4</formatVersion>
+	<include>${root}/common.xml</include>
+	<view name="system">
+		<image name="hidden" extra="true" path="${root}/art/yellow.png" pos="0.1 0.05" size="0.2 0.2" zIndex="20"
+			disabled="true"/>
+	</view>
+</theme>

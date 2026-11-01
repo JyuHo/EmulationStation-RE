@@ -1,4 +1,5 @@
 #include "GuiComponent.h"
+#include <algorithm>
 #include <memory>
 #include <cassert>
 #include <utility>
@@ -71,8 +72,14 @@ void GuiComponent::renderChildren(const glm::mat4& transform) const
 {
 	for(unsigned int i = 0; i < getChildCount(); i++)
 	{
-		getChild(i)->render(transform);
+		if(!getChild(i)->isThemeDisabled())
+			getChild(i)->render(transform);
 	}
+}
+
+void GuiComponent::sortChildren()
+{
+	std::ranges::stable_sort(mChildren, {}, &GuiComponent::getZIndex);
 }
 
 glm::vec3 GuiComponent::getPosition() const
@@ -197,6 +204,14 @@ const glm::mat4& GuiComponent::getTransform()
 {
 	mTransform = glm::mat4(1.0f);
 	mTransform = glm::translate(mTransform, mPosition);
+	if(mRotation != 0.0f)
+	{
+		// the position is the origin point: the pivot is rotationOrigin, relative to it
+		const glm::vec2 pivot = (mRotationOrigin - getOrigin()) * mSize;
+		mTransform = glm::translate(mTransform, glm::vec3(pivot, 0.0f));
+		mTransform = glm::rotate(mTransform, glm::radians(mRotation), glm::vec3(0.0f, 0.0f, 1.0f));
+		mTransform = glm::translate(mTransform, glm::vec3(-pivot, 0.0f));
+	}
 	return mTransform;
 }
 
@@ -318,6 +333,27 @@ void GuiComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, const std
 
 	if(properties & ThemeFlags::SIZE && elem->has("size"))
 		setSize(elem->get<glm::vec2>("size") * (scale));
+
+	applyCommonTheme(theme, view, element, properties);
+}
+
+void GuiComponent::applyCommonTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view,
+	const std::string& element, unsigned int properties)
+{
+	const ThemeData::ThemeElement* elem = theme->getElement(view, element, "");
+	if(!elem)
+		return;
+
+	// docs/THEMES.md section 11 (Recalbox components/base/Themable.cpp:66-77)
+	using namespace ThemeFlags;
+	if(properties & ROTATION)
+	{
+		setRotation(elem->has("rotation") ? elem->get<float>("rotation") : 0.0f);
+		setRotationOrigin(elem->has("rotationOrigin") ? elem->get<glm::vec2>("rotationOrigin") : glm::vec2(0.0f));
+	}
+	setZIndex(properties & Z_INDEX && elem->has("zIndex") ? elem->get<float>("zIndex") : mDefaultZIndex);
+	if(properties & POSITION)
+		setThemeDisabled(elem->has("disabled") && elem->get<bool>("disabled"));
 }
 
 void GuiComponent::updateHelpPrompts()

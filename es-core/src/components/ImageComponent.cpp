@@ -340,6 +340,8 @@ void ImageComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, const s
 
 	if(properties & COLOR && elem->has("color"))
 		setColorShift(elem->get<unsigned int>("color"));
+
+	applyCommonTheme(theme, view, element, properties);
 }
 
 std::vector<HelpPrompt> ImageComponent::getHelpPrompts()

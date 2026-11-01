@@ -177,6 +177,7 @@ std::vector<std::unique_ptr<GuiComponent>> ThemeData::makeExtras(const std::shar
 		else
 			continue;
 
+		comp->setDefaultZIndex(10); // docs/THEMES.md section 10 (Recalbox themes/ThemeData.cpp:605)
 		comp->applyTheme(theme, view, key, ThemeFlags::ALL);
 		comps.push_back(std::move(comp));
 	}
@@ -186,9 +187,10 @@ std::vector<std::unique_ptr<GuiComponent>> ThemeData::makeExtras(const std::shar
 
 void ThemeExtras::setExtras(std::vector<std::unique_ptr<GuiComponent>> extras)
 {
-	mExtras = std::move(extras); // deletes the old extras, which detach themselves from this parent
+	mExtras = std::move(extras); // deletes the old extras, which detach themselves from the host
 	for(auto& extra : mExtras)
-		addChild(extra.get()); // without this the extras are never drawn (system view background)
+		mHost->addChild(extra.get()); // without this the extras are never drawn (system view background)
+	mHost->sortChildren();
 }
 
 const std::shared_ptr<ThemeData>& ThemeData::getDefault()

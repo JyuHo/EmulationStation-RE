@@ -1109,7 +1109,12 @@ est fourni : il est rempli PR par PR.
     `${system}`, `$system` avec repli sur `default`, `$language`/`$country` ;
   - tests : recherche du fichier, repli de `$system`, `${root}`, thème format 4 lu par
     `ThemeData`.
-- Reste : 11d à 11i.
+- **11d** (PR « propriétés communes ») : `zIndex` (tri stable des enfants, valeurs par défaut
+  de Recalbox par vue, `extra` placés entre les éléments de la vue), `rotation`,
+  `rotationOrigin`, `disabled`, dans `GuiComponent` ; captures à sondes
+  (`tests/smoke/capture-themes.sh`, `probe.sh` réécrit, fixture `tests/data/capture-themes/`).
+  `opacity` et repli de chemin retirés des sondes prévues : absents de Recalbox 10.1.1.
+- Reste : 11e à 11i.
 
 ---
 
