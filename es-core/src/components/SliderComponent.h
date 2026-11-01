@@ -6,6 +6,18 @@
 class TextCache;
 class Font;
 
+// What an input does to a slider. Left/Right: pressed that way. Released: left/right let go,
+// or their d-pad hat moved to up/down; the slider stops but lets the event through, so the
+// list sees the release of up/down too. Other: not on the controls of left/right.
+enum class SliderInput
+{
+	Left,
+	Right,
+	Released,
+	Other
+};
+SliderInput classifySliderInput(InputConfig* config, Input input);
+
 // Used to display/edit a value between some min and max values.
 class SliderComponent : public GuiComponent
 {
@@ -20,6 +32,7 @@ public:
 
 	bool input(InputConfig* config, Input input) override;
 	void update(int deltaTime) override;
+	void onFocusLost() override;
 	void render(const glm::mat4& parentTrans) override;
 
 	void onSizeChanged() override;
@@ -33,7 +46,7 @@ private:
 	float mValue;
 	float mSingleIncrement;
 	float mMoveRate;
-	int mMoveAccumulator;
+	int mMoveAccumulator = 0;
 
 	ImageComponent mKnob;
 

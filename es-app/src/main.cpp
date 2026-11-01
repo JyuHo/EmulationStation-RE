@@ -12,6 +12,7 @@
 #include "guis/GuiMsgBox.h"
 #include "AudioManager.h"
 #include "MusicPlayer.h"
+#include "VolumeControl.h"
 #include "GameClipScreensaver.h"
 #include "platform.h"
 #include "Log.h"
@@ -278,6 +279,9 @@ int main(int argc, char* argv[])
 
 	Uint64 lastTime = SDL_GetTicks();
 	bool running = true;
+
+	// opens the mixer, which restores the volume chosen in the Sound menu (SystemVolume)
+	VolumeControl::getInstance();
 
 	MusicPlayer::getInstance().init();
 	MusicPlayer::getInstance().play();

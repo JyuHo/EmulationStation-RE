@@ -1,9 +1,52 @@
 #include "VolumeControl.h"
 
 #include "Log.h"
+#include "Settings.h"
 
-const char* VolumeControl::mixerName = "Master";
-const char* VolumeControl::mixerCard = "default";
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <cstdlib>
+#include <string_view>
+
+namespace volume {
+int toPercent(long raw, long min, long max)
+{
+	if(max <= min)
+		return 0;
+	const long percent = std::lround(static_cast<double>(raw - min) * 100.0 / static_cast<double>(max - min));
+	return static_cast<int>(std::clamp(percent, 0L, 100L));
+}
+
+long toRaw(int percent, long min, long max)
+{
+	percent = std::clamp(percent, 0, 100);
+	return min + std::lround(static_cast<double>(max - min) * percent / 100.0);
+}
+
+int chooseControl(const std::vector<std::string>& controls, const std::string& wanted)
+{
+	const auto indexOf = [&controls](std::string_view name) -> int {
+		const auto it = std::find(controls.cbegin(), controls.cend(), name);
+		return it == controls.cend() ? -1 : static_cast<int>(it - controls.cbegin());
+	};
+
+	if(!wanted.empty())
+	{
+		if(const int i = indexOf(wanted); i >= 0)
+			return i;
+	}
+
+	// the controls that drive the whole output, most global first
+	constexpr std::array<std::string_view, 6> usual = {"Master", "PCM", "Speaker", "Headphone", "Digital", "Line Out"};
+	for(const std::string_view name : usual)
+	{
+		if(const int i = indexOf(name); i >= 0)
+			return i;
+	}
+	return controls.empty() ? -1 : 0;
+}
+} // namespace volume
 
 std::weak_ptr<VolumeControl> VolumeControl::sInstance;
 
@@ -11,8 +54,13 @@ VolumeControl::VolumeControl()
 {
 	init();
 
-	//get original volume levels for system
-	originalVolume = getVolume();
+	// the volume chosen in the Sound menu last time
+	const int saved = Settings::getInstance()->getInt("SystemVolume");
+	if(saved >= 0 && mixerElem != nullptr)
+	{
+		LOG(LogInfo) << "VolumeControl: restoring the system volume to " << saved << "%";
+		setVolume(saved);
+	}
 }
 
 VolumeControl::VolumeControl(const VolumeControl& right)
@@ -32,9 +80,6 @@ VolumeControl& VolumeControl::operator=(const VolumeControl& right)
 
 VolumeControl::~VolumeControl()
 {
-	//set original volume levels for system
-	//setVolume(originalVolume);
-
 	deinit();
 }
 
@@ -50,163 +95,176 @@ std::shared_ptr<VolumeControl>& VolumeControl::getInstance()
 	return sharedInstance;
 }
 
-void VolumeControl::init()
+std::vector<std::pair<std::string, std::string>> VolumeControl::listCards()
 {
-	//initialize audio mixer interface
-	//try to open mixer device
-	if(mixerHandle == nullptr)
+	std::vector<std::pair<std::string, std::string>> cards;
+	int card = -1;
+	while(snd_card_next(&card) >= 0 && card >= 0)
 	{
-		snd_mixer_selem_id_alloca(&mixerSelemId);
-		//sets simple-mixer index and name
-		snd_mixer_selem_id_set_index(mixerSelemId, mixerIndex);
-		snd_mixer_selem_id_set_name(mixerSelemId, mixerName);
-		//open mixer
-		if(snd_mixer_open(&mixerHandle, 0) >= 0)
+		char* name = nullptr;
+		const std::string id = "hw:" + std::to_string(card);
+		if(snd_card_get_name(card, &name) >= 0 && name != nullptr)
 		{
-			LOG(LogDebug) << "VolumeControl::init() - Opened ALSA mixer";
-			//ok. attach to defualt card
-			if(snd_mixer_attach(mixerHandle, mixerCard) >= 0)
-			{
-				LOG(LogDebug) << "VolumeControl::init() - Attached to default card";
-				//ok. register simple element class
-				if(snd_mixer_selem_register(mixerHandle, nullptr, nullptr) >= 0)
-				{
-					LOG(LogDebug) << "VolumeControl::init() - Registered simple element class";
-					//ok. load registered elements
-					if(snd_mixer_load(mixerHandle) >= 0)
-					{
-						LOG(LogDebug) << "VolumeControl::init() - Loaded mixer elements";
-						//ok. find elements now
-						mixerElem = snd_mixer_find_selem(mixerHandle, mixerSelemId);
-						if(mixerElem != nullptr)
-						{
-							//wohoo. good to go...
-							LOG(LogDebug) << "VolumeControl::init() - Mixer initialized";
-						}
-						else
-						{
-							LOG(LogError) << "VolumeControl::init() - Failed to find mixer elements!";
-							snd_mixer_close(mixerHandle);
-							mixerHandle = nullptr;
-						}
-					}
-					else
-					{
-						LOG(LogError) << "VolumeControl::init() - Failed to load mixer elements!";
-						snd_mixer_close(mixerHandle);
-						mixerHandle = nullptr;
-					}
-				}
-				else
-				{
-					LOG(LogError) << "VolumeControl::init() - Failed to register simple element class!";
-					snd_mixer_close(mixerHandle);
-					mixerHandle = nullptr;
-				}
-			}
-			else
-			{
-				LOG(LogError) << "VolumeControl::init() - Failed to attach to default card!";
-				snd_mixer_close(mixerHandle);
-				mixerHandle = nullptr;
-			}
+			cards.emplace_back(id, name);
+			free(name); // allocated by ALSA
 		}
 		else
 		{
-			LOG(LogError) << "VolumeControl::init() - Failed to open ALSA mixer!";
+			cards.emplace_back(id, id);
 		}
 	}
+	return cards;
+}
+
+bool VolumeControl::openMixer(const std::string& card)
+{
+	snd_mixer_t* handle = nullptr;
+	if(snd_mixer_open(&handle, 0) < 0)
+	{
+		LOG(LogError) << "VolumeControl: failed to open an ALSA mixer";
+		return false;
+	}
+	if(snd_mixer_attach(handle, card.c_str()) < 0 || snd_mixer_selem_register(handle, nullptr, nullptr) < 0 ||
+		snd_mixer_load(handle) < 0)
+	{
+		LOG(LogDebug) << "VolumeControl: no mixer on card \"" << card << "\"";
+		snd_mixer_close(handle);
+		return false;
+	}
+
+	// the controls that set a playback volume
+	std::vector<std::string> names;
+	std::vector<snd_mixer_elem_t*> elems;
+	for(snd_mixer_elem_t* elem = snd_mixer_first_elem(handle); elem != nullptr; elem = snd_mixer_elem_next(elem))
+	{
+		if(snd_mixer_selem_is_active(elem) && snd_mixer_selem_has_playback_volume(elem))
+		{
+			names.emplace_back(snd_mixer_selem_get_name(elem));
+			elems.push_back(elem);
+		}
+	}
+
+	const std::string& wanted = Settings::getInstance()->getString("AudioDevice");
+	const int chosen = volume::chooseControl(names, wanted);
+	if(chosen < 0)
+	{
+		LOG(LogDebug) << "VolumeControl: card \"" << card << "\" has no playback volume control";
+		snd_mixer_close(handle);
+		return false;
+	}
+	if(!wanted.empty() && names[chosen] != wanted)
+		LOG(LogWarning) << "VolumeControl: no control \"" << wanted << "\" on card \"" << card << "\", using \""
+						<< names[chosen] << "\"";
+
+	mixerHandle = handle;
+	mixerElem = elems[chosen];
+	mCard = card;
+	mControl = names[chosen];
+	LOG(LogInfo) << "VolumeControl: card \"" << mCard << "\", control \"" << mControl << "\"";
+	return true;
+}
+
+void VolumeControl::init()
+{
+	if(mixerHandle != nullptr)
+		return;
+
+	const std::string& wanted = Settings::getInstance()->getString("AudioCard");
+	std::vector<std::string> cards;
+	if(!wanted.empty())
+		cards.push_back(wanted);
+	// automatic, or the chosen card is gone: the default device first, then each card
+	if(wanted != "default")
+		cards.emplace_back("default");
+	for(const auto& [id, name] : listCards())
+	{
+		if(id != wanted)
+			cards.push_back(id);
+	}
+
+	for(const std::string& card : cards)
+	{
+		if(openMixer(card))
+		{
+			if(!wanted.empty() && card != wanted)
+				LOG(LogWarning) << "VolumeControl: card \"" << wanted << "\" unavailable, using \"" << card << "\"";
+			return;
+		}
+	}
+	LOG(LogWarning) << "VolumeControl: no sound card with a playback volume control";
 }
 
 void VolumeControl::deinit()
 {
-	//deinitialize audio mixer interface
 	if(mixerHandle != nullptr)
 	{
-		snd_mixer_detach(mixerHandle, mixerCard);
-		snd_mixer_free(mixerHandle);
-		snd_mixer_close(mixerHandle);
+		snd_mixer_close(mixerHandle); // detaches the card and frees the elements
 		mixerHandle = nullptr;
 		mixerElem = nullptr;
+		mCard.clear();
+		mControl.clear();
 	}
 }
 
 int VolumeControl::getVolume() const
 {
-	int volume = 0;
+	if(mixerElem == nullptr)
+		return 0;
 
-	if(mixerElem != nullptr)
+	// take in the changes made outside ES since the mixer was loaded
+	snd_mixer_handle_events(mixerHandle);
+
+	long minVolume = 0;
+	long maxVolume = 0;
+	if(snd_mixer_selem_get_playback_volume_range(mixerElem, &minVolume, &maxVolume) != 0)
 	{
-		//get volume range
-		long minVolume;
-		long maxVolume;
-		if(snd_mixer_selem_get_playback_volume_range(mixerElem, &minVolume, &maxVolume) == 0)
+		LOG(LogError) << "VolumeControl::getVolume() - Failed to get volume range!";
+		return 0;
+	}
+
+	// the first channel the control has (a mono control only has FRONT_LEFT, alias MONO)
+	for(int channel = SND_MIXER_SCHN_FRONT_LEFT; channel <= SND_MIXER_SCHN_LAST; channel++)
+	{
+		const auto id = static_cast<snd_mixer_selem_channel_id_t>(channel);
+		if(!snd_mixer_selem_has_playback_channel(mixerElem, id))
+			continue;
+
+		long rawVolume = 0;
+		if(snd_mixer_selem_get_playback_volume(mixerElem, id, &rawVolume) != 0)
 		{
-			//ok. now get volume
-			long rawVolume;
-			if(snd_mixer_selem_get_playback_volume(mixerElem, SND_MIXER_SCHN_MONO, &rawVolume) == 0)
-			{
-				//worked. bring into range 0-100
-				rawVolume -= minVolume;
-				if(rawVolume > 0)
-				{
-					volume = (rawVolume * 100) / (maxVolume - minVolume);
-				}
-				//else volume = 0;
-			}
-			else
-			{
-				LOG(LogError) << "VolumeControl::getVolume() - Failed to get mixer volume!";
-			}
+			LOG(LogError) << "VolumeControl::getVolume() - Failed to get mixer volume!";
+			return 0;
 		}
-		else
-		{
-			LOG(LogError) << "VolumeControl::getVolume() - Failed to get volume range!";
-		}
+		// a muted control plays nothing, whatever its level
+		int on = 1;
+		if(snd_mixer_selem_has_playback_switch(mixerElem) &&
+			snd_mixer_selem_get_playback_switch(mixerElem, id, &on) == 0 && !on)
+			return 0;
+		return volume::toPercent(rawVolume, minVolume, maxVolume);
 	}
-	//clamp to 0-100 range
-	if(volume < 0)
-	{
-		volume = 0;
-	}
-	if(volume > 100)
-	{
-		volume = 100;
-	}
-	return volume;
+	return 0;
 }
 
 void VolumeControl::setVolume(int volume)
 {
-	//clamp to 0-100 range
-	if(volume < 0)
+	volume = std::clamp(volume, 0, 100);
+	if(mixerElem == nullptr)
+		return;
+
+	long minVolume = 0;
+	long maxVolume = 0;
+	if(snd_mixer_selem_get_playback_volume_range(mixerElem, &minVolume, &maxVolume) != 0)
 	{
-		volume = 0;
+		LOG(LogError) << "VolumeControl::setVolume() - Failed to get volume range!";
+		return;
 	}
-	if(volume > 100)
-	{
-		volume = 100;
-	}
-	//store values in internal variables
-	internalVolume = volume;
-	if(mixerElem != nullptr)
-	{
-		//get volume range
-		long minVolume;
-		long maxVolume;
-		if(snd_mixer_selem_get_playback_volume_range(mixerElem, &minVolume, &maxVolume) == 0)
-		{
-			//ok. bring into minVolume-maxVolume range and set
-			long rawVolume = (volume * (maxVolume - minVolume) / 100) + minVolume;
-			if(snd_mixer_selem_set_playback_volume(mixerElem, SND_MIXER_SCHN_FRONT_LEFT, rawVolume) < 0 ||
-				snd_mixer_selem_set_playback_volume(mixerElem, SND_MIXER_SCHN_FRONT_RIGHT, rawVolume) < 0)
-			{
-				LOG(LogError) << "VolumeControl::getVolume() - Failed to set mixer volume!";
-			}
-		}
-		else
-		{
-			LOG(LogError) << "VolumeControl::getVolume() - Failed to get volume range!";
-		}
-	}
+
+	// every channel, whatever the layout (a mono control has no FRONT_RIGHT)
+	if(snd_mixer_selem_set_playback_volume_all(mixerElem, volume::toRaw(volume, minVolume, maxVolume)) < 0)
+		LOG(LogError) << "VolumeControl::setVolume() - Failed to set mixer volume!";
+
+	// a muted control would ignore the new level
+	if(snd_mixer_selem_has_playback_switch(mixerElem) &&
+		snd_mixer_selem_set_playback_switch_all(mixerElem, volume > 0 ? 1 : 0) < 0)
+		LOG(LogError) << "VolumeControl::setVolume() - Failed to switch the mixer on!";
 }

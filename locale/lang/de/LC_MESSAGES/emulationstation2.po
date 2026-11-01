@@ -272,6 +272,14 @@ msgstr "Jetzt scrapen"
 msgid "Sound settings"
 msgstr "Toneinstellungen"
 
+#: es-app/src/guis/GuiMenu.cpp:89 es-app/src/guis/GuiMenu.cpp:100
+msgid "Audio card"
+msgstr "Soundkarte"
+
+#: es-app/src/guis/GuiMenu.cpp:92
+msgid "Automatic"
+msgstr "Automatisch"
+
 #: es-app/src/guis/GuiMenu.cpp:91
 msgid "System volume"
 msgstr "Systemlautstärke"

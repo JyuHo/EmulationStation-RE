@@ -29,28 +29,49 @@ SliderComponent::SliderComponent(Window* window, float min, float max, float inc
 	setSize(Renderer::getScreenWidth() * 0.15f, Font::get(FONT_SIZE_MEDIUM)->getLetterHeight());
 }
 
+SliderInput classifySliderInput(InputConfig* config, Input input)
+{
+	// the control behind left/right, whatever its current value
+	Input control = input;
+	control.value = 0;
+	if(!config->isMappedTo("left", control) && !config->isMappedTo("right", control))
+		return SliderInput::Other;
+
+	if(input.value != 0 && config->isMappedTo("left", input))
+		return SliderInput::Left;
+	if(input.value != 0 && config->isMappedTo("right", input))
+		return SliderInput::Right;
+	return SliderInput::Released;
+}
+
 bool SliderComponent::input(InputConfig* config, Input input)
 {
-	if(config->isMappedTo("left", input))
+	const SliderInput kind = classifySliderInput(config, input);
+	switch(kind)
 	{
-		if(input.value)
-			setValue(mValue - mSingleIncrement);
-
-		mMoveRate = input.value ? -mSingleIncrement : 0;
+	case SliderInput::Left:
+	case SliderInput::Right: {
+		const float step = kind == SliderInput::Left ? -mSingleIncrement : mSingleIncrement;
+		setValue(mValue + step);
+		mMoveRate = step;
 		mMoveAccumulator = -MOVE_REPEAT_DELAY;
 		return true;
 	}
-	if(config->isMappedTo("right", input))
-	{
-		if(input.value)
-			setValue(mValue + mSingleIncrement);
-
-		mMoveRate = input.value ? mSingleIncrement : 0;
-		mMoveAccumulator = -MOVE_REPEAT_DELAY;
-		return true;
+	case SliderInput::Released:
+		// stop repeating but don't consume the event: a d-pad hat sends a single "centered"
+		// release for its four directions, and swallowing it hid the release of up/down from
+		// the list, which then kept scrolling past the slider on its own
+		mMoveRate = 0;
+		break;
+	case SliderInput::Other: break;
 	}
-
 	return GuiComponent::input(config, input);
+}
+
+void SliderComponent::onFocusLost()
+{
+	// a release that reaches another row must not leave the slider moving when it comes back
+	mMoveRate = 0;
 }
 
 void SliderComponent::update(int deltaTime)
