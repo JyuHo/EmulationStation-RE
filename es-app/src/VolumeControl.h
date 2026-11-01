@@ -57,6 +57,9 @@ public:
 
 	// the sound cards: {"hw:N", name}
 	static std::vector<std::pair<std::string, std::string>> listCards();
+	// those of them with a playback volume control (not HDMI or S/PDIF outputs, whose volume is
+	// set by the sound server behind "default"): the choices of the Sound menu
+	static std::vector<std::pair<std::string, std::string>> listVolumeCards();
 
 	~VolumeControl();
 };

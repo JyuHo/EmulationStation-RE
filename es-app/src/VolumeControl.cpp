@@ -116,25 +116,26 @@ std::vector<std::pair<std::string, std::string>> VolumeControl::listCards()
 	return cards;
 }
 
-bool VolumeControl::openMixer(const std::string& card)
+namespace {
+// The mixer of `card` with its playback volume controls, or nullptr when it has none.
+snd_mixer_t* loadMixer(const std::string& card, std::vector<std::string>& names, std::vector<snd_mixer_elem_t*>& elems)
 {
 	snd_mixer_t* handle = nullptr;
 	if(snd_mixer_open(&handle, 0) < 0)
 	{
 		LOG(LogError) << "VolumeControl: failed to open an ALSA mixer";
-		return false;
+		return nullptr;
 	}
 	if(snd_mixer_attach(handle, card.c_str()) < 0 || snd_mixer_selem_register(handle, nullptr, nullptr) < 0 ||
 		snd_mixer_load(handle) < 0)
 	{
 		LOG(LogDebug) << "VolumeControl: no mixer on card \"" << card << "\"";
 		snd_mixer_close(handle);
-		return false;
+		return nullptr;
 	}
 
-	// the controls that set a playback volume
-	std::vector<std::string> names;
-	std::vector<snd_mixer_elem_t*> elems;
+	names.clear();
+	elems.clear();
 	for(snd_mixer_elem_t* elem = snd_mixer_first_elem(handle); elem != nullptr; elem = snd_mixer_elem_next(elem))
 	{
 		if(snd_mixer_selem_is_active(elem) && snd_mixer_selem_has_playback_volume(elem))
@@ -143,15 +144,43 @@ bool VolumeControl::openMixer(const std::string& card)
 			elems.push_back(elem);
 		}
 	}
+	if(names.empty())
+	{
+		// an HDMI or S/PDIF output: its volume is set by the sound server ("default")
+		LOG(LogDebug) << "VolumeControl: card \"" << card << "\" has no playback volume control";
+		snd_mixer_close(handle);
+		return nullptr;
+	}
+	return handle;
+}
+} // namespace
+
+std::vector<std::pair<std::string, std::string>> VolumeControl::listVolumeCards()
+{
+	std::vector<std::pair<std::string, std::string>> usable;
+	std::vector<std::string> names;
+	std::vector<snd_mixer_elem_t*> elems;
+	for(auto& card : listCards())
+	{
+		if(snd_mixer_t* handle = loadMixer(card.first, names, elems))
+		{
+			snd_mixer_close(handle);
+			usable.push_back(std::move(card));
+		}
+	}
+	return usable;
+}
+
+bool VolumeControl::openMixer(const std::string& card)
+{
+	std::vector<std::string> names;
+	std::vector<snd_mixer_elem_t*> elems;
+	snd_mixer_t* handle = loadMixer(card, names, elems);
+	if(handle == nullptr)
+		return false;
 
 	const std::string& wanted = Settings::getInstance()->getString("AudioDevice");
 	const int chosen = volume::chooseControl(names, wanted);
-	if(chosen < 0)
-	{
-		LOG(LogDebug) << "VolumeControl: card \"" << card << "\" has no playback volume control";
-		snd_mixer_close(handle);
-		return false;
-	}
 	if(!wanted.empty() && names[chosen] != wanted)
 		LOG(LogWarning) << "VolumeControl: no control \"" << wanted << "\" on card \"" << card << "\", using \""
 						<< names[chosen] << "\"";
@@ -187,7 +216,9 @@ void VolumeControl::init()
 		if(openMixer(card))
 		{
 			if(!wanted.empty() && card != wanted)
-				LOG(LogWarning) << "VolumeControl: card \"" << wanted << "\" unavailable, using \"" << card << "\"";
+				LOG(LogWarning) << "VolumeControl: card \"" << wanted
+								<< "\" missing or without a volume control, using \"" << card
+								<< "\" (choose \"Automatic\" in the Sound menu)";
 			return;
 		}
 	}

@@ -817,6 +817,9 @@ découpler de FFmpeg : `dr_wav`/`dr_mp3`/`stb_vorbis` vendored.
     `""` = automatique : `Master`, `PCM`, `Speaker`, `Headphone`…). Tests : `test_Volume.cpp`.
     Le backend PipeWire/PulseAudio reste à faire : avec pipewire-alsa, `default` règle déjà
     la sortie par défaut de PipeWire, celle où joue SDL.
+    Le choix « Carte son » ne propose que les cartes qui ont un contrôle de volume
+    (`listVolumeCards`) : une sortie HDMI ou S/PDIF (ex. `hw:0` de l'APU BC-250) n'en a
+    pas, son volume se règle par le serveur de son, donc par « Automatique » (`default`).
 
 ---
 

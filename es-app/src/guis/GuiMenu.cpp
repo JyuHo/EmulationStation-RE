@@ -90,7 +90,7 @@ GuiMenu::GuiMenu(Window* window) :
 		const std::string current_card = Settings::getInstance()->getString("AudioCard");
 		bool card_listed = current_card.empty();
 		audio_card->add(_U("Automatic"), "", current_card.empty());
-		for(const auto& [id, name] : VolumeControl::listCards())
+		for(const auto& [id, name] : VolumeControl::listVolumeCards())
 		{
 			audio_card->add(I18n::toUpperUtf8(name), id, id == current_card);
 			card_listed = card_listed || id == current_card;
