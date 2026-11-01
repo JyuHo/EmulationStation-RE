@@ -83,17 +83,20 @@ TEST_CASE("the system volume converts to the mixer range and back without drifti
 		CHECK(volume::toRaw(100, min, max) == max);
 		CHECK(volume::toPercent(min, min, max) == 0);
 		CHECK(volume::toPercent(max, min, max) == 100);
-		if(max - min < 100)
-			continue; // fewer steps than percents: some percents share a step
 		for(int percent = 0; percent <= 100; percent++)
 		{
 			INFO("range " << min << ".." << max << ", " << percent << "%");
-			CHECK(volume::toPercent(volume::toRaw(percent, min, max), min, max) == percent);
+			const long raw = volume::toRaw(percent, min, max);
+			const int read = volume::toPercent(raw, min, max);
+			// the value read back sets the same mixer step again: no drift from one save to the next
+			CHECK(volume::toRaw(read, min, max) == raw);
+			if(max - min >= 100) // as many steps as percents: read back exactly
+				CHECK(read == percent);
 		}
 	}
 
-	// 50% on 0-87 used to read back as 49%: each save of the menu lowered the volume
-	CHECK(volume::toPercent(volume::toRaw(50, 0, 87), 0, 87) == 50);
+	// 51% on 0-87 used to read back as 50% (truncation): each save of the menu lowered the volume
+	CHECK(volume::toPercent(volume::toRaw(51, 0, 87), 0, 87) == 51);
 
 	CHECK(volume::toRaw(-5, 0, 87) == 0);
 	CHECK(volume::toRaw(150, 0, 87) == 87);
