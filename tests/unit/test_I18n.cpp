@@ -150,7 +150,8 @@ TEST_CASE("I18n::init loads the catalog of the Language setting", "[I18n]")
 	}
 	SECTION("English and unknown languages keep the source strings")
 	{
-		const std::string language = GENERATE("en", "", "de_DE");
+		// no catalog for xx, not even in the build tree next to es-tests
+		const std::string language = GENERATE("en", "", "xx_XX");
 		I18n::init(language);
 		CHECK(_("Back") == "Back");
 		CHECK(_N("{} game", "{} games", 1) == "{} game");
