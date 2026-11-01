@@ -1,5 +1,7 @@
 #include <cstdio>
 #include "ThemeData.h"
+#include "components/ImageComponent.h"
+#include "components/TextComponent.h"
 
 #include "theme/ThemeLoader.h"
 #include "theme/ThemeSchema.h"
@@ -112,7 +114,32 @@ const ThemeData::ThemeElement* ThemeData::getElement(const std::string& view, co
 
 std::vector<std::unique_ptr<GuiComponent>> ThemeData::makeExtras(const std::shared_ptr<ThemeData>& theme, const std::string& view, Window* window)
 {
-	return {};
+	std::vector<std::unique_ptr<GuiComponent>> comps;
+	if(!theme) return comps;
+
+	auto vit = theme->mViews.find(view);
+	if(vit == theme->mViews.end()) return comps;
+
+	for(const auto& key : vit->second.orderedKeys)
+	{
+		auto eit = vit->second.elements.find(key);
+		if(eit == vit->second.elements.end()) continue;
+		const ThemeElement& elem = eit->second;
+		if(!elem.extra) continue;
+
+		std::unique_ptr<GuiComponent> comp;
+		if(elem.type == "image")
+			comp = std::make_unique<ImageComponent>(window);
+		else if(elem.type == "text")
+			comp = std::make_unique<TextComponent>(window);
+		else
+			continue;
+
+		comp->applyTheme(theme, view, key, ThemeFlags::ALL);
+		comps.push_back(std::move(comp));
+	}
+
+	return comps;
 }
 
 void ThemeExtras::setExtras(std::vector<std::unique_ptr<GuiComponent>> extras)
