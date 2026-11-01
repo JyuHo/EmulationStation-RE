@@ -886,7 +886,8 @@ locale/
 ```
 Installation : `${CMAKE_INSTALL_DATADIR}/emulationstation/locale/<lang>/LC_MESSAGES/emulationstation2.mo`,
 trouvé à l'exécution par `Paths::find(Kind::Data, "locale/...")` (catalogues utilisateur
-prioritaires dans `$XDG_DATA_HOME/emulationstation/locale/`).
+prioritaires dans `$XDG_DATA_HOME/emulationstation/locale/`), puis, en dernier recours,
+`<dossier du binaire>/locale/` : c'est là qu'`es-compile-mo` les écrit dans l'arbre de build.
 
 ### Code
 - En-tête `es-core/src/utils/I18n.h` :
@@ -905,7 +906,8 @@ prioritaires dans `$XDG_DATA_HOME/emulationstation/locale/`).
 - Formatage des chaînes traduites : `std::vformat(_("{} jeux"), std::make_format_args(n))`
   — les traducteurs voient des `{}` ; éviter la concaténation de morceaux de phrases.
 - Changement de langue à chaud : recharger le catalogue puis reconstruire les menus et
-  vues (`ViewController::reloadAll()`).
+  vues (`ViewController::reloadAll()`, et `GuiMenu` se reconstruit quand le réglage
+  `Language` a changé depuis sa création).
 
 ### Outillage CMake
 - `find_package(Gettext REQUIRED)` + `find_program(XGETTEXT_EXECUTABLE xgettext)`.
@@ -966,6 +968,17 @@ prioritaires dans `$XDG_DATA_HOME/emulationstation/locale/`).
   dans les 4 langues : libellés raccourcis là où le titre était coupé (« Oberfläche »,
   « Nombre del juego », « Ordenar por »). Le glob des `.po` est en `CONFIGURE_DEPENDS`.
   Reste : relecture par des locuteurs natifs, polices CJK (tâche 3).
+- **Après 10d** : le changement de langue restait sans effet en lançant le binaire depuis
+  l'arbre de build (`./build/release/emulationstation`, la méthode du README). Les `.mo`
+  sont écrits dans `build/release/locale/`, mais seuls les dossiers de données étaient
+  cherchés, dont `<binaire>/../share/emulationstation/` (soit `build/share/…`) ; aucun
+  catalogue trouvé, interface en anglais avec un simple avertissement au journal. Les
+  tests passaient car `test_Translations.cpp` ouvre les `.mo` par leur chemin de build et
+  `test_I18n.cpp` copie une fixture dans un `ES_HOME`. Corrigé : `es::paths::executableDir()`
+  et repli sur `<dossier du binaire>/locale/` dans `I18n::init`, testé sans `ES_HOME`
+  peuplé ni `XDG_DATA_DIRS` utile. Le menu principal, resté ouvert sous le menu Interface,
+  gardait aussi l'ancienne langue jusqu'à sa réouverture : `GuiMenu` se reconstruit
+  désormais à son retour au premier plan si `Language` a changé.
 
 ---
 

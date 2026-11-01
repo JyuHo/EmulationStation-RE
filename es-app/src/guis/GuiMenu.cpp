@@ -25,7 +25,11 @@
 #include "scrapers/GamesDBScraper.h"
 #include "scrapers/TheArchiveScraper.h"
 
-GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, _U("Main menu")), mVersion(window)
+GuiMenu::GuiMenu(Window* window) :
+	GuiComponent(window),
+	mMenu(window, _U("Main menu")),
+	mVersion(window),
+	mLanguage(Settings::getInstance()->getString("Language"))
 {
 	// MAIN MENU
 
@@ -341,6 +345,19 @@ bool GuiMenu::input(InputConfig* config, Input input)
 	}
 
 	return false;
+}
+
+void GuiMenu::update(int deltaTime)
+{
+	// back from the UI settings with a new language: this menu still holds the old strings
+	if(Settings::getInstance()->getString("Language") != mLanguage)
+	{
+		Window* window = mWindow;
+		delete this;
+		window->pushGui(std::make_unique<GuiMenu>(window));
+		return;
+	}
+	GuiComponent::update(deltaTime);
 }
 
 std::vector<HelpPrompt> GuiMenu::getHelpPrompts()

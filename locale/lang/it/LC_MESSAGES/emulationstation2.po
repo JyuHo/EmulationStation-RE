@@ -242,164 +242,164 @@ msgstr "Ordina per"
 msgid "Edit this game's metadata"
 msgstr "Modifica i metadati del gioco"
 
-#: es-app/src/guis/GuiGamelistOptions.cpp:139 es-app/src/guis/GuiMenu.cpp:351
+#: es-app/src/guis/GuiGamelistOptions.cpp:139 es-app/src/guis/GuiMenu.cpp:368
 #: es-app/src/guis/GuiMetaDataEd.cpp:284
 #: es-app/src/guis/GuiScraperStart.cpp:124 es-app/src/guis/GuiSettings.cpp:58
 msgid "close"
 msgstr "chiudi"
 
-#: es-app/src/guis/GuiMenu.cpp:28
+#: es-app/src/guis/GuiMenu.cpp:30
 msgid "Main menu"
 msgstr "Menu principale"
 
-#: es-app/src/guis/GuiMenu.cpp:43 es-app/src/guis/GuiMenu.cpp:44
+#: es-app/src/guis/GuiMenu.cpp:47 es-app/src/guis/GuiMenu.cpp:48
 msgid "Scraper"
 msgstr "Scraper"
 
-#: es-app/src/guis/GuiMenu.cpp:47 es-app/src/guis/GuiMenu.cpp:52
+#: es-app/src/guis/GuiMenu.cpp:51 es-app/src/guis/GuiMenu.cpp:56
 msgid "Scrape from"
 msgstr "Scarica da"
 
-#: es-app/src/guis/GuiMenu.cpp:58
+#: es-app/src/guis/GuiMenu.cpp:62
 msgid "Scrape ratings"
 msgstr "Scarica valutazioni"
 
-#: es-app/src/guis/GuiMenu.cpp:72 es-app/src/guis/GuiScraperStart.cpp:11
+#: es-app/src/guis/GuiMenu.cpp:76 es-app/src/guis/GuiScraperStart.cpp:11
 msgid "Scrape now"
 msgstr "Scarica ora"
 
-#: es-app/src/guis/GuiMenu.cpp:81 es-app/src/guis/GuiMenu.cpp:82
+#: es-app/src/guis/GuiMenu.cpp:85 es-app/src/guis/GuiMenu.cpp:86
 msgid "Sound settings"
 msgstr "Impostazioni audio"
 
-#: es-app/src/guis/GuiMenu.cpp:87
+#: es-app/src/guis/GuiMenu.cpp:91
 msgid "System volume"
 msgstr "Volume di sistema"
 
-#: es-app/src/guis/GuiMenu.cpp:93
+#: es-app/src/guis/GuiMenu.cpp:97
 msgid "Enable sounds"
 msgstr "Attiva suoni"
 
-#: es-app/src/guis/GuiMenu.cpp:100
+#: es-app/src/guis/GuiMenu.cpp:104
 msgid "Background music"
 msgstr "Musica di sottofondo"
 
-#: es-app/src/guis/GuiMenu.cpp:103
+#: es-app/src/guis/GuiMenu.cpp:107
 msgid "Music volume"
 msgstr "Volume musica"
 
-#: es-app/src/guis/GuiMenu.cpp:113
+#: es-app/src/guis/GuiMenu.cpp:117
 msgid "Video sound"
 msgstr "Audio dei video"
 
-#: es-app/src/guis/GuiMenu.cpp:119 es-app/src/guis/GuiMenu.cpp:120
+#: es-app/src/guis/GuiMenu.cpp:123 es-app/src/guis/GuiMenu.cpp:124
 msgid "UI settings"
 msgstr "Impostazioni interfaccia"
 
-#: es-app/src/guis/GuiMenu.cpp:125
+#: es-app/src/guis/GuiMenu.cpp:129
 msgid "Screensaver after"
 msgstr "Salvaschermo dopo"
 
-#: es-app/src/guis/GuiMenu.cpp:132 es-app/src/guis/GuiMenu.cpp:139
+#: es-app/src/guis/GuiMenu.cpp:136 es-app/src/guis/GuiMenu.cpp:143
 msgid "Screensaver behavior"
 msgstr "Tipo di salvaschermo"
 
-#: es-app/src/guis/GuiMenu.cpp:134
+#: es-app/src/guis/GuiMenu.cpp:138
 msgid "dim"
 msgstr "attenua"
 
-#: es-app/src/guis/GuiMenu.cpp:135
+#: es-app/src/guis/GuiMenu.cpp:139
 msgid "black"
 msgstr "nero"
 
-#: es-app/src/guis/GuiMenu.cpp:136
+#: es-app/src/guis/GuiMenu.cpp:140
 msgid "gameclip"
 msgstr "clip di giochi"
 
-#: es-app/src/guis/GuiMenu.cpp:147
+#: es-app/src/guis/GuiMenu.cpp:151
 msgid "Show framerate"
 msgstr "Mostra FPS"
 
-#: es-app/src/guis/GuiMenu.cpp:153
+#: es-app/src/guis/GuiMenu.cpp:157
 msgid "On-screen help"
 msgstr "Aiuto a schermo"
 
-#: es-app/src/guis/GuiMenu.cpp:159
+#: es-app/src/guis/GuiMenu.cpp:163
 msgid "Quick system select"
 msgstr "Selezione rapida sistema"
 
-#: es-app/src/guis/GuiMenu.cpp:165 es-app/src/guis/GuiMenu.cpp:171
+#: es-app/src/guis/GuiMenu.cpp:169 es-app/src/guis/GuiMenu.cpp:175
 msgid "Transition style"
 msgstr "Stile di transizione"
 
-#: es-app/src/guis/GuiMenu.cpp:167
+#: es-app/src/guis/GuiMenu.cpp:171
 msgid "fade"
 msgstr "dissolvenza"
 
-#: es-app/src/guis/GuiMenu.cpp:168
+#: es-app/src/guis/GuiMenu.cpp:172
 msgid "slide"
 msgstr "scorrimento"
 
-#: es-app/src/guis/GuiMenu.cpp:185 es-app/src/guis/GuiMenu.cpp:188
+#: es-app/src/guis/GuiMenu.cpp:189 es-app/src/guis/GuiMenu.cpp:192
 msgid "Theme set"
 msgstr "Tema"
 
-#: es-app/src/guis/GuiMenu.cpp:212 es-app/src/guis/GuiMenu.cpp:224
+#: es-app/src/guis/GuiMenu.cpp:216 es-app/src/guis/GuiMenu.cpp:228
 msgid "Language"
 msgstr "Lingua"
 
-#: es-app/src/guis/GuiMenu.cpp:236 es-core/src/guis/GuiDetectDevice.cpp:29
+#: es-app/src/guis/GuiMenu.cpp:240 es-core/src/guis/GuiDetectDevice.cpp:29
 msgid "Configure input"
 msgstr "Configura controlli"
 
-#: es-app/src/guis/GuiMenu.cpp:239 es-app/src/guis/GuiMenu.cpp:240
+#: es-app/src/guis/GuiMenu.cpp:243 es-app/src/guis/GuiMenu.cpp:244
 #: es-app/src/main.cpp:241
 msgid "Quit"
 msgstr "Esci"
 
-#: es-app/src/guis/GuiMenu.cpp:247
+#: es-app/src/guis/GuiMenu.cpp:251
 msgid "Really restart?"
 msgstr "Riavviare davvero?"
 
-#: es-app/src/guis/GuiMenu.cpp:247 es-app/src/guis/GuiMenu.cpp:261
-#: es-app/src/guis/GuiMenu.cpp:277 es-app/src/guis/GuiMetaDataEd.cpp:155
+#: es-app/src/guis/GuiMenu.cpp:251 es-app/src/guis/GuiMenu.cpp:265
+#: es-app/src/guis/GuiMenu.cpp:281 es-app/src/guis/GuiMetaDataEd.cpp:155
 #: es-app/src/guis/GuiMetaDataEd.cpp:252 es-app/src/guis/GuiScraperStart.cpp:51
 msgid "Yes"
 msgstr "Sì"
 
-#: es-app/src/guis/GuiMenu.cpp:252 es-app/src/guis/GuiMenu.cpp:266
-#: es-app/src/guis/GuiMenu.cpp:283 es-app/src/guis/GuiMetaDataEd.cpp:155
+#: es-app/src/guis/GuiMenu.cpp:256 es-app/src/guis/GuiMenu.cpp:270
+#: es-app/src/guis/GuiMenu.cpp:287 es-app/src/guis/GuiMetaDataEd.cpp:155
 #: es-app/src/guis/GuiMetaDataEd.cpp:257 es-app/src/guis/GuiScraperStart.cpp:51
 #: es-core/src/guis/GuiMsgBox.cpp:42
 msgid "No"
 msgstr "No"
 
-#: es-app/src/guis/GuiMenu.cpp:255
+#: es-app/src/guis/GuiMenu.cpp:259
 msgid "Restart system"
 msgstr "Riavvia il sistema"
 
-#: es-app/src/guis/GuiMenu.cpp:261
+#: es-app/src/guis/GuiMenu.cpp:265
 msgid "Really shut down?"
 msgstr "Spegnere davvero?"
 
-#: es-app/src/guis/GuiMenu.cpp:269
+#: es-app/src/guis/GuiMenu.cpp:273
 msgid "Shut down system"
 msgstr "Spegni il sistema"
 
-#: es-app/src/guis/GuiMenu.cpp:277
+#: es-app/src/guis/GuiMenu.cpp:281
 msgid "Really quit?"
 msgstr "Uscire davvero?"
 
-#: es-app/src/guis/GuiMenu.cpp:286
+#: es-app/src/guis/GuiMenu.cpp:290
 msgid "Quit EmulationStation"
 msgstr "Esci da EmulationStation"
 
-#: es-app/src/guis/GuiMenu.cpp:297
+#: es-app/src/guis/GuiMenu.cpp:301
 #, c++-format
 msgid "EmulationStation v{}"
 msgstr "EmulationStation v{}"
 
-#: es-app/src/guis/GuiMenu.cpp:349 es-app/src/views/SystemView.cpp:341
+#: es-app/src/guis/GuiMenu.cpp:366 es-app/src/views/SystemView.cpp:341
 #: es-app/src/views/gamelist/BasicGameListView.cpp:95
 #: es-core/src/components/ComponentGrid.cpp:445
 #: es-core/src/components/ComponentGrid.cpp:447
@@ -408,7 +408,7 @@ msgstr "EmulationStation v{}"
 msgid "choose"
 msgstr "scegli"
 
-#: es-app/src/guis/GuiMenu.cpp:350 es-app/src/views/SystemView.cpp:342
+#: es-app/src/guis/GuiMenu.cpp:367 es-app/src/views/SystemView.cpp:342
 #: es-core/src/components/ImageComponent.cpp:348
 #: es-core/src/components/OptionListComponent.h:316
 msgid "select"

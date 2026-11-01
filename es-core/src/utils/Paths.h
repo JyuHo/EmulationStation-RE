@@ -29,6 +29,9 @@ std::filesystem::path userFile(Kind kind, std::string_view rel);
 // then the installation prefix, then <executable>/../share/emulationstation for Data.
 std::vector<std::filesystem::path> systemDirs(Kind kind);
 
+// Directory of the running executable (from /proc/self/exe), e.g. build/release in a build tree.
+std::optional<std::filesystem::path> executableDir();
+
 // User directory first, then systemDirs(kind).
 std::optional<std::filesystem::path> find(Kind kind, std::string_view rel);
 

@@ -86,11 +86,10 @@ void appendUnique(std::vector<fs::path>& dirs, const fs::path& dir)
 
 std::optional<fs::path> executableShareDir()
 {
-	std::error_code ec;
-	const fs::path exe = fs::read_symlink("/proc/self/exe", ec);
-	if(ec)
+	const auto exeDir = executableDir();
+	if(!exeDir)
 		return std::nullopt;
-	return (exe.parent_path() / ".." / "share" / kAppDir).lexically_normal();
+	return (*exeDir / ".." / "share" / kAppDir).lexically_normal();
 }
 
 void createPrivateDirectories(const fs::path& dir)
@@ -132,6 +131,15 @@ void copyMissing(const fs::path& from, const fs::path& to, std::vector<fs::path>
 }
 
 } // namespace
+
+std::optional<fs::path> executableDir()
+{
+	std::error_code ec;
+	const fs::path exe = fs::read_symlink("/proc/self/exe", ec);
+	if(ec)
+		return std::nullopt;
+	return exe.parent_path();
+}
 
 fs::path homeDir()
 {
