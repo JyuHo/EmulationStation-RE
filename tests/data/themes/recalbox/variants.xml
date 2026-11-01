@@ -1,0 +1,10 @@
+<!-- Fixture written for EmulationStation-RE (MIT), own content. One option, two variants for
+     exclusive conditions (as themes give one file per screen type): only the variant whose
+     condition holds is included, and the menu shows the option once. -->
+<theme>
+	<formatVersion>4</formatVersion>
+	<subset subset="layout" title="Layout"/>
+	<include subset="layout" if="!tate" name="wheel">${root}/colors/blue.xml</include>
+	<include subset="layout" if="tate" name="wheel">${root}/colors/red.xml</include>
+	<include subset="layout" name="top">${root}/colors/red.xml</include>
+</theme>

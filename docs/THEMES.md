@@ -159,6 +159,10 @@ celle de `--resolution`.
 - `<subset subset="…" title="…" help="…" title.<code>="…" help.<code>="…"/>` déclare une
   option et son texte (`themes/ThemeData.cpp:153-173`).
 - `<include subset="…" name="…" name.<code>="…">` est une valeur possible de cette option.
+- Une valeur incluse doit aussi passer sa condition `if` : une même valeur déclarée en
+  plusieurs variantes (conditions exclusives, une par type d'écran) n'inclut que celle dont la
+  condition est vraie, et n'apparaît qu'une fois dans le menu (`themes/ThemeData.cpp:199-201`,
+  `ThemeOption.h:77`).
 - Option sans choix enregistré, ou choix disparu : première valeur disponible (décision du
   projet, `PROMPT.md` 14.5).
 - Enregistrement : clé `ThemeOption.<jeu de thèmes>.<subset>` (chaîne) dans `es_settings.cfg`

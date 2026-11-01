@@ -273,9 +273,16 @@ bool processFile(const fs::path& file, LoadedTheme& theme, LoaderContext& ctx, D
 	for(pugi::xml_node inc = root.child("include"); inc; inc = inc.next_sibling("include"))
 		includes.push_back(inc);
 
+	// condition of each option include, evaluated once by the first pass (one diagnostic) and
+	// checked again by the second: Recalbox includes a node only if Condition() and
+	// parseSubset() both hold (themes/ThemeData.cpp:199-201 @10.1.1), so two options with the
+	// same name and exclusive `if` include one file, not both
+	std::vector<bool> optionHolds(includes.size(), false);
+
 	// First pass: record subset choices
-	for(pugi::xml_node inc : includes)
+	for(size_t i = 0; i < includes.size(); i++)
 	{
+		pugi::xml_node inc = includes[i];
 		const char* subsetAttr = inc.attribute("subset").value();
 		const char* nameAttr = inc.attribute("name").value();
 		if(!(subsetAttr && subsetAttr[0] && nameAttr && nameAttr[0])) continue;
@@ -299,8 +306,16 @@ bool processFile(const fs::path& file, LoadedTheme& theme, LoaderContext& ctx, D
 		else
 			choice.displayName = nameAttr;
 		choice.where = where;
-		if(conditionHolds(inc, ctx, diag, where))
-			sp->choices.push_back(choice);
+		optionHolds[i] = conditionHolds(inc, ctx, diag, where);
+		if(optionHolds[i])
+		{
+			// one entry per name: variants for exclusive conditions are one choice
+			bool known = false;
+			for(const auto& c : sp->choices)
+				known = known || c.name == choice.name;
+			if(!known)
+				sp->choices.push_back(choice);
+		}
 	}
 
 	// Resolve selected options now that subsets are known.
@@ -311,8 +326,9 @@ bool processFile(const fs::path& file, LoadedTheme& theme, LoaderContext& ctx, D
 	theme.selectedOptions = ctx.selectedOptions;
 
 	// Second pass: process includes (only the selected option of each subset).
-	for(pugi::xml_node inc : includes)
+	for(size_t i = 0; i < includes.size(); i++)
 	{
+		pugi::xml_node inc = includes[i];
 		SourceLocation where{file, (int)li.lineAt(inc.offset_debug())};
 		const char* subsetAttr = inc.attribute("subset").value();
 		const char* nameAttr = inc.attribute("name").value();
@@ -329,7 +345,7 @@ bool processFile(const fs::path& file, LoadedTheme& theme, LoaderContext& ctx, D
 				for(const auto& ss : theme.subsets)
 					if(ss.id == subsetAttr && !ss.choices.empty()) { selected = ss.choices.front().name; break; }
 			}
-			if(selected != nameAttr)
+			if(selected != nameAttr || !optionHolds[i])
 				continue;
 		}
 		else if(!conditionHolds(inc, ctx, diag, where))
