@@ -67,6 +67,8 @@ set(CORE_HEADERS
 	src/guis/GuiInputConfig.h
 	src/guis/GuiMsgBox.h
 	src/guis/GuiTextEditPopup.h
+	src/guis/GuiVirtualKeyboard.h
+	src/guis/VirtualKeyboardModel.h
 
 	# Resources
 	src/resources/Font.h
@@ -142,6 +144,8 @@ set(CORE_SOURCES
 	src/guis/GuiInputConfig.cpp
 	src/guis/GuiMsgBox.cpp
 	src/guis/GuiTextEditPopup.cpp
+	src/guis/GuiVirtualKeyboard.cpp
+	src/guis/VirtualKeyboardModel.cpp
 
 	# Resources
 	src/resources/Font.cpp

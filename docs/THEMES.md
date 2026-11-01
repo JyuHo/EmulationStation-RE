@@ -210,7 +210,7 @@ Vues lues par Recalbox (`ThemeSupport::SupportedViews`, `themes/ThemeSupport.cpp
   celle de `menutext`.
 - `menutextsmall` part de `menutext` (`:65`) ; ses `selectedColor` et `selectorColor`
   écrivent la couleur sélectionnée de `menutext` (`:72-73`, reproduit tel quel).
-- `keyboard` : lu dans la vue `menu`, sinon `system` (`WindowManager.cpp:131-145`).
+- `keyboard` : lu dans la vue au-dessus de laquelle le clavier s'ouvre (règle ci-dessous, 11f5).
 - Tests : `[11f1]` de `tests/unit/test_MenuTheme.cpp`.
 
 Effet sur les menus (11f2). Valeur absente : le rendu d'ES, inchangé au pixel près. Les menus
@@ -792,15 +792,36 @@ Tests : `[11f4]` de `tests/unit/test_MenuEntries.cpp` ; sonde `menu-section`.
 
 | Propriété | Type | Source | Statut ici |
 |---|---|---|---|
-| `keyColor` | Color | `ThemeSupport.cpp:604`, nom `:777`, type `:142` | 11f |
-| `keySelectedColor` | Color | `ThemeSupport.cpp:605`, nom `:778`, type `:143` | 11f |
-| `keyTextColor` | Color | `ThemeSupport.cpp:606`, nom `:779`, type `:144` | 11f |
-| `keyDisabledColor` | Color | `ThemeSupport.cpp:607`, nom `:780`, type `:145` | 11f |
-| `keyModifierColor` | Color | `ThemeSupport.cpp:608`, nom `:781`, type `:146` | 11f |
-| `keyModifierLockedColor` | Color | `ThemeSupport.cpp:609`, nom `:782`, type `:147` | 11f |
-| `keyTitleColor` | Color | `ThemeSupport.cpp:610`, nom `:783`, type `:148` | 11f |
-| `keyEditTextColor` | Color | `ThemeSupport.cpp:611`, nom `:784`, type `:149` | 11f |
-| `fontPath` | Path | `ThemeSupport.cpp:612`, nom `:674`, type `:38` | 11f |
+| `keyColor` | Color | `ThemeSupport.cpp:604`, nom `:777`, type `:142` | pris en charge (11f5) |
+| `keySelectedColor` | Color | `ThemeSupport.cpp:605`, nom `:778`, type `:143` | pris en charge (11f5) |
+| `keyTextColor` | Color | `ThemeSupport.cpp:606`, nom `:779`, type `:144` | pris en charge (11f5) |
+| `keyDisabledColor` | Color | `ThemeSupport.cpp:607`, nom `:780`, type `:145` | pris en charge (11f5) |
+| `keyModifierColor` | Color | `ThemeSupport.cpp:608`, nom `:781`, type `:146` | pris en charge (11f5) |
+| `keyModifierLockedColor` | Color | `ThemeSupport.cpp:609`, nom `:782`, type `:147` | pris en charge (11f5) |
+| `keyTitleColor` | Color | `ThemeSupport.cpp:610`, nom `:783`, type `:148` | pris en charge (11f5) |
+| `keyEditTextColor` | Color | `ThemeSupport.cpp:611`, nom `:784`, type `:149` | pris en charge (11f5) |
+| `fontPath` | Path | `ThemeSupport.cpp:612`, nom `:674`, type `:38` | pris en charge (11f5) |
+
+Effet (11f5) : le clavier virtuel `GuiVirtualKeyboard`, ouvert à la place de la fenêtre de
+saisie quand le réglage « Virtual keyboard » (`VirtualKeyboard`, faux par défaut) est vrai.
+Disposition originale (chiffres, QWERTY sur trois rangées, `'` `-` `_` `.`, puis MAJ, ESPACE,
+EFFACER, OK, ANNULER), sans rien des trois claviers de Recalbox.
+
+- Vue lue (`WindowManager.cpp:131-145`, `guis/VirtualKeyboardTheme.cpp:9-17`), dans le thème
+  principal : `system` sur la liste des systèmes, le nom de la vue de la liste de jeux
+  (`basic`, `detailed`…) sur une liste de jeux, sinon `menu` (`ViewController::keyboardThemeView`).
+  `gameclip` n'existe pas ici.
+- Couleurs lues à l'ouverture ; absentes, celles de Recalbox (`VirtualKeyboardTheme.h:17-24`) :
+  `keyColor` `303030F0` fond d'une touche, `keySelectedColor` `C02020FF` fond de la touche
+  sélectionnée, `keyTextColor` `FFFFFFFF` texte des touches, `keyModifierColor` `4488FFFF` MAJ
+  pour une lettre, `keyModifierLockedColor` `224488FF` MAJ verrouillée, `keyTitleColor`
+  `FFFF80FF` titre, `keyEditTextColor` `FFFFFFFF` texte saisi. `fontPath` : police du titre, du
+  texte saisi et des touches ; absente ou introuvable, la police d'ES.
+- Limites : `keyDisabledColor` (défaut `707070FF`) est lu sans effet, cette disposition n'a pas
+  de touche désactivée ; pas de touche « retour à la ligne » (multiligne : OK valide) ; aucune
+  taille thémable (`VirtualKeyboardTheme.h:2-5`), tailles fixées dans `GuiVirtualKeyboard.cpp`.
+- Tests : `[11f5]` de `tests/unit/test_VirtualKeyboard.cpp`, sondes `keyboard` de
+  `capture-themes.sh` (et vérification du nom enregistré).
 
 ## 12. Attributs d'élément
 

@@ -16,6 +16,7 @@
 #include "components/DateTimeComponent.h"
 #include "components/RatingComponent.h"
 #include "guis/GuiTextEditPopup.h"
+#include "guis/GuiVirtualKeyboard.h"
 
 GuiMetaDataEd::GuiMetaDataEd(Window* window, MetaDataList* md, const std::vector<MetaDataDecl>& mdd,
 	ScraperSearchParams scraperParams, const std::string& header, std::function<void()> saveCallback,
@@ -127,7 +128,7 @@ GuiMetaDataEd::GuiMetaDataEd(Window* window, MetaDataList* md, const std::vector
 				ed->setValue(newVal);
 			}; // ok callback (apply new value to ed)
 			row.makeAcceptInputHandler([this, title, ed, updateVal, multiLine] {
-				mWindow->pushGui(std::make_unique<GuiTextEditPopup>(mWindow, title, ed->getValue(), updateVal, multiLine));
+				openTextInput(mWindow, title, ed->getValue(), updateVal, multiLine, ViewController::get()->keyboardThemeView());
 			});
 			break;
 		}

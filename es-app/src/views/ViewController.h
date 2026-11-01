@@ -72,6 +72,11 @@ public:
 
 	inline const State& getState() const { return mState; }
 
+	// theme view the on-screen keyboard opens over (Recalbox WindowManager.cpp:131-145 @10.1.1):
+	// "system" over the system list, the name of the game list view over a game list, else "menu"
+	static std::string keyboardThemeView(ViewMode viewing, const std::string& gameListViewName);
+	std::string keyboardThemeView();
+
 	std::vector<HelpPrompt> getHelpPrompts() override;
 	HelpStyle getHelpStyle() override;
 

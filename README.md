@@ -248,6 +248,13 @@ configuration enregistrée dans `es_input.cfg` passe avant celle par défaut. Si
 ne répond plus, supprimez son entrée de `es_input.cfg` (ou le fichier) pour revenir à la
 configuration par défaut ou relancer l'assistant.
 
+Sans clavier physique, activez le clavier virtuel : Start → « UI SETTINGS » → « VIRTUAL
+KEYBOARD » (`<bool name="VirtualKeyboard" value="true" />` dans `es_settings.cfg`, désactivé
+par défaut). Les champs de texte (métadonnées, recherche du scraper) s'ouvrent alors sur un
+clavier à l'écran : croix directionnelle pour choisir une touche, A pour l'appuyer, Y pour
+effacer, Start pour valider, B pour annuler. Un thème peut en changer les couleurs
+(élément `keyboard`, `docs/THEMES.md`).
+
 ## Listes de jeux et scraping
 
 `gamelist.xml` (XML) contient les métadonnées des jeux : nom, description, image, date,

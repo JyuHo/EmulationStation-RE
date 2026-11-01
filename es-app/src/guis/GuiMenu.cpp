@@ -345,6 +345,14 @@ GuiMenu::GuiMenu(Window* window) :
 			ViewController::get()->reloadAll(); // views and help prompts in the new language
 		});
 
+		// on-screen keyboard for text input (11f5); last row: the rows above keep their place
+		auto virtual_keyboard = std::make_shared<SwitchComponent>(mWindow);
+		virtual_keyboard->setState(Settings::getInstance()->getBool("VirtualKeyboard"));
+		s->addWithLabel(_U("Virtual keyboard"), virtual_keyboard);
+		s->addSaveFunc([virtual_keyboard] {
+			Settings::getInstance()->setBool("VirtualKeyboard", virtual_keyboard->getState());
+		});
+
 		mWindow->pushGui(std::move(s));
 	}, MenuIcon::UI);
 

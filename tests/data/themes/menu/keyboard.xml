@@ -1,0 +1,12 @@
+<!-- Fixture written for EmulationStation-RE (MIT), own content: a "keyboard" element in the
+     "detailed" view only (phase 11f5). -->
+<theme>
+	<formatVersion>4</formatVersion>
+	<view name="detailed">
+		<keyboard name="keyboard">
+			<keyColor>112233FF</keyColor>
+			<keySelectedColor>445566FF</keySelectedColor>
+			<keyTitleColor>778899FF</keyTitleColor>
+		</keyboard>
+	</view>
+</theme>

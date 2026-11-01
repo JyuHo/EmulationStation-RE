@@ -274,6 +274,9 @@ msgstr ""
 msgid "Language"
 msgstr ""
 
+msgid "Virtual keyboard"
+msgstr ""
+
 msgid "Configure input"
 msgstr ""
 
@@ -623,4 +626,16 @@ msgid "Already mapped!"
 msgstr ""
 
 msgid "discard changes"
+msgstr ""
+
+msgid "Shift"
+msgstr ""
+
+msgid "Space"
+msgstr ""
+
+msgid "move"
+msgstr ""
+
+msgid "press"
 msgstr ""

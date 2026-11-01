@@ -59,6 +59,12 @@ XML
 	echo "</systemList>"
 } > "$home/config/emulationstation/es_systems.cfg"
 
+# text input with the on-screen keyboard (11f5)
+cat > "$home/config/emulationstation/es_settings.cfg" <<'XML'
+<?xml version="1.0"?>
+<bool name="VirtualKeyboard" value="true" />
+XML
+
 # keyboard mapping, as in capture.sh: skips the "no gamepad" welcome screen
 cat > "$home/config/emulationstation/es_input.cfg" <<'XML'
 <?xml version="1.0"?>
@@ -72,6 +78,7 @@ cat > "$home/config/emulationstation/es_input.cfg" <<'XML'
 		<input name="b" type="key" id="27" value="1" />
 		<input name="start" type="key" id="1073741882" value="1" />
 		<input name="select" type="key" id="1073741883" value="1" />
+		<input name="y" type="key" id="121" value="1" />
 		<input name="pageup" type="key" id="93" value="1" />
 		<input name="pagedown" type="key" id="91" value="1" />
 	</inputConfig>
@@ -117,11 +124,47 @@ HOME="$fakehome" ES_HOME="$home" xvfb-run -a -s '-screen 0 1280x720x24' bash -c 
 	xdotool key --window "$win" Up; sleep 0.5
 	xdotool key --window "$win" Return; sleep 2
 	import -window root "$out/$(printf %02d "$n")-menu-switch.png"
+	n=$((n + 1))
+	# on-screen keyboard (11f5): close the menus, game list options (select), last row "Edit this
+	# game metadata", first row (name) opens the keyboard over the "basic" game list view
+	xdotool key --window "$win" Escape; sleep 1
+	xdotool key --window "$win" Escape; sleep 1
+	xdotool key --window "$win" F2; sleep 2
+	for _ in 1 2 3 4 5 6; do xdotool key --window "$win" Down; sleep 0.3; done
+	xdotool key --window "$win" Return; sleep 2
+	xdotool key --window "$win" Return; sleep 2
+	import -window root "$out/$(printf %02d "$n")-keyboard.png"
+	# b (Escape) cancels, Return opens the keyboard again on "1". Then: down to "q", type it; down
+	# three times to MAJ, press it once; up three times back to "q", type "Q"; y deletes it; right
+	# to "w", type it; start (F1) = OK, back from the editor and "Yes" to save: the name becomes
+	# "Probeqw" (checked in the gamelist below)
+	xdotool key --window "$win" Escape; sleep 1
+	xdotool key --window "$win" Return; sleep 2
+	xdotool key --window "$win" Down; sleep 0.3
+	xdotool key --window "$win" Return; sleep 0.3
+	for _ in 1 2 3; do xdotool key --window "$win" Down; sleep 0.3; done
+	xdotool key --window "$win" Return; sleep 0.3
+	for _ in 1 2 3; do xdotool key --window "$win" Up; sleep 0.3; done
+	xdotool key --window "$win" Return; sleep 0.3
+	xdotool key --window "$win" y; sleep 0.3
+	xdotool key --window "$win" Right; sleep 0.3
+	xdotool key --window "$win" Return; sleep 0.3
+	xdotool key --window "$win" F1; sleep 1
+	xdotool key --window "$win" Escape; sleep 1
+	xdotool key --window "$win" Return; sleep 2
 	if ! kill -0 "$pid" 2>/dev/null; then wait "$pid"; echo "emulationstation exited early with code $?"; exit 1; fi
 	kill "$pid"
 	code=0; wait "$pid" || code=$?
 	if [ "$code" -ne 0 ]; then echo "emulationstation exited with code $code after SIGTERM"; exit 1; fi
 ' "$binary" "$outdir" "${systems[@]}" || status=$?
+
+# the name typed on the on-screen keyboard was saved (gamelists are written when ES quits)
+if ! grep -rqs '<name>Probeqw</name>' "$home"; then
+	echo "FAIL: the name typed on the on-screen keyboard (Probeqw) is not in a gamelist.xml"
+	status=1
+else
+	echo "OK gamelist.xml: name typed on the on-screen keyboard saved (Probeqw)"
+fi
 
 log="$home/state/emulationstation/es_log.txt"
 if [ "$status" -ne 0 ] || grep -q ' \[ERROR\] ' "$log" 2>/dev/null; then
@@ -177,6 +220,9 @@ probe 07-menu-icons 320 470 00CB00
 probe_area 07-menu-icons 325 203 145 42 FF0000
 # switches (11f2): Sound settings, "Enable sounds" on = menuswitch pathOn (cyan, no tint)
 probe 09-menu-switch 937 324 00FFFF
+# on-screen keyboard (11f5): keyColor 808080 on the key "2", keySelectedColor FF00FF on "1"
+probe 10-keyboard 344 325 808080
+probe 10-keyboard 240 325 FF00FF
 
 ls "$outdir"/*.png
 if [ "$failed" -ne 0 ]; then
