@@ -4,6 +4,8 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <filesystem>
+#include <fstream>
 #include <memory>
 #include <vector>
 
@@ -135,4 +137,83 @@ TEST_CASE("ThemeData reports an unusable main file without throwing", "[ThemeDat
 	CHECK_FALSE(theme.loadFile(ES_TEST_DATA_DIR "/themes/no-version.xml", diag, 1920, 1080));
 	CHECK(diag.hasErrors());
 	CHECK(theme.getElement("detailed", "md_description", "text") == nullptr);
+}
+
+TEST_CASE("ThemeSet looks for the theme file like Recalbox", "[ThemeData]")
+{
+	// docs/THEMES.md section 1: <set>/<system>/theme.xml, <set>/default/theme.xml, <set>/theme.xml
+	namespace fs = std::filesystem;
+	const fs::path set = fs::temp_directory_path() / "es-test-theme-lookup";
+	fs::remove_all(set);
+	fs::create_directories(set / "nes");
+	fs::create_directories(set / "default");
+	const ThemeSet themeSet{set};
+
+	// nothing yet: the last candidate, which does not exist (SystemData then loads no theme)
+	CHECK(themeSet.getThemePath("nes") == set / "theme.xml");
+	CHECK_FALSE(fs::exists(themeSet.getThemePath("nes")));
+
+	std::ofstream(set / "theme.xml") << "<theme/>";
+	CHECK(themeSet.getThemePath("nes") == set / "theme.xml");
+	std::ofstream(set / "default" / "theme.xml") << "<theme/>";
+	CHECK(themeSet.getThemePath("nes") == set / "default" / "theme.xml");
+	std::ofstream(set / "nes" / "theme.xml") << "<theme/>";
+	CHECK(themeSet.getThemePath("nes") == set / "nes" / "theme.xml");
+	CHECK(themeSet.getThemePath("snes") == set / "default" / "theme.xml");
+	fs::remove_all(set);
+}
+
+TEST_CASE("ThemeData reads a format 4 theme with its system", "[ThemeData]")
+{
+	namespace fs = std::filesystem;
+	const fs::path dir = ES_TEST_DATA_DIR "/themes/recalbox";
+	ThemeData theme;
+	es::theme::Diagnostics diag;
+	// 1280 x 720: "hd" holds (docs/THEMES.md section 7)
+	REQUIRE(theme.loadFile((dir / "theme.xml").string(), diag, 1280, 720, {"nes", "nes", "Nintendo"}));
+	CHECK_FALSE(diag.hasErrors());
+
+	// ${root}/systems/${system.name}.xml: included only because system.name is set
+	const ThemeData::ThemeElement* logo = theme.getElement("system", "logo", "image");
+	REQUIRE(logo != nullptr);
+	CHECK(fs::equivalent(logo->get<std::string>("path"), dir / "art" / "nes.svg"));
+
+	const ThemeData::ThemeElement* background = theme.getElement("detailed", "background", "image");
+	REQUIRE(background != nullptr);
+	CHECK(background->get<unsigned int>("color") == 0x2e447c80u); // ${PrimaryAlpha}
+	CHECK(background->get<bool>("tile"));
+	CHECK(background->get<std::string>("path") == (dir / "art" / "background.png").generic_string());
+
+	// first option of "colorset" (blue), condition "hd" true, "tate" false
+	const ThemeData::ThemeElement* description = theme.getElement("detailed", "md_description", "text");
+	REQUIRE(description != nullptr);
+	CHECK(description->get<unsigned int>("color") == 0x0000FFFFu);
+	CHECK(description->get<float>("fontSize") == 0.02f);
+	CHECK(theme.getElement("detailed", "e_hdOnly", "image") != nullptr);
+	CHECK(theme.getElement("detailed", "e_tateOnly", "image") == nullptr);
+}
+
+TEST_CASE("ThemeData sets ${root} to the theme set and $system to the system folder", "[ThemeData]")
+{
+	// docs/THEMES.md sections 5 and 6: <set>/nes/theme.xml sees ${root} = <set>
+	namespace fs = std::filesystem;
+	const fs::path set = fs::temp_directory_path() / "es-test-theme-root";
+	fs::remove_all(set);
+	fs::create_directories(set / "nes");
+	fs::create_directories(set / "default" / "art");
+	std::ofstream(set / "default" / "art" / "logo.png") << "x";
+	std::ofstream(set / "common.xml") << "<theme><view name=\"system\"><image name=\"logo\">"
+										 "<path>./$system/art/logo.png</path></image></view></theme>";
+	std::ofstream(set / "nes" / "theme.xml") << "<theme><formatVersion>4</formatVersion>"
+												"<include>${root}/common.xml</include></theme>";
+
+	ThemeData theme;
+	es::theme::Diagnostics diag;
+	REQUIRE(theme.loadFile((set / "nes" / "theme.xml").string(), diag, 1920, 1080, {"nes", "nes", ""}));
+	CHECK(diag.all().empty());
+	const ThemeData::ThemeElement* logo = theme.getElement("system", "logo", "image");
+	REQUIRE(logo != nullptr);
+	// nes/art/logo.png does not exist: $system falls back to default
+	CHECK(logo->get<std::string>("path") == (set / "default" / "art" / "logo.png").generic_string());
+	fs::remove_all(set);
 }

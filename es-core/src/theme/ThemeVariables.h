@@ -7,6 +7,7 @@
 
 #include "theme/ThemeDiagnostics.h"
 
+#include <filesystem>
 #include <map>
 #include <optional>
 #include <string>
@@ -50,5 +51,11 @@ struct LegacySubstitutions
 };
 
 [[nodiscard]] std::string applyLegacySubstitutions(std::string_view text, const LegacySubstitutions& values);
+
+// Same, with the fallback of $system (docs/THEMES.md section 6, Recalbox ThemeData.cpp:718-730):
+// when the path obtained with the system folder does not exist but the one obtained with
+// "default" does, "default" is used. Relative paths are taken from `baseDir`.
+[[nodiscard]] std::string applyLegacySubstitutions(
+	std::string_view text, const LegacySubstitutions& values, const std::filesystem::path& baseDir);
 
 } // namespace es::theme

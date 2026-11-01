@@ -21,24 +21,16 @@ enum class PropertyType
 {
 	NormalizedPair, // "0.25 0.5"
 	Path,			// one path; "./" relative to the declaring file, "~" expanded
-	PathList,		// several paths, the first existing file is used (14.5)
 	String,
 	Color, // RRGGBB or RRGGBBAA, stored as 0xRRGGBBAA
 	Float,
 	Boolean // true/false/1/0
 };
 
-struct PathList
-{
-	std::vector<std::string> paths; // resolved, declaration order
-
-	friend bool operator==(const PathList&, const PathList&) = default;
-};
-
-// Same alternatives and order as ThemeData::ThemeElement::properties, plus PathList: the
-// existing get<glm::vec2>/get<std::string>/get<unsigned int>/get<float>/get<bool> calls of the
-// components keep working unchanged.
-using PropertyValue = std::variant<glm::vec2, std::string, unsigned int, float, bool, PathList>;
+// Same alternatives and order as ThemeData::ThemeElement::properties: the existing
+// get<glm::vec2>/get<std::string>/get<unsigned int>/get<float>/get<bool> calls of the components
+// keep working unchanged. Recalbox 10.1.1 has no list of paths (docs/THEMES.md section 11).
+using PropertyValue = std::variant<glm::vec2, std::string, unsigned int, float, bool>;
 
 struct PropertySpec
 {
@@ -53,9 +45,12 @@ struct ElementSpec
 	bool canBeExtra = false;				  // may be created by extra="true"
 };
 
-// Every element type known to the program (format 3 and Recalbox), from the table written in
-// docs/THEMES.md by PR 11a. nullptr: unknown type (the loader's caller warns and skips it).
+// Every element type known to the program (format 3 and Recalbox), exactly the tables of
+// docs/THEMES.md section 11 (checked by test_ThemeSchema.cpp). nullptr: unknown type (the loader's caller warns and skips it).
 [[nodiscard]] const ElementSpec* findElement(std::string_view type);
+
+// Every element of the table, in the order of docs/THEMES.md section 11.
+[[nodiscard]] std::span<const ElementSpec> allElements();
 
 // nullptr: this element does not accept this property (warning, property skipped).
 [[nodiscard]] const PropertySpec* findProperty(const ElementSpec& element, std::string_view name);

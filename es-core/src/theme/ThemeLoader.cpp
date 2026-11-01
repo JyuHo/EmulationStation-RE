@@ -60,7 +60,7 @@ bool conditionHolds(const pugi::xml_node& node, LoaderContext& ctx, Diagnostics&
 	if(ie && ie[0])
 	{
 		std::string path = ctx.variables.resolve(ie, diag, where);
-		path = applyLegacySubstitutions(path, ctx.legacy);
+		path = applyLegacySubstitutions(path, ctx.legacy, where.file.parent_path());
 		std::error_code ec;
 		if(!fs::exists(path, ec)) return false;
 	}
@@ -68,7 +68,7 @@ bool conditionHolds(const pugi::xml_node& node, LoaderContext& ctx, Diagnostics&
 	if(ine && ine[0])
 	{
 		std::string path = ctx.variables.resolve(ine, diag, where);
-		path = applyLegacySubstitutions(path, ctx.legacy);
+		path = applyLegacySubstitutions(path, ctx.legacy, where.file.parent_path());
 		std::error_code ec;
 		if(fs::exists(path, ec)) return false;
 	}
@@ -128,7 +128,7 @@ void processViewElement(pugi::xml_node node, const fs::path& file, LineIndex& li
 			}
 			std::string val = propNode.text().as_string();
 			val = ctx.variables.resolve(val, diag, where);
-			val = applyLegacySubstitutions(val, ctx.legacy);
+			val = applyLegacySubstitutions(val, ctx.legacy, file.parent_path());
 			Cand c{baseName, val, SourceLocation{file, (int)li.lineAt(propNode.offset_debug())}, file, localized};
 			cands.push_back(c);
 		}
@@ -306,7 +306,7 @@ bool processFile(const fs::path& file, LoadedTheme& theme, LoaderContext& ctx, D
 			if(a != std::string::npos) incPath = text.substr(a, b - a + 1);
 		}
 		std::string resolved = ctx.variables.resolve(incPath, diag, where);
-		resolved = applyLegacySubstitutions(resolved, ctx.legacy);
+		resolved = applyLegacySubstitutions(resolved, ctx.legacy, where.file.parent_path());
 		fs::path incFile = resolved;
 		if(incFile.is_relative())
 		{

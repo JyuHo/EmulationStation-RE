@@ -6,6 +6,9 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <filesystem>
+#include <fstream>
+
 using namespace es::theme;
 
 namespace {
@@ -83,4 +86,30 @@ TEST_CASE("Variables: legacy substitutions", "[phase11][11b][ThemeVariables]")
 	CHECK(applyLegacySubstitutions("./art/logo.png", values) == "./art/logo.png");
 	// 11b: add the cases of every substitution listed in docs/THEMES.md (fallback of $system
 	// included if the documentation keeps it).
+}
+
+TEST_CASE("Variables: $system falls back to default", "[ThemeVariables]")
+{
+	// docs/THEMES.md section 6 (Recalbox ThemeData.cpp:718-730)
+	namespace fs = std::filesystem;
+	const fs::path dir = fs::temp_directory_path() / "es-test-system-fallback";
+	fs::remove_all(dir);
+	fs::create_directories(dir / "nes");
+	fs::create_directories(dir / "default");
+	std::ofstream(dir / "nes" / "logo.png") << "x";
+	std::ofstream(dir / "default" / "logo.png") << "x";
+	std::ofstream(dir / "default" / "only.png") << "x";
+
+	const LegacySubstitutions nes{.system = "nes", .language = "fr", .country = "FR"};
+	CHECK(applyLegacySubstitutions("./$system/logo.png", nes, dir) == "./nes/logo.png");
+	CHECK(applyLegacySubstitutions("./$system/only.png", nes, dir) == "./default/only.png");
+	// neither exists: the system folder is kept (the property then warns "could not find file")
+	CHECK(applyLegacySubstitutions("./$system/none.png", nes, dir) == "./nes/none.png");
+	// absolute paths ignore the base folder
+	CHECK(applyLegacySubstitutions((dir / "$system/only.png").generic_string(), nes, "/nowhere") ==
+		(dir / "default/only.png").generic_string());
+	// no system: plain substitution
+	const LegacySubstitutions none{};
+	CHECK(applyLegacySubstitutions("./$system/only.png", none, dir) == ".//only.png");
+	fs::remove_all(dir);
 }

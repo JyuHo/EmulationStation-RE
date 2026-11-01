@@ -1292,10 +1292,10 @@ Flux : `SystemData::loadTheme` → `ThemeData::loadFile` construit un `LoaderCon
 `ThemeView`/`ThemeElement`, puis `Diagnostics::log()` une seule fois.
 
 Décisions déjà prises (ne les rediscute pas sans R13) :
-- `ThemeElement::properties` reste un `std::variant` dont les cinq premières alternatives ne
-  changent pas (`glm::vec2, std::string, unsigned int, float, bool`) ; `PathList` est ajoutée à
-  la fin. Une propriété `Path` reste une `std::string` ; seule une propriété déclarée
-  `PathList` dans le schéma produit une `PathList`.
+- `ThemeElement::properties` reste le `std::variant<glm::vec2, std::string, unsigned int,
+  float, bool>` d'origine. Une propriété `Path` est une `std::string`. **Pas de `PathList`** :
+  Recalbox 10.1.1 n'a pas de liste de chemins (`PropertyTypes.h:7-15`) ; décision du
+  propriétaire du 01/11/2026, après #78.
 - `ThemeData::loadFile` ne lève plus d'exception (R6) ; `ThemeException` disparaît en 11c
   avec ses appelants (`SystemData`, `getDefault`), ou reste interne si un appelant l'exige
   (écris pourquoi).
@@ -1321,7 +1321,7 @@ jour après la fusion de la précédente. Le détail (fichiers, tests, critères
 | 11a | `modernize/phase-11a-themes-spec` | `docs/THEMES.md` (spécification sourcée), aucune ligne de C++ | — | doc |
 | 11b | `modernize/phase-11b-theme-loader` | couche 1 : diagnostics, conditions, variables, sélection des options, chargeur | `[11b]` | 800–1 200 |
 | 11c | `modernize/phase-11c-theme-schema` | couche 2 + `ThemeData` sur les couches 1 et 2, recherche du fichier, formats 4 et 5, `--check-theme` | `[11c]` | 800–1 300 |
-| 11c2 | `modernize/phase-11c2-theme-conformity` | mise en conformité de 11a–11c : section 11 de `docs/THEMES.md`, recherche du fichier, contexte du chargeur, `PathList`, tests manquants | — | 400–900 + doc |
+| 11c2 | `modernize/phase-11c2-theme-conformity` | mise en conformité de 11a–11c : section 11 de `docs/THEMES.md`, recherche du fichier, contexte du chargeur, tests manquants | — | 400–900 + doc |
 | 11d | `modernize/phase-11d-theme-properties` | propriétés communes (`zIndex`, rotation, opacité, `disabled`, repli de chemins…), `capture-themes.sh` et sondes de pixels | — | 600–1 200 |
 | 11e | `modernize/phase-11e-theme-options` | menu « Options du thème », région, enregistrement, rechargement à chaud, traductions | `[11e]` | 500–900 |
 | 11f | `modernize/phase-11f-themed-menus` | vue `menu` : fond, textes, interrupteurs, curseurs, boutons, icônes ; `delete this` des GUI touchées | — | 800–1 400 |
