@@ -8,6 +8,7 @@ extern "C" {
 }
 
 #include <algorithm>
+#include <cstdint>
 
 struct AudioDecoder::State
 {
