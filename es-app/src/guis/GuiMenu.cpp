@@ -1,5 +1,6 @@
 #include "EmulationStation.h"
 #include "utils/I18n.h"
+#include <algorithm>
 
 #include <format>
 #include "guis/GuiMenu.h"
@@ -9,6 +10,7 @@
 #include "Log.h"
 #include "platform.h"
 #include "Settings.h"
+#include "theme/ThemeOptions.h"
 #include "guis/GuiMsgBox.h"
 #include "guis/GuiSettings.h"
 #include "guis/GuiScraperStart.h"
@@ -241,6 +243,80 @@ GuiMenu::GuiMenu(Window* window) :
 					MusicPlayer::getInstance().play();
 				}
 			});
+		}
+
+		// theme options and region (phase 11e)
+		{
+			SystemData* sys = nullptr;
+			if(ViewController::get()->getState().viewing == ViewController::GAME_LIST)
+				sys = ViewController::get()->getState().getSystem();
+			if(!sys && !SystemData::sSystemVector.empty())
+				sys = SystemData::sSystemVector.front();
+			if(sys)
+			{
+				std::shared_ptr<ThemeData> theme = sys->getTheme();
+				if(theme && !theme->getSubsets().empty())
+				{
+					for(const auto& subset : theme->getSubsets())
+					{
+						if(subset.choices.empty()) continue;
+						auto comp = std::make_shared<OptionListComponent<std::string>>(mWindow, _U(subset.title.c_str()), false);
+						// sort choices: numeric if all indexed, else alphabetical
+						std::vector<es::theme::ThemeOptionChoice> sorted = subset.choices;
+						bool allIndexed = true;
+						for(const auto& c : sorted)
+						{
+							if(c.name.empty() || !std::isdigit((unsigned char)c.name[0]))
+							{ allIndexed = false; break; }
+						}
+						if(allIndexed)
+							std::sort(sorted.begin(), sorted.end(), [](const es::theme::ThemeOptionChoice& a, const es::theme::ThemeOptionChoice& b) {
+								return std::stoi(a.name) < std::stoi(b.name);
+							});
+						else
+							std::sort(sorted.begin(), sorted.end(), [](const es::theme::ThemeOptionChoice& a, const es::theme::ThemeOptionChoice& b) {
+								return a.name < b.name;
+							});
+						const std::string key = es::theme::optionSettingKey(Settings::getInstance()->getString("ThemeSet"), subset.id);
+						const std::string current = Settings::getInstance()->getStringOr(key, "");
+						bool found = false;
+						for(const auto& c : sorted)
+						{
+							std::string display = c.displayName;
+							// strip index prefix for display if present
+							bool selected = !found && (current.empty() ? (&c == &sorted.front()) : (c.name == current));
+							found = found || selected;
+							comp->add(display, c.name, selected);
+						}
+						s->addWithLabel(_U(subset.title.c_str()), comp);
+						s->addSaveFunc([comp, key, subset]() {
+							if(Settings::getInstance()->getStringOr(key, "") != comp->getSelected())
+							{
+								Settings::getInstance()->setString(key, comp->getSelected());
+								Settings::getInstance()->saveFile();
+								ViewController::get()->reloadAll();
+							}
+						});
+					}
+				}
+				if(theme && theme->usesRegion())
+				{
+					auto region = std::make_shared<OptionListComponent<std::string>>(mWindow, _U("Theme region"), false);
+					const std::string cur = Settings::getInstance()->getStringOr("ThemeRegion", "eu");
+					region->add("US", "us", cur == "us");
+					region->add("EU", "eu", cur == "eu");
+					region->add("JP", "jp", cur == "jp");
+					s->addWithLabel(_U("Theme region"), region);
+					s->addSaveFunc([region] {
+						if(Settings::getInstance()->getStringOr("ThemeRegion", "eu") != region->getSelected())
+						{
+							Settings::getInstance()->setString("ThemeRegion", region->getSelected());
+							Settings::getInstance()->saveFile();
+							ViewController::get()->reloadAll();
+						}
+					});
+				}
+			}
 		}
 
 		// language: names in their own language, catalogs in locale/<code>/LC_MESSAGES

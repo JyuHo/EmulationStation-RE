@@ -148,3 +148,11 @@ SETTINGS_GETSET(bool, mBoolMap, getBool, setBool);
 SETTINGS_GETSET(int, mIntMap, getInt, setInt);
 SETTINGS_GETSET(float, mFloatMap, getFloat, setFloat);
 SETTINGS_GETSET(const std::string&, mStringMap, getString, setString);
+
+std::string Settings::getStringOr(const std::string& name, const std::string& fallback)
+{
+	auto it = mStringMap.find(name);
+	if(it == mStringMap.end())
+		return fallback;
+	return it->second;
+}

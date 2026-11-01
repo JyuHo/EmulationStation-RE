@@ -87,6 +87,7 @@ struct LoadedTheme
 	std::vector<ThemeSubset> subsets;				   // every option of the theme, for the "Theme options" menu
 	std::map<std::string, RawView, std::less<>> views; // lowercase view name -> view
 	std::vector<std::filesystem::path> files;		   // every file read, main file first (hot reload)
+	bool usesRegion = false; // true if any element carries a region attribute
 };
 
 // Loads `file` and everything it includes.

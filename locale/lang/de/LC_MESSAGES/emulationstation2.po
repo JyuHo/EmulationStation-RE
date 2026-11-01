@@ -844,3 +844,6 @@ msgstr "Bereits belegt!"
 #: es-core/src/guis/GuiTextEditPopup.cpp:27
 msgid "discard changes"
 msgstr "Änderungen verwerfen"
+
+msgid "Theme region"
+msgstr "Theme region"
