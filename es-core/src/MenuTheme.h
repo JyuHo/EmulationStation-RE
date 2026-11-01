@@ -4,6 +4,7 @@
 #include "resources/Font.h"
 
 #include <map>
+#include <memory>
 #include <optional>
 #include <string>
 
@@ -20,6 +21,10 @@ struct MenuFont
 	std::string path;
 	float size = 0.0f;
 };
+
+// Font of a menu text style: the theme font if it gives one, else `fallback` (ES's own font,
+// written at the call site). Needs a renderer (Font::get).
+std::shared_ptr<Font> menuFontOr(const std::optional<MenuFont>& font, const std::shared_ptr<Font>& fallback);
 
 struct MenuTextStyle
 {

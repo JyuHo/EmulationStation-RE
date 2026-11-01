@@ -7,11 +7,13 @@ GuiTextEditPopup::GuiTextEditPopup(Window* window, const std::string& title, con
 	const std::function<void(const std::string&)>& okCallback, bool multiLine, const std::string& acceptBtnText) :
 	GuiComponent(window), mBackground(window, ":/frame.png"), mGrid(window, glm::ivec2(1, 3)), mMultiLine(multiLine)
 {
+	applyMenuFrame(mBackground, mWindow->getMenuTheme()); // theme frame (11f2)
 	addChild(&mBackground);
 	addChild(&mGrid);
 
 	mTitle = std::make_shared<TextComponent>(
-		mWindow, strToUpper(title), Font::get(FONT_SIZE_LARGE), 0x555555FF, ALIGN_CENTER);
+		mWindow, strToUpper(title), es::theme::menuFontOr(mWindow->getMenuTheme().title.font, Font::get(FONT_SIZE_LARGE)),
+		mWindow->getMenuTheme().title.color.value_or(0x555555FF), ALIGN_CENTER);
 
 	mText = std::make_shared<TextEditComponent>(mWindow);
 	mText->setValue(initValue);

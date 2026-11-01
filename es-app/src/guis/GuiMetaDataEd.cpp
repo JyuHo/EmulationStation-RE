@@ -1,3 +1,5 @@
+#include "Window.h"
+#include "components/MenuComponent.h"
 #include "guis/GuiMetaDataEd.h"
 #include "utils/I18n.h"
 #include <cassert>
@@ -29,16 +31,19 @@ GuiMetaDataEd::GuiMetaDataEd(Window* window, MetaDataList* md, const std::vector
 	mSavedCallback(saveCallback),
 	mDeleteFunc(deleteFunc)
 {
+	applyMenuFrame(mBackground, mWindow->getMenuTheme()); // theme frame (11f2)
 	addChild(&mBackground);
 	addChild(&mGrid);
 
 	mHeaderGrid = std::make_shared<ComponentGrid>(mWindow, glm::ivec2(1, 5));
 
 	mTitle =
-		std::make_shared<TextComponent>(mWindow, _U("Edit metadata"), Font::get(FONT_SIZE_LARGE), 0x555555FF, ALIGN_CENTER);
+		std::make_shared<TextComponent>(mWindow, _U("Edit metadata"), es::theme::menuFontOr(mWindow->getMenuTheme().title.font, Font::get(FONT_SIZE_LARGE)),
+		mWindow->getMenuTheme().title.color.value_or(0x555555FF), ALIGN_CENTER);
 	mSubtitle =
 		std::make_shared<TextComponent>(mWindow, strToUpper(scraperParams.game->getPath().filename().generic_string()),
-			Font::get(FONT_SIZE_SMALL), 0x777777FF, ALIGN_CENTER);
+			es::theme::menuFontOr(mWindow->getMenuTheme().textSmall.font, Font::get(FONT_SIZE_SMALL)),
+		mWindow->getMenuTheme().textSmall.color.value_or(0x777777FF), ALIGN_CENTER);
 	mHeaderGrid->setEntry(mTitle, glm::ivec2(0, 1), false, true);
 	mHeaderGrid->setEntry(mSubtitle, glm::ivec2(0, 3), false, true);
 
@@ -60,7 +65,8 @@ GuiMetaDataEd::GuiMetaDataEd(Window* window, MetaDataList* md, const std::vector
 		// ed's value will be set below
 		ComponentListRow row;
 		auto lbl = std::make_shared<TextComponent>(
-			mWindow, _U(iter->displayName), Font::get(FONT_SIZE_SMALL), 0x777777FF);
+			mWindow, _U(iter->displayName), es::theme::menuFontOr(mWindow->getMenuTheme().textSmall.font, Font::get(FONT_SIZE_SMALL)),
+		mWindow->getMenuTheme().textSmall.color.value_or(0x777777FF));
 		row.addElement(lbl, true); // label
 
 		switch(iter->type)
@@ -102,7 +108,8 @@ GuiMetaDataEd::GuiMetaDataEd(Window* window, MetaDataList* md, const std::vector
 		default: {
 			// MD_STRING
 			ed = std::make_shared<TextComponent>(
-				window, "", Font::get(FONT_SIZE_SMALL, FONT_PATH_LIGHT), 0x777777FF, ALIGN_RIGHT);
+				window, "", es::theme::menuFontOr(mWindow->getMenuTheme().textSmall.font, Font::get(FONT_SIZE_SMALL, FONT_PATH_LIGHT)),
+		mWindow->getMenuTheme().textSmall.color.value_or(0x777777FF), ALIGN_RIGHT);
 			row.addElement(ed, true);
 
 			auto spacer = std::make_shared<GuiComponent>(mWindow);

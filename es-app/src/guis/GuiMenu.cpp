@@ -404,8 +404,9 @@ GuiMenu::GuiMenu(Window* window) :
 		mWindow->pushGui(std::move(s));
 	}, MenuIcon::Quit);
 
-	mVersion.setFont(Font::get(FONT_SIZE_SMALL));
-	mVersion.setColor(0xC6C6C6FF);
+	// footer (Recalbox MenuComponent.cpp:167)
+	mVersion.setFont(es::theme::menuFontOr(mWindow->getMenuTheme().footer.font, Font::get(FONT_SIZE_SMALL)));
+	mVersion.setColor(mWindow->getMenuTheme().footer.color.value_or(0xC6C6C6FF));
 	const std::string version = strToUpper(PROGRAM_VERSION_STRING);
 	mVersion.setText(std::vformat(_U("EmulationStation v{}"), std::make_format_args(version)));
 	mVersion.setAlignment(ALIGN_CENTER);

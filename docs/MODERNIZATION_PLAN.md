@@ -1149,7 +1149,12 @@ est fourni : il est rempli PR par PR.
   (`menu.xml` de Recalbox), 16 propriétés `icon…` lues sans effet ; `MenuComponent::addSection`
   et en-tête « `<jeu>` configuration » avant les options du thème ; sondes `options`,
   `menu-icons`, `menu-section` dans `capture-themes.sh` ; tests `[11f4]`.
-- Reste : 11f2 (fin), 11f5, 11g à 11i.
+- **Fin de 11f2** (PR « fin de 11f2 ») : cadres et bords de toutes les fenêtres, voile, titres,
+  pied, textes des entrées, listes d'options, flèches, saisie, petits textes, séparateurs,
+  curseur, images des boutons ; barre thémée : toute la ligne sélectionnée redessinée dans la
+  couleur sélectionnée (les libellés disparaissaient) ; police de thème introuvable : police par
+  défaut au lieu d'un arrêt ; sondes ajoutées à `menu-icons`, écran `menu-switch` ; tests `[11f2]`.
+- Reste : 11f5, 11g à 11i.
 
 ---
 

@@ -1,3 +1,4 @@
+#include "Window.h"
 #include "guis/GuiGameScraper.h"
 #include "utils/I18n.h"
 #include "guis/GuiTextEditPopup.h"
@@ -17,6 +18,7 @@ GuiGameScraper::GuiGameScraper(
 	mBox(window, ":/frame.png"),
 	mSearchParams(params)
 {
+	applyMenuFrame(mBox, mWindow->getMenuTheme()); // theme frame (11f2)
 	addChild(&mBox);
 	addChild(&mGrid);
 
@@ -30,7 +32,8 @@ GuiGameScraper::GuiGameScraper(
 	// row 2 is a spacer
 
 	mSystemName = std::make_shared<TextComponent>(
-		mWindow, strToUpper(mSearchParams.system->getFullName()), Font::get(FONT_SIZE_SMALL), 0x888888FF, ALIGN_CENTER);
+		mWindow, strToUpper(mSearchParams.system->getFullName()), es::theme::menuFontOr(mWindow->getMenuTheme().textSmall.font, Font::get(FONT_SIZE_SMALL)),
+		mWindow->getMenuTheme().textSmall.color.value_or(0x888888FF), ALIGN_CENTER);
 	mGrid.setEntry(mSystemName, glm::ivec2(0, 3), false, true);
 
 	// row 4 is a spacer

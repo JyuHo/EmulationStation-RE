@@ -15,10 +15,12 @@ GuiMsgBox::GuiMsgBox(Window* window, const std::string& text, const std::string&
 	const std::string& name3, const std::function<void()>& func3) :
 	GuiComponent(window), mBackground(window, ":/frame.png"), mGrid(window, glm::ivec2(1, 2))
 {
+	applyMenuFrame(mBackground, mWindow->getMenuTheme()); // theme frame (11f2)
 	float width = Renderer::getScreenWidth() * 0.6f;	// max width
 	float minWidth = Renderer::getScreenWidth() * 0.3f; // minimum width
 
-	mMsg = std::make_shared<TextComponent>(mWindow, text, Font::get(FONT_SIZE_MEDIUM), 0x777777FF, ALIGN_CENTER);
+	mMsg = std::make_shared<TextComponent>(mWindow, text, es::theme::menuFontOr(mWindow->getMenuTheme().text.font, Font::get(FONT_SIZE_MEDIUM)),
+		mWindow->getMenuTheme().text.color.value_or(0x777777FF), ALIGN_CENTER);
 	mGrid.setEntry(mMsg, glm::ivec2(0, 0), false, false);
 
 	// create the buttons

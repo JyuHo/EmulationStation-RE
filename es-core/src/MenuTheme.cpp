@@ -1,4 +1,6 @@
 #include "MenuTheme.h"
+#include "renderer/Renderer.h"
+#include "resources/ResourceManager.h"
 
 #include "ThemeData.h"
 #include "resources/Font.h"
@@ -23,6 +25,16 @@ std::optional<MenuFont> readFont(const ThemeData::ThemeElement* e, float default
 }
 
 } // namespace
+
+std::shared_ptr<Font> menuFontOr(const std::optional<MenuFont>& font, const std::shared_ptr<Font>& fallback)
+{
+	if(!font)
+		return fallback;
+	// a missing font file (already reported by the theme loader) must not stop ES (R6):
+	// the theme size with the default font
+	const bool exists = !font->path.empty() && ResourceManager::getInstance()->fileExists(font->path);
+	return Font::get((int)(font->size * Renderer::getScreenHeight()), exists ? font->path : Font::getDefaultPath());
+}
 
 MenuTheme MenuTheme::fromTheme(const ThemeData& theme)
 {

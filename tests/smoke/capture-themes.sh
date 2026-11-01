@@ -111,6 +111,12 @@ HOME="$fakehome" ES_HOME="$home" xvfb-run -a -s '-screen 0 1280x720x24' bash -c 
 	for _ in 1 2 3 4 5 6; do xdotool key --window "$win" Down; sleep 0.5; done
 	sleep 1
 	import -window root "$out/$(printf %02d "$n")-menu-section.png"
+	n=$((n + 1))
+	# back to the main menu (cursor on UI settings), up to Sound settings: switches (11f2)
+	xdotool key --window "$win" Escape; sleep 1
+	xdotool key --window "$win" Up; sleep 0.5
+	xdotool key --window "$win" Return; sleep 2
+	import -window root "$out/$(printf %02d "$n")-menu-switch.png"
 	if ! kill -0 "$pid" 2>/dev/null; then wait "$pid"; echo "emulationstation exited early with code $?"; exit 1; fi
 	kill "$pid"
 	code=0; wait "$pid" || code=$?
@@ -156,6 +162,18 @@ probe 07-menu-icons 346 324 770000
 # section header (11f4): "PROBES CONFIGURATION" centered, 2 px lines of the menusection color
 # FF00FF in the middle of the row (y 372-373), left line from x 322
 probe 08-menu-section 400 372 FF00FF
+# themed menu (11f2), on the main menu of 07: frame center EFEFEF x menubg 00FF00 = 00EF00;
+# selector bar (Scraper, row 1): green removed (dst x (1 - 00FF00) = 000000), then 0000FF added;
+# separator under the selected row (y 299), menutext separatorColor FFFF00
+probe 07-menu-icons 640 470 00EF00
+probe 07-menu-icons 640 212 0000FF
+probe 07-menu-icons 640 299 FFFF00
+# frame edge tinted too (Recalbox BusyComponent.cpp:32-34): edge pixel CBCBCB x 00FF00 = 00CB00
+probe 07-menu-icons 320 470 00CB00
+# label of the selected row drawn over the bar in menutext selectedColor FF0000 ("S" of SCRAPER)
+probe 07-menu-icons 336 214 FF0000
+# switches (11f2): Sound settings, "Enable sounds" on = menuswitch pathOn (cyan, no tint)
+probe 09-menu-switch 937 324 00FFFF
 
 ls "$outdir"/*.png
 if [ "$failed" -ne 0 ]; then

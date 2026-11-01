@@ -31,6 +31,7 @@ add_executable(es-tests
     unit/test_ThemeCommon.cpp
     unit/test_MenuTheme.cpp
     unit/test_MenuEntries.cpp
+    unit/test_MenuThemeApply.cpp
     unit/test_Settings.cpp
 )
 target_link_libraries(es-tests PRIVATE es-app-lib Catch2::Catch2WithMain)

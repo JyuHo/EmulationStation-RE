@@ -21,7 +21,7 @@ DateTimeComponent::DateTimeComponent(Window* window, DisplayMode dispMode) :
 	mAutoSize(true)
 {
 	const auto& mt = mWindow->getMenuTheme();
-	if(mt.textSmall.font) mFont = Font::get((unsigned int)(mt.textSmall.font->size * Renderer::getScreenHeight()), mt.textSmall.font->path.c_str());
+	mFont = es::theme::menuFontOr(mt.textSmall.font, mFont);
 	if(mt.textSmall.color) mColor = *mt.textSmall.color;
 	updateTextCache();
 }

@@ -25,8 +25,7 @@ TextEditComponent::TextEditComponent(Window* window) :
 	addChild(&mBox);
 
 	const auto& mt = mWindow->getMenuTheme();
-	if(mt.text.font)
-		mFont = Font::get((unsigned int)(mt.text.font->size * Renderer::getScreenHeight()), mt.text.font->path.c_str());
+	mFont = es::theme::menuFontOr(mt.text.font, mFont);
 
 	onFocusLost();
 
@@ -203,7 +202,7 @@ void TextEditComponent::setCursor(size_t pos)
 void TextEditComponent::onTextChanged()
 {
 	std::string wrappedText = (isMultiline() ? mFont->wrapText(mText, getTextAreaSize().x) : mText);
-	mTextCache = mFont->buildTextCache(wrappedText, 0, 0, 0x77777700 | getOpacity());
+	mTextCache = mFont->buildTextCache(wrappedText, 0, 0, (mWindow->getMenuTheme().text.color.value_or(0x777777FF) & 0xFFFFFF00) | getOpacity());
 
 	if(mCursor > (int)mText.length())
 		mCursor = mText.length();

@@ -1,3 +1,5 @@
+#include "Window.h"
+#include "components/MenuComponent.h"
 #include "BusyComponent.h"
 #include "utils/I18n.h"
 
@@ -17,6 +19,7 @@ const AnimationDef BUSY_ANIMATION_DEF = {BUSY_ANIMATION_FRAMES, 4, true};
 BusyComponent::BusyComponent(Window* window) :
 	GuiComponent(window), mBackground(window, ":/frame.png"), mGrid(window, glm::ivec2(5, 3))
 {
+	applyMenuFrame(mBackground, mWindow->getMenuTheme()); // theme frame (11f2)
 	mAnimation = std::make_shared<AnimatedImageComponent>(mWindow);
 	mAnimation->load(&BUSY_ANIMATION_DEF);
 	mText = std::make_shared<TextComponent>(mWindow, _U("Working..."), Font::get(FONT_SIZE_MEDIUM), 0x777777FF);

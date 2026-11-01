@@ -213,6 +213,36 @@ Vues lues par Recalbox (`ThemeSupport::SupportedViews`, `themes/ThemeSupport.cpp
 - `keyboard` : lu dans la vue `menu`, sinon `system` (`WindowManager.cpp:131-145`).
 - Tests : `[11f1]` de `tests/unit/test_MenuTheme.cpp`.
 
+Effet sur les menus (11f2). Valeur absente : le rendu d'ES, inchangé au pixel près. Les menus
+lisent le thème à leur construction : un menu ouvert pendant un rechargement garde l'ancien
+aspect jusqu'à sa réouverture.
+
+| Champ | Effet | Source Recalbox |
+|---|---|---|
+| `menubg` `path`, `color` | cadre de chaque fenêtre (menus, boîtes de message, saisie, configuration des manettes, métadonnées, scraper, attente) ; `color` teinte le centre et les bords | `guis/Gui.cpp:14,38-40,49`, `components/BusyComponent.cpp:32-34` |
+| `menubg` `fadePath` | voile derrière les menus | `WindowManager.cpp:34,616` |
+| `menutitle` `fontPath`, `fontSize`, `color` | titres des fenêtres | `components/MenuComponent.cpp:46-47`, `guis/GuiTextEditPopup.cpp:18` |
+| `menufooter` | version en pied du menu principal | `components/MenuComponent.cpp:167` |
+| `menutext` police et `color` | libellés, valeurs des listes d'options (police légère gardée sans `fontPath`/`fontSize`), saisie, boutons, texte des boîtes de message, ligne et valeur du curseur ; `color` teinte les flèches et les interrupteurs | `components/OptionListComponent.h:52-54,163-165`, `guis/GuiMsgBox.cpp:70`, `components/MenuComponent.cpp:247-248`, `components/SwitchComponent.cpp:17-21`, `components/SliderComponent.cpp:145` |
+| `menutext` `separatorColor` | séparateurs des lignes | `components/ComponentList.cpp:214-220` |
+| `menutext` `selectorColor`, `selectedColor`, `menubg` `color` | barre de sélection (ci-dessous) | `components/ComponentList.cpp:156-212` |
+| `menutextsmall` police et `color` | petits textes (détection des manettes, métadonnées, scraper), date ; police de la valeur du curseur | `guis/GuiDetectDevice.cpp:40-47`, `components/DateTimeComponent.cpp:24` |
+| `menubutton`, `menuswitch`, `menuslider` | images des boutons (le bouton désactivé garde sa teinte `770000`, sans équivalent chez Recalbox), des interrupteurs, du curseur | `components/ButtonComponent.cpp:21-35`, `SwitchComponent.cpp:56-57`, `SliderComponent.cpp:33-37` |
+| `menusize` `height` | hauteur maximale d'un menu (défaut ES `0,7`, Recalbox `0,85`) | `components/MenuComponent.cpp:99-100` |
+
+Une police de thème introuvable (déjà signalée au chargement) prend la police par défaut à la
+taille du thème : jamais d'arrêt.
+
+Barre de sélection, choisie par la présence d'au moins une des valeurs `menutext`
+`selectorColor`, `selectedColor`, `menubg` `color` (`MenuTheme::themedSelector`) :
+
+- aucune : la barre d'ES (inversion, `777777` ajouté, bords de 2 px `878787`) ;
+- au moins une : la règle de Recalbox, valeurs absentes de Recalbox (`MenuThemeData.cpp:121,124` :
+  fond `FFFFFF`, sélecteur `878787`, sélectionné `FFFFFF`). Si le sélecteur diffère du fond et
+  n'est pas transparent : rectangle du fond en `dst × (1 − src)`, puis sélecteur ajouté ; tous les
+  éléments de la ligne sélectionnée redessinés par-dessus dans la couleur sélectionnée ; pas de
+  bords. Tests : `[11f2]`, sondes `menu-icons` et `menu-switch` de `capture-themes.sh`.
+
 ### Propriétés communes et ordre de dessin (11d)
 
 Recalbox applique ces propriétés dans `components/base/Themable.cpp:66-77` (sources de
@@ -610,9 +640,9 @@ ces tableaux et échoue si le schéma (`es-core/src/theme/ThemeSchema.cpp`) en d
 
 | Propriété | Type | Source | Statut ici |
 |---|---|---|---|
-| `color` | Color | `ThemeSupport.cpp:509`, nom `:659`, type `:23` | 11f |
-| `path` | Path | `ThemeSupport.cpp:510`, nom `:751`, type `:115` | 11f |
-| `fadePath` | Path | `ThemeSupport.cpp:511`, nom `:672`, type `:36` | 11f |
+| `color` | Color | `ThemeSupport.cpp:509`, nom `:659`, type `:23` | pris en charge (11f2) |
+| `path` | Path | `ThemeSupport.cpp:510`, nom `:751`, type `:115` | pris en charge (11f2) |
+| `fadePath` | Path | `ThemeSupport.cpp:511`, nom `:672`, type `:36` | pris en charge (11f2) |
 
 #### `menuIcons`
 
@@ -675,8 +705,8 @@ Tests : `[11f4]` de `tests/unit/test_MenuEntries.cpp` ; sondes `menu-icons` de
 
 | Propriété | Type | Source | Statut ici |
 |---|---|---|---|
-| `pathOn` | Path | `ThemeSupport.cpp:545`, nom `:753`, type `:117` | 11f |
-| `pathOff` | Path | `ThemeSupport.cpp:546`, nom `:752`, type `:116` | 11f |
+| `pathOn` | Path | `ThemeSupport.cpp:545`, nom `:753`, type `:117` | pris en charge (11f2) |
+| `pathOff` | Path | `ThemeSupport.cpp:546`, nom `:752`, type `:116` | pris en charge (11f2) |
 
 #### `menuSlider`
 
@@ -684,7 +714,7 @@ Tests : `[11f4]` de `tests/unit/test_MenuEntries.cpp` ; sondes `menu-icons` de
 
 | Propriété | Type | Source | Statut ici |
 |---|---|---|---|
-| `path` | Path | `ThemeSupport.cpp:552`, nom `:751`, type `:115` | 11f |
+| `path` | Path | `ThemeSupport.cpp:552`, nom `:751`, type `:115` | pris en charge (11f2) |
 
 #### `menuButton`
 
@@ -692,8 +722,8 @@ Tests : `[11f4]` de `tests/unit/test_MenuEntries.cpp` ; sondes `menu-icons` de
 
 | Propriété | Type | Source | Statut ici |
 |---|---|---|---|
-| `path` | Path | `ThemeSupport.cpp:558`, nom `:751`, type `:115` | 11f |
-| `filledPath` | Path | `ThemeSupport.cpp:559`, nom `:673`, type `:37` | 11f |
+| `path` | Path | `ThemeSupport.cpp:558`, nom `:751`, type `:115` | pris en charge (11f2) |
+| `filledPath` | Path | `ThemeSupport.cpp:559`, nom `:673`, type `:37` | pris en charge (11f2) |
 
 #### `menuText`
 
@@ -701,12 +731,12 @@ Tests : `[11f4]` de `tests/unit/test_MenuEntries.cpp` ; sondes `menu-icons` de
 
 | Propriété | Type | Source | Statut ici |
 |---|---|---|---|
-| `fontPath` | Path | `ThemeSupport.cpp:565`, nom `:674`, type `:38` | 11f |
-| `fontSize` | Float | `ThemeSupport.cpp:566`, nom `:675`, type `:39` | 11f |
-| `color` | Color | `ThemeSupport.cpp:567`, nom `:659`, type `:23` | 11f |
-| `separatorColor` | Color | `ThemeSupport.cpp:568`, nom `:768`, type `:132` | 11f |
-| `selectedColor` | Color | `ThemeSupport.cpp:569`, nom `:761`, type `:125` | 11f |
-| `selectorColor` | Color | `ThemeSupport.cpp:570`, nom `:762`, type `:126` | 11f |
+| `fontPath` | Path | `ThemeSupport.cpp:565`, nom `:674`, type `:38` | pris en charge (11f2) |
+| `fontSize` | Float | `ThemeSupport.cpp:566`, nom `:675`, type `:39` | pris en charge (11f2) |
+| `color` | Color | `ThemeSupport.cpp:567`, nom `:659`, type `:23` | pris en charge (11f2) |
+| `separatorColor` | Color | `ThemeSupport.cpp:568`, nom `:768`, type `:132` | pris en charge (11f2) |
+| `selectedColor` | Color | `ThemeSupport.cpp:569`, nom `:761`, type `:125` | pris en charge (11f2) |
+| `selectorColor` | Color | `ThemeSupport.cpp:570`, nom `:762`, type `:126` | pris en charge (11f2) |
 
 #### `menuTextSmall`
 
@@ -714,11 +744,11 @@ Tests : `[11f4]` de `tests/unit/test_MenuEntries.cpp` ; sondes `menu-icons` de
 
 | Propriété | Type | Source | Statut ici |
 |---|---|---|---|
-| `fontPath` | Path | `ThemeSupport.cpp:576`, nom `:674`, type `:38` | 11f |
-| `fontSize` | Float | `ThemeSupport.cpp:577`, nom `:675`, type `:39` | 11f |
-| `color` | Color | `ThemeSupport.cpp:578`, nom `:659`, type `:23` | 11f |
-| `selectedColor` | Color | `ThemeSupport.cpp:579`, nom `:761`, type `:125` | 11f |
-| `selectorColor` | Color | `ThemeSupport.cpp:580`, nom `:762`, type `:126` | 11f |
+| `fontPath` | Path | `ThemeSupport.cpp:576`, nom `:674`, type `:38` | pris en charge (11f2) |
+| `fontSize` | Float | `ThemeSupport.cpp:577`, nom `:675`, type `:39` | pris en charge (11f2) |
+| `color` | Color | `ThemeSupport.cpp:578`, nom `:659`, type `:23` | pris en charge (11f2) |
+| `selectedColor` | Color | `ThemeSupport.cpp:579`, nom `:761`, type `:125` | pris en charge (11f2) |
+| `selectorColor` | Color | `ThemeSupport.cpp:580`, nom `:762`, type `:126` | pris en charge (11f2) |
 
 #### `menuSection`
 
@@ -754,7 +784,7 @@ Tests : `[11f4]` de `tests/unit/test_MenuEntries.cpp` ; sonde `menu-section`.
 
 | Propriété | Type | Source | Statut ici |
 |---|---|---|---|
-| `height` | Float | `ThemeSupport.cpp:596`, nom `:679`, type `:43` | 11f |
+| `height` | Float | `ThemeSupport.cpp:596`, nom `:679`, type `:43` | pris en charge (11f2) |
 
 #### `keyboard`
 

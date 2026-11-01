@@ -1,9 +1,23 @@
 <!-- Fixture written for EmulationStation-RE (MIT): Recalbox format 4, own content.
      Main theme of the set (<set>/theme.xml), read for the menus only (docs/THEMES.md section 10,
-     "Vue menu"). Probes: tests/smoke/capture-themes.sh, screens menu-icons and menu-section. -->
+     "Vue menu"). Probes: tests/smoke/capture-themes.sh, screens menu-icons, menu-section and menu-switch. -->
 <theme>
 	<formatVersion>4</formatVersion>
 	<view name="menu">
+		<!-- frame tinted green; selector bar: green background removed (dst x (1 - 00FF00)), then
+		     blue added; selected text red; separators yellow (11f2) -->
+		<menuBackground name="menubg">
+			<color>00FF00FF</color>
+		</menuBackground>
+		<menuText name="menutext">
+			<separatorColor>FFFF00FF</separatorColor>
+			<selectorColor>0000FFFF</selectorColor>
+			<selectedColor>FF0000FF</selectedColor>
+		</menuText>
+		<menuSwitch name="menuswitch">
+			<pathOn>${root}/art/cyan.png</pathOn>
+			<pathOff>${root}/art/yellow.png</pathOff>
+		</menuSwitch>
 		<menuIcons name="menuicons">
 			<iconUI>${root}/art/red.png</iconUI>
 			<iconSound>${root}/art/green.png</iconSound>

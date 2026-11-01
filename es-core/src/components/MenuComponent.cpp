@@ -17,15 +17,13 @@ MenuComponent::MenuComponent(Window* window, const std::string& title, const std
 
 	mBackground.setImagePath(":/frame.png");
 	const auto& mt = mWindow->getMenuTheme();
-	if(mt.backgroundPath) mBackground.setImagePath(*mt.backgroundPath);
-	if(mt.backgroundColor) mBackground.setCenterColor(*mt.backgroundColor);
+	applyMenuFrame(mBackground, mt);
 
 	// set up title
 	mTitle = std::make_shared<TextComponent>(mWindow);
 	mTitle->setAlignment(ALIGN_CENTER);
 	mTitle->setColor(mt.title.color.value_or(0x555555FF));
-	if(mt.title.font) { /* font from theme not wired here */ }
-	setTitle(title, titleFont);
+	setTitle(title, es::theme::menuFontOr(mt.title.font, titleFont));
 	mGrid.setEntry(mTitle, glm::ivec2(0, 0), false);
 
 	// set up list which will never change (externally, anyway)
@@ -36,6 +34,11 @@ MenuComponent::MenuComponent(Window* window, const std::string& title, const std
 	updateSize();
 
 	mGrid.resetCursor();
+}
+
+const es::theme::MenuTheme& MenuComponent::getMenuTheme() const
+{
+	return mWindow->getMenuTheme();
 }
 
 void MenuComponent::setTitle(const std::string& title, const std::shared_ptr<Font>& font)
@@ -144,10 +147,24 @@ std::shared_ptr<ComponentGrid> makeButtonGrid(
 	return buttonGrid;
 }
 
+void applyMenuFrame(NinePatchComponent& frame, const es::theme::MenuTheme& theme)
+{
+	if(theme.backgroundPath)
+		frame.setImagePath(*theme.backgroundPath);
+	if(theme.backgroundColor)
+	{
+		frame.setCenterColor(*theme.backgroundColor);
+		frame.setEdgeColor(*theme.backgroundColor);
+	}
+}
+
 std::shared_ptr<ImageComponent> makeArrow(Window* window)
 {
 	auto bracket = std::make_shared<ImageComponent>(window);
 	bracket->setImage(":/arrow.svg");
+	// tint: text color, only when the theme gives one (Recalbox MenuComponent.cpp:247-248)
+	if(const auto& color = window->getMenuTheme().text.color)
+		bracket->setColorShift(*color);
 	bracket->setResize(0, round(Font::get(FONT_SIZE_MEDIUM)->getLetterHeight()));
 	return bracket;
 }
@@ -185,8 +202,10 @@ void addIconAndLabel(ComponentListRow& row, Window* window, const std::shared_pt
 void addMenuEntryLabel(ComponentListRow& row, Window* window, const std::string& label,
 	const std::shared_ptr<Font>& font, unsigned int color, std::optional<es::theme::MenuIcon> icon)
 {
-	auto text = std::make_shared<TextComponent>(window, label, font, color);
 	const es::theme::MenuTheme& mt = window->getMenuTheme();
+	// entry text (Recalbox OptionListComponent.h:52-54): theme font and color, else the caller's
+	auto text = std::make_shared<TextComponent>(
+		window, label, es::theme::menuFontOr(mt.text.font, font), mt.text.color.value_or(color));
 	const std::string path = menuIconPath(mt, icon);
 	if(path.empty())
 	{

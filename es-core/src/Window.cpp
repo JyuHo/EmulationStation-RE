@@ -128,6 +128,8 @@ void Window::setMainTheme(std::shared_ptr<const ThemeData> theme)
 		mMenuTheme = es::theme::MenuTheme::fromTheme(*theme);
 	else
 		mMenuTheme = es::theme::MenuTheme{};
+	// veil drawn behind the menus (Recalbox WindowManager.cpp:34, :616)
+	mBackgroundOverlay->setImage(mMenuTheme.fadePath.value_or(":/scroll_gradient.png"));
 }
 
 void Window::deinit()
