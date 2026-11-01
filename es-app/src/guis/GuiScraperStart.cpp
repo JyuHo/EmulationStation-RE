@@ -33,7 +33,7 @@ GuiScraperStart::GuiScraperStart(Window* window) : GuiComponent(window), mMenu(w
 	mMenu.addWithLabel(_("User decides on conflicts"), mApproveResults);
 
 	mMenu.addButton(_U("Start"), _("start"), std::bind(&GuiScraperStart::pressedStart, this));
-	mMenu.addButton(_U("Back"), _("back"), [&] { delete this; });
+	mMenu.addButton(_U("Back"), _("back"), [&] { mWindow->closeGui(this); });
 
 	mMenu.setPosition((Renderer::getScreenWidth() - mMenu.getSize().x) / 2, Renderer::getScreenHeight() * 0.15f);
 }
@@ -68,7 +68,7 @@ void GuiScraperStart::start()
 	{
 		auto gsm = std::make_unique<GuiScraperMulti>(mWindow, searches, mApproveResults->getState());
 		mWindow->pushGui(std::move(gsm));
-		delete this;
+		mWindow->closeGui(this);
 	}
 }
 
@@ -102,7 +102,7 @@ bool GuiScraperStart::input(InputConfig* config, Input input)
 
 	if(input.value != 0 && config->isMappedTo("b", input))
 	{
-		delete this;
+		mWindow->closeGui(this);
 		return true;
 	}
 

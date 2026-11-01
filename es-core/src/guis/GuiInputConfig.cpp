@@ -167,7 +167,7 @@ GuiInputConfig::GuiInputConfig(
 		InputManager::getInstance()->writeDeviceConfig(mTargetConfig); // save
 		if(okCallback)
 			okCallback();
-		delete this;
+		mWindow->closeGui(this);
 	}));
 	mButtonGrid = makeButtonGrid(mWindow, buttons);
 	mGrid.setEntry(mButtonGrid, glm::ivec2(0, 6), true, false);

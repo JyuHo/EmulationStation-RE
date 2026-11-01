@@ -1,3 +1,4 @@
+#include "Window.h"
 #include "guis/GuiMsgBox.h"
 #include "utils/I18n.h"
 #include "renderer/Renderer.h"
@@ -105,7 +106,7 @@ void GuiMsgBox::onSizeChanged()
 void GuiMsgBox::deleteMeAndCall(const std::function<void()>& func)
 {
 	auto funcCopy = func;
-	delete this;
+	mWindow->closeGui(this);
 
 	if(funcCopy)
 		funcCopy();

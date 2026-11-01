@@ -78,7 +78,7 @@ bool GuiDetectDevice::input(InputConfig* config, Input input)
 		input.id == SDLK_ESCAPE)
 	{
 		// cancel configuring
-		delete this;
+		mWindow->closeGui(this);
 		return true;
 	}
 
@@ -114,7 +114,7 @@ void GuiDetectDevice::update(int deltaTime)
 		{
 			// picked one!
 			mWindow->pushGui(std::make_unique<GuiInputConfig>(mWindow, mHoldingConfig, true, mDoneCallback));
-			delete this;
+			mWindow->closeGui(this);
 		}
 	}
 }

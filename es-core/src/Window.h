@@ -21,6 +21,10 @@ public:
 	void pushGui(std::unique_ptr<GuiComponent> gui);
 	// Unlinks gui from the stack without deleting it; called by ~GuiComponent.
 	void removeGui(GuiComponent* gui);
+	// Closes a GUI owned by the stack: unlinks it immediately and deletes it later
+	// (at the start of the next update, or at destruction). Safe to call on a GUI
+	// that is not on the stack.
+	void closeGui(GuiComponent* gui);
 	GuiComponent* peekGui();
 
 	void textInput(const char* text);
@@ -56,6 +60,7 @@ private:
 	std::unique_ptr<ImageComponent> mBackgroundOverlay;
 
 	std::vector<std::unique_ptr<GuiComponent>> mGuiStack;
+	std::vector<std::unique_ptr<GuiComponent>> mClosedGuis;
 
 	std::vector<std::shared_ptr<Font>> mDefaultFonts;
 

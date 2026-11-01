@@ -444,7 +444,7 @@ bool GuiMenu::input(InputConfig* config, Input input)
 
 	if((config->isMappedTo("b", input) || config->isMappedTo("start", input)) && input.value != 0)
 	{
-		delete this;
+		mWindow->closeGui(this);
 		return true;
 	}
 
@@ -457,7 +457,7 @@ void GuiMenu::update(int deltaTime)
 	if(Settings::getInstance()->getString("Language") != mLanguage)
 	{
 		Window* window = mWindow;
-		delete this;
+		mWindow->closeGui(this);
 		window->pushGui(std::make_unique<GuiMenu>(window));
 		return;
 	}

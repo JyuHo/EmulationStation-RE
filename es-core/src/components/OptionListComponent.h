@@ -84,7 +84,7 @@ private:
 						mParent->mEntries.at(mParent->getSelectedId()).selected = false;
 						e.selected = true;
 						mParent->onSelectedChanged();
-						delete this;
+						mWindow->closeGui(this);
 					});
 				}
 
@@ -92,7 +92,7 @@ private:
 				mMenu.addRow(row, (!mParent->mMultiSelect && it->selected));
 			}
 
-			mMenu.addButton(_U("Back"), _("accept"), [this] { delete this; });
+			mMenu.addButton(_U("Back"), _("accept"), [this] { mWindow->closeGui(this); });
 
 			if(mParent->mMultiSelect)
 			{
@@ -124,7 +124,7 @@ private:
 		{
 			if(config->isMappedTo("b", input) && input.value != 0)
 			{
-				delete this;
+				mWindow->closeGui(this);
 				return true;
 			}
 
