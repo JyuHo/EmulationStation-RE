@@ -27,6 +27,9 @@
 #include "scrapers/GamesDBScraper.h"
 #include "scrapers/TheArchiveScraper.h"
 
+// entry icons: Recalbox data/resources/menu.xml @10.1.1 (docs/THEMES.md, "menuIcons")
+using es::theme::MenuIcon;
+
 GuiMenu::GuiMenu(Window* window) :
 	GuiComponent(window),
 	mMenu(window, _U("Main menu")),
@@ -82,7 +85,7 @@ GuiMenu::GuiMenu(Window* window) :
 		s->addRow(row);
 
 		mWindow->pushGui(std::move(s));
-	});
+	}, MenuIcon::Scraper);
 
 	addEntry(_U("Sound settings"), 0x777777FF, true, [this] {
 		auto s = std::make_unique<GuiSettings>(mWindow, _U("Sound settings"));
@@ -153,7 +156,7 @@ GuiMenu::GuiMenu(Window* window) :
 		s->addSaveFunc([video_audio] { Settings::getInstance()->setBool("VideoAudio", video_audio->getState()); });
 
 		mWindow->pushGui(std::move(s));
-	});
+	}, MenuIcon::Sound);
 
 	addEntry(_U("UI settings"), 0x777777FF, true, [this] {
 		auto s = std::make_unique<GuiSettings>(mWindow, _U("UI settings"));
@@ -262,6 +265,8 @@ GuiMenu::GuiMenu(Window* window) :
 
 				if(theme && !theme->getSubsets().empty())
 				{
+					// Recalbox: "<theme> CONFIGURATION" before the theme options (menu.xml:435-436)
+					s->addSection(std::vformat(_U("{} configuration"), std::make_format_args(themeSet)));
 					const auto& selected = theme->getSelectedOptions();
 					for(const auto& subset : theme->getSubsets())
 					{
@@ -341,10 +346,11 @@ GuiMenu::GuiMenu(Window* window) :
 		});
 
 		mWindow->pushGui(std::move(s));
-	});
+	}, MenuIcon::UI);
 
 	addEntry(_U("Configure input"), 0x777777FF, true,
-		[this] { mWindow->pushGui(std::make_unique<GuiDetectDevice>(mWindow, false, nullptr)); });
+		[this] { mWindow->pushGui(std::make_unique<GuiDetectDevice>(mWindow, false, nullptr)); },
+		MenuIcon::Controllers);
 
 	addEntry(_U("Quit"), 0x777777FF, true, [this] {
 		auto s = std::make_unique<GuiSettings>(mWindow, _U("Quit"));
@@ -361,8 +367,7 @@ GuiMenu::GuiMenu(Window* window) :
 				},
 				_U("No"), nullptr));
 		});
-		row.addElement(
-			std::make_shared<TextComponent>(window, _U("Restart system"), Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
+		addMenuEntryLabel(row, window, _U("Restart system"), Font::get(FONT_SIZE_MEDIUM), 0x777777FF, MenuIcon::Restart);
 		s->addRow(row);
 
 		row.elements.clear();
@@ -375,8 +380,7 @@ GuiMenu::GuiMenu(Window* window) :
 				},
 				_U("No"), nullptr));
 		});
-		row.addElement(
-			std::make_shared<TextComponent>(window, _U("Shut down system"), Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
+		addMenuEntryLabel(row, window, _U("Shut down system"), Font::get(FONT_SIZE_MEDIUM), 0x777777FF, MenuIcon::Shutdown);
 		s->addRow(row);
 
 		if(Settings::getInstance()->getBool("ShowExit"))
@@ -392,14 +396,13 @@ GuiMenu::GuiMenu(Window* window) :
 					},
 					_U("No"), nullptr));
 			});
-			row.addElement(std::make_shared<TextComponent>(
-							   window, _U("Quit EmulationStation"), Font::get(FONT_SIZE_MEDIUM), 0x777777FF),
-				true);
+			// no Recalbox equivalent: no icon
+			addMenuEntryLabel(row, window, _U("Quit EmulationStation"), Font::get(FONT_SIZE_MEDIUM), 0x777777FF, std::nullopt);
 			s->addRow(row);
 		}
 
 		mWindow->pushGui(std::move(s));
-	});
+	}, MenuIcon::Quit);
 
 	mVersion.setFont(Font::get(FONT_SIZE_SMALL));
 	mVersion.setColor(0xC6C6C6FF);
@@ -420,13 +423,14 @@ void GuiMenu::onSizeChanged()
 	mVersion.setPosition(0, mSize.y - mVersion.getSize().y);
 }
 
-void GuiMenu::addEntry(const std::string& name, unsigned int color, bool add_arrow, const std::function<void()>& func)
+void GuiMenu::addEntry(const std::string& name, unsigned int color, bool add_arrow, const std::function<void()>& func,
+	std::optional<MenuIcon> icon)
 {
 	std::shared_ptr<Font> font = Font::get(FONT_SIZE_MEDIUM);
 
 	// populate the list
 	ComponentListRow row;
-	row.addElement(std::make_shared<TextComponent>(mWindow, name, font, color), true);
+	addMenuEntryLabel(row, mWindow, name, font, color, icon);
 
 	if(add_arrow)
 	{

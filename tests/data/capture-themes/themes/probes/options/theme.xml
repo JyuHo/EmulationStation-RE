@@ -1,0 +1,10 @@
+<!-- Fixture written for EmulationStation-RE (MIT): Recalbox format 4, own content.
+     Theme options (docs/THEMES.md section 8): no stored choice, the first value is used (blue).
+     Probes: tests/smoke/capture-themes.sh, screens options and menu-section. -->
+<theme>
+	<formatVersion>4</formatVersion>
+	<include>${root}/common.xml</include>
+	<subset subset="tint" title="Tint"/>
+	<include subset="tint" name="blue">${root}/options/blue.xml</include>
+	<include subset="tint" name="red">${root}/options/red.xml</include>
+</theme>

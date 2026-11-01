@@ -1,5 +1,7 @@
 #include "components/MenuComponent.h"
 #include "components/ButtonComponent.h"
+#include "components/ImageComponent.h"
+#include "components/MenuSectionComponent.h"
 #include "Window.h"
 
 #define BUTTON_GRID_VERT_PADDING 32
@@ -82,6 +84,16 @@ void MenuComponent::onSizeChanged()
 	mGrid.setSize(mSize);
 }
 
+void MenuComponent::addSection(const std::string& label)
+{
+	ComponentListRow row;
+	row.addElement(std::make_shared<MenuSectionComponent>(mWindow, label), true,
+		!MenuSectionComponent::drawnAfterSelector(mWindow));
+	// selectable, no action (ItemHeader.h:58-69: folding is commented out)
+	row.input_handler = [](InputConfig*, Input) { return false; };
+	addRow(row);
+}
+
 void MenuComponent::addButton(
 	const std::string& name, const std::string& helpText, const std::function<void()>& callback)
 {
@@ -138,4 +150,94 @@ std::shared_ptr<ImageComponent> makeArrow(Window* window)
 	bracket->setImage(":/arrow.svg");
 	bracket->setResize(0, round(Font::get(FONT_SIZE_MEDIUM)->getLetterHeight()));
 	return bracket;
+}
+
+MenuIconGeometry menuIconGeometry(float rowHeight, float screenWidth)
+{
+	// margin 3 + width / 320 (Menu.cpp:38); side (int)(height x 0.8) (:331); label after the
+	// side and the margin (:336)
+	const float margin = 3.0f + (float)((int)screenWidth / 320);
+	const float side = (float)(int)(rowHeight * 0.8f);
+	return {side, margin, side + margin};
+}
+
+std::string menuIconPath(const es::theme::MenuTheme& theme, std::optional<es::theme::MenuIcon> icon)
+{
+	if(!icon)
+		return {};
+	const auto it = theme.icons.find(*icon);
+	return it == theme.icons.end() ? std::string() : it->second;
+}
+
+void addIconAndLabel(ComponentListRow& row, Window* window, const std::shared_ptr<GuiComponent>& label,
+	const std::shared_ptr<GuiComponent>& icon, float gap)
+{
+	if(icon)
+	{
+		row.addElement(icon, false);
+		auto spacer = std::make_shared<GuiComponent>(window);
+		spacer->setSize(gap, 0);
+		row.addElement(spacer, false);
+	}
+	row.addElement(label, true);
+}
+
+void addMenuEntryLabel(ComponentListRow& row, Window* window, const std::string& label,
+	const std::shared_ptr<Font>& font, unsigned int color, std::optional<es::theme::MenuIcon> icon)
+{
+	auto text = std::make_shared<TextComponent>(window, label, font, color);
+	const es::theme::MenuTheme& mt = window->getMenuTheme();
+	const std::string path = menuIconPath(mt, icon);
+	if(path.empty())
+	{
+		addIconAndLabel(row, window, text, nullptr, 0);
+		return;
+	}
+	const MenuIconGeometry g = menuIconGeometry(text->getSize().y, (float)Renderer::getScreenWidth());
+	auto image = std::make_shared<ImageComponent>(window);
+	image->setImage(path);
+	image->setResize(g.side, g.side);
+	// ComponentList puts the first element at its left padding: the origin moves the square to
+	// g.x from the row edge
+	image->setOrigin((ComponentList::kHorizontalPadding / 2 - g.x) / g.side, 0.0f);
+	// tint: text color, selected color on the selected row (Menu.cpp:325)
+	image->setColor(mt.text.color.value_or(0x777777FF));
+	addIconAndLabel(row, window, text, image, g.textOffset - g.side);
+}
+
+std::string sectionHeaderText(const std::string& label, Alignment alignment)
+{
+	const std::string upper = strToUpper(label);
+	return alignment == ALIGN_LEFT ? upper + "\xE2\x96\xBC " : "\xE2\x96\xBC " + upper;
+}
+
+SectionHeaderLayout sectionHeaderLayout(
+	float width, float labelWidth, Alignment alignment, float screenWidth, float screenHeight)
+{
+	SectionHeaderLayout l{};
+	const int w = (int)width;
+	const int label = (int)labelWidth;
+	const int gap = (int)screenWidth / 160;  // ItemHeader.h:20
+	l.lineHeight = screenHeight <= 480 ? 1 : 2; // :22, :99
+	l.textMargin = (float)(gap + 2);
+	switch(alignment)
+	{
+		case ALIGN_LEFT: // :104-106
+			l.lines[0] = {label + gap * 2 + 2, w - (label + gap * 2 + 2)};
+			l.lineCount = 1;
+			break;
+		case ALIGN_RIGHT: // :110-112
+			l.lines[0] = {2, w - (label + gap * 2 + 2)};
+			l.lineCount = 1;
+			break;
+		case ALIGN_CENTER: // :116-119
+		{
+			const int length = (w - label) / 2 - (gap + 2);
+			l.lines[0] = {2, length};
+			l.lines[1] = {(w + label) / 2 + gap, length};
+			l.lineCount = 2;
+			break;
+		}
+	}
+	return l;
 }

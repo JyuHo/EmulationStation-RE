@@ -1,0 +1,15 @@
+<!-- Fixture written for EmulationStation-RE (MIT): Recalbox format 4, own content.
+     Main theme of the set (<set>/theme.xml), read for the menus only (docs/THEMES.md section 10,
+     "Vue menu"). Probes: tests/smoke/capture-themes.sh, screens menu-icons and menu-section. -->
+<theme>
+	<formatVersion>4</formatVersion>
+	<view name="menu">
+		<menuIcons name="menuicons">
+			<iconUI>${root}/art/red.png</iconUI>
+			<iconSound>${root}/art/green.png</iconSound>
+		</menuIcons>
+		<menuSection name="menusection">
+			<color>FF00FFFF</color>
+		</menuSection>
+	</view>
+</theme>

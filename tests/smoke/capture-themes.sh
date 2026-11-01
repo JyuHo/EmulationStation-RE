@@ -5,7 +5,8 @@
 #
 # Starts ES under Xvfb with the fixture in tests/data/capture-themes: one system per feature,
 # each with an original format 4 theme made of plain rectangles (tests/data/capture-themes/
-# themes/probes). Takes one PNG per system view, then reads chosen pixels with probe.sh.
+# themes/probes). Takes one PNG per system view, then two of the menus (main menu, UI settings)
+# with the main theme of the set (probes/theme.xml); reads chosen pixels with probe.sh.
 # Prints one line per probe; fails if a probe, the theme check or the run fails.
 set -euo pipefail
 
@@ -13,7 +14,7 @@ binary="$(realpath "$1")"
 outdir="$(mkdir -p "$2" && realpath "$2")"
 here="$(dirname "$(realpath "$0")")"
 fixture="$here/../data/capture-themes"
-systems=(zindex zswap rotation rorigin disabled)
+systems=(zindex zswap rotation rorigin disabled options)
 
 for tool in xvfb-run xdotool import; do
 	if ! command -v "$tool" >/dev/null; then
@@ -98,6 +99,18 @@ HOME="$fakehome" ES_HOME="$home" xvfb-run -a -s '-screen 0 1280x720x24' bash -c 
 		import -window root "$out/$(printf %02d "$n")-$system.png"
 		n=$((n + 1))
 	done
+	# menus (11f4), from the game list of the last system (options): main menu, then UI settings
+	xdotool key --window "$win" Return; sleep 2
+	xdotool key --window "$win" F1; sleep 2
+	import -window root "$out/$(printf %02d "$n")-menu-icons.png"
+	n=$((n + 1))
+	xdotool key --window "$win" Down; sleep 0.5
+	xdotool key --window "$win" Down; sleep 0.5
+	xdotool key --window "$win" Return; sleep 2
+	# down to "Theme set", the row before the header: the list scrolls, the header stays unselected
+	for _ in 1 2 3 4 5 6; do xdotool key --window "$win" Down; sleep 0.5; done
+	sleep 1
+	import -window root "$out/$(printf %02d "$n")-menu-section.png"
 	if ! kill -0 "$pid" 2>/dev/null; then wait "$pid"; echo "emulationstation exited early with code $?"; exit 1; fi
 	kill "$pid"
 	code=0; wait "$pid" || code=$?
@@ -116,7 +129,7 @@ fi
 # edges (linear filtering), hence a small tolerance.
 failed=0
 probe() { "$here/probe.sh" "$outdir/$1.png" "$2" "$3" "$4" 4 || failed=$((failed + 1)); }
-for screen in 01-zindex 02-zswap 03-rotation 04-rorigin 05-disabled; do
+for screen in 01-zindex 02-zswap 03-rotation 04-rorigin 05-disabled 06-options; do
 	probe "$screen" 1088 72 00FFFF # control rectangle: the screen is drawn
 done
 # zIndex: red (20) over blue (15) where they overlap, though declared first
@@ -133,6 +146,16 @@ probe 04-rorigin 110 150 00FF00
 probe 04-rorigin 256 54 404040
 # disabled: the yellow rectangle is not drawn
 probe 05-disabled 256 108 404040
+# theme option (11e2): no stored choice, the first value ("blue") is included
+probe 06-options 256 108 0000FF
+# entry icons (11f4): squares of side (int)(row height x 0.8) at 3 + 1280 / 320 = 7 px from the
+# list edge (x 320). Plain images tinted by the text color 777777 (menutext absent): green
+# 00FF00 x 77/FF = 007700 (Sound settings, row 2), red FF0000 -> 770000 (UI settings, row 3)
+probe 07-menu-icons 346 275 007700
+probe 07-menu-icons 346 324 770000
+# section header (11f4): "PROBES CONFIGURATION" centered, 2 px lines of the menusection color
+# FF00FF in the middle of the row (y 372-373), left line from x 322
+probe 08-menu-section 400 372 FF00FF
 
 ls "$outdir"/*.png
 if [ "$failed" -ne 0 ]; then

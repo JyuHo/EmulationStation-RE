@@ -14,6 +14,7 @@ public:
 	{
 		mMenu.addWithLabel(label, comp);
 	};
+	inline void addSection(const std::string& label) { mMenu.addSection(label); };
 	inline void addSaveFunc(const std::function<void()>& func) { mSaveFuncs.push_back(func); };
 
 	bool input(InputConfig* config, Input input) override;

@@ -67,6 +67,12 @@ struct MenuTheme
 
 	std::map<MenuIcon, std::string> icons;
 
+	// the theme sets the selector bar or the selected text: ComponentList draws its themed bar
+	bool themedSelector() const
+	{
+		return text.selectorColor.has_value() || text.selectedColor.has_value() || backgroundColor.has_value();
+	}
+
 	static MenuTheme fromTheme(const ThemeData& theme);
 };
 
