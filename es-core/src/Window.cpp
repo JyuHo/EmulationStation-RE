@@ -26,6 +26,12 @@ Window::Window() :
 
 Window::~Window()
 {
+	// destroy any GUIs closed with closeGui() but not yet drained
+	{
+		std::vector<std::unique_ptr<GuiComponent>> pending;
+		pending.swap(mClosedGuis);
+		pending.clear();
+	}
 	// delete all our GUIs, top first; each destructor calls removeGui(), which finds nothing left to unlink
 	while(!mGuiStack.empty())
 	{
@@ -54,6 +60,23 @@ void Window::removeGui(GuiComponent* gui)
 			i = mGuiStack.erase(i);
 
 			if(i == mGuiStack.end() && mGuiStack.size()) // we just popped the stack and the stack is not empty
+				mGuiStack.back()->updateHelpPrompts();
+
+			return;
+		}
+	}
+}
+
+void Window::closeGui(GuiComponent* gui)
+{
+	for(auto i = mGuiStack.begin(); i != mGuiStack.end(); i++)
+	{
+		if(i->get() == gui)
+		{
+			mClosedGuis.push_back(std::move(*i));
+			i = mGuiStack.erase(i);
+
+			if(i == mGuiStack.end() && mGuiStack.size())
 				mGuiStack.back()->updateHelpPrompts();
 
 			return;
@@ -152,6 +175,11 @@ void Window::input(InputConfig* config, Input input)
 
 void Window::update(int deltaTime)
 {
+	// destroy GUIs closed with closeGui() during the previous frame
+	{
+		std::vector<std::unique_ptr<GuiComponent>> pending;
+		pending.swap(mClosedGuis);
+	}
 	// textures decoded in the background since the last frame
 	TextureResource::processPendingLoads();
 

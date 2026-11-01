@@ -138,8 +138,7 @@ Reliquat de 3.D, sans série dédiée : traite-le quand une phase réécrit le m
   `AsyncReqComponent` (qui se détruit lui-même).
 - Arbre `FileData` (enfants en `FileData*`) et `SystemData::sSystemVector` : propriété
   brute, utilisée partout. À reprendre avec la phase 11 (collections) ou une PR dédiée.
-- 36 `delete this` dans les GUI : fonctionnent (voir 0.3) mais devraient devenir
-  `mWindow->closeGui(this)` ; à faire avec la refonte des menus thémés (phase 11).
+- `delete this` dans les GUI : remplacés par `mWindow->closeGui(this)` (phase 11f3).
 
 Les tests existants sont des **tests de caractérisation** : ils fixent le comportement
 actuel. Tu n'en changes les valeurs attendues que pour un changement de comportement
@@ -187,11 +186,9 @@ voulu, expliqué dans la PR.
   vrai `$HOME` et la migration est sautée.
 - **Étape CI « No hardcoded paths »** : elle cherche aussi dans les commentaires et les
   messages ; écris `$HOME/…` plutôt que `/home/…` dans un exemple.
-- **Propriété des GUI** : `Window` possède les GUI empilées (`pushGui(unique_ptr)`), mais
-  elles se ferment encore avec `delete this`. `Window::removeGui` **détache sans
-  supprimer** (son appelant est `~GuiComponent`). Ne le change pas sans traiter tous les
-  `delete this` : #6 l'avait fait et chaque fermeture de menu libérait deux fois la
-  mémoire. `tests/unit/test_Window.cpp` couvre ce cas.
+- **Propriété des GUI** : `Window` possède les GUI empilées (`pushGui(unique_ptr)`). La
+  fermeture se fait par `Window::closeGui(gui)` (différée à `update()`), `removeGui` reste
+  pour les GUI détruites autrement. `tests/unit/test_Window.cpp` couvre ce cas.
 - **`GuiComponent` n'est plus copiable** (il possède ses animations en `unique_ptr`) :
   stocke les composants dans des `unique_ptr` (ex. `ImageGridComponent::mImages`).
 - **Animations** : le slot est vidé **avant** la destruction du contrôleur, car son

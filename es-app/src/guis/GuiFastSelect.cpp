@@ -51,7 +51,7 @@ bool GuiFastSelect::input(InputConfig* config, Input input)
 		// the user let go of select; make our changes to the gamelist and close this gui
 		updateGameListSort();
 		updateGameListCursor();
-		delete this;
+		mWindow->closeGui(this);
 		return true;
 	}
 

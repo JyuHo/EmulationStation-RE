@@ -8,7 +8,7 @@ GuiSettings::GuiSettings(Window* window, const std::string& title) : GuiComponen
 {
 	addChild(&mMenu);
 
-	mMenu.addButton(_("Back"), _("go back"), [this] { delete this; });
+	mMenu.addButton(_("Back"), _("go back"), [this] { mWindow->closeGui(this); });
 
 	setSize((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
 	mMenu.setPosition((mSize.x - mMenu.getSize().x) / 2, Renderer::getScreenHeight() * 0.15f);
@@ -34,7 +34,7 @@ bool GuiSettings::input(InputConfig* config, Input input)
 {
 	if(config->isMappedTo("b", input) && input.value != 0)
 	{
-		delete this;
+		mWindow->closeGui(this);
 		return true;
 	}
 

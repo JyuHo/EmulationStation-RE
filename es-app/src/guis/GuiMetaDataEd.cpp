@@ -140,15 +140,15 @@ GuiMetaDataEd::GuiMetaDataEd(Window* window, MetaDataList* md, const std::vector
 
 	buttons.push_back(std::make_shared<ButtonComponent>(mWindow, _U("Save"), _("save"), [&] {
 		save();
-		delete this;
+		mWindow->closeGui(this);
 	}));
-	buttons.push_back(std::make_shared<ButtonComponent>(mWindow, _U("Cancel"), _("cancel"), [&] { delete this; }));
+	buttons.push_back(std::make_shared<ButtonComponent>(mWindow, _U("Cancel"), _("cancel"), [&] { mWindow->closeGui(this); }));
 
 	if(mDeleteFunc)
 	{
 		auto deleteFileAndSelf = [&] {
 			mDeleteFunc();
-			delete this;
+			mWindow->closeGui(this);
 		};
 		auto deleteBtnFunc = [this, deleteFileAndSelf] {
 			mWindow->pushGui(std::make_unique<GuiMsgBox>(
@@ -233,7 +233,7 @@ void GuiMetaDataEd::close(bool closeAllWindows)
 	if(!closeAllWindows)
 	{
 		closeFunc = [this] {
-			delete this;
+			mWindow->closeGui(this);
 		};
 	}
 	else

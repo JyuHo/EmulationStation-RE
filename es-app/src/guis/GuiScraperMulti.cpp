@@ -154,7 +154,7 @@ void GuiScraperMulti::finish()
 					  _N("{} game skipped.", "{} games skipped.", mTotalSkipped), std::make_format_args(mTotalSkipped)));
 	}
 
-	mWindow->pushGui(std::make_unique<GuiMsgBox>(mWindow, ss.str(), _U("OK"), [&] { delete this; }));
+	mWindow->pushGui(std::make_unique<GuiMsgBox>(mWindow, ss.str(), _U("OK"), [&] { mWindow->closeGui(this); }));
 }
 
 std::vector<HelpPrompt> GuiScraperMulti::getHelpPrompts()

@@ -46,12 +46,12 @@ GuiGameScraper::GuiGameScraper(
 		mSearch->openInputScreen(mSearchParams);
 		mGrid.resetCursor();
 	}));
-	buttons.push_back(std::make_shared<ButtonComponent>(mWindow, _U("Cancel"), _("cancel"), [&] { delete this; }));
+	buttons.push_back(std::make_shared<ButtonComponent>(mWindow, _U("Cancel"), _("cancel"), [&] { mWindow->closeGui(this); }));
 	mButtonGrid = makeButtonGrid(mWindow, buttons);
 
 	mGrid.setEntry(mButtonGrid, glm::ivec2(0, 6), true, false);
 
-	// we call this->close() instead of just delete this; in the accept callback:
+	// we call this->close() instead of just mWindow->closeGui(this); in the accept callback:
 	// this is because of how GuiComponent::update works.  if it was just delete this, this would happen when the metadata resolver is done:
 	//     GuiGameScraper::update()
 	//       GuiComponent::update()
@@ -72,12 +72,12 @@ GuiGameScraper::GuiGameScraper(
 	//           acceptCallback -> close() -> mClose = true
 	//         it++; // ok
 	//       if(mClose)
-	//         delete this;
+	//         mWindow->closeGui(this);
 	mSearch->setAcceptCallback([this, doneFunc](const ScraperSearchResult& result) {
 		doneFunc(result);
 		close();
 	});
-	mSearch->setCancelCallback([&] { delete this; });
+	mSearch->setCancelCallback([&] { mWindow->closeGui(this); });
 
 	setSize(Renderer::getScreenWidth() * 0.95f, Renderer::getScreenHeight() * 0.747f);
 	setPosition((Renderer::getScreenWidth() - mSize.x) / 2, (Renderer::getScreenHeight() - mSize.y) / 2);
@@ -103,7 +103,7 @@ bool GuiGameScraper::input(InputConfig* config, Input input)
 {
 	if(config->isMappedTo("b", input) && input.value)
 	{
-		delete this;
+		mWindow->closeGui(this);
 		return true;
 	}
 
@@ -115,7 +115,7 @@ void GuiGameScraper::update(int deltaTime)
 	GuiComponent::update(deltaTime);
 
 	if(mClose)
-		delete this;
+		mWindow->closeGui(this);
 }
 
 std::vector<HelpPrompt> GuiGameScraper::getHelpPrompts()

@@ -119,14 +119,14 @@ void GuiGamelistOptions::jumpToLetter()
 
 	gamelist->setCursor(files.at(mid));
 
-	delete this;
+	mWindow->closeGui(this);
 }
 
 bool GuiGamelistOptions::input(InputConfig* config, Input input)
 {
 	if((config->isMappedTo("b", input) || config->isMappedTo("select", input)) && input.value)
 	{
-		delete this;
+		mWindow->closeGui(this);
 		return true;
 	}
 

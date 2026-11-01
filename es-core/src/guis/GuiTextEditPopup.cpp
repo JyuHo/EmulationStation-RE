@@ -1,3 +1,4 @@
+#include "Window.h"
 #include "guis/GuiTextEditPopup.h"
 #include "utils/I18n.h"
 #include "components/MenuComponent.h"
@@ -22,9 +23,9 @@ GuiTextEditPopup::GuiTextEditPopup(Window* window, const std::string& title, con
 	buttons.push_back(std::make_shared<ButtonComponent>(mWindow, acceptBtnText.empty() ? _U("OK") : acceptBtnText,
 		acceptBtnText.empty() ? _("ok") : I18n::toUpperUtf8(acceptBtnText), [this, okCallback] {
 		okCallback(mText->getValue());
-		delete this;
+		mWindow->closeGui(this);
 	}));
-	buttons.push_back(std::make_shared<ButtonComponent>(mWindow, _U("Cancel"), _("discard changes"), [this] { delete this; }));
+	buttons.push_back(std::make_shared<ButtonComponent>(mWindow, _U("Cancel"), _("discard changes"), [this] { mWindow->closeGui(this); }));
 
 	mButtonGrid = makeButtonGrid(mWindow, buttons);
 
@@ -63,7 +64,7 @@ bool GuiTextEditPopup::input(InputConfig* config, Input input)
 	// pressing back when not text editing closes us
 	if(config->isMappedTo("b", input) && input.value)
 	{
-		delete this;
+		mWindow->closeGui(this);
 		return true;
 	}
 
