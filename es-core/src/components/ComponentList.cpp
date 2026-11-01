@@ -144,7 +144,9 @@ void ComponentList::updateCameraOffset()
 {
 	// move the camera to scroll
 	const float totalHeight = getTotalRowHeight();
-	if(totalHeight > mSize.y)
+	// an empty list has no cursor row: MenuComponent can give it a negative height while it lays
+	// out its title and buttons, before any row is added (UI settings with recalbox-next)
+	if(!mEntries.empty() && totalHeight > mSize.y)
 	{
 		float target = mSelectorBarOffset + getRowHeight(mEntries.at(mCursor).data) / 2 - (mSize.y / 2);
 
