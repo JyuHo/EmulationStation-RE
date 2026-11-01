@@ -1,5 +1,6 @@
 #include "components/MenuComponent.h"
 #include "components/ButtonComponent.h"
+#include "Window.h"
 
 #define BUTTON_GRID_VERT_PADDING 32
 #define BUTTON_GRID_HORIZ_PADDING 10
@@ -13,11 +14,15 @@ MenuComponent::MenuComponent(Window* window, const std::string& title, const std
 	addChild(&mGrid);
 
 	mBackground.setImagePath(":/frame.png");
+	const auto& mt = mWindow->getMenuTheme();
+	if(mt.backgroundPath) mBackground.setImagePath(*mt.backgroundPath);
+	if(mt.backgroundColor) mBackground.setCenterColor(*mt.backgroundColor);
 
 	// set up title
 	mTitle = std::make_shared<TextComponent>(mWindow);
 	mTitle->setAlignment(ALIGN_CENTER);
-	mTitle->setColor(0x555555FF);
+	mTitle->setColor(mt.title.color.value_or(0x555555FF));
+	if(mt.title.font) { /* font from theme not wired here */ }
 	setTitle(title, titleFont);
 	mGrid.setEntry(mTitle, glm::ivec2(0, 0), false);
 
