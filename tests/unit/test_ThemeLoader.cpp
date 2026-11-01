@@ -307,3 +307,22 @@ TEST_CASE("Loader: include conditions and options given by path", "[phase11][11c
 		CHECK_FALSE(d.hasErrors());
 	}
 }
+
+TEST_CASE("Loader: properties as attributes, value attribute and property conditions", "[phase11][11c2][ThemeLoader]")
+{
+	// docs/THEMES.md section 12 (Recalbox ThemeData.cpp:377-412)
+	Diagnostics d;
+	const auto theme = loadTheme(kDir / "attributes.xml", context("fr"), d);
+	REQUIRE(theme.has_value());
+	CHECK(value(*theme, "detailed", "md_title", "pos") == "0.1 0.2");
+	CHECK(value(*theme, "detailed", "md_title", "fontSize") == "0.02"); // "tate" is false
+	CHECK(value(*theme, "detailed", "md_title", "size") == "0.3 0.4");
+	CHECK(value(*theme, "detailed", "md_title", "color") == "112233FF");
+	CHECK(value(*theme, "detailed", "md_title", "text") == "Bonjour");
+	// attributes that are not properties
+	CHECK(value(*theme, "detailed", "md_title", "showIf") == "<no property>");
+	CHECK(value(*theme, "detailed", "md_title", "name") == "<no property>");
+	// a child node wins over the attribute
+	CHECK(value(*theme, "detailed", "md_image", "pos") == "0.6 0.6");
+	CHECK_FALSE(d.hasErrors());
+}

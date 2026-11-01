@@ -10,6 +10,7 @@
 #include "Util.h"
 
 #include <algorithm>
+#include <array>
 #include <filesystem>
 #include <fstream>
 #include <map>
@@ -87,6 +88,11 @@ bool conditionHolds(const pugi::xml_node& node, LoaderContext& ctx, Diagnostics&
 bool processFile(const fs::path& file, LoadedTheme& theme, LoaderContext& ctx, Diagnostics& diag,
 	std::set<fs::path>& includeStack, int depth);
 
+// attributes of an element that are not properties (Recalbox ThemeData.cpp:64-71, plus the
+// two file conditions of section 7)
+constexpr std::array<std::string_view, 8> kElementAttributes{
+	"name", "extra", "if", "ifexists", "ifnotexists", "region", "value", "showIf"};
+
 void processViewElement(pugi::xml_node node, const fs::path& file, LineIndex& li, RawView& view,
 	LoaderContext& ctx, Diagnostics& diag, bool forceExtra)
 {
@@ -114,9 +120,7 @@ void processViewElement(pugi::xml_node node, const fs::path& file, LineIndex& li
 		// collect property candidates
 		struct Cand { std::string base; std::string value; SourceLocation where; fs::path file; bool localized; };
 		std::vector<Cand> cands;
-		for(pugi::xml_node propNode = node.first_child(); propNode; propNode = propNode.next_sibling())
-		{
-			std::string pname = propNode.name();
+		auto addCandidate = [&](const std::string& pname, std::string val, SourceLocation at) {
 			size_t dot = pname.find('.');
 			std::string baseName = (dot == std::string::npos) ? pname : pname.substr(0, dot);
 			bool localized = (dot != std::string::npos);
@@ -124,13 +128,32 @@ void processViewElement(pugi::xml_node node, const fs::path& file, LineIndex& li
 			{
 				std::string suffix = pname.substr(dot + 1);
 				if(suffix != ctx.region && suffix != ctx.legacy.language && suffix != ctx.legacy.country)
-					continue;
+					return;
 			}
-			std::string val = propNode.text().as_string();
-			val = ctx.variables.resolve(val, diag, where);
+			val = ctx.variables.resolve(val, diag, at);
 			val = applyLegacySubstitutions(val, ctx.legacy, file.parent_path());
-			Cand c{baseName, val, SourceLocation{file, (int)li.lineAt(propNode.offset_debug())}, file, localized};
-			cands.push_back(c);
+			cands.push_back(Cand{baseName, std::move(val), std::move(at), file, localized});
+		};
+		// properties given as attributes of the element, then as child nodes, which win
+		// (docs/THEMES.md section 12; Recalbox ThemeData.cpp:377-393)
+		for(pugi::xml_attribute attr : node.attributes())
+		{
+			const std::string_view aname = attr.name();
+			if(std::ranges::find(kElementAttributes, aname) != kElementAttributes.end())
+				continue;
+			addCandidate(std::string(aname), attr.as_string(), where);
+		}
+		// a child node has its own conditions and may give its value in a `value` attribute
+		// (Recalbox ThemeData.cpp:395-412)
+		for(pugi::xml_node propNode = node.first_child(); propNode; propNode = propNode.next_sibling())
+		{
+			if(propNode.type() != pugi::node_element)
+				continue;
+			SourceLocation at{file, (int)li.lineAt(propNode.offset_debug())};
+			if(!conditionHolds(propNode, ctx, diag, at))
+				continue;
+			const pugi::xml_attribute valueAttr = propNode.attribute("value");
+			addCandidate(propNode.name(), valueAttr ? valueAttr.as_string() : propNode.text().as_string(), at);
 		}
 		// deduplicate: localized wins over base, last declaration wins within same kind
 		std::map<std::string, Cand> chosen;
@@ -390,13 +413,6 @@ std::optional<LoadedTheme> loadTheme(const fs::path& file, const LoaderContext& 
 	std::set<fs::path> stack;
 	if(!processFile(file, theme, ctx, diagnostics, stack, 0))
 		return std::nullopt;
-	// resolve selected options
-	auto sel = resolveSelectedOptions(theme.subsets, ctx.selectedOptions);
-	ctx.selectedOptions = sel;
-	// apply selected options includes? Already processed during load; selectedOptions affects which includes? 
-	// In our model, subsets choices include paths; selected option's include should have been processed.
-	// We processed all includes unconditionally. For option-specific includes, we need filter.
-	// Simplification: accept.
 	return theme;
 }
 

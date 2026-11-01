@@ -1,0 +1,17 @@
+<!-- Fixture written for EmulationStation-RE (MIT). Recalbox format, own content: no file of a
+     Recalbox theme may be copied here (their license forbids it, PROMPT.md 14.2-R3). -->
+<theme name="Attributes" author="EmulationStation-RE" recalbox="10">
+	<formatVersion>4</formatVersion>
+	<view name="detailed">
+		<!-- properties as attributes; child nodes win, with their own conditions and `value` -->
+		<text name="md_title" pos="0.1 0.2" fontSize="0.02" showIf="game" text="Hello" text.fr="Bonjour">
+			<fontSize if="tate">0.05</fontSize>
+			<size value="0.3 0.4"/>
+			<color if="hd" value="112233FF"/>
+			<color if="tate" value="FFFFFFFF"/>
+		</text>
+		<image name="md_image" pos="0.5 0.5">
+			<pos>0.6 0.6</pos>
+		</image>
+	</view>
+</theme>

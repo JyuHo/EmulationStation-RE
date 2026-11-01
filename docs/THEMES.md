@@ -685,6 +685,14 @@ ces tableaux et échoue si le schéma (`es-core/src/theme/ThemeSchema.cpp`) en d
   (`es-core/src/ThemeData.cpp`, `setExtras`) : sans cela, rien n'est dessiné (régression de
   #75, corrigée par #76).
 - `if`, `ifexists`, `ifnotexists` : section 7. `region` : section 9.
+- `showIf` : visibilité limitée à un type d'entrée (`game`, `folder`…), `ThemeData.cpp:335` ;
+  ici, ignoré, ce n'est pas une propriété (11h).
+- Tout autre attribut est une propriété (format 4) : `<text name="t" pos="0.1 0.2"/>` vaut
+  `<text name="t"><pos>0.1 0.2</pos></text>`, suffixe localisé compris (`text.fr="…"`)
+  (`themes/ThemeData.cpp:377-393` ; attributs exclus `:64-71`).
+- Une propriété en nœud enfant l'emporte sur l'attribut du même nom ; elle a ses propres
+  conditions (`if`, `ifexists`, `ifnotexists`, `region`) et peut donner sa valeur dans un
+  attribut `value` : `<pos if="hd" value="0.1 0.2"/>` (`ThemeData.cpp:395-412`).
 
 ## 13. Diagnostics
 
