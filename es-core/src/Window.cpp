@@ -252,8 +252,7 @@ void Window::sleep()
 		mGuiStack.front()->onHide(); // stops the videos
 	mSleeping = true;
 	mScreensaverActive = mScreensaver &&
-		Settings::getInstance()->getString("ScreenSaverBehavior") == mScreensaver->behavior() &&
-		mScreensaver->start();
+		Settings::getInstance()->getString("ScreenSaverBehavior") == mScreensaver->behavior() && mScreensaver->start();
 }
 
 void Window::wake()
