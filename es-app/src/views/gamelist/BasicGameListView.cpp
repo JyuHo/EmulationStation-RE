@@ -1,4 +1,5 @@
 #include "views/gamelist/BasicGameListView.h"
+#include "utils/I18n.h"
 #include "views/ViewController.h"
 #include "renderer/Renderer.h"
 #include "Window.h"
@@ -90,10 +91,10 @@ std::vector<HelpPrompt> BasicGameListView::getHelpPrompts()
 	std::vector<HelpPrompt> prompts;
 
 	if(Settings::getInstance()->getBool("QuickSystemSelect"))
-		prompts.emplace_back("left/right", "system");
-	prompts.emplace_back("up/down", "choose");
-	prompts.emplace_back("a", "launch");
-	prompts.emplace_back("b", "back");
-	prompts.emplace_back("select", "options");
+		prompts.emplace_back("left/right", _("system"));
+	prompts.emplace_back("up/down", _("choose"));
+	prompts.emplace_back("a", _("launch"));
+	prompts.emplace_back("b", _("back"));
+	prompts.emplace_back("select", _("options"));
 	return prompts;
 }

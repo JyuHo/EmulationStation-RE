@@ -1,13 +1,14 @@
 #include "guis/GuiSettings.h"
+#include "utils/I18n.h"
 #include "Window.h"
 #include "Settings.h"
 #include "views/ViewController.h"
 
-GuiSettings::GuiSettings(Window* window, const char* title) : GuiComponent(window), mMenu(window, title)
+GuiSettings::GuiSettings(Window* window, const std::string& title) : GuiComponent(window), mMenu(window, title)
 {
 	addChild(&mMenu);
 
-	mMenu.addButton("BACK", "go back", [this] { delete this; });
+	mMenu.addButton(_("Back"), _("go back"), [this] { delete this; });
 
 	setSize((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
 	mMenu.setPosition((mSize.x - mMenu.getSize().x) / 2, Renderer::getScreenHeight() * 0.15f);
@@ -53,8 +54,8 @@ std::vector<HelpPrompt> GuiSettings::getHelpPrompts()
 {
 	std::vector<HelpPrompt> prompts = mMenu.getHelpPrompts();
 
-	prompts.emplace_back("b", "back");
-	prompts.emplace_back("start", "close");
+	prompts.emplace_back("b", _("back"));
+	prompts.emplace_back("start", _("close"));
 
 	return prompts;
 }

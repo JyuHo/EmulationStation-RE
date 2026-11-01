@@ -1,4 +1,5 @@
 #include "components/ScraperSearchComponent.h"
+#include "utils/I18n.h"
 
 #include "guis/GuiMsgBox.h"
 #include "components/TextComponent.h"
@@ -50,12 +51,12 @@ ScraperSearchComponent::ScraperSearchComponent(Window* window, SearchType type) 
 	mMD_Genre = std::make_shared<TextComponent>(mWindow, "", font, mdColor);
 	mMD_Players = std::make_shared<TextComponent>(mWindow, "", font, mdColor);
 
-	mMD_Pairs.emplace_back(std::make_shared<TextComponent>(mWindow, "RATING:", font, mdLblColor), mMD_Rating, false);
-	mMD_Pairs.emplace_back(std::make_shared<TextComponent>(mWindow, "RELEASED:", font, mdLblColor), mMD_ReleaseDate);
-	mMD_Pairs.emplace_back(std::make_shared<TextComponent>(mWindow, "DEVELOPER:", font, mdLblColor), mMD_Developer);
-	mMD_Pairs.emplace_back(std::make_shared<TextComponent>(mWindow, "PUBLISHER:", font, mdLblColor), mMD_Publisher);
-	mMD_Pairs.emplace_back(std::make_shared<TextComponent>(mWindow, "GENRE:", font, mdLblColor), mMD_Genre);
-	mMD_Pairs.emplace_back(std::make_shared<TextComponent>(mWindow, "PLAYERS:", font, mdLblColor), mMD_Players);
+	mMD_Pairs.emplace_back(std::make_shared<TextComponent>(mWindow, _U("Rating:"), font, mdLblColor), mMD_Rating, false);
+	mMD_Pairs.emplace_back(std::make_shared<TextComponent>(mWindow, _U("Released:"), font, mdLblColor), mMD_ReleaseDate);
+	mMD_Pairs.emplace_back(std::make_shared<TextComponent>(mWindow, _U("Developer:"), font, mdLblColor), mMD_Developer);
+	mMD_Pairs.emplace_back(std::make_shared<TextComponent>(mWindow, _U("Publisher:"), font, mdLblColor), mMD_Publisher);
+	mMD_Pairs.emplace_back(std::make_shared<TextComponent>(mWindow, _U("Genre:"), font, mdLblColor), mMD_Genre);
+	mMD_Pairs.emplace_back(std::make_shared<TextComponent>(mWindow, _U("Players:"), font, mdLblColor), mMD_Players);
 
 	mMD_Grid = std::make_shared<ComponentGrid>(mWindow, glm::ivec2(2, mMD_Pairs.size() * 2 - 1));
 	unsigned int i = 0;
@@ -245,7 +246,7 @@ void ScraperSearchComponent::onSearchDone(const std::vector<ScraperSearchResult>
 	if(end == 0)
 	{
 		ComponentListRow row;
-		row.addElement(std::make_shared<TextComponent>(mWindow, "NO GAMES FOUND - SKIP", font, color), true);
+		row.addElement(std::make_shared<TextComponent>(mWindow, _U("No games found - skip"), font, color), true);
 
 		if(mSkipCallback)
 			row.makeAcceptInputHandler(mSkipCallback);
@@ -286,8 +287,8 @@ void ScraperSearchComponent::onSearchDone(const std::vector<ScraperSearchResult>
 void ScraperSearchComponent::onSearchError(const std::string& error)
 {
 	LOG(LogInfo) << "ScraperSearchComponent search error: " << error;
-	mWindow->pushGui(std::make_unique<GuiMsgBox>(mWindow, strToUpper(error), "RETRY",
-		std::bind(&ScraperSearchComponent::search, this, mLastSearch), "SKIP", mSkipCallback, "CANCEL",
+	mWindow->pushGui(std::make_unique<GuiMsgBox>(mWindow, strToUpper(error), _U("Retry"),
+		std::bind(&ScraperSearchComponent::search, this, mLastSearch), _U("Skip"), mSkipCallback, _U("Cancel"),
 		mCancelCallback));
 }
 
@@ -469,17 +470,17 @@ void ScraperSearchComponent::openInputScreen(ScraperSearchParams& params)
 	};
 
 	stop();
-	mWindow->pushGui(std::make_unique<GuiTextEditPopup>(mWindow, "SEARCH FOR",
+	mWindow->pushGui(std::make_unique<GuiTextEditPopup>(mWindow, _U("Search for"),
 		// initial value is last search if there was one, otherwise the clean path name
 		params.nameOverride.empty() ? params.game->getCleanName() : params.nameOverride, searchForFunc, false,
-		"SEARCH"));
+		_U("Search")));
 }
 
 std::vector<HelpPrompt> ScraperSearchComponent::getHelpPrompts()
 {
 	std::vector<HelpPrompt> prompts = mGrid.getHelpPrompts();
 	if(getSelectedIndex() != -1)
-		prompts.emplace_back("a", "accept result");
+		prompts.emplace_back("a", _(_("accept result")));
 
 	return prompts;
 }

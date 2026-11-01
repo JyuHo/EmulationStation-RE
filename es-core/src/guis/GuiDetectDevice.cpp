@@ -1,4 +1,7 @@
 #include "guis/GuiDetectDevice.h"
+#include "utils/I18n.h"
+
+#include <format>
 #include "Window.h"
 #include "renderer/Renderer.h"
 #include "resources/Font.h"
@@ -23,7 +26,7 @@ GuiDetectDevice::GuiDetectDevice(Window* window, bool firstRun, const std::funct
 
 	// title
 	mTitle = std::make_shared<TextComponent>(
-		mWindow, firstRun ? "WELCOME" : "CONFIGURE INPUT", Font::get(FONT_SIZE_LARGE), 0x555555FF, ALIGN_CENTER);
+		mWindow, firstRun ? _U("Welcome") : _U("Configure input"), Font::get(FONT_SIZE_LARGE), 0x555555FF, ALIGN_CENTER);
 	mGrid.setEntry(mTitle, glm::ivec2(0, 0), false, true, glm::ivec2(1, 1), GridFlags::BORDER_BOTTOM);
 
 	// device info
@@ -31,19 +34,20 @@ GuiDetectDevice::GuiDetectDevice(Window* window, bool firstRun, const std::funct
 	int numDevices = InputManager::getInstance()->getNumJoysticks();
 
 	if(numDevices > 0)
-		deviceInfo << numDevices << " GAMEPAD" << (numDevices > 1 ? "S" : "") << " DETECTED";
+		deviceInfo << I18n::toUpperUtf8(std::vformat(
+			_N("{} gamepad detected", "{} gamepads detected", numDevices), std::make_format_args(numDevices)));
 	else
-		deviceInfo << "NO GAMEPADS DETECTED";
+		deviceInfo << _U("No gamepads detected");
 	mDeviceInfo = std::make_shared<TextComponent>(
 		mWindow, deviceInfo.str(), Font::get(FONT_SIZE_SMALL), 0x999999FF, ALIGN_CENTER);
 	mGrid.setEntry(mDeviceInfo, glm::ivec2(0, 1), false, true);
 
 	// message
 	mMsg1 = std::make_shared<TextComponent>(
-		mWindow, "HOLD A BUTTON ON YOUR DEVICE TO CONFIGURE IT.", Font::get(FONT_SIZE_SMALL), 0x777777FF, ALIGN_CENTER);
+		mWindow, _U("Hold a button on your device to configure it."), Font::get(FONT_SIZE_SMALL), 0x777777FF, ALIGN_CENTER);
 	mGrid.setEntry(mMsg1, glm::ivec2(0, 2), false, true);
 
-	const char* msg2str = firstRun ? "PRESS F4 TO QUIT AT ANY TIME." : "PRESS ESC TO CANCEL.";
+	const std::string msg2str = firstRun ? _U("Press F4 to quit at any time.") : _U("Press Esc to cancel.");
 	mMsg2 = std::make_shared<TextComponent>(mWindow, msg2str, Font::get(FONT_SIZE_SMALL), 0x777777FF, ALIGN_CENTER);
 	mGrid.setEntry(mMsg2, glm::ivec2(0, 3), false, true);
 

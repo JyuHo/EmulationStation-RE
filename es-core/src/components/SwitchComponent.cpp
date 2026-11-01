@@ -1,4 +1,5 @@
 #include "SwitchComponent.h"
+#include "utils/I18n.h"
 #include "renderer/Renderer.h"
 #include "resources/Font.h"
 #include "Window.h"
@@ -55,6 +56,6 @@ void SwitchComponent::onStateChanged()
 std::vector<HelpPrompt> SwitchComponent::getHelpPrompts()
 {
 	std::vector<HelpPrompt> prompts;
-	prompts.emplace_back("a", "change");
+	prompts.emplace_back("a", _("change"));
 	return prompts;
 }

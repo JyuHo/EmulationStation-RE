@@ -1,4 +1,5 @@
 #include "Util.h"
+#include "utils/I18n.h"
 #include "utils/Paths.h"
 #include "resources/ResourceManager.h"
 #include "platform.h"
@@ -8,19 +9,15 @@
 
 namespace fs = std::filesystem;
 
+// UTF-8: accented letters too (translations), not only ASCII
 std::string strToUpper(const char* from)
 {
-	std::string str(from);
-	for(unsigned int i = 0; i < str.size(); i++)
-		str[i] = static_cast<char>(toupper(static_cast<unsigned char>(from[i])));
-	return str;
+	return I18n::toUpperUtf8(from);
 }
 
 std::string& strToUpper(std::string& str)
 {
-	for(unsigned int i = 0; i < str.size(); i++)
-		str[i] = static_cast<char>(toupper(static_cast<unsigned char>(str[i])));
-
+	str = I18n::toUpperUtf8(str);
 	return str;
 }
 

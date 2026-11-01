@@ -1,4 +1,5 @@
 #include "guis/GuiGameScraper.h"
+#include "utils/I18n.h"
 #include "guis/GuiTextEditPopup.h"
 #include "components/TextComponent.h"
 #include "components/ButtonComponent.h"
@@ -41,11 +42,11 @@ GuiGameScraper::GuiGameScraper(
 	// buttons
 	std::vector<std::shared_ptr<ButtonComponent>> buttons;
 
-	buttons.push_back(std::make_shared<ButtonComponent>(mWindow, "INPUT", "search", [&] {
+	buttons.push_back(std::make_shared<ButtonComponent>(mWindow, _U("Input"), _("search"), [&] {
 		mSearch->openInputScreen(mSearchParams);
 		mGrid.resetCursor();
 	}));
-	buttons.push_back(std::make_shared<ButtonComponent>(mWindow, "CANCEL", "cancel", [&] { delete this; }));
+	buttons.push_back(std::make_shared<ButtonComponent>(mWindow, _U("Cancel"), _("cancel"), [&] { delete this; }));
 	mButtonGrid = makeButtonGrid(mWindow, buttons);
 
 	mGrid.setEntry(mButtonGrid, glm::ivec2(0, 6), true, false);

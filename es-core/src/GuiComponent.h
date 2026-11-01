@@ -12,7 +12,8 @@ class AnimationController;
 class ThemeData;
 class Font;
 
-using HelpPrompt = std::pair<const char*, const char*>;
+// button, translated action
+using HelpPrompt = std::pair<const char*, std::string>;
 
 class GuiComponent
 {

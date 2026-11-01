@@ -1,4 +1,5 @@
 #include "views/gamelist/GridGameListView.h"
+#include "utils/I18n.h"
 #include "ThemeData.h"
 #include "Window.h"
 #include "views/ViewController.h"
@@ -51,8 +52,8 @@ void GridGameListView::launch(FileData* game)
 std::vector<HelpPrompt> GridGameListView::getHelpPrompts()
 {
 	std::vector<HelpPrompt> prompts;
-	prompts.emplace_back("up/down/left/right", "scroll");
-	prompts.emplace_back("a", "launch");
-	prompts.emplace_back("b", "back");
+	prompts.emplace_back("up/down/left/right", _("scroll"));
+	prompts.emplace_back("a", _("launch"));
+	prompts.emplace_back("b", _("back"));
 	return prompts;
 }

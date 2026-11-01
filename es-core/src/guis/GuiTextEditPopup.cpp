@@ -1,8 +1,9 @@
 #include "guis/GuiTextEditPopup.h"
+#include "utils/I18n.h"
 #include "components/MenuComponent.h"
 
 GuiTextEditPopup::GuiTextEditPopup(Window* window, const std::string& title, const std::string& initValue,
-	const std::function<void(const std::string&)>& okCallback, bool multiLine, const char* acceptBtnText) :
+	const std::function<void(const std::string&)>& okCallback, bool multiLine, const std::string& acceptBtnText) :
 	GuiComponent(window), mBackground(window, ":/frame.png"), mGrid(window, glm::ivec2(1, 3)), mMultiLine(multiLine)
 {
 	addChild(&mBackground);
@@ -18,11 +19,12 @@ GuiTextEditPopup::GuiTextEditPopup(Window* window, const std::string& title, con
 		mText->setCursor(initValue.size());
 
 	std::vector<std::shared_ptr<ButtonComponent>> buttons;
-	buttons.push_back(std::make_shared<ButtonComponent>(mWindow, acceptBtnText, acceptBtnText, [this, okCallback] {
+	buttons.push_back(std::make_shared<ButtonComponent>(mWindow, acceptBtnText.empty() ? _U("OK") : acceptBtnText,
+		acceptBtnText.empty() ? _("ok") : I18n::toUpperUtf8(acceptBtnText), [this, okCallback] {
 		okCallback(mText->getValue());
 		delete this;
 	}));
-	buttons.push_back(std::make_shared<ButtonComponent>(mWindow, "CANCEL", "discard changes", [this] { delete this; }));
+	buttons.push_back(std::make_shared<ButtonComponent>(mWindow, _U("Cancel"), _("discard changes"), [this] { delete this; }));
 
 	mButtonGrid = makeButtonGrid(mWindow, buttons);
 
@@ -71,6 +73,6 @@ bool GuiTextEditPopup::input(InputConfig* config, Input input)
 std::vector<HelpPrompt> GuiTextEditPopup::getHelpPrompts()
 {
 	std::vector<HelpPrompt> prompts = mGrid.getHelpPrompts();
-	prompts.emplace_back("b", "back");
+	prompts.emplace_back("b", _("back"));
 	return prompts;
 }

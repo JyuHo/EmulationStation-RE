@@ -156,9 +156,9 @@ bool loadSystemConfigFile(const char** errorString)
 	if(!SystemData::loadConfig())
 	{
 		LOG(LogError) << "Error while parsing systems configuration file!";
-		*errorString = "IT LOOKS LIKE YOUR SYSTEMS CONFIGURATION FILE HAS NOT BEEN SET UP OR IS INVALID. YOU'LL NEED "
-					   "TO DO THIS BY HAND, UNFORTUNATELY.\n\n"
-					   "VISIT EMULATIONSTATION.ORG FOR MORE INFORMATION.";
+		*errorString = N_("It looks like your systems configuration file has not been set up or is invalid. You'll need "
+						  "to do this by hand, unfortunately.\n\n"
+						  "Visit emulationstation.org for more information.");
 		return false;
 	}
 
@@ -166,10 +166,10 @@ bool loadSystemConfigFile(const char** errorString)
 	{
 		LOG(LogError) << "No systems found! Does at least one system have a game present? (check that extensions "
 						 "match!)\n(Also, make sure you've updated your es_systems.cfg for XML!)";
-		*errorString = "WE CAN'T FIND ANY SYSTEMS!\n"
-					   "CHECK THAT YOUR PATHS ARE CORRECT IN THE SYSTEMS CONFIGURATION FILE, "
-					   "AND YOUR GAME DIRECTORY HAS AT LEAST ONE GAME WITH THE CORRECT EXTENSION.\n\n"
-					   "VISIT EMULATIONSTATION.ORG FOR MORE INFORMATION.";
+		*errorString = N_("We can't find any systems!\n"
+						  "Check that your paths are correct in the systems configuration file, "
+						  "and your game directory has at least one game with the correct extension.\n\n"
+						  "Visit emulationstation.org for more information.");
 		return false;
 	}
 
@@ -238,7 +238,7 @@ int main(int argc, char* argv[])
 		}
 
 		// we can't handle es_systems.cfg file problems inside ES itself, so display the error message then quit
-		window.pushGui(std::make_unique<GuiMsgBox>(&window, errorMsg, "QUIT", [] {
+		window.pushGui(std::make_unique<GuiMsgBox>(&window, _U(errorMsg), _U("Quit"), [] {
 			SDL_Event quit{};
 			quit.type = SDL_EVENT_QUIT;
 			SDL_PushEvent(&quit); // SDL copies the event

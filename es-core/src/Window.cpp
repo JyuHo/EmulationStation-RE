@@ -1,4 +1,5 @@
 #include "Window.h"
+#include "utils/I18n.h"
 #include <string_view>
 #include <iostream>
 #include "renderer/Renderer.h"
@@ -306,7 +307,7 @@ void Window::renderLoadingScreen()
 	splash.render(trans);
 
 	auto& font = mDefaultFonts.at(1);
-	const auto cache = font->buildTextCache("LOADING...", 0, 0, 0x656565FF);
+	const auto cache = font->buildTextCache(_U("Loading..."), 0, 0, 0x656565FF);
 	trans = glm::translate(trans,
 		glm::vec3(round((Renderer::getScreenWidth() - cache->metrics.size.x) / 2.0f),
 			round(Renderer::getScreenHeight() * 0.835f), 0.0f));

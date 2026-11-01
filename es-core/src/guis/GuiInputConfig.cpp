@@ -1,4 +1,7 @@
 #include "guis/GuiInputConfig.h"
+#include "utils/I18n.h"
+
+#include <format>
 #include "Window.h"
 #include "Log.h"
 #include "components/TextComponent.h"
@@ -12,7 +15,7 @@ static const char* inputName[inputCount] = {
 	"Up", "Down", "Left", "Right", "A", "B", "Start", "Select", "PageUp", "PageDown"};
 static const bool inputSkippable[inputCount] = {false, false, false, false, false, false, false, false, true, true};
 static const char* inputDispName[inputCount] = {
-	"UP", "DOWN", "LEFT", "RIGHT", "A", "B", "START", "SELECT", "PAGE UP", "PAGE DOWN"};
+	N_("Up"), N_("Down"), N_("Left"), N_("Right"), "A", "B", N_("Start"), N_("Select"), N_("Page up"), N_("Page down")};
 static const char* inputIcon[inputCount] = {":/help/dpad_up.svg", ":/help/dpad_down.svg", ":/help/dpad_left.svg",
 	":/help/dpad_right.svg", ":/help/button_a.svg", ":/help/button_b.svg", ":/help/button_start.svg",
 	":/help/button_select.svg", ":/help/button_l.svg", ":/help/button_r.svg"};
@@ -45,20 +48,23 @@ GuiInputConfig::GuiInputConfig(
 	mGrid.setEntry(std::make_shared<GuiComponent>(mWindow), glm::ivec2(0, 0), false);
 
 	mTitle =
-		std::make_shared<TextComponent>(mWindow, "CONFIGURING", Font::get(FONT_SIZE_LARGE), 0x555555FF, ALIGN_CENTER);
+		std::make_shared<TextComponent>(mWindow, _U("Configuring"), Font::get(FONT_SIZE_LARGE), 0x555555FF, ALIGN_CENTER);
 	mGrid.setEntry(mTitle, glm::ivec2(0, 1), false, true);
 
 	std::stringstream ss;
 	if(target->getDeviceId() == DEVICE_KEYBOARD)
-		ss << "KEYBOARD";
+		ss << _U("Keyboard");
 	else
-		ss << "GAMEPAD " << (target->getDeviceId() + 1);
+	{
+		const int gamepad = target->getDeviceId() + 1;
+		ss << std::vformat(_U("Gamepad {}"), std::make_format_args(gamepad));
+	}
 	mSubtitle1 = std::make_shared<TextComponent>(
 		mWindow, strToUpper(ss.str()), Font::get(FONT_SIZE_MEDIUM), 0x555555FF, ALIGN_CENTER);
 	mGrid.setEntry(mSubtitle1, glm::ivec2(0, 2), false, true);
 
 	mSubtitle2 = std::make_shared<TextComponent>(
-		mWindow, "HOLD ANY BUTTON TO SKIP", Font::get(FONT_SIZE_SMALL), 0x99999900, ALIGN_CENTER);
+		mWindow, _U("Hold any button to skip"), Font::get(FONT_SIZE_SMALL), 0x99999900, ALIGN_CENTER);
 	mGrid.setEntry(mSubtitle2, glm::ivec2(0, 3), false, true);
 
 	// 4 is a spacer row
@@ -81,11 +87,11 @@ GuiInputConfig::GuiInputConfig(
 		spacer->setSize(16, 0);
 		row.addElement(spacer, false);
 
-		auto text = std::make_shared<TextComponent>(mWindow, inputDispName[i], Font::get(FONT_SIZE_MEDIUM), 0x777777FF);
+		auto text = std::make_shared<TextComponent>(mWindow, _U(inputDispName[i]), Font::get(FONT_SIZE_MEDIUM), 0x777777FF);
 		row.addElement(text, true);
 
 		auto mapping = std::make_shared<TextComponent>(
-			mWindow, "-NOT DEFINED-", Font::get(FONT_SIZE_MEDIUM, FONT_PATH_LIGHT), 0x999999FF, ALIGN_RIGHT);
+			mWindow, _U("-Not defined-"), Font::get(FONT_SIZE_MEDIUM, FONT_PATH_LIGHT), 0x999999FF, ALIGN_RIGHT);
 		setNotDefined(mapping); // overrides text and color set above
 		row.addElement(mapping, true);
 		mMappings.push_back(mapping);
@@ -157,7 +163,7 @@ GuiInputConfig::GuiInputConfig(
 
 	// buttons
 	std::vector<std::shared_ptr<ButtonComponent>> buttons;
-	buttons.push_back(std::make_shared<ButtonComponent>(mWindow, "OK", "ok", [this, okCallback] {
+	buttons.push_back(std::make_shared<ButtonComponent>(mWindow, _U("OK"), _("ok"), [this, okCallback] {
 		InputManager::getInstance()->writeDeviceConfig(mTargetConfig); // save
 		if(okCallback)
 			okCallback();
@@ -208,7 +214,8 @@ void GuiInputConfig::update(int deltaTime)
 				// crossed the second boundary, update text
 				const auto& text = mMappings.at(mHeldInputId);
 				std::stringstream ss;
-				ss << "HOLD FOR " << HOLD_TO_SKIP_MS / 1000 - curSec << "S TO SKIP";
+				const int seconds = HOLD_TO_SKIP_MS / 1000 - curSec;
+				ss << std::vformat(_U("Hold for {}s to skip"), std::make_format_args(seconds));
 				text->setText(ss.str());
 				text->setColor(0x777777FF);
 			}
@@ -244,13 +251,13 @@ void GuiInputConfig::rowDone()
 
 void GuiInputConfig::setPress(const std::shared_ptr<TextComponent>& text)
 {
-	text->setText("PRESS ANYTHING");
+	text->setText(_U("Press anything"));
 	text->setColor(0x656565FF);
 }
 
 void GuiInputConfig::setNotDefined(const std::shared_ptr<TextComponent>& text)
 {
-	text->setText("-NOT DEFINED-");
+	text->setText(_U("-Not defined-"));
 	text->setColor(0x999999FF);
 }
 
@@ -262,7 +269,7 @@ void GuiInputConfig::setAssignedTo(const std::shared_ptr<TextComponent>& text, I
 
 void GuiInputConfig::error(const std::shared_ptr<TextComponent>& text, const std::string& msg)
 {
-	text->setText("ALREADY TAKEN");
+	text->setText(_U("Already taken"));
 	text->setColor(0x656565FF);
 }
 
@@ -274,7 +281,7 @@ bool GuiInputConfig::assign(Input input, int inputId)
 	// (if it's the same as what it was before, allow it)
 	if(mTargetConfig->getMappedTo(input).size() > 0 && !mTargetConfig->isMappedTo(inputName[inputId], input))
 	{
-		error(mMappings.at(inputId), "Already mapped!");
+		error(mMappings.at(inputId), _("Already mapped!"));
 		return false;
 	}
 

@@ -66,3 +66,5 @@ std::string toUpperUtf8(std::string_view text);
 #define _N(s, p, n) I18n::translatePlural(s, p, n)
 #define _P(c, t) I18n::translateContext(c, t)
 #define _U(t) I18n::toUpperUtf8(I18n::translate(t))
+// marks a string for xgettext, translated later with _() (static tables)
+#define N_(x) x

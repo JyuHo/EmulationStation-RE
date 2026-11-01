@@ -1,4 +1,5 @@
 #include "components/ComponentList.h"
+#include "utils/I18n.h"
 #include <string_view>
 #include "Util.h"
 #include "Log.h"
@@ -338,7 +339,7 @@ std::vector<HelpPrompt> ComponentList::getHelpPrompts()
 		}
 
 		if(addMovePrompt)
-			prompts.emplace_back("up/down", "choose");
+			prompts.emplace_back("up/down", _("choose"));
 	}
 
 	return prompts;

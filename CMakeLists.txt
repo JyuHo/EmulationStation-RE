@@ -97,6 +97,7 @@ add_custom_target(es-update-pot
 		--keyword=_N:1,2
 		--keyword=_P:1c,2
 		--keyword=_U
+		--keyword=N_
 		--add-comments=TRANSLATORS:
 		--package-name=emulationstation-re
 		--sort-by-file

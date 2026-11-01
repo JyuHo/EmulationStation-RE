@@ -1,4 +1,5 @@
 #include "components/TextEditComponent.h"
+#include "utils/I18n.h"
 #include "Log.h"
 #include "resources/Font.h"
 #include "Window.h"
@@ -302,12 +303,12 @@ std::vector<HelpPrompt> TextEditComponent::getHelpPrompts()
 	std::vector<HelpPrompt> prompts;
 	if(mEditing)
 	{
-		prompts.emplace_back("up/down/left/right", "move cursor");
-		prompts.emplace_back("b", "stop editing");
+		prompts.emplace_back("up/down/left/right", _("move cursor"));
+		prompts.emplace_back("b", _("stop editing"));
 	}
 	else
 	{
-		prompts.emplace_back("a", "edit");
+		prompts.emplace_back("a", _("edit"));
 	}
 	return prompts;
 }
