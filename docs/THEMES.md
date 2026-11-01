@@ -65,10 +65,21 @@ chaîne ; `recalboxVersion` vaut la version **majeure** (`"10"` et `"10.1"` donn
 - Les `<variables>` d'un fichier sont lues, puis ses `<include>`, puis ses `<view>`
   (`ThemeData.cpp:195-197`, `143`).
 - Attributs `subset`, `name`, `name.<code>` : inclusion conditionnée par l'option choisie
-  (section 8).
-- Fichier manquant : avertissement `fichier:ligne`, inclusion ignorée. Cycle ou profondeur
-  excessive : avertissement, inclusion ignorée (décision du projet, Recalbox ne détecte pas les
-  cycles).
+  (section 8), que le chemin soit dans le texte ou dans `path`.
+- Chaque `<include>` a ses conditions `if`, `ifexists`, `ifnotexists` (section 7), évaluées
+  avant tout le reste (`ThemeData.cpp:200`).
+- Chemin relatif : toujours par rapport au dossier du fichier qui contient l'`<include>`
+  (`ThemeData.cpp:211`), jamais par rapport au dossier courant.
+- Fichier manquant : avertissement `fichier:ligne`, inclusion ignorée (`ThemeData.cpp:212-216`).
+  Cycle ou profondeur excessive : avertissement, inclusion ignorée (décision du projet, Recalbox
+  ne détecte pas les cycles).
+- Chemin vide après résolution (variable vide, `<include/>`) : avertissement « empty include »,
+  inclusion ignorée. Recalbox résout ce chemin vers le dossier du fichier et journalise une
+  erreur d'analyse (`ThemeData.cpp:211-227`) ; ici, avertissement seulement.
+- Fichier inclus illisible, XML mal formé ou sans `<theme>` : avertissement, inclusion ignorée,
+  le reste du thème est chargé. Recalbox journalise une erreur et continue aussi
+  (`ThemeData.cpp:225-228`) ; seul le fichier principal peut faire échouer le chargement
+  (section 13).
 - Un élément redéfini garde la place de sa première déclaration ; ses propriétés fusionnent,
   la dernière valeur gagne (format 3 et Recalbox).
 
@@ -680,8 +691,8 @@ ces tableaux et échoue si le schéma (`es-core/src/theme/ThemeSchema.cpp`) en d
 - Format : `fichier:ligne: message`, journalisés une fois par chargement
   (`es::theme::Diagnostics::log`), écrits sur la sortie standard par `--check-theme`.
 - Avertissement, nœud ignoré, le reste du thème chargé : élément inconnu, propriété inconnue,
-  valeur invalide, fichier introuvable, include manquant, cycle, identifiant de condition
-  inconnu.
+  valeur invalide, fichier introuvable, include manquant, vide ou inutilisable (section 4),
+  cycle, identifiant de condition inconnu, ressource intégrée `:/` (section 14).
 - Erreur : fichier principal illisible, XML mal formé, `<theme>` ou `<formatVersion>`
   absent. Le système est alors affiché sans thème ; aucune exception ne sort de
   `SystemData::loadTheme` ni de `ThemeData::getDefault` (R6).
@@ -693,6 +704,11 @@ ces tableaux et échoue si le schéma (`es-core/src/theme/ThemeSchema.cpp`) en d
 - Pas d'OpenGL ES : moteur OpenGL 3.3.
 - Détection des cycles d'inclusion (section 4).
 - Le format 3 d'Aloshi reste lu à l'identique (R5).
+- Ressources intégrées : Recalbox embarque des fichiers dans son exécutable, nommés `:/…`
+  (ses valeurs par défaut en utilisent, `MenuThemeData.cpp:121-143`), et un thème peut y faire
+  référence (par exemple une police `:/…ttf`). Ce projet n'a pas ces fichiers : une valeur
+  `:/…` est un fichier introuvable, avertissement et propriété ignorée (la valeur par défaut
+  du composant reste).
 
 ## 15. Non vérifié ou à trancher
 

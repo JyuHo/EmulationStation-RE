@@ -161,15 +161,24 @@ bool processFile(const fs::path& file, LoadedTheme& theme, LoaderContext& ctx, D
 {
 	if(depth > 64) { diag.warn({file,0}, "include depth exceeded"); return true; }
 	if(includeStack.count(file)) { diag.warn({file,0}, "include cycle detected"); return true; }
+	// an unusable main file is an error; an unusable included file only drops that include
+	// (docs/THEMES.md section 13, R6)
+	auto fail = [&](SourceLocation where, std::string message) {
+		if(depth == 0)
+			diag.error(std::move(where), std::move(message));
+		else
+			diag.warn(std::move(where), std::move(message));
+		return false;
+	};
 	std::error_code ec;
 	std::string text = readFile(file, ec);
-	if(ec) { diag.error({file,0}, "cannot read file"); return false; }
+	if(ec) return fail({file, 0}, "cannot read file");
 	LineIndex li(text);
 	pugi::xml_document doc;
 	pugi::xml_parse_result res = doc.load(text.c_str());
-	if(!res) { diag.error({file, (int)li.lineAt((std::ptrdiff_t)res.offset)}, "XML parsing error"); return false; }
+	if(!res) return fail({file, (int)li.lineAt((std::ptrdiff_t)res.offset)}, "XML parsing error");
 	pugi::xml_node root = doc.child("theme");
-	if(!root) { diag.error({file,0}, "missing <theme> tag"); return false; }
+	if(!root) return fail({file, 0}, "missing <theme> tag");
 
 	if(root.child("formatVersion"))
 	{
@@ -284,22 +293,27 @@ bool processFile(const fs::path& file, LoadedTheme& theme, LoaderContext& ctx, D
 		const char* subsetAttr = inc.attribute("subset").value();
 		const char* nameAttr = inc.attribute("name").value();
 		const char* pathAttr = inc.attribute("path").value();
+		// only the selected option of a subset is included, whether the path is the text or `path`
+		// (its condition was evaluated by the first pass); a plain include has its own condition
+		const bool option = subsetAttr && subsetAttr[0] && nameAttr && nameAttr[0];
+		if(option)
+		{
+			auto sit = ctx.selectedOptions.find(subsetAttr);
+			std::string selected = (sit != ctx.selectedOptions.end()) ? sit->second : std::string();
+			if(selected.empty())
+			{
+				for(const auto& ss : theme.subsets)
+					if(ss.id == subsetAttr && !ss.choices.empty()) { selected = ss.choices.front().name; break; }
+			}
+			if(selected != nameAttr)
+				continue;
+		}
+		else if(!conditionHolds(inc, ctx, diag, where))
+			continue;
 		std::string incPath;
 		if(pathAttr && pathAttr[0]) incPath = pathAttr;
 		else
 		{
-			if(subsetAttr && subsetAttr[0] && nameAttr && nameAttr[0])
-			{
-				auto sit = ctx.selectedOptions.find(subsetAttr);
-				std::string selected = (sit != ctx.selectedOptions.end()) ? sit->second : std::string();
-				if(selected.empty())
-				{
-					for(const auto& ss : theme.subsets)
-						if(ss.id == subsetAttr && !ss.choices.empty()) { selected = ss.choices.front().name; break; }
-				}
-				if(selected != nameAttr)
-					continue;
-			}
 			std::string text = inc.text().as_string();
 			size_t a = text.find_first_not_of(" \t\n\r");
 			size_t b = text.find_last_not_of(" \t\n\r");
@@ -307,25 +321,17 @@ bool processFile(const fs::path& file, LoadedTheme& theme, LoaderContext& ctx, D
 		}
 		std::string resolved = ctx.variables.resolve(incPath, diag, where);
 		resolved = applyLegacySubstitutions(resolved, ctx.legacy, where.file.parent_path());
+		if(resolved.empty())
+		{
+			diag.warn(where, "empty include, ignored");
+			continue;
+		}
+		// relative to the folder of the including file, never to the working directory
 		fs::path incFile = resolved;
 		if(incFile.is_relative())
-		{
-			if(fs::exists(incFile))
-			{
-				// use as-is
-			}
-			else if(incFile.string().rfind("./", 0) == 0)
-			{
-				fs::path resolved = file.parent_path();
-				for(auto it = std::next(incFile.begin()); it != incFile.end(); ++it)
-					resolved /= *it;
-				incFile = resolved;
-			}
-			else
-				incFile = file.parent_path() / incFile;
-		}
+			incFile = file.parent_path() / incFile;
 		std::error_code ec2;
-		if(!fs::exists(incFile, ec2))
+		if(!fs::is_regular_file(incFile, ec2))
 		{
 			diag.warn(where, "missing include " + incPath);
 			continue;

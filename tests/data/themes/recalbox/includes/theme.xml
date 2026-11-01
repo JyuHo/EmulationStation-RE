@@ -1,0 +1,23 @@
+<!-- Fixture written for EmulationStation-RE (MIT). Recalbox format, own content: no file of a
+     Recalbox theme may be copied here (their license forbids it, PROMPT.md 14.2-R3). -->
+<theme name="Includes" author="EmulationStation-RE" recalbox="10">
+	<formatVersion>4</formatVersion>
+	<variables>
+		<variable name="Empty" value=""/>
+	</variables>
+	<!-- empty includes (nothing, or a variable set to nothing): warning, skipped -->
+	<include/>
+	<include>${Empty}</include>
+	<!-- an included file that is not XML: warning, the rest is loaded -->
+	<include>../broken.xml</include>
+	<!-- a plain include whose condition is false: skipped without a word -->
+	<include if="tate">../colors/red.xml</include>
+	<!-- options given by the path attribute: only the selected one is included -->
+	<include subset="tint" name="blue" path="../colors/blue.xml"/>
+	<include subset="tint" name="red" path="../colors/red.xml"/>
+	<view name="detailed">
+		<text name="md_title">
+			<fontSize>0.03</fontSize>
+		</text>
+	</view>
+</theme>
