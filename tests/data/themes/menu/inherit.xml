@@ -1,0 +1,9 @@
+<!-- Fixture written for EmulationStation-RE (MIT). menutext only: menutextsmall and
+     menusection inherit it. -->
+<theme>
+	<formatVersion>4</formatVersion>
+	<view name="menu">
+		<menuText name="menutext" fontPath="./set/art/frame.png" color="33333333" selectedColor="55555555"/>
+		<menuSection name="menusection" fontSize="0.06" alignment="middle"/>
+	</view>
+</theme>

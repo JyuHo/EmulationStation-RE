@@ -1,5 +1,6 @@
 #include "components/AsyncReqComponent.h"
 #include "renderer/Renderer.h"
+#include "Window.h"
 #include "utils/I18n.h"
 
 AsyncReqComponent::AsyncReqComponent(Window* window, std::shared_ptr<HttpReq> req,
@@ -14,7 +15,7 @@ bool AsyncReqComponent::input(InputConfig* config, Input input)
 		if(mCancelFunc)
 			mCancelFunc();
 
-		delete this;
+		mWindow->closeGui(this);
 	}
 
 	return true;
@@ -25,7 +26,7 @@ void AsyncReqComponent::update(int deltaTime)
 	if(mRequest->status() != HttpReq::REQ_IN_PROGRESS)
 	{
 		mSuccessFunc(mRequest);
-		delete this;
+		mWindow->closeGui(this);
 		return;
 	}
 

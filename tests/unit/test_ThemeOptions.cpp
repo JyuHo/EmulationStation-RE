@@ -40,3 +40,35 @@ TEST_CASE("Options: selection", "[phase11][11b][ThemeOptions]")
 	CHECK(stored.at("layout") == "compact"); // stale choice
 	CHECK_FALSE(stored.contains("old"));	 // stale subset
 }
+
+namespace {
+std::vector<std::string> names(const std::vector<ThemeOptionChoice>& choices)
+{
+	std::vector<std::string> out;
+	for(const auto& c : choices)
+		out.push_back(c.name);
+	return out;
+}
+} // namespace
+
+TEST_CASE("Options: order of the values in the menu", "[ThemeOptions][11e2]")
+{
+	// Recalbox ThemeOption.h:112-122, :141-150: numeric when every value starts with an index
+	CHECK(names(sortOptionChoices(subset("s", {"10 - b", "2 - a", "1 - c"}).choices)) ==
+		  std::vector<std::string>{"1 - c", "2 - a", "10 - b"});
+	CHECK(names(sortOptionChoices(subset("s", {"red", "blue", "green"}).choices)) ==
+		  std::vector<std::string>{"blue", "green", "red"});
+	// mixed: alphabetical
+	CHECK(names(sortOptionChoices(subset("s", {"red", "2 - a", "10 - b"}).choices)) ==
+		  std::vector<std::string>{"10 - b", "2 - a", "red"});
+	CHECK(sortOptionChoices({}).empty());
+}
+
+TEST_CASE("Options: value shown without its index", "[ThemeOptions][11e2]")
+{
+	// Recalbox ThemeOption.h:26-41
+	CHECK(displayOptionName("2 - Rouge") == "Rouge");
+	CHECK(displayOptionName("10 - Horizontal") == "Horizontal");
+	CHECK(displayOptionName("Rouge") == "Rouge");
+	CHECK(displayOptionName("2") == "2");
+}

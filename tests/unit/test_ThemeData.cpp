@@ -1,5 +1,7 @@
 #include "ThemeData.h"
 #include "theme/ThemeDiagnostics.h"
+#include "Settings.h"
+#include "theme/ThemeOptions.h"
 #include "Window.h"
 
 #include <catch2/catch_test_macros.hpp>
@@ -216,4 +218,64 @@ TEST_CASE("ThemeData sets ${root} to the theme set and $system to the system fol
 	// nes/art/logo.png does not exist: $system falls back to default
 	CHECK(logo->get<std::string>("path") == (set / "default" / "art" / "logo.png").generic_string());
 	fs::remove_all(set);
+}
+
+TEST_CASE("ThemeData applies the stored theme option and region", "[ThemeData][11e2]")
+{
+	// docs/THEMES.md sections 8 and 9: es_settings.cfg keys ThemeOption.<set>.<option> and
+	// ThemeRegion, read by every load
+	namespace fs = std::filesystem;
+	const fs::path file = fs::path(ES_TEST_DATA_DIR "/themes/recalbox") / "theme.xml";
+	Settings* settings = Settings::getInstance();
+	const std::string key = es::theme::optionSettingKey(ThemeData::currentThemeSetName(), "colorset");
+	const std::string savedRegion = settings->getStringOr("ThemeRegion", "eu");
+	const std::string savedOption = settings->getStringOr(key, "");
+
+	auto load = [&](es::theme::Diagnostics& diag) {
+		ThemeData theme;
+		REQUIRE(theme.loadFile(file.string(), diag, 1280, 720, {"nes", "nes", "Nintendo"}));
+		return theme;
+	};
+	auto descriptionColor = [](const ThemeData& theme) {
+		const ThemeData::ThemeElement* e = theme.getElement("detailed", "md_description", "text");
+		REQUIRE(e != nullptr);
+		return e->get<unsigned int>("color");
+	};
+	auto logo = [](const ThemeData& theme) {
+		const ThemeData::ThemeElement* e = theme.getElement("detailed", "logo", "image");
+		REQUIRE(e != nullptr);
+		return fs::path(e->get<std::string>("path")).filename().string();
+	};
+
+	SECTION("stored option and region")
+	{
+		settings->setString(key, "red");
+		settings->setString("ThemeRegion", "jp");
+		es::theme::Diagnostics diag;
+		const ThemeData theme = load(diag);
+		CHECK(descriptionColor(theme) == 0xFF0000FFu);
+		CHECK(theme.getSelectedOptions().at("colorset") == "red");
+		CHECK(logo(theme) == "logo-jp.png");
+	}
+	SECTION("an option that no longer exists: the first one")
+	{
+		settings->setString(key, "green");
+		es::theme::Diagnostics diag;
+		const ThemeData theme = load(diag);
+		CHECK(descriptionColor(theme) == 0x0000FFFFu);
+		CHECK(theme.getSelectedOptions().at("colorset") == "blue");
+	}
+	SECTION("an unknown region: a warning, then eu")
+	{
+		settings->setString("ThemeRegion", "xx");
+		es::theme::Diagnostics diag;
+		const ThemeData theme = load(diag);
+		CHECK(logo(theme) == "logo-eu.png");
+		bool warned = false;
+		for(const auto& d : diag.all())
+			warned = warned || d.message.find("ThemeRegion") != std::string::npos;
+		CHECK(warned);
+	}
+	settings->setString("ThemeRegion", savedRegion);
+	settings->setString(key, savedOption);
 }

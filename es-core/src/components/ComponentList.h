@@ -48,8 +48,6 @@ class ComponentList : public IList<ComponentListRow, void*>
 public:
 	ComponentList(Window* window);
 
-	Window* getWindow() const { return mWindowPtr; }
-
 	void addRow(const ComponentListRow& row, bool setCursorHere = false);
 
 	void textInput(const char* text) override;
@@ -89,7 +87,6 @@ private:
 
 	float getRowHeight(const ComponentListRow& row) const;
 
-	Window* mWindowPtr = nullptr;
 	float mSelectorBarOffset;
 	float mCameraOffset;
 

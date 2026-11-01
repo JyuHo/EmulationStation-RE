@@ -51,6 +51,12 @@ public:
 	void renderHelpPromptsEarly(); // used to render HelpPrompts before a fade
 	void setHelpPrompts(const std::vector<HelpPrompt>& prompts, const HelpStyle& style);
 
+	// Main theme of the set (<set>/theme.xml, docs/THEMES.md section 10, "Vue menu") and the
+	// menu theme read from it; nullptr = no main theme, every menu value absent.
+	const es::theme::MenuTheme& getMenuTheme() const { return mMenuTheme; }
+	const std::shared_ptr<const ThemeData>& getMainTheme() const { return mMainTheme; }
+	void setMainTheme(std::shared_ptr<const ThemeData> theme);
+
 private:
 	void sleep();
 	void onSleep();
@@ -66,10 +72,6 @@ private:
 
 	std::shared_ptr<const ThemeData> mMainTheme;
 	es::theme::MenuTheme mMenuTheme;
-
-public:
-	const es::theme::MenuTheme& getMenuTheme() const { return mMenuTheme; }
-	void setMainTheme(std::shared_ptr<const ThemeData> theme);
 
 	int mFrameTimeElapsed;
 	int mFrameCountElapsed;

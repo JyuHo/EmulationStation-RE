@@ -282,13 +282,25 @@ std::string ThemeData::currentThemeSetName()
 
 std::shared_ptr<ThemeData> ThemeData::loadMainTheme()
 {
-	std::shared_ptr<ThemeData> theme = std::make_shared<ThemeData>();
-	std::string path = getThemeFromCurrentSet("").generic_string();
-	if(path.empty() || !fs::exists(path))
+	const auto sets = getThemeSets();
+	const auto set = sets.find(currentThemeSetName());
+	if(set == sets.end())
 		return nullptr;
+	return loadMainTheme(set->second.path);
+}
+
+std::shared_ptr<ThemeData> ThemeData::loadMainTheme(const fs::path& setDir)
+{
+	// <set>/theme.xml only, loaded without a system (Recalbox ThemeManager.cpp:54-74,
+	// ThemeData.cpp:522-526). Not getThemePath(""), which falls back to default/theme.xml.
+	const fs::path path = setDir / "theme.xml";
+	std::error_code error;
+	if(!fs::is_regular_file(path, error))
+		return nullptr;
+	auto theme = std::make_shared<ThemeData>();
 	try
 	{
-		theme->loadFile(path);
+		theme->loadFile(path.generic_string());
 	}
 	catch(ThemeException& e)
 	{

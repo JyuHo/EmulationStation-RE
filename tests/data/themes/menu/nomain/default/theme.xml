@@ -1,0 +1,7 @@
+<!-- Fixture written for EmulationStation-RE (MIT): a system theme, never the main theme. -->
+<theme>
+	<formatVersion>4</formatVersion>
+	<view name="menu">
+		<menuText name="menutitle" color="DEADBEEF"/>
+	</view>
+</theme>
