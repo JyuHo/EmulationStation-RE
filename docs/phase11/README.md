@@ -52,7 +52,8 @@ fusionner**, demander la correction. Ne jamais fusionner avec un job rouge, mêm
 
 ## Pour l'agent : capture locale impossible ou écran noir
 
-Lire `PROMPT.md` 0.3 (« Captures en local sur un bureau Wayland », « `ThemeExtras` et
+Commandes exactes : [`docs/CAPTURES.md`](../CAPTURES.md). Lire aussi `PROMPT.md` 0.3
+(« Captures en local sur un bureau Wayland », « `ThemeExtras` et
 `addChild` ») et 14.7. Les scripts forcent X11 ; un écran noir avec des images chargées se
 diagnostique d'abord avec `draw-calls.txt` (nombre de dessins par écran, comparé à la base) et
 les avertissements de `es_log.txt`. Ne jamais pousser pour « laisser la CI vérifier ».
