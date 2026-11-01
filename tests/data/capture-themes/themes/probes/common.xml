@@ -1,0 +1,11 @@
+<!-- Fixture written for EmulationStation-RE (MIT): Recalbox format 4, own content.
+     Probes: tests/smoke/capture-themes.sh. Screen 1280x720, probes above the logo band. -->
+<theme>
+	<formatVersion>4</formatVersion>
+	<view name="system">
+		<!-- background, drawn first (lowest zIndex) -->
+		<image name="bg" extra="true" path="${root}/art/gray.png" pos="0 0" size="1 1" zIndex="1"/>
+		<!-- control: proves that the screen is drawn -->
+		<image name="control" extra="true" path="${root}/art/cyan.png" pos="0.8 0.05" size="0.1 0.1"/>
+	</view>
+</theme>

@@ -1,30 +1,30 @@
 #!/usr/bin/env bash
-# Probe a pixel color in a PNG. Usage: probe.sh <png> <x> <y> <RRGGBB> [tolerance]
+# Checks the color of one pixel of a PNG.
+#
+# Usage: tests/smoke/probe.sh <png> <x> <y> <RRGGBB> [tolerance]
+#
+# Fails when a channel differs from the expected value by more than the tolerance (0 to 255,
+# default 0). Prints one line, OK or FAIL, with the color read.
 set -euo pipefail
-png="$1"; x="$2"; y="$3"; expected="$3" 2>/dev/null || true
-expected="$4"; tol="${5:-0}"
-# read pixel
-pixel=$(convert "$png" -format '%[pixel:p{'"$x"','"$y"'}]' info: 2>/dev/null || magick "$png" -format '%[pixel:p{'"$x"','"$y"'}]' info:)
-# pixel format: srgb(r,g,b) or #RRGGBB
-echo "pixel=$pixel expected=$expected tol=$tol"
-# simple check: extract hex
-hex=$(echo "$pixel" | grep -oE '#[0-9A-Fa-f]{6}' | head -1)
-if [ -z "$hex" ]; then
-	# try rgb
-	r=$(echo "$pixel" | grep -oE 'srgb\([0-9]+,[0-9]+,[0-9]+\)' | sed 's/srgb(//;s/)//')
-	IFS=',' read -r rr gg bb <<< "$r"
-	hex=$(printf '#%02X%02X%02X' "$rr" "$gg" "$bb")
+
+if [ "$#" -lt 4 ]; then
+	echo "usage: $0 <png> <x> <y> <RRGGBB> [tolerance]" >&2
+	exit 2
 fi
-hex=${hex#\#}
-exp=${expected#\#}
-# compare channels
+png="$1" x="$2" y="$3" expected="${4#\#}" tolerance="${5:-0}"
+
+if command -v magick >/dev/null; then im=(magick); else im=(convert); fi
+# 8 bits per channel, whatever the depth of the file: "r,g,b"
+rgb="$("${im[@]}" "$png" -depth 8 -format "%[fx:int(255*p{$x,$y}.r+0.5)],%[fx:int(255*p{$x,$y}.g+0.5)],%[fx:int(255*p{$x,$y}.b+0.5)]" info:)"
+IFS=, read -r r g b <<<"$rgb"
+got="$(printf '%02X%02X%02X' "$r" "$g" "$b")"
+
+status=OK
 for i in 0 1 2; do
-	a=$((16#${hex:$((i*2)):2}))
-	b=$((16#${exp:$((i*2)):2}))
-	d=$((a-b)); if [ $d -lt 0 ]; then d=$((-d)); fi
-	if [ $d -gt $tol ]; then
-		echo "FAIL probe $png ($x,$y): got #$hex expected #$exp (tol $tol)" >&2
-		exit 1
-	fi
+	a=$((16#${got:$((i * 2)):2}))
+	e=$((16#${expected:$((i * 2)):2}))
+	d=$((a > e ? a - e : e - a))
+	if [ "$d" -gt "$tolerance" ]; then status=FAIL; fi
 done
-echo "OK probe $png ($x,$y) #$hex ~ #$exp"
+echo "$status $(basename "$png") ($x,$y): #$got, expected #$expected (tolerance $tolerance)"
+[ "$status" = OK ]
