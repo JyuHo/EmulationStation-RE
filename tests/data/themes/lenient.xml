@@ -1,0 +1,16 @@
+<theme>
+	<formatVersion>3</formatVersion>
+	<view name="detailed">
+		<text name="md_description">
+			<color>11223344</color>
+			<sparkle>yes</sparkle>
+		</text>
+		<image name="md_image">
+			<pos>0.1 0.2</pos>
+			<color>not-a-color</color>
+		</image>
+		<hologram name="md_hologram">
+			<pos>0 0</pos>
+		</hologram>
+	</view>
+</theme>

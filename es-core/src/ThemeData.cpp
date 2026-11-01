@@ -12,6 +12,8 @@
 #include "utils/Paths.h"
 #include "Log.h"
 #include "Settings.h"
+#include "renderer/Renderer.h"
+#include "resources/ResourceManager.h"
 
 #include <algorithm>
 #include <filesystem>
@@ -25,6 +27,22 @@ ThemeData::ThemeData() : mVersion(0) {}
 
 void ThemeData::loadFile(const std::string& path)
 {
+	es::theme::Diagnostics diag;
+	// conditions such as "hd" depend on the real screen; 1920 x 1080 before Renderer::init
+	const int width = Renderer::getScreenWidth() > 0 ? static_cast<int>(Renderer::getScreenWidth()) : 1920;
+	const int height = Renderer::getScreenHeight() > 0 ? static_cast<int>(Renderer::getScreenHeight()) : 1080;
+	const bool loaded = loadFile(path, diag, width, height);
+	diag.log();
+	if(!loaded)
+	{
+		ThemeException e;
+		e.msg = "could not load theme";
+		throw e;
+	}
+}
+
+bool ThemeData::loadFile(const std::string& path, es::theme::Diagnostics& diag, int screenWidth, int screenHeight)
+{
 	mViews.clear();
 	mPaths.clear();
 	mPaths.push_back(path);
@@ -34,22 +52,21 @@ void ThemeData::loadFile(const std::string& path)
 	ctx.legacy.system = "";
 	ctx.legacy.language = Settings::getInstance()->getString("Language");
 	ctx.region = "eu";
-	es::theme::Diagnostics diag;
 	ctx.variables.set("root", fs::path(path).parent_path().generic_string(), diag, {path, 0});
 	es::theme::ConditionEnvironment env;
-	env.screenWidth = 1920;
-	env.screenHeight = 1080;
+	env.screenWidth = screenWidth;
+	env.screenHeight = screenHeight;
 	env.systemName = "";
 	ctx.conditions = es::theme::makeConditionResolver(env);
 
 	auto loaded = es::theme::loadTheme(path, ctx, diag);
-	diag.log();
 
+	if(loaded && loaded->formatVersion == 0.0f)
+		diag.error({path, 0}, "theme has no <formatVersion>, theme ignored");
 	if(!loaded || loaded->formatVersion == 0.0f)
 	{
-		ThemeException e;
-		e.msg = "could not load theme";
-		throw e;
+		mVersion = 0;
+		return false;
 	}
 
 	mVersion = loaded->formatVersion;
@@ -63,6 +80,8 @@ void ThemeData::loadFile(const std::string& path)
 		for(const auto& rawElem : rawView.elements)
 		{
 			const es::theme::ElementSpec* spec = es::theme::findElement(rawElem.type);
+			if(!spec)
+				diag.warn(rawElem.where, "unknown element type \"" + rawElem.type + "\", element ignored");
 			ThemeElement elem;
 			elem.extra = rawElem.extra;
 			elem.type = rawElem.type;
@@ -71,9 +90,24 @@ void ThemeData::loadFile(const std::string& path)
 				if(spec)
 				{
 					const es::theme::PropertySpec* ps = es::theme::findProperty(*spec, rp.name);
+					if(!ps)
+						diag.warn(rp.where,
+							"unknown property \"" + rp.name + "\" for element of type \"" + rawElem.type +
+								"\", property ignored");
 					if(ps)
 					{
 						auto parsed = es::theme::parseProperty(ps->type, rp.value, rp.file);
+						if(!parsed.has_value())
+							diag.warn(rp.where,
+								"property \"" + rp.name + "\": " + parsed.error() + " (\"" + rp.value +
+									"\"), property ignored");
+						else if(ps->type == es::theme::PropertyType::Path)
+						{
+							const std::string& resolved = std::get<std::string>(*parsed);
+							if(!resolved.empty() && !ResourceManager::getInstance()->fileExists(resolved))
+								diag.warn(rp.where,
+									"could not find file \"" + rp.value + "\" (resolved to \"" + resolved + "\")");
+						}
 						if(parsed.has_value())
 						{
 							// convert PropertyValue to variant used by ThemeElement
@@ -101,6 +135,7 @@ void ThemeData::loadFile(const std::string& path)
 		}
 		mViews[viewName] = std::move(view);
 	}
+	return true;
 }
 
 const ThemeData::ThemeElement* ThemeData::getElement(const std::string& view, const std::string& element, const std::string& expectedType) const
@@ -109,6 +144,12 @@ const ThemeData::ThemeElement* ThemeData::getElement(const std::string& view, co
 	if(it == mViews.end()) return nullptr;
 	auto eit = it->second.elements.find(element);
 	if(eit == it->second.elements.end()) return nullptr;
+	if(!expectedType.empty() && eit->second.type != expectedType)
+	{
+		Log::write(LogWarning, "requested mismatched theme type for [{}.{}] - expected \"{}\", got \"{}\"", view,
+			element, expectedType, eit->second.type);
+		return nullptr;
+	}
 	return &eit->second;
 }
 
@@ -144,12 +185,30 @@ std::vector<std::unique_ptr<GuiComponent>> ThemeData::makeExtras(const std::shar
 
 void ThemeExtras::setExtras(std::vector<std::unique_ptr<GuiComponent>> extras)
 {
-	mExtras = std::move(extras);
+	mExtras = std::move(extras); // deletes the old extras, which detach themselves from this parent
+	for(auto& extra : mExtras)
+		addChild(extra.get()); // without this the extras are never drawn (system view background)
 }
 
 const std::shared_ptr<ThemeData>& ThemeData::getDefault()
 {
-	static std::shared_ptr<ThemeData> def = std::make_shared<ThemeData>();
+	static std::shared_ptr<ThemeData> def = nullptr;
+	if(def == nullptr)
+	{
+		def = std::make_shared<ThemeData>();
+		if(const auto found = es::paths::find(es::paths::Kind::Config, "es_theme_default.xml"))
+		{
+			try
+			{
+				def->loadFile(found->string());
+			}
+			catch(ThemeException& e)
+			{
+				Log::write(LogError, "{}", e.what());
+				def = std::make_shared<ThemeData>(); // reset to empty
+			}
+		}
+	}
 	return def;
 }
 

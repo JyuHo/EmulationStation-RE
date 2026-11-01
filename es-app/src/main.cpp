@@ -6,8 +6,7 @@
 #include <iomanip>
 #include "renderer/Renderer.h"
 #include "theme/ThemeDiagnostics.h"
-#include "theme/ThemeLoader.h"
-#include "theme/ThemeCondition.h"
+#include "ThemeData.h"
 #include "views/ViewController.h"
 #include "SystemData.h"
 #include <filesystem>
@@ -216,6 +215,43 @@ int main(int argc, char* argv[])
 	// before any interface is built: every string goes through _()
 	I18n::init(Settings::getInstance()->getString("Language"));
 
+	// --check-theme: validates a theme without opening a window (before Window::init), through
+	// ThemeData like a real load (layer 1 + schema), diagnostics on stdout
+	for(int i = 1; i < argc; i++)
+	{
+		if(strcmp(argv[i], "--check-theme") != 0)
+			continue;
+		if(i + 2 >= argc)
+		{
+			std::cerr << "Missing arguments for --check-theme.\n";
+			return 1;
+		}
+		const fs::path themeDir = argv[i + 1];
+		const std::string system = argv[i + 2];
+		// lookup order of docs/THEMES.md section 1 (ThemeSet::getThemePath only tries the first one yet)
+		fs::path themeFile = themeDir / system / "theme.xml";
+		if(!fs::exists(themeFile))
+			themeFile = themeDir / "default" / "theme.xml";
+		if(!fs::exists(themeFile))
+			themeFile = themeDir / "theme.xml";
+
+		es::theme::Diagnostics diag;
+		ThemeData theme;
+		theme.loadFile(
+			themeFile.string(), diag, width ? static_cast<int>(width) : 1920, height ? static_cast<int>(height) : 1080);
+		int errors = 0, warnings = 0;
+		for(const auto& d : diag.all())
+		{
+			std::cout << es::theme::toString(d.where) << ": " << d.message << "\n";
+			if(d.severity == es::theme::Severity::Error)
+				errors++;
+			else
+				warnings++;
+		}
+		std::cout << errors << " error(s), " << warnings << " warning(s)\n";
+		return errors > 0 ? 1 : 0;
+	}
+
 	Window window;
 	ViewController::init(&window);
 
@@ -254,52 +290,6 @@ int main(int argc, char* argv[])
 	if(scrape_cmdline)
 	{
 		return run_scraper_cmdline();
-	}
-
-	// --check-theme: validate a theme without opening a window
-	for(int i = 1; i < argc; i++)
-	{
-		if(strcmp(argv[i], "--check-theme") == 0)
-		{
-			if(i + 2 >= argc)
-			{
-				std::cerr << "Missing arguments for --check-theme.\n";
-				return 1;
-			}
-			std::string themeDir = argv[i + 1];
-			std::string system = argv[i + 2];
-
-			es::theme::LoaderContext ctx;
-			ctx.legacy.system = system;
-			ctx.legacy.language = Settings::getInstance()->getString("Language");
-			ctx.region = "eu";
-			es::theme::Diagnostics diag;
-			ctx.variables.set("root", fs::path(themeDir).generic_string(), diag, {themeDir, 0});
-			es::theme::ConditionEnvironment env;
-			env.screenWidth = width ? width : 1920;
-			env.screenHeight = height ? height : 1080;
-			env.systemName = system;
-			ctx.conditions = es::theme::makeConditionResolver(env);
-
-			fs::path themeFile = fs::path(themeDir) / system / "theme.xml";
-			if(!fs::exists(themeFile))
-				themeFile = fs::path(themeDir) / "default" / "theme.xml";
-			if(!fs::exists(themeFile))
-				themeFile = fs::path(themeDir) / "theme.xml";
-			auto loaded = es::theme::loadTheme(themeFile, ctx, diag);
-			for(const auto& d : diag.all())
-			{
-				std::cout << es::theme::toString(d.where) << ": " << d.message << "\n";
-			}
-			int errors = 0, warnings = 0;
-			for(const auto& d : diag.all())
-			{
-				if(d.severity == es::theme::Severity::Error) errors++;
-				else warnings++;
-			}
-			std::cout << errors << " error(s), " << warnings << " warning(s)\n";
-			return errors > 0 ? 1 : 0;
-		}
 	}
 
 	//dont generate joystick events while we're loading (hopefully fixes "automatically started emulator" bug)

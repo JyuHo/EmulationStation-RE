@@ -7,6 +7,7 @@
 #include "theme/ThemeOptions.h"
 
 #include "pugixml/pugixml.hpp"
+#include "Util.h"
 
 #include <algorithm>
 #include <filesystem>
@@ -172,7 +173,8 @@ bool processFile(const fs::path& file, LoadedTheme& theme, LoaderContext& ctx, D
 
 	if(root.child("formatVersion"))
 	{
-		try { theme.formatVersion = std::stof(root.child("formatVersion").text().as_string()); } catch(...) { theme.formatVersion = 0; }
+		// parseFloat (std::from_chars): std::stof follows the C locale, test_Locale sets fr_FR (PROMPT.md 0.3)
+		theme.formatVersion = parseFloat(root.child("formatVersion").text().as_string());
 	}
 	// no default: a missing formatVersion is a fatal error (test_ThemeData)
 
@@ -181,22 +183,9 @@ bool processFile(const fs::path& file, LoadedTheme& theme, LoaderContext& ctx, D
 		if(root.attribute("name")) theme.info.name = root.attribute("name").as_string();
 		if(root.attribute("author")) theme.info.author = root.attribute("author").as_string();
 		if(root.attribute("version")) theme.info.version = root.attribute("version").as_string();
+		// major version only ("10" and "10.1" -> 10): "10" gave 10 and "10.1" gave 2561 before
 		if(root.attribute("recalbox"))
-		{
-			std::string v = root.attribute("recalbox").as_string();
-			size_t dot = v.find('.');
-			if(dot == std::string::npos)
-			{
-				try { theme.info.recalboxVersion = std::stoi(v); } catch(...) { theme.info.recalboxVersion = 0; }
-			}
-			else
-			{
-				int major=0, minor=0;
-				try { major = std::stoi(v.substr(0,dot)); } catch(...) {}
-				try { minor = std::stoi(v.substr(dot+1)); } catch(...) {}
-				theme.info.recalboxVersion = (major << 8) + minor;
-			}
-		}
+			theme.info.recalboxVersion = parseInt(root.attribute("recalbox").as_string());
 		if(root.attribute("compatibility"))
 			for(const auto& s : splitComma(root.attribute("compatibility").as_string())) theme.info.compatibility.push_back(s);
 		if(root.attribute("resolutions"))

@@ -75,7 +75,7 @@ struct ThemeInfo
 	std::string name;
 	std::string author;
 	std::string version;
-	int recalboxVersion = 0;
+	int recalboxVersion = 0; // major version of the "recalbox" attribute: "10" and "10.1" give 10
 	std::vector<std::string> compatibility; // "hdmi", "crt", "jamma", "tate"
 	std::vector<std::string> resolutions;	// "qvga", "vga", "hd", "fhd"
 };

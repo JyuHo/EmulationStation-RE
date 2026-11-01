@@ -1,8 +1,7 @@
 #include "theme/ThemeOptions.h"
 #include <cstdio>
 
-// PHASE11-STUB: resolveSelectedOptions in PR 11b (the loader needs it), optionSettingKey in PR 11e
-// (PROMPT.md 14.6).
+// Option selection (docs/THEMES.md section 8). optionSettingKey was written in 11b, ahead of 11e.
 
 namespace es::theme {
 

@@ -1,6 +1,11 @@
 #include "ThemeData.h"
+#include "theme/ThemeDiagnostics.h"
+#include "Window.h"
 
 #include <catch2/catch_test_macros.hpp>
+
+#include <memory>
+#include <vector>
 
 TEST_CASE("ThemeData loads a format 3 theme", "[ThemeData]")
 {
@@ -56,4 +61,78 @@ TEST_CASE("ThemeData reads the video element", "[ThemeData]")
 	CHECK(video->get<float>("delay") == 1.5f);
 	CHECK(video->get<bool>("showSnapshotNoVideo"));
 	CHECK(video->get<bool>("showSnapshotDelay"));
+}
+
+TEST_CASE("ThemeData extras are drawn as children of ThemeExtras", "[ThemeData]")
+{
+	// #75 dropped the addChild of setExtras: the extras of the system view (background,
+	// caption of the capture theme) were created but never drawn, a black system view.
+	// Plain components: a themed TextComponent needs a renderer for its font.
+	const std::string dir = ES_TEST_DATA_DIR "/capture/themes/capture";
+	ThemeData theme;
+	REQUIRE_NOTHROW(theme.loadFile(dir + "/nes/theme.xml"));
+	const ThemeData::ThemeElement* background = theme.getElement("system", "background", "image");
+	REQUIRE(background != nullptr);
+	CHECK(background->extra);
+
+	Window window;
+	std::vector<std::unique_ptr<GuiComponent>> extras;
+	extras.push_back(std::make_unique<GuiComponent>(&window));
+	extras.push_back(std::make_unique<GuiComponent>(&window));
+	GuiComponent* first = extras.front().get();
+
+	ThemeExtras holder(&window);
+	holder.setExtras(std::move(extras));
+	REQUIRE(holder.getChildCount() == 2);
+	CHECK(holder.getChild(0) == first);
+
+	// replacing the extras detaches the old ones
+	holder.setExtras({});
+	CHECK(holder.getChildCount() == 0);
+}
+
+TEST_CASE("ThemeData rejects an element of the wrong type", "[ThemeData]")
+{
+	ThemeData theme;
+	REQUIRE_NOTHROW(theme.loadFile(ES_TEST_DATA_DIR "/themes/minimal.xml"));
+	CHECK(theme.getElement("detailed", "md_description", "text") != nullptr);
+	CHECK(theme.getElement("detailed", "md_description", "image") == nullptr);
+	CHECK(theme.getElement("detailed", "md_description", "") != nullptr);
+}
+
+TEST_CASE("ThemeData ignores what it does not know, with a file:line warning", "[ThemeData]")
+{
+	// R6: an unknown property, an invalid value or an unknown element only drops that node
+	const std::string file = ES_TEST_DATA_DIR "/themes/lenient.xml";
+	ThemeData theme;
+	es::theme::Diagnostics diag;
+	REQUIRE(theme.loadFile(file, diag, 1920, 1080));
+
+	const ThemeData::ThemeElement* text = theme.getElement("detailed", "md_description", "text");
+	REQUIRE(text != nullptr);
+	CHECK(text->get<unsigned int>("color") == 0x11223344u);
+	CHECK_FALSE(text->has("sparkle"));
+	const ThemeData::ThemeElement* image = theme.getElement("detailed", "md_image", "image");
+	REQUIRE(image != nullptr);
+	CHECK(image->get<glm::vec2>("pos") == glm::vec2(0.1f, 0.2f));
+	CHECK_FALSE(image->has("color"));
+
+	std::vector<int> lines;
+	for(const auto& d : diag.all())
+	{
+		CHECK(d.severity == es::theme::Severity::Warning);
+		CHECK(d.where.file.filename() == "lenient.xml");
+		lines.push_back(d.where.line);
+	}
+	// sparkle (line 6), invalid color (line 10), unknown element hologram (line 12)
+	CHECK(lines == std::vector<int>{6, 10, 12});
+}
+
+TEST_CASE("ThemeData reports an unusable main file without throwing", "[ThemeData]")
+{
+	es::theme::Diagnostics diag;
+	ThemeData theme;
+	CHECK_FALSE(theme.loadFile(ES_TEST_DATA_DIR "/themes/no-version.xml", diag, 1920, 1080));
+	CHECK(diag.hasErrors());
+	CHECK(theme.getElement("detailed", "md_description", "text") == nullptr);
 }

@@ -249,6 +249,22 @@ voulu, expliqué dans la PR.
 - **Lancement de ES sans écran** : sans `es_systems.cfg` valide, ES affiche une erreur et
   quitte ; le test de fumée en fournit un. Au premier lancement, ES affiche l'écran de
   configuration de manette (normal sous Xvfb).
+- **Captures en local sur un bureau Wayland** (cas de #75) : `WAYLAND_DISPLAY` étant défini,
+  SDL3 ouvrait la fenêtre sur le vrai bureau et non dans le serveur Xvfb de `xvfb-run` :
+  capture noire, et `xdotool search --pid` ne trouvait aucune fenêtre. `run.sh` et
+  `capture.sh` font maintenant `unset WAYLAND_DISPLAY` et `SDL_VIDEO_DRIVER=x11`. Si un script
+  à toi lance ES sous Xvfb, fais pareil. Procédure complète de comparaison avec la base :
+  `PROMPT.md` 14.7 (« Captures format 3 »). Ne pousse jamais « pour que la CI vérifie » un
+  changement de rendu que tu n'as pas capturé toi-même.
+- **`ThemeExtras` et `addChild`** (régression de #75) : `setExtras` doit rattacher chaque extra
+  avec `addChild`. Sinon les éléments `extra="true"` (fond et légende de la vue système du
+  thème de capture) sont créés, thémés, mais jamais dessinés : vue système noire. Test :
+  « ThemeData extras are drawn as children of ThemeExtras » (`test_ThemeData.cpp`).
+- **Réécrire une fonction, c'est garder tous ses comportements** : avant de remplacer un
+  fichier, liste ce que fait l'ancienne version (avertissements, vérifications de type,
+  chemins de recherche, effets de bord comme `addChild`) et retrouve chacun dans la nouvelle.
+  #75 en avait perdu six d'un coup (`docs/MODERNIZATION_PLAN.md`, phase 11, « Écarts
+  constatés »).
 
 ### 0.4 Collaboration avec le propriétaire
 - Le propriétaire (GitHub `JyuHo`) relit et **fusionne lui-même** les PR. Ne fusionne pas,
@@ -1193,6 +1209,23 @@ viole une est refusée sans relecture du reste.
   contredisent, ou si un critère est impossible à tenir : tu t'arrêtes, tu décris l'écart dans
   la PR (brouillon) et tu proposes une correction. Tu ne choisis pas seul de l'ignorer.
 
+Règles ajoutées après le contrôle de 11a–11c (01/11/2026), aussi absolues que les autres :
+
+- **R14 — Preuve, pas affirmation.** Chaque critère coché est suivi de la **sortie réelle**
+  de sa commande, copiée telle quelle. « OK », « passe », « vérifié » sans sortie = critère non
+  rempli. Une PR dont un job de CI est rouge reste en **brouillon** et n'est jamais décrite
+  comme terminée, ni dans la PR, ni dans le plan, ni dans le compte rendu.
+- **R15 — Documents propres.** Aucune transcription d'agent (`<|…|>`, échanges, journal de
+  commandes), aucun chemin local (`/home/…`, `/Users/…`), aucune PR décrite « ouverte » ou « en
+  cours » dans `docs/` ou `PROMPT.md`. Un état de PR s'écrit après sa fusion, avec son numéro.
+- **R16 — Réécriture sans perte.** Quand tu remplaces une fonction ou un fichier existant, la
+  description de la PR contient le tableau « comportement de l'ancienne version → où il est
+  maintenant (fichier:ligne) → test qui le couvre ». Un comportement abandonné exige une source
+  (R4) et l'accord du propriétaire (R13).
+- **R17 — Garde-fou mécanique.** `tests/smoke/phase11-check.sh <PR>` passe (`PASS`) avant que
+  la PR soit « prête » ; sa sortie complète va dans *Vérifications effectuées*. Il ne remplace
+  aucune autre vérification.
+
 ### 14.3 Sources de référence
 - Moteur : dépôt GitLab `recalbox/recalbox`, tag **`10.1.1`** (17/09/2026), dossier
   `projects/frontend/`. Fichiers principaux : `es-core/src/themes/ThemeData.{h,cpp}`
@@ -1278,14 +1311,16 @@ Décisions déjà prises (ne les rediscute pas sans R13) :
   courant en a l'usage : l'écran 06 des captures reste identique (R5).
 
 ### 14.6 Découpage en PR
-Neuf PR, dans l'ordre, chacune partant de `main` à jour après la fusion de la précédente. Le
-détail (fichiers, tests, critères) est dans `docs/phase11/11<x>.md`.
+Dix PR (11c2 ajoutée après le contrôle de 11a–11c), dans l'ordre, chacune partant de `main` à
+jour après la fusion de la précédente. Le détail (fichiers, tests, critères) est dans
+`docs/phase11/11<x>.md`.
 
 | PR | Branche | Contenu | Tests à révéler | Taille visée |
 |----|---------|---------|-----------------|--------------|
 | 11a | `modernize/phase-11a-themes-spec` | `docs/THEMES.md` (spécification sourcée), aucune ligne de C++ | — | doc |
 | 11b | `modernize/phase-11b-theme-loader` | couche 1 : diagnostics, conditions, variables, sélection des options, chargeur | `[11b]` | 800–1 200 |
 | 11c | `modernize/phase-11c-theme-schema` | couche 2 + `ThemeData` sur les couches 1 et 2, recherche du fichier, formats 4 et 5, `--check-theme` | `[11c]` | 800–1 300 |
+| 11c2 | `modernize/phase-11c2-theme-conformity` | mise en conformité de 11a–11c : section 11 de `docs/THEMES.md`, recherche du fichier, contexte du chargeur, `PathList`, tests manquants | — | 400–900 + doc |
 | 11d | `modernize/phase-11d-theme-properties` | propriétés communes (`zIndex`, rotation, opacité, `disabled`, repli de chemins…), `capture-themes.sh` et sondes de pixels | — | 600–1 200 |
 | 11e | `modernize/phase-11e-theme-options` | menu « Options du thème », région, enregistrement, rechargement à chaud, traductions | `[11e]` | 500–900 |
 | 11f | `modernize/phase-11f-themed-menus` | vue `menu` : fond, textes, interrupteurs, curseurs, boutons, icônes ; `delete this` des GUI touchées | — | 800–1 400 |
@@ -1322,6 +1357,12 @@ cmake --build /tmp/build-base --target emulationstation
 tests/smoke/capture.sh /tmp/build-base/emulationstation /tmp/avant
 tests/smoke/capture.sh build/relwithdebinfo/emulationstation /tmp/apres
 tests/smoke/compare.sh /tmp/avant /tmp/apres            # attendu : 9 × OK 0 pixels
+# Sur un bureau Wayland, les scripts forcent X11 (0.3). Si une capture est noire, regarde
+# d'abord /tmp/apres/draw-calls.txt (0 ou presque : rien n'est dessiné, cherche un composant
+# non rattaché ou une vue vide) puis es_log.txt (avertissements de thème fichier:ligne).
+
+# Garde-fou mécanique (R17), <PR> = la PR en cours (11c2, 11d…)
+tests/smoke/phase11-check.sh <PR>
 
 # Captures des nouveautés (à partir de 11d) : sondes de pixels, sans référence
 tests/smoke/capture-themes.sh build/relwithdebinfo/emulationstation /tmp/themes
@@ -1354,6 +1395,17 @@ tests/smoke/capture-themes.sh build/relwithdebinfo/emulationstation /tmp/themes
   du thème précédent doivent être libérés (vérifie avec `asan`).
 - **`delete this`** (0.2, 0.3) : ne change `Window::removeGui` qu'en traitant toutes les GUI
   concernées dans la même PR (11f), avec `test_Window.cpp` étendu.
+- **Extras** : `ThemeExtras::setExtras` rattache chaque extra (`addChild`) ; sans cela, vue
+  système noire (#75, 0.3).
+- **`ThemeException` et R6** : `test_ThemeData` attend `CHECK_THROWS` pour un fichier principal
+  inutilisable, et R7 interdit de changer ce test. Décision (#76) : seul
+  `ThemeData::loadFile(path)` lève, et tous ses appelants l'attrapent (`SystemData::loadTheme`,
+  `ThemeData::getDefault`) ; `loadFile(path, diag, largeur, hauteur)` ne lève rien et sert à
+  `--check-theme` et aux tests. Tout nouvel appelant de `loadFile(path)` attrape l'exception.
+- **`--check-theme`** s'exécute avant `Window::init` et passe par `ThemeData` (couches 1 et 2) :
+  il signale aussi les propriétés inconnues et les valeurs invalides.
+- **Conditions de résolution** : bornes sur la hauteur réelle, `Renderer.h:720-726` @10.1.1
+  (qvga ≤ 288 < vga ≤ 576 < hd ≤ 920 < fhd). Exactement un des quatre est vrai.
 
 ### 14.9 Critères d'acceptation de la phase 11
 - [ ] `docs/THEMES.md` complet et sourcé ; écarts avec Recalbox listés.
