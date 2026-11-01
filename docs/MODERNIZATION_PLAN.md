@@ -1130,7 +1130,22 @@ est fourni : il est rempli PR par PR.
   différentes de celles d'ES. Phase découpée en **11f1** à **11f5** (`docs/phase11/README.md`).
   Décision du propriétaire (01/11/2026) : icônes de menu, sections et clavier virtuel créés
   (11f4, 11f5).
-- Reste : 11e2, 11f1 à 11f5, 11g à 11i.
+- **11e2** (#89), **11f1** (#90), **11f2** (#91), **11f3** (#92), fusionnées sans test ni
+  document. Revue et corrections (PR « revue de 11e2 à 11f3 ») :
+  - 11e2 : le menu « UI settings » ne rechargeait jamais le thème (indicateur de changement
+    capturé par valeur, ou pointant vers une variable détruite) ;
+  - 11f1 : `loadMainTheme()` retombait sur `default/theme.xml` au lieu de `<jeu>/theme.xml`
+    seul (`ThemeManager.cpp:54-74`) ; `menusection` copié de `menutext` avant la
+    particularité de `menutextsmall` (`MenuThemeData.cpp:49,65-73`) ; police de section par
+    défaut, alignement de section typé ; membres privés de `Window` redevenus privés ;
+  - 11f2 : `ComponentList` ne copie plus tout le `MenuTheme` à chaque image ;
+  - tests ajoutés : `[11e2]` (option et région appliquées, ordre et noms d'options,
+    `Settings`), `[11f1]` (`test_MenuTheme.cpp`, fixture `tests/data/themes/menu/`),
+    `[11f3]` (`Window::closeGui`).
+  Reste de 11f2 non fait (cadres des autres fenêtres, couleur des bords, fondu, titres et pied,
+  textes des entrées, listes d'options, flèches, séparateurs, ligne du curseur) : repris avec
+  11f4.
+- Reste : 11f2 (fin), 11f4, 11f5, 11g à 11i.
 
 ---
 

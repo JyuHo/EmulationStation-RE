@@ -65,22 +65,40 @@ MenuTheme MenuTheme::fromTheme(const ThemeData& theme)
 		if(textElem->has("separatorColor")) mt.text.separatorColor = textElem->get<unsigned int>("separatorColor");
 	}
 
-	// menutextsmall: inherits all of menutext (Recalbox :65), then overrides
-	MenuTextStyle small = mt.text;
+	// menusection: a copy of menutext taken right after menutext is read (MenuThemeData.cpp:49),
+	// so before the menutextsmall particularity below
+	mt.section = mt.text;
+	if(const auto* e = elem(theme, "menusection", "menuSection"))
+	{
+		// a missing font property comes from the menutext font (:53)
+		if(e->has("fontPath") || e->has("fontSize"))
+		{
+			MenuFont f = mt.text.font.value_or(MenuFont{FONT_PATH_REGULAR, 0.045f});
+			if(e->has("fontPath")) f.path = e->get<std::string>("fontPath");
+			if(e->has("fontSize")) f.size = e->get<float>("fontSize");
+			mt.section.font = f;
+		}
+		if(e->has("color")) mt.section.color = e->get<unsigned int>("color");
+		if(e->has("selectedColor")) mt.section.selectedColor = e->get<unsigned int>("selectedColor");
+		if(e->has("alignment"))
+		{
+			// :56-62: "left", "right", anything else is centered
+			const std::string a = e->get<std::string>("alignment");
+			mt.sectionAlignment = a == "left" ? ALIGN_LEFT : a == "right" ? ALIGN_RIGHT : ALIGN_CENTER;
+		}
+	}
+
+	// menutextsmall: inherits all of menutext (:65), then overrides
+	mt.textSmall = mt.text;
 	if(const auto* e = elem(theme, "menutextsmall", "menuTextSmall"))
 	{
 		if(e->has("fontPath") || e->has("fontSize"))
-			small.font = readFont(e, 0.035f);
-		if(e->has("color")) small.color = e->get<unsigned int>("color");
-		// particularity :72-73: selectorColor writes menutext.selectedColor
+			mt.textSmall.font = readFont(e, 0.035f);
+		if(e->has("color")) mt.textSmall.color = e->get<unsigned int>("color");
+		// particularity of Recalbox's code (:72-73): both write the selected color of menutext
+		if(e->has("selectedColor")) mt.text.selectedColor = e->get<unsigned int>("selectedColor");
 		if(e->has("selectorColor")) mt.text.selectedColor = e->get<unsigned int>("selectorColor");
-		if(e->has("selectedColor")) small.selectedColor = e->get<unsigned int>("selectedColor");
 	}
-	// if no menutextsmall element, inherit (already set)
-	if(!elem(theme, "menutextsmall", "menuTextSmall"))
-		mt.textSmall = mt.text;
-	else
-		mt.textSmall = small;
 
 	// menubutton
 	if(const auto* e = elem(theme, "menubutton", "menuButton"))
@@ -102,25 +120,6 @@ MenuTheme MenuTheme::fromTheme(const ThemeData& theme)
 		if(e->has("path")) mt.sliderKnobPath = e->get<std::string>("path");
 	}
 
-	// menusection
-	MenuTextStyle section = mt.text; // copy of menutext (Recalbox :49)
-	if(const auto* e = elem(theme, "menusection", "menuSection"))
-	{
-		if(e->has("fontPath") || e->has("fontSize"))
-			section.font = readFont(e, mt.text.font ? mt.text.font->size : 0.045f);
-		if(e->has("color")) section.color = e->get<unsigned int>("color");
-		if(e->has("selectedColor")) section.selectedColor = e->get<unsigned int>("selectedColor");
-		if(e->has("alignment"))
-		{
-			std::string a = e->get<std::string>("alignment");
-			if(a == "left") mt.sectionAlignment = 0;
-			else if(a == "right") mt.sectionAlignment = 1;
-			else mt.sectionAlignment = 2;
-		}
-		else
-			mt.sectionAlignment = 2;
-	}
-	mt.section = section;
 
 	// menuicons: property "iconXxx" -> MenuIcon::Xxx
 	if(const auto* e = elem(theme, "menuicons", "menuIcons"))
@@ -143,7 +142,6 @@ MenuTheme MenuTheme::fromTheme(const ThemeData& theme)
 		setIcon("iconShutdown", MenuIcon::Shutdown);
 		setIcon("iconFastShutdown", MenuIcon::FastShutdown);
 		setIcon("iconLicense", MenuIcon::License);
-		setIcon("iconLists", MenuIcon::Lists);
 		setIcon("iconBios", MenuIcon::Bios);
 		setIcon("iconRecalboxRGBDual", MenuIcon::RecalboxRGBDual);
 		setIcon("iconTate", MenuIcon::Tate);
@@ -151,12 +149,8 @@ MenuTheme MenuTheme::fromTheme(const ThemeData& theme)
 		setIcon("iconDownload", MenuIcon::Download);
 		setIcon("iconThemes", MenuIcon::Themes);
 		setIcon("iconCardReader", MenuIcon::CardReader);
-		setIcon("iconList", MenuIcon::Lists);
-		setIcon("iconGames", MenuIcon::Games);
+		setIcon("iconList", MenuIcon::Lists); // the property is "iconList" (:108)
 	}
-
-	// help: from helpsystem? Recalbox reads menutext color for help? Actually help is helpsystem.
-	// Keep defaults.
 
 	return mt;
 }

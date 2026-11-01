@@ -174,7 +174,10 @@ public:
 	static std::map<std::string, ThemeSet> getThemeSets();
 	static std::filesystem::path getThemeFromCurrentSet(const std::string& system);
 	static std::string currentThemeSetName();
+	// Main theme of the current set, <set>/theme.xml, for the menus; nullptr when there is none
+	// or it cannot be loaded (logged as a warning).
 	static std::shared_ptr<ThemeData> loadMainTheme();
+	static std::shared_ptr<ThemeData> loadMainTheme(const std::filesystem::path& setDir);
 
 private:
 	static std::map<std::string, std::map<std::string, ElementPropertyType>> sElementMap;

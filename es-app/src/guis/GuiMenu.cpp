@@ -256,7 +256,9 @@ GuiMenu::GuiMenu(Window* window) :
 			{
 				std::shared_ptr<ThemeData> theme = sys->getTheme();
 				const std::string themeSet = ThemeData::currentThemeSetName();
-				bool anyChange = false;
+				// set by the save functions of the options and the region, read by the last one: shared,
+				// because they all run when the menu closes, long after this block
+				auto anyChange = std::make_shared<bool>(false);
 
 				if(theme && !theme->getSubsets().empty())
 				{
@@ -276,11 +278,11 @@ GuiMenu::GuiMenu(Window* window) :
 							comp->add(es::theme::displayOptionName(c.displayName.empty() ? c.name : c.displayName), c.name, sel);
 						}
 						s->addWithLabel(subset.title, comp);
-						s->addSaveFunc([comp, key, &anyChange] {
+						s->addSaveFunc([comp, key, anyChange] {
 							if(Settings::getInstance()->getStringOr(key, "") != comp->getSelected())
 							{
 								Settings::getInstance()->setString(key, comp->getSelected());
-								anyChange = true;
+								*anyChange = true;
 							}
 						});
 					}
@@ -293,16 +295,16 @@ GuiMenu::GuiMenu(Window* window) :
 					region->add("EU", "eu", cur == "eu");
 					region->add("JP", "jp", cur == "jp");
 					s->addWithLabel(_U("Theme region"), region);
-					s->addSaveFunc([region, &anyChange] {
+					s->addSaveFunc([region, anyChange] {
 						if(Settings::getInstance()->getStringOr("ThemeRegion", "eu") != region->getSelected())
 						{
 							Settings::getInstance()->setString("ThemeRegion", region->getSelected());
-							anyChange = true;
+							*anyChange = true;
 						}
 					});
 				}
-				s->addSaveFunc([anyChange]() mutable {
-					if(anyChange)
+				s->addSaveFunc([anyChange] {
+					if(*anyChange)
 					{
 						Settings::getInstance()->saveFile();
 						ViewController::get()->reloadAll();

@@ -163,7 +163,8 @@ celle de `--resolution`.
   projet, `PROMPT.md` 14.5).
 - Enregistrement : clé `ThemeOption.<jeu de thèmes>.<subset>` (chaîne) dans `es_settings.cfg`
   (décision du projet, `PROMPT.md` 14.5), lue sans `[ERROR]` si absente.
-- Menu « Options du thème » : PR 11e.
+- Menu « Options du thème » : PR 11e ; choix appliqué au chargement depuis 11e2
+  (`ThemeData::loadFile`, test `[11e2]` de `tests/unit/test_ThemeData.cpp`).
 
 ## 9. Régions et langues
 
@@ -186,10 +187,27 @@ Vues lues par Recalbox (`ThemeSupport::SupportedViews`, `themes/ThemeSupport.cpp
 |---|---|
 | `system` | lue (format 3) ; carrousel et nouveautés : PR 11g |
 | `basic`, `detailed` | lues (format 3) |
-| `menu` | menus thémés : PR 11f |
+| `menu` | lue dans `<jeu>/theme.xml` seul, sans système (`ThemeManager.cpp:54-74`) depuis 11f1 ; application aux menus : 11f2 (partielle), 11f4, 11f5 |
 | `gameclip` | économiseur d'écran : PR 11h |
 | `gamelistlogo` | non prise en charge. **Contradiction** chez Recalbox : testée par `ThemeData::HasLogoView` (`themes/ThemeData.h:93`) mais absente de `SupportedViews` ; à trancher par le propriétaire (R13) |
 | `challenge` | non prise en charge (pas de système de défis) : avertissement, vue ignorée |
+
+### Vue menu (11f1)
+
+- Fichier : `<jeu de thèmes>/theme.xml` seul, chargé sans système ; pas de repli sur
+  `default/theme.xml` (`ThemeManager.cpp:54-74`). Absent ou invalide : avertissement, menus
+  par défaut (`ThemeData::loadMainTheme`).
+- Éléments lus par leur nom (`MenuThemeData.cpp:4-130`) : `menuSize` « menuSize »,
+  `menuBackground` « menubg », `menuText` « menutitle », « menufooter », « menutext »,
+  `menuTextSmall` « menutextsmall », `menuSection` « menusection », `menuButton`
+  « menubutton », `menuSwitch` « menuswitch », `menuSlider` « menuslider », `menuIcons`
+  « menuicons ». Toute valeur est facultative : absente, le composant garde la sienne.
+- `menusection` part des valeurs de `menutext` (`MenuThemeData.cpp:49`) ; police par défaut :
+  celle de `menutext`.
+- `menutextsmall` part de `menutext` (`:65`) ; ses `selectedColor` et `selectorColor`
+  écrivent la couleur sélectionnée de `menutext` (`:72-73`, reproduit tel quel).
+- `keyboard` : lu dans la vue `menu`, sinon `system` (`WindowManager.cpp:131-145`).
+- Tests : `[11f1]` de `tests/unit/test_MenuTheme.cpp`.
 
 ### Propriétés communes et ordre de dessin (11d)
 

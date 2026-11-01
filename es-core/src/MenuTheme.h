@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ThemeData.h"
+#include "resources/Font.h"
 
 #include <map>
 #include <optional>
@@ -56,7 +57,7 @@ struct MenuTheme
 	MenuTextStyle text;
 	MenuTextStyle textSmall;
 	MenuTextStyle section;
-	std::optional<int> sectionAlignment; // 0 left, 1 right, 2 center
+	std::optional<Alignment> sectionAlignment; // absent: centered (MenuThemeData.cpp:124-125)
 
 	std::optional<std::string> buttonPath;
 	std::optional<std::string> buttonFilledPath;

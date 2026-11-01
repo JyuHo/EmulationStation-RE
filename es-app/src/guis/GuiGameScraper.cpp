@@ -51,7 +51,9 @@ GuiGameScraper::GuiGameScraper(
 
 	mGrid.setEntry(mButtonGrid, glm::ivec2(0, 6), true, false);
 
-	// we call this->close() instead of just mWindow->closeGui(this); in the accept callback:
+	// Window::closeGui defers the deletion to the next Window::update, so the problem below no
+	// longer happens; close() is kept so the accept callback stays the same.
+	// History: we called this->close() instead of just delete this; in the accept callback:
 	// this is because of how GuiComponent::update works.  if it was just delete this, this would happen when the metadata resolver is done:
 	//     GuiGameScraper::update()
 	//       GuiComponent::update()
@@ -72,7 +74,7 @@ GuiGameScraper::GuiGameScraper(
 	//           acceptCallback -> close() -> mClose = true
 	//         it++; // ok
 	//       if(mClose)
-	//         mWindow->closeGui(this);
+	//         delete this;
 	mSearch->setAcceptCallback([this, doneFunc](const ScraperSearchResult& result) {
 		doneFunc(result);
 		close();

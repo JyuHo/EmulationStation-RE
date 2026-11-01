@@ -1,0 +1,26 @@
+<!-- Fixture written for EmulationStation-RE (MIT). Own content, no file of a Recalbox theme
+     (PROMPT.md 14.2-R3). Main theme of a set: its "menu" view styles the menus. -->
+<theme>
+	<formatVersion>4</formatVersion>
+	<include>${root}/systems/${system.name}.xml</include>
+	<view name="menu">
+		<menuSize name="menuSize" height="0.8"/>
+		<menuBackground name="menubg" path="./art/frame.png" fadePath="./art/fade.png" color="10203040"/>
+		<menuText name="menutitle" fontSize="0.09" color="11111111"/>
+		<menuText name="menufooter" fontPath="./art/frame.png" color="22222222"/>
+		<menuText name="menutext" fontSize="0.05" color="33333333" separatorColor="44444444" selectedColor="55555555" selectorColor="66666666"/>
+		<menuTextSmall name="menutextsmall" color="77777777" selectorColor="88888888"/>
+		<menuSection name="menusection" color="99999999" alignment="right"/>
+		<menuButton name="menubutton" path="./art/button.png" filledPath="./art/button_filled.png"/>
+		<menuSwitch name="menuswitch" pathOn="./art/on.png" pathOff="./art/off.png"/>
+		<menuSlider name="menuslider" path="./art/knob.png"/>
+		<menuIcons name="menuicons" iconUI="./art/ui.png" iconSound="./art/sound.png" iconList="./art/list.png"/>
+		<text name="menutextwrongtype" color="12345678"/>
+	</view>
+	<view name="system">
+		<keyboard name="keyboard" keyColor="AA0000FF" fontPath="./art/frame.png"/>
+	</view>
+	<view name="menu">
+		<keyboard name="keyboard" keyColor="00AA00FF" keyTitleColor="0000AAFF"/>
+	</view>
+</theme>

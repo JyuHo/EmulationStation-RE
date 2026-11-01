@@ -29,6 +29,8 @@ add_executable(es-tests
     unit/test_ThemeSchema.cpp
     unit/test_ThemeOptions.cpp
     unit/test_ThemeCommon.cpp
+    unit/test_MenuTheme.cpp
+    unit/test_Settings.cpp
 )
 target_link_libraries(es-tests PRIVATE es-app-lib Catch2::Catch2WithMain)
 target_compile_definitions(es-tests PRIVATE

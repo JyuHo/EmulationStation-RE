@@ -11,7 +11,6 @@
 ComponentList::ComponentList(Window* window) :
 	IList<ComponentListRow, void*>(window, LIST_SCROLL_STYLE_SLOW, LIST_NEVER_LOOP)
 {
-	mWindowPtr = window;
 	mSelectorBarOffset = 0;
 	mCameraOffset = 0;
 	mFocused = false;
@@ -212,7 +211,7 @@ void ComponentList::render(const glm::mat4& parentTrans)
 	// draw selector bar
 	if(mFocused)
 	{
-		const auto& mt = mWindowPtr ? mWindowPtr->getMenuTheme() : es::theme::MenuTheme{};
+		const es::theme::MenuTheme& mt = mWindow->getMenuTheme();
 		const bool themed = mt.text.selectorColor.has_value() || mt.text.selectedColor.has_value() || mt.backgroundColor.has_value();
 
 		const float selectedRowHeight = getRowHeight(mEntries.at(mCursor).data);
