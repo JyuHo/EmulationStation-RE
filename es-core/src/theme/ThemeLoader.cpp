@@ -321,8 +321,11 @@ bool processFile(const fs::path& file, LoadedTheme& theme, LoaderContext& ctx, D
 		fs::path incFile = resolved;
 		if(incFile.is_relative())
 		{
-			// resolve "./" without normalizing ".." (matches original resolvePath)
-			if(incFile.string().rfind("./", 0) == 0)
+			if(fs::exists(incFile))
+			{
+				// use as-is
+			}
+			else if(incFile.string().rfind("./", 0) == 0)
 			{
 				fs::path resolved = file.parent_path();
 				for(auto it = std::next(incFile.begin()); it != incFile.end(); ++it)
