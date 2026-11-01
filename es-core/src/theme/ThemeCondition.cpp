@@ -162,33 +162,28 @@ bool evaluateCondition(std::string_view expression, const ConditionResolver& res
 
 ConditionResolver makeConditionResolver(ConditionEnvironment environment)
 {
+	// docs/THEMES.md section 7. Resolutions: exclusive ranges of the display height, as in
+	// recalbox/recalbox@10.1.1 projects/frontend/es-core/src/Renderer.h:720-726.
 	return [environment](std::string_view id) -> std::optional<bool> {
-		if(id == "crt") return false;
-		if(id == "jamma") return false;
-		if(id == "overscan") return false;
-		if(id == "tate") return false;
-		if(id == "tateright") return false;
-		if(id == "tateleft") return false;
-		if(id == "qvga") return environment.screenWidth <= 320;
-		if(id == "vga") return environment.screenWidth > 320 && environment.screenWidth <= 640;
-		if(id == "hd") return environment.screenWidth >= 720;
-		if(id == "fhd") return environment.screenWidth >= 1920;
-		if(id == "virtual") return false;
-		if(id == "arcade") return false;
-		if(id == "port") return false;
-		if(id == "console") return !environment.systemName.empty();
-		if(id == "handheld") return false;
-		if(id == "computer") return false;
-		if(id == "fantasy") return false;
-		if(id == "engine") return false;
-		if(id == "favorite") return false;
-		if(id == "lastplayed") return false;
-		if(id == "bartop") return false;
-		if(id == "nomenu") return false;
-		if(id == "ispc") return true;
-		if(id == "ispi") return false;
-		if(id == "isodroid") return false;
-		if(id == "isanbernic") return false;
+		const int h = environment.screenHeight;
+		if(id == "qvga")
+			return h <= 288;
+		if(id == "vga")
+			return h > 288 && h <= 576;
+		if(id == "hd")
+			return h > 576 && h <= 920;
+		if(id == "fhd")
+			return h > 920;
+		if(id == "ispc")
+			return true;
+		// Recalbox hardware and modes, and system kinds this program does not know (no system
+		// type, no virtual systems, no favorites system): always false.
+		static constexpr std::string_view kFalse[] = {"crt", "jamma", "overscan", "tate", "tateright", "tateleft",
+			"bartop", "nomenu", "ispi", "isodroid", "isanbernic", "virtual", "arcade", "port", "console", "handheld",
+			"computer", "fantasy", "engine", "favorite", "lastplayed"};
+		for(std::string_view known : kFalse)
+			if(id == known)
+				return false;
 		return std::nullopt;
 	};
 }

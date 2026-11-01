@@ -118,3 +118,35 @@ TEST_CASE("Conditions: identifiers of this program", "[phase11][11b][ThemeCondit
 	CHECK(small("fhd") == std::optional<bool>(false));
 	CHECK(small("hd") == std::optional<bool>(false));
 }
+
+TEST_CASE("Conditions: resolution ranges of Recalbox 10.1.1", "[phase11][11b][ThemeCondition]")
+{
+	// Renderer.h:720-726 @10.1.1: exclusive ranges of the display height
+	auto at = [](int height, std::string_view id) {
+		ConditionEnvironment screen;
+		screen.screenWidth = height * 16 / 9;
+		screen.screenHeight = height;
+		return makeConditionResolver(screen)(id) == std::optional<bool>(true);
+	};
+	CHECK(at(240, "qvga"));
+	CHECK(at(288, "qvga"));
+	CHECK(at(289, "vga"));
+	CHECK(at(576, "vga"));
+	CHECK(at(577, "hd"));
+	CHECK(at(720, "hd"));
+	CHECK(at(920, "hd"));
+	CHECK(at(921, "fhd"));
+	CHECK(at(1080, "fhd"));
+	CHECK(at(2160, "fhd"));
+	// exactly one resolution identifier holds
+	for(int height : {240, 288, 480, 576, 720, 900, 1080, 1440, 2160})
+	{
+		CAPTURE(height);
+		int count = 0;
+		for(std::string_view id : {"qvga", "vga", "hd", "fhd"})
+			count += at(height, id) ? 1 : 0;
+		CHECK(count == 1);
+	}
+	// system kinds are unknown to this program: false, not "any system"
+	CHECK_FALSE(at(1080, "console"));
+}

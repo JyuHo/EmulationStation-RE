@@ -12,6 +12,7 @@
 #include "utils/Paths.h"
 #include "Log.h"
 #include "Settings.h"
+#include "renderer/Renderer.h"
 #include "resources/ResourceManager.h"
 
 #include <algorithm>
@@ -38,8 +39,9 @@ void ThemeData::loadFile(const std::string& path)
 	es::theme::Diagnostics diag;
 	ctx.variables.set("root", fs::path(path).parent_path().generic_string(), diag, {path, 0});
 	es::theme::ConditionEnvironment env;
-	env.screenWidth = 1920;
-	env.screenHeight = 1080;
+	// conditions such as "hd" depend on the real screen; 1920 x 1080 before Renderer::init
+	env.screenWidth = Renderer::getScreenWidth() > 0 ? static_cast<int>(Renderer::getScreenWidth()) : 1920;
+	env.screenHeight = Renderer::getScreenHeight() > 0 ? static_cast<int>(Renderer::getScreenHeight()) : 1080;
 	env.systemName = "";
 	ctx.conditions = es::theme::makeConditionResolver(env);
 
