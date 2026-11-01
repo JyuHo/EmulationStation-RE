@@ -16,6 +16,7 @@ add_executable(es-tests
     unit/test_VideoPlayer.cpp
     unit/test_VideoComponent.cpp
     unit/test_Screensaver.cpp
+    unit/test_Music.cpp
     unit/test_I18n.cpp
     unit/test_TextureLoader.cpp
 )

@@ -1,15 +1,8 @@
 #include "Sound.h"
+#include "audio/AudioDecoder.h"
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_audio.h>
-
-extern "C" {
-#include <libavformat/avformat.h>
-#include <libavcodec/avcodec.h>
-#include <libavutil/channel_layout.h>
-#include <libavutil/opt.h>
-#include <libswresample/swresample.h>
-}
 
 #include "AudioManager.h"
 #include "Log.h"
@@ -76,95 +69,13 @@ void Sound::loadFile(const std::string& path)
 	if(path.empty())
 		return;
 
-	AVFormatContext* fmt = nullptr;
-	if(avformat_open_input(&fmt, path.c_str(), nullptr, nullptr) < 0)
+	auto pcm = AudioDecoder::decodeFile(path);
+	if(!pcm)
 	{
-		LOG(LogError) << "Sound: cannot open " << path;
+		LOG(LogError) << "Sound: cannot open " << path << ": " << pcm.error();
 		return;
 	}
-	if(avformat_find_stream_info(fmt, nullptr) < 0)
-	{
-		avformat_close_input(&fmt);
-		return;
-	}
-
-	int audioIndex = -1;
-	for(unsigned int i = 0; i < fmt->nb_streams; i++)
-	{
-		if(fmt->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
-		{
-			audioIndex = (int)i;
-			break;
-		}
-	}
-	if(audioIndex < 0)
-	{
-		avformat_close_input(&fmt);
-		return;
-	}
-
-	AVCodecParameters* cp = fmt->streams[audioIndex]->codecpar;
-	const AVCodec* codec = avcodec_find_decoder(cp->codec_id);
-	if(!codec)
-	{
-		avformat_close_input(&fmt);
-		return;
-	}
-	AVCodecContext* ctx = avcodec_alloc_context3(codec);
-	avcodec_parameters_to_context(ctx, cp);
-	if(avcodec_open2(ctx, codec, nullptr) < 0)
-	{
-		avcodec_free_context(&ctx);
-		avformat_close_input(&fmt);
-		return;
-	}
-
-	AVChannelLayout outLayout = AV_CHANNEL_LAYOUT_STEREO;
-	SwrContext* swr = nullptr;
-	swr_alloc_set_opts2(&swr, &outLayout, AV_SAMPLE_FMT_FLT, 48000,
-		&ctx->ch_layout, ctx->sample_fmt, ctx->sample_rate, 0, nullptr);
-	if(!swr || swr_init(swr) < 0)
-	{
-		if(swr) swr_free(&swr);
-		avcodec_free_context(&ctx);
-		avformat_close_input(&fmt);
-		return;
-	}
-
-	AVPacket* pkt = av_packet_alloc();
-	AVFrame* frame = av_frame_alloc();
-
-	auto convertFrame = [&](AVFrame* f) {
-		int outSamples = swr_get_out_samples(swr, f->nb_samples);
-		if(outSamples <= 0) return;
-		std::vector<float> buf(outSamples * 2);
-		uint8_t* outPtr = reinterpret_cast<uint8_t*>(buf.data());
-		int converted = swr_convert(swr, &outPtr, outSamples, (const uint8_t**)f->data, f->nb_samples);
-		if(converted > 0)
-			mPcm.insert(mPcm.end(), buf.begin(), buf.begin() + converted * 2);
-	};
-
-	while(av_read_frame(fmt, pkt) >= 0)
-	{
-		if(pkt->stream_index == audioIndex)
-		{
-			if(avcodec_send_packet(ctx, pkt) >= 0)
-			{
-				while(avcodec_receive_frame(ctx, frame) >= 0)
-					convertFrame(frame);
-			}
-		}
-		av_packet_unref(pkt);
-	}
-	avcodec_send_packet(ctx, nullptr);
-	while(avcodec_receive_frame(ctx, frame) >= 0)
-		convertFrame(frame);
-
-	av_frame_free(&frame);
-	av_packet_free(&pkt);
-	swr_free(&swr);
-	avcodec_free_context(&ctx);
-	avformat_close_input(&fmt);
+	mPcm = std::move(*pcm);
 }
 
 void Sound::play()

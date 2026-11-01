@@ -61,8 +61,10 @@ TEST_CASE("a WAV file is decoded to 48 kHz float stereo", "[Audio]")
 	AudioFixture fixture;
 	std::shared_ptr<Sound> sound = Sound::get(kBeep);
 	REQUIRE(sound->getData() != nullptr);
-	// 0.2 s resampled to 48 kHz, 2 channels, 4 bytes per sample (float32)
-	CHECK(sound->getLength() == 76528);
+	// 0.2 s resampled to 48 kHz, 2 channels, 4 bytes per sample (float32): 9600 frames. The
+	// resampler is flushed at the end of the file (AudioDecoder); before phase 8b its last
+	// 34 frames were lost (76528 bytes).
+	CHECK(sound->getLength() == 76800);
 	CHECK(sound->getPosition() == 0);
 	CHECK(!sound->isPlaying());
 	CHECK(Sound::get(kBeep) == sound); // sounds are shared by path
