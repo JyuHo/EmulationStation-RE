@@ -5,6 +5,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <memory>
+#include <vector>
 
 TEST_CASE("ThemeData loads a format 3 theme", "[ThemeData]")
 {
@@ -66,17 +67,28 @@ TEST_CASE("ThemeData extras are drawn as children of ThemeExtras", "[ThemeData]"
 {
 	// #75 dropped the addChild of setExtras: the extras of the system view (background,
 	// caption of the capture theme) were created but never drawn, a black system view.
+	// Plain components: a themed TextComponent needs a renderer for its font.
 	const std::string dir = ES_TEST_DATA_DIR "/capture/themes/capture";
-	auto theme = std::make_shared<ThemeData>();
-	REQUIRE_NOTHROW(theme->loadFile(dir + "/nes/theme.xml"));
+	ThemeData theme;
+	REQUIRE_NOTHROW(theme.loadFile(dir + "/nes/theme.xml"));
+	const ThemeData::ThemeElement* background = theme.getElement("system", "background", "image");
+	REQUIRE(background != nullptr);
+	CHECK(background->extra);
 
 	Window window;
-	auto extras = ThemeData::makeExtras(theme, "system", &window);
-	REQUIRE(extras.size() == 2); // image "background" then text "caption", in declaration order
+	std::vector<std::unique_ptr<GuiComponent>> extras;
+	extras.push_back(std::make_unique<GuiComponent>(&window));
+	extras.push_back(std::make_unique<GuiComponent>(&window));
+	GuiComponent* first = extras.front().get();
 
 	ThemeExtras holder(&window);
 	holder.setExtras(std::move(extras));
-	CHECK(holder.getChildCount() == 2);
+	REQUIRE(holder.getChildCount() == 2);
+	CHECK(holder.getChild(0) == first);
+
+	// replacing the extras detaches the old ones
+	holder.setExtras({});
+	CHECK(holder.getChildCount() == 0);
 }
 
 TEST_CASE("ThemeData rejects an element of the wrong type", "[ThemeData]")
