@@ -1,0 +1,48 @@
+<!-- Fixture written for EmulationStation-RE (MIT). Recalbox format, own content: no file of a
+     Recalbox theme may be copied here (their license forbids it, PROMPT.md 14.2-R3). -->
+<theme name="Fixture" author="EmulationStation-RE" recalbox="10" version="1.2" compatibility="hdmi, crt" resolutions="fhd, hd">
+	<formatVersion>4</formatVersion>
+	<include>${root}/variables.xml</include>
+	<include>${root}/systems/${system.name}.xml</include>
+	<include>${root}/options.xml</include>
+	<include>${root}/missing.xml</include>
+	<view name="detailed, basic">
+		<image name="background">
+			<path>./art/background.png</path>
+			<color>${PrimaryAlpha}</color>
+		</image>
+	</view>
+	<view name="detailed">
+		<image name="background">
+			<tile>true</tile>
+		</image>
+		<text name="md_description">
+			<fontSize>0.02</fontSize>
+		</text>
+		<image name="e_hdOnly" extra="true" if="hd">
+			<path>./art/hd.png</path>
+		</image>
+		<image name="e_tateOnly" extra="true" if="tate">
+			<path>./art/tate.png</path>
+		</image>
+		<image name="e_badCondition" extra="true" if="hd &amp;">
+			<path>./art/bad.png</path>
+		</image>
+		<image name="logo" region="eu">
+			<path>./art/logo-eu.png</path>
+		</image>
+		<image name="logo" region="jp">
+			<path>./art/logo-jp.png</path>
+		</image>
+		<text name="e_title" extra="true">
+			<text.fr>Bonjour</text.fr>
+			<text>Hello</text>
+		</text>
+		<image name="e_exists" extra="true" ifexists="${root}/art/background.png">
+			<path>./art/background.png</path>
+		</image>
+		<image name="e_notExists" extra="true" ifexists="${root}/art/nothing.png">
+			<path>./art/nothing.png</path>
+		</image>
+	</view>
+</theme>

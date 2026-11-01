@@ -21,6 +21,13 @@ add_executable(es-tests
     unit/test_Translations.cpp
     unit/test_TextureLoader.cpp
     unit/test_Volume.cpp
+    # phase 11 (PROMPT.md section 14): hidden ("[.]") until their PR
+    unit/test_ThemeDiagnostics.cpp
+    unit/test_ThemeCondition.cpp
+    unit/test_ThemeVariables.cpp
+    unit/test_ThemeLoader.cpp
+    unit/test_ThemeSchema.cpp
+    unit/test_ThemeOptions.cpp
 )
 target_link_libraries(es-tests PRIVATE es-app-lib Catch2::Catch2WithMain)
 target_compile_definitions(es-tests PRIVATE

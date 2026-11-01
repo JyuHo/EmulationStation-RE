@@ -1,0 +1,7 @@
+<theme>
+	<view name="detailed">
+		<text name="md_description">
+			<color>FF0000FF</color>
+		</text>
+	</view>
+</theme>

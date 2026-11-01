@@ -23,6 +23,12 @@ set(CORE_HEADERS
 	src/Settings.h
 	src/Sound.h
 	src/ThemeData.h
+	src/theme/ThemeCondition.h
+	src/theme/ThemeDiagnostics.h
+	src/theme/ThemeLoader.h
+	src/theme/ThemeOptions.h
+	src/theme/ThemeSchema.h
+	src/theme/ThemeVariables.h
 	src/Util.h
 	src/Window.h
 
@@ -95,6 +101,12 @@ set(CORE_SOURCES
 	src/Settings.cpp
 	src/Sound.cpp
 	src/ThemeData.cpp
+	src/theme/ThemeCondition.cpp
+	src/theme/ThemeDiagnostics.cpp
+	src/theme/ThemeLoader.cpp
+	src/theme/ThemeOptions.cpp
+	src/theme/ThemeSchema.cpp
+	src/theme/ThemeVariables.cpp
 	src/Util.cpp
 	src/Window.cpp
 
