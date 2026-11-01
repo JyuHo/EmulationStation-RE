@@ -125,8 +125,10 @@ HOME="$fakehome" ES_HOME="$home" xvfb-run -a -s '-screen 0 1280x720x24' bash -c 
 ' _ "$binary" "$outdir" || status=$?
 
 log="$home/state/emulationstation/es_log.txt"
-# no sound card under Xvfb: VolumeControl only warns about it, so any [ERROR] fails the run
-errors() { grep ' \[ERROR\] ' "$log" 2>/dev/null; }
+# No sound card under Xvfb: VolumeControl only warns about it now, so any [ERROR] fails the
+# run. The "Screenshots vs base branch" job also runs this script on the base branch's
+# binary, whose VolumeControl still logs that one error: tolerated until no base has it.
+errors() { grep ' \[ERROR\] ' "$log" 2>/dev/null | grep -v 'VolumeControl::init() - Failed to attach to default card!'; }
 if [ "$status" -ne 0 ] || errors >/dev/null; then
 	echo "----- es_log.txt -----"
 	cat "$log" 2>/dev/null || echo "(no log written)"

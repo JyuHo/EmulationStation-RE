@@ -681,7 +681,8 @@ d'iGPU et la ligne `GL_RENDERER` du journal (`~/es-bench/state/emulationstation/
   redimensionnable par l'utilisateur.
 - `VolumeControl` (ALSA direct) écrivait un `[ERROR]` au retour d'un jeu sans carte son,
   toléré par `capture.sh` : ce n'est plus qu'un avertissement depuis la correction des
-  réglages de volume (phase 8), et `capture.sh` n'a plus d'exception.
+  réglages de volume (phase 8). `capture.sh` garde l'exception pour le binaire de la base
+  dans le job « Screenshots vs base branch » ; elle pourra être retirée ensuite.
 - Le tampon de profondeur (`DEPTH_SIZE 16`, `GL_DEPTH_BUFFER_BIT`) est gardé : il ne sert
   pas, mais le retirer change le format de la fenêtre ; à faire avec une mesure.
 - 4K et 1080p donnent le même nombre d'i/s : si l'écran ne propose pas de mode 3840×2160,
