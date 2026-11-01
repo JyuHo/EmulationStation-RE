@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: emulationstation-re\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-01 00:52+0000\n"
+"POT-Creation-Date: 2026-11-01 13:46+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,562 +18,403 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: es-app/src/FileSorts.cpp:6
 msgid "filename, ascending"
 msgstr ""
 
-#: es-app/src/FileSorts.cpp:7
 msgid "filename, descending"
 msgstr ""
 
-#: es-app/src/FileSorts.cpp:9
 msgid "rating, ascending"
 msgstr ""
 
-#: es-app/src/FileSorts.cpp:10
 msgid "rating, descending"
 msgstr ""
 
-#: es-app/src/FileSorts.cpp:12
 msgid "times played, ascending"
 msgstr ""
 
-#: es-app/src/FileSorts.cpp:13
 msgid "times played, descending"
 msgstr ""
 
-#: es-app/src/FileSorts.cpp:15
 msgid "last played, ascending"
 msgstr ""
 
-#: es-app/src/FileSorts.cpp:16
 msgid "last played, descending"
 msgstr ""
 
-#: es-app/src/MetaData.cpp:12
 msgid "enter game name"
 msgstr ""
 
-#: es-app/src/MetaData.cpp:12
 msgid "name"
 msgstr ""
 
-#: es-app/src/MetaData.cpp:13
 msgid "description"
 msgstr ""
 
-#: es-app/src/MetaData.cpp:13
 msgid "enter description"
 msgstr ""
 
-#: es-app/src/MetaData.cpp:14
 msgid "enter path to image"
 msgstr ""
 
-#: es-app/src/MetaData.cpp:14
 msgid "image"
 msgstr ""
 
-#: es-app/src/MetaData.cpp:15
 msgid "enter path to thumbnail"
 msgstr ""
 
-#: es-app/src/MetaData.cpp:15
 msgid "thumbnail"
 msgstr ""
 
-#: es-app/src/MetaData.cpp:16
 msgid "enter path to video"
 msgstr ""
 
-#: es-app/src/MetaData.cpp:16
 msgid "video"
 msgstr ""
 
-#: es-app/src/MetaData.cpp:17
 msgid "enter rating"
 msgstr ""
 
-#: es-app/src/MetaData.cpp:17
 msgid "rating"
 msgstr ""
 
-#: es-app/src/MetaData.cpp:18
 msgid "enter release date"
 msgstr ""
 
-#: es-app/src/MetaData.cpp:18
 msgid "release date"
 msgstr ""
 
-#: es-app/src/MetaData.cpp:19
 msgid "developer"
 msgstr ""
 
-#: es-app/src/MetaData.cpp:19
 msgid "enter game developer"
 msgstr ""
 
-#: es-app/src/MetaData.cpp:20
 msgid "enter game publisher"
 msgstr ""
 
-#: es-app/src/MetaData.cpp:20
 msgid "publisher"
 msgstr ""
 
-#: es-app/src/MetaData.cpp:21
 msgid "enter game genre"
 msgstr ""
 
-#: es-app/src/MetaData.cpp:21
 msgid "genre"
 msgstr ""
 
-#: es-app/src/MetaData.cpp:22
 msgid "enter number of players"
 msgstr ""
 
-#: es-app/src/MetaData.cpp:22
 msgid "players"
 msgstr ""
 
-#: es-app/src/MetaData.cpp:23
 msgid "enter number of times played"
 msgstr ""
 
-#: es-app/src/MetaData.cpp:23
 msgid "play count"
 msgstr ""
 
-#: es-app/src/MetaData.cpp:24
 msgid "enter last played date"
 msgstr ""
 
-#: es-app/src/MetaData.cpp:24
 msgid "last played"
 msgstr ""
 
-#: es-app/src/components/AsyncReqComponent.cpp:48
-#: es-app/src/guis/GuiGameScraper.cpp:49 es-app/src/guis/GuiMetaDataEd.cpp:145
 msgid "cancel"
 msgstr ""
 
-#: es-app/src/components/RatingComponent.cpp:158
 msgid "add star"
 msgstr ""
 
-#: es-app/src/components/ScraperSearchComponent.cpp:54
 msgid "Rating:"
 msgstr ""
 
-#: es-app/src/components/ScraperSearchComponent.cpp:55
 msgid "Released:"
 msgstr ""
 
-#: es-app/src/components/ScraperSearchComponent.cpp:56
 msgid "Developer:"
 msgstr ""
 
-#: es-app/src/components/ScraperSearchComponent.cpp:57
 msgid "Publisher:"
 msgstr ""
 
-#: es-app/src/components/ScraperSearchComponent.cpp:58
 msgid "Genre:"
 msgstr ""
 
-#: es-app/src/components/ScraperSearchComponent.cpp:59
 msgid "Players:"
 msgstr ""
 
-#: es-app/src/components/ScraperSearchComponent.cpp:249
 msgid "No games found - skip"
 msgstr ""
 
-#: es-app/src/components/ScraperSearchComponent.cpp:290
 msgid "Retry"
 msgstr ""
 
-#: es-app/src/components/ScraperSearchComponent.cpp:291
-#: es-app/src/guis/GuiGameScraper.cpp:49 es-app/src/guis/GuiMetaDataEd.cpp:145
-#: es-core/src/guis/GuiTextEditPopup.cpp:27
 msgid "Cancel"
 msgstr ""
 
-#: es-app/src/components/ScraperSearchComponent.cpp:291
-#: es-app/src/guis/GuiScraperMulti.cpp:60
 msgid "Skip"
 msgstr ""
 
-#: es-app/src/components/ScraperSearchComponent.cpp:473
 msgid "Search for"
 msgstr ""
 
-#: es-app/src/components/ScraperSearchComponent.cpp:476
 msgid "Search"
 msgstr ""
 
-#: es-app/src/components/ScraperSearchComponent.cpp:483
 msgid "accept result"
 msgstr ""
 
-#: es-app/src/guis/GuiGameScraper.cpp:45 es-app/src/guis/GuiScraperMulti.cpp:55
 msgid "Input"
 msgstr ""
 
-#: es-app/src/guis/GuiGameScraper.cpp:45 es-app/src/guis/GuiScraperMulti.cpp:55
 msgid "search"
 msgstr ""
 
-#: es-app/src/guis/GuiGamelistOptions.cpp:8
 msgid "Options"
 msgstr ""
 
-#: es-app/src/guis/GuiGamelistOptions.cpp:17
-#: es-app/src/guis/GuiGamelistOptions.cpp:23
 msgid "Jump to letter"
 msgstr ""
 
-#: es-app/src/guis/GuiGamelistOptions.cpp:40
-#: es-app/src/guis/GuiGamelistOptions.cpp:47
 msgid "Sort games by"
 msgstr ""
 
-#: es-app/src/guis/GuiGamelistOptions.cpp:52
 msgid "Edit this game's metadata"
 msgstr ""
 
-#: es-app/src/guis/GuiGamelistOptions.cpp:139 es-app/src/guis/GuiMenu.cpp:401
-#: es-app/src/guis/GuiMetaDataEd.cpp:284
-#: es-app/src/guis/GuiScraperStart.cpp:124 es-app/src/guis/GuiSettings.cpp:58
 msgid "close"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:30
 msgid "Main menu"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:47 es-app/src/guis/GuiMenu.cpp:48
 msgid "Scraper"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:51 es-app/src/guis/GuiMenu.cpp:56
 msgid "Scrape from"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:62
 msgid "Scrape ratings"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:76 es-app/src/guis/GuiScraperStart.cpp:11
 msgid "Scrape now"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:85 es-app/src/guis/GuiMenu.cpp:86
 msgid "Sound settings"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:89 es-app/src/guis/GuiMenu.cpp:100
 msgid "Audio card"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:92
 msgid "Automatic"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:118
 msgid "System volume"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:130
 msgid "Enable sounds"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:137
 msgid "Background music"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:140
 msgid "Music volume"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:150
 msgid "Video sound"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:156 es-app/src/guis/GuiMenu.cpp:157
 msgid "UI settings"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:162
 msgid "Screensaver after"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:169 es-app/src/guis/GuiMenu.cpp:176
 msgid "Screensaver behavior"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:171
 msgid "dim"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:172
 msgid "black"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:173
 msgid "gameclip"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:184
 msgid "Show framerate"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:190
 msgid "On-screen help"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:196
 msgid "Quick system select"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:202 es-app/src/guis/GuiMenu.cpp:208
 msgid "Transition style"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:204
 msgid "fade"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:205
 msgid "slide"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:222 es-app/src/guis/GuiMenu.cpp:225
 msgid "Theme set"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:249 es-app/src/guis/GuiMenu.cpp:261
 msgid "Language"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:273 es-core/src/guis/GuiDetectDevice.cpp:29
 msgid "Configure input"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:276 es-app/src/guis/GuiMenu.cpp:277
-#: es-app/src/main.cpp:242
 msgid "Quit"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:284
 msgid "Really restart?"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:284 es-app/src/guis/GuiMenu.cpp:298
-#: es-app/src/guis/GuiMenu.cpp:314 es-app/src/guis/GuiMetaDataEd.cpp:155
-#: es-app/src/guis/GuiMetaDataEd.cpp:252 es-app/src/guis/GuiScraperStart.cpp:51
 msgid "Yes"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:289 es-app/src/guis/GuiMenu.cpp:303
-#: es-app/src/guis/GuiMenu.cpp:320 es-app/src/guis/GuiMetaDataEd.cpp:155
-#: es-app/src/guis/GuiMetaDataEd.cpp:257 es-app/src/guis/GuiScraperStart.cpp:51
-#: es-core/src/guis/GuiMsgBox.cpp:42
 msgid "No"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:292
 msgid "Restart system"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:298
 msgid "Really shut down?"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:306
 msgid "Shut down system"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:314
 msgid "Really quit?"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:323
 msgid "Quit EmulationStation"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:334
 #, c++-format
 msgid "EmulationStation v{}"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:399 es-app/src/views/SystemView.cpp:341
-#: es-app/src/views/gamelist/BasicGameListView.cpp:95
-#: es-core/src/components/ComponentGrid.cpp:445
-#: es-core/src/components/ComponentGrid.cpp:447
-#: es-core/src/components/ComponentGrid.cpp:449
-#: es-core/src/components/ComponentList.cpp:342
 msgid "choose"
 msgstr ""
 
-#: es-app/src/guis/GuiMenu.cpp:400 es-app/src/views/SystemView.cpp:342
-#: es-core/src/components/ImageComponent.cpp:348
-#: es-core/src/components/OptionListComponent.h:316
 msgid "select"
 msgstr ""
 
-#: es-app/src/guis/GuiMetaDataEd.cpp:38
 msgid "Edit metadata"
 msgstr ""
 
-#: es-app/src/guis/GuiMetaDataEd.cpp:139
 msgid "Scrape"
 msgstr ""
 
-#: es-app/src/guis/GuiMetaDataEd.cpp:139
 msgid "scrape"
 msgstr ""
 
-#: es-app/src/guis/GuiMetaDataEd.cpp:141
 msgid "Save"
 msgstr ""
 
-#: es-app/src/guis/GuiMetaDataEd.cpp:141
 msgid "save"
 msgstr ""
 
-#: es-app/src/guis/GuiMetaDataEd.cpp:155
 msgid ""
 "This will delete a file!\n"
 "Are you sure?"
 msgstr ""
 
-#: es-app/src/guis/GuiMetaDataEd.cpp:157
 msgid "Delete"
 msgstr ""
 
-#: es-app/src/guis/GuiMetaDataEd.cpp:157
 msgid "delete"
 msgstr ""
 
-#: es-app/src/guis/GuiMetaDataEd.cpp:252
 msgid "Save changes?"
 msgstr ""
 
-#: es-app/src/guis/GuiMetaDataEd.cpp:283 es-app/src/guis/GuiScraperStart.cpp:36
-#: es-app/src/guis/GuiScraperStart.cpp:123 es-app/src/guis/GuiSettings.cpp:57
-#: es-app/src/views/gamelist/BasicGameListView.cpp:97
-#: es-app/src/views/gamelist/GridGameListView.cpp:57
-#: es-core/src/components/OptionListComponent.h:137
-#: es-core/src/guis/GuiTextEditPopup.cpp:76
 msgid "back"
 msgstr ""
 
-#: es-app/src/guis/GuiScraperMulti.cpp:32
 msgid "Scraping in progress"
 msgstr ""
 
-#: es-app/src/guis/GuiScraperMulti.cpp:60
 msgid "skip"
 msgstr ""
 
-#: es-app/src/guis/GuiScraperMulti.cpp:67
 msgid "Stop"
 msgstr ""
 
-#: es-app/src/guis/GuiScraperMulti.cpp:67
 msgid "stop (progress saved)"
 msgstr ""
 
-#: es-app/src/guis/GuiScraperMulti.cpp:111
 #, c++-format
 msgid "Game {} of {}"
 msgstr ""
 
-#: es-app/src/guis/GuiScraperMulti.cpp:144
 msgid "No games were scraped."
 msgstr ""
 
-#: es-app/src/guis/GuiScraperMulti.cpp:148
 #, c++-format
 msgid "{} game successfully scraped!"
 msgid_plural "{} games successfully scraped!"
 msgstr[0] ""
 msgstr[1] ""
 
-#: es-app/src/guis/GuiScraperMulti.cpp:154
 #, c++-format
 msgid "{} game skipped."
 msgid_plural "{} games skipped."
 msgstr[0] ""
 msgstr[1] ""
 
-#: es-app/src/guis/GuiScraperMulti.cpp:157
-#: es-core/src/guis/GuiInputConfig.cpp:166 es-core/src/guis/GuiMsgBox.cpp:42
-#: es-core/src/guis/GuiTextEditPopup.cpp:22
 msgid "OK"
 msgstr ""
 
-#: es-app/src/guis/GuiScraperStart.cpp:16
 msgid "Scrape these games"
 msgstr ""
 
-#: es-app/src/guis/GuiScraperStart.cpp:17
 msgid "All games"
 msgstr ""
 
-#: es-app/src/guis/GuiScraperStart.cpp:19
 msgid "Only missing image"
 msgstr ""
 
-#: es-app/src/guis/GuiScraperStart.cpp:20
 msgid "Filter"
 msgstr ""
 
-#: es-app/src/guis/GuiScraperStart.cpp:23
 msgid "Scrape these systems"
 msgstr ""
 
-#: es-app/src/guis/GuiScraperStart.cpp:29
 msgid "Systems"
 msgstr ""
 
-#: es-app/src/guis/GuiScraperStart.cpp:33
 msgid "User decides on conflicts"
 msgstr ""
 
-#: es-app/src/guis/GuiScraperStart.cpp:35
-#: es-core/src/guis/GuiInputConfig.cpp:18
 msgid "Start"
 msgstr ""
 
-#: es-app/src/guis/GuiScraperStart.cpp:35
 msgid "start"
 msgstr ""
 
-#: es-app/src/guis/GuiScraperStart.cpp:36 es-app/src/guis/GuiSettings.cpp:11
-#: es-core/src/components/OptionListComponent.h:95
 msgid "Back"
 msgstr ""
 
-#: es-app/src/guis/GuiScraperStart.cpp:49
 msgid ""
 "Warning: some of your selected systems do not have a platform set. Results "
 "may be even more inaccurate than usual!\n"
 "Continue anyway?"
 msgstr ""
 
-#: es-app/src/guis/GuiScraperStart.cpp:65
 msgid "No games fit that criteria."
 msgstr ""
 
-#: es-app/src/guis/GuiSettings.cpp:11
 msgid "go back"
 msgstr ""
 
-#: es-app/src/main.cpp:160
 msgid ""
 "It looks like your systems configuration file has not been set up or is "
 "invalid. You'll need to do this by hand, unfortunately.\n"
@@ -581,7 +422,6 @@ msgid ""
 "Visit emulationstation.org for more information."
 msgstr ""
 
-#: es-app/src/main.cpp:170
 msgid ""
 "We can't find any systems!\n"
 "Check that your paths are correct in the systems configuration file, and "
@@ -590,251 +430,190 @@ msgid ""
 "Visit emulationstation.org for more information."
 msgstr ""
 
-#: es-app/src/views/SystemView.cpp:187
 #, c++-format
 msgid "{} game available"
 msgid_plural "{} games available"
 msgstr[0] ""
 msgstr[1] ""
 
-#: es-app/src/views/ViewController.cpp:425
 msgid "menu"
 msgstr ""
 
-#: es-app/src/views/gamelist/BasicGameListView.cpp:94
 msgid "system"
 msgstr ""
 
-#: es-app/src/views/gamelist/BasicGameListView.cpp:96
-#: es-app/src/views/gamelist/GridGameListView.cpp:56
 msgid "launch"
 msgstr ""
 
-#: es-app/src/views/gamelist/BasicGameListView.cpp:98
 msgid "options"
 msgstr ""
 
-#: es-app/src/views/gamelist/DetailedGameListView.cpp:51
 msgid "Rating: "
 msgstr ""
 
-#: es-app/src/views/gamelist/DetailedGameListView.cpp:54
 msgid "Released: "
 msgstr ""
 
-#: es-app/src/views/gamelist/DetailedGameListView.cpp:57
 msgid "Developer: "
 msgstr ""
 
-#: es-app/src/views/gamelist/DetailedGameListView.cpp:60
 msgid "Publisher: "
 msgstr ""
 
-#: es-app/src/views/gamelist/DetailedGameListView.cpp:63
 msgid "Genre: "
 msgstr ""
 
-#: es-app/src/views/gamelist/DetailedGameListView.cpp:66
 msgid "Players: "
 msgstr ""
 
-#: es-app/src/views/gamelist/DetailedGameListView.cpp:69
 msgid "Last played: "
 msgstr ""
 
-#: es-app/src/views/gamelist/DetailedGameListView.cpp:73
 msgid "Times played: "
 msgstr ""
 
-#: es-app/src/views/gamelist/GridGameListView.cpp:55
 msgid "scroll"
 msgstr ""
 
-#: es-core/src/Window.cpp:310
 msgid "Loading..."
 msgstr ""
 
-#: es-core/src/components/BusyComponent.cpp:22
 msgid "Working..."
 msgstr ""
 
-#: es-core/src/components/DateTimeComponent.cpp:220
 msgid "never"
 msgstr ""
 
-#: es-core/src/components/DateTimeComponent.cpp:226
 msgid "just now"
 msgstr ""
 
-#: es-core/src/components/DateTimeComponent.cpp:231
 #, c++-format
 msgid "{} sec ago"
 msgid_plural "{} secs ago"
 msgstr[0] ""
 msgstr[1] ""
 
-#: es-core/src/components/DateTimeComponent.cpp:236
 #, c++-format
 msgid "{} min ago"
 msgid_plural "{} mins ago"
 msgstr[0] ""
 msgstr[1] ""
 
-#: es-core/src/components/DateTimeComponent.cpp:241
 #, c++-format
 msgid "{} hour ago"
 msgid_plural "{} hours ago"
 msgstr[0] ""
 msgstr[1] ""
 
-#: es-core/src/components/DateTimeComponent.cpp:244
 #, c++-format
 msgid "{} day ago"
 msgid_plural "{} days ago"
 msgstr[0] ""
 msgstr[1] ""
 
-#: es-core/src/components/DateTimeComponent.cpp:250
 msgid "unknown"
 msgstr ""
 
-#: es-core/src/components/OptionListComponent.h:95
 msgid "accept"
 msgstr ""
 
-#: es-core/src/components/OptionListComponent.h:99
 msgid "Select all"
 msgstr ""
 
-#: es-core/src/components/OptionListComponent.h:99
 msgid "select all"
 msgstr ""
 
-#: es-core/src/components/OptionListComponent.h:108
 msgid "Select none"
 msgstr ""
 
-#: es-core/src/components/OptionListComponent.h:108
 msgid "select none"
 msgstr ""
 
-#: es-core/src/components/OptionListComponent.h:314
-#: es-core/src/components/SliderComponent.cpp:172
-#: es-core/src/components/SwitchComponent.cpp:59
 msgid "change"
 msgstr ""
 
-#: es-core/src/components/TextEditComponent.cpp:306
 msgid "move cursor"
 msgstr ""
 
-#: es-core/src/components/TextEditComponent.cpp:307
 msgid "stop editing"
 msgstr ""
 
-#: es-core/src/components/TextEditComponent.cpp:311
 msgid "edit"
 msgstr ""
 
-#: es-core/src/guis/GuiDetectDevice.cpp:29
 msgid "Welcome"
 msgstr ""
 
-#: es-core/src/guis/GuiDetectDevice.cpp:38
 #, c++-format
 msgid "{} gamepad detected"
 msgid_plural "{} gamepads detected"
 msgstr[0] ""
 msgstr[1] ""
 
-#: es-core/src/guis/GuiDetectDevice.cpp:40
 msgid "No gamepads detected"
 msgstr ""
 
-#: es-core/src/guis/GuiDetectDevice.cpp:47
 msgid "Hold a button on your device to configure it."
 msgstr ""
 
-#: es-core/src/guis/GuiDetectDevice.cpp:50
 msgid "Press Esc to cancel."
 msgstr ""
 
-#: es-core/src/guis/GuiDetectDevice.cpp:50
 msgid "Press F4 to quit at any time."
 msgstr ""
 
-#: es-core/src/guis/GuiInputConfig.cpp:18
 msgid "Down"
 msgstr ""
 
-#: es-core/src/guis/GuiInputConfig.cpp:18
 msgid "Left"
 msgstr ""
 
-#: es-core/src/guis/GuiInputConfig.cpp:18
 msgid "Page down"
 msgstr ""
 
-#: es-core/src/guis/GuiInputConfig.cpp:18
 msgid "Page up"
 msgstr ""
 
-#: es-core/src/guis/GuiInputConfig.cpp:18
 msgid "Right"
 msgstr ""
 
-#: es-core/src/guis/GuiInputConfig.cpp:18
 msgid "Select"
 msgstr ""
 
-#: es-core/src/guis/GuiInputConfig.cpp:18
 msgid "Up"
 msgstr ""
 
-#: es-core/src/guis/GuiInputConfig.cpp:51
 msgid "Configuring"
 msgstr ""
 
-#: es-core/src/guis/GuiInputConfig.cpp:56
 msgid "Keyboard"
 msgstr ""
 
-#: es-core/src/guis/GuiInputConfig.cpp:60
 #, c++-format
 msgid "Gamepad {}"
 msgstr ""
 
-#: es-core/src/guis/GuiInputConfig.cpp:67
 msgid "Hold any button to skip"
 msgstr ""
 
-#: es-core/src/guis/GuiInputConfig.cpp:94
-#: es-core/src/guis/GuiInputConfig.cpp:260
 msgid "-Not defined-"
 msgstr ""
 
-#: es-core/src/guis/GuiInputConfig.cpp:166
-#: es-core/src/guis/GuiTextEditPopup.cpp:23
 msgid "ok"
 msgstr ""
 
-#: es-core/src/guis/GuiInputConfig.cpp:218
 #, c++-format
 msgid "Hold for {}s to skip"
 msgstr ""
 
-#: es-core/src/guis/GuiInputConfig.cpp:254
 msgid "Press anything"
 msgstr ""
 
-#: es-core/src/guis/GuiInputConfig.cpp:272
 msgid "Already taken"
 msgstr ""
 
-#: es-core/src/guis/GuiInputConfig.cpp:284
 msgid "Already mapped!"
 msgstr ""
 
-#: es-core/src/guis/GuiTextEditPopup.cpp:27
 msgid "discard changes"
 msgstr ""

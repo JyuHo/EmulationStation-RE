@@ -5,6 +5,9 @@
 #include <iostream>
 #include <iomanip>
 #include "renderer/Renderer.h"
+#include "theme/ThemeDiagnostics.h"
+#include "theme/ThemeLoader.h"
+#include "theme/ThemeCondition.h"
 #include "views/ViewController.h"
 #include "SystemData.h"
 #include <filesystem>
@@ -111,6 +114,7 @@ bool parseArgs(int argc, char* argv[], unsigned int* width, unsigned int* height
 						 "--windowed			not fullscreen, should be used with --resolution\n"
 						 "--vsync [1/on or 0/off]		turn vsync on or off (default is on)\n"
 						 "--home [folder]			portable mode: keep every file in [folder] (same as ES_HOME)\n"
+						 "--check-theme [folder] [system]	validate a theme without opening a window\n"
 						 "--help, -h			summon a sentient, angry tuba\n\n"
 						 "More information available in README.md.\n";
 			return false; //exit after printing help
@@ -250,6 +254,52 @@ int main(int argc, char* argv[])
 	if(scrape_cmdline)
 	{
 		return run_scraper_cmdline();
+	}
+
+	// --check-theme: validate a theme without opening a window
+	for(int i = 1; i < argc; i++)
+	{
+		if(strcmp(argv[i], "--check-theme") == 0)
+		{
+			if(i + 2 >= argc)
+			{
+				std::cerr << "Missing arguments for --check-theme.\n";
+				return 1;
+			}
+			std::string themeDir = argv[i + 1];
+			std::string system = argv[i + 2];
+
+			es::theme::LoaderContext ctx;
+			ctx.legacy.system = system;
+			ctx.legacy.language = Settings::getInstance()->getString("Language");
+			ctx.region = "eu";
+			es::theme::Diagnostics diag;
+			ctx.variables.set("root", fs::path(themeDir).generic_string(), diag, {themeDir, 0});
+			es::theme::ConditionEnvironment env;
+			env.screenWidth = width ? width : 1920;
+			env.screenHeight = height ? height : 1080;
+			env.systemName = system;
+			ctx.conditions = es::theme::makeConditionResolver(env);
+
+			fs::path themeFile = fs::path(themeDir) / system / "theme.xml";
+			if(!fs::exists(themeFile))
+				themeFile = fs::path(themeDir) / "default" / "theme.xml";
+			if(!fs::exists(themeFile))
+				themeFile = fs::path(themeDir) / "theme.xml";
+			auto loaded = es::theme::loadTheme(themeFile, ctx, diag);
+			for(const auto& d : diag.all())
+			{
+				std::cout << es::theme::toString(d.where) << ": " << d.message << "\n";
+			}
+			int errors = 0, warnings = 0;
+			for(const auto& d : diag.all())
+			{
+				if(d.severity == es::theme::Severity::Error) errors++;
+				else warnings++;
+			}
+			std::cout << errors << " error(s), " << warnings << " warning(s)\n";
+			return errors > 0 ? 1 : 0;
+		}
 	}
 
 	//dont generate joystick events while we're loading (hopefully fixes "automatically started emulator" bug)

@@ -1,4 +1,4 @@
-// Phase 11 (PROMPT.md section 14). Hidden until PR 11c: remove "[.]" from every tag of this file
+// Phase 11 (PROMPT.md section 14). Hidden until PR 11c: remove "[]" from every tag of this file
 // in that PR, never weaken an expected value (rule 14.2-R7).
 
 #include "theme/ThemeSchema.h"
@@ -10,7 +10,7 @@
 using namespace es::theme;
 namespace fs = std::filesystem;
 
-TEST_CASE("Schema: format 3 elements are all known", "[.][phase11][11c][ThemeSchema]")
+TEST_CASE("Schema: format 3 elements are all known", "[phase11][11c][ThemeSchema]")
 {
 	// the table of ThemeData::sElementMap before phase 11: nothing may disappear
 	const std::pair<const char*, std::vector<const char*>> format3[] = {
@@ -45,7 +45,7 @@ TEST_CASE("Schema: format 3 elements are all known", "[.][phase11][11c][ThemeSch
 	CHECK(findProperty(*findElement("image"), "nonsense") == nullptr);
 }
 
-TEST_CASE("Schema: property types of format 3", "[.][phase11][11c][ThemeSchema]")
+TEST_CASE("Schema: property types of format 3", "[phase11][11c][ThemeSchema]")
 {
 	CHECK(findProperty(*findElement("image"), "pos")->type == PropertyType::NormalizedPair);
 	CHECK(findProperty(*findElement("image"), "path")->type == PropertyType::Path);
@@ -55,7 +55,7 @@ TEST_CASE("Schema: property types of format 3", "[.][phase11][11c][ThemeSchema]"
 	CHECK(findProperty(*findElement("text"), "fontSize")->type == PropertyType::Float);
 }
 
-TEST_CASE("Schema: Recalbox elements", "[.][phase11][11c][ThemeSchema]")
+TEST_CASE("Schema: Recalbox elements", "[phase11][11c][ThemeSchema]")
 {
 	// 11c: one CHECK per element type and per property of the table of docs/THEMES.md
 	// (written in 11a). The minimum below comes from the plan (11.2).
@@ -71,7 +71,7 @@ TEST_CASE("Schema: Recalbox elements", "[.][phase11][11c][ThemeSchema]")
 	}
 }
 
-TEST_CASE("Schema: value parsing", "[.][phase11][11c][ThemeSchema]")
+TEST_CASE("Schema: value parsing", "[phase11][11c][ThemeSchema]")
 {
 	const fs::path file = fs::path(ES_TEST_DATA_DIR) / "themes" / "recalbox" / "theme.xml";
 
@@ -108,7 +108,7 @@ TEST_CASE("Schema: value parsing", "[.][phase11][11c][ThemeSchema]")
 	CHECK(std::get<std::string>(*path) == (file.parent_path() / "art" / "background.png").generic_string());
 }
 
-TEST_CASE("Schema: parsing ignores the locale", "[.][phase11][11c][ThemeSchema]")
+TEST_CASE("Schema: parsing ignores the locale", "[phase11][11c][ThemeSchema]")
 {
 	// test_Locale.cpp sets fr_FR for its own cases; numbers of a theme always use a dot
 	const fs::path file = "theme.xml";

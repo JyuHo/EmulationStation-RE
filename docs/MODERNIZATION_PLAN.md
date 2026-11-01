@@ -1063,6 +1063,18 @@ découpage en neuf PR 11a–11i, critères) : `PROMPT.md` section 14 ; prompts p
 `[.][phase11]`, fixtures `tests/data/themes/recalbox/`, `tests/smoke/fetch-reference-theme.sh`)
 est fourni : il est rempli PR par PR.
 
+### Écarts constatés (phase 11, état au 01/11/2026)
+
+- **11a** : `docs/THEMES.md` rédigé (PR #73, fusionnée).
+- **11b** : couche 1 implémentée (PR #74, fusionnée).
+- **11c** : schéma + réécriture de `ThemeData` + `--check-theme` (PR #75, ouverte).
+  - `ThemeExtras::setExtras` implémenté (manquait au premier jet).
+  - `ThemeException` conservée car `test_ThemeData` attend `CHECK_THROWS` (contradiction avec R6,
+    à trancher par le propriétaire).
+  - `makeExtras` implémenté à partir de l'ancien code.
+  - `--check-theme` : 0 erreur / 0 avertissement sur `tests/data/capture/themes/capture`.
+- Reste : 11d (rendu), 11e (options dans le menu), 11f–11i (vues, éléments, menus thémés).
+
 ---
 
 ## Phase 12 — Distribution Arch
