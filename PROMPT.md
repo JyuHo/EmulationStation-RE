@@ -29,7 +29,7 @@
 | 5 — SDL2 → SDL3 | **terminée** : SDL3 partout, manettes reconnues par `SDL_Gamepad` avec configuration par défaut, captures identiques au pixel près ; testée par le propriétaire avec une vraie manette | #33, #34, #35 (#37) |
 | **6 — OpenGL 3.3 core** | **terminée** (≈ 3 500 i/s au minimum sur APU AMD BC-250, 1 000 jeux, mesuré par le propriétaire) : contexte 3.3 core, module `renderer/`, glad, API sans types GL, shaders, `Batcher`, taille de fenêtre ; #40 avait un rendu faux, corrigé par #42 | #40, #42, #44, #45 |
 | 7 — Images | **terminée après correction** : façade `ImageIO::load` (PNG/JPEG/WebP fixe et animé/GIF animé), textures animées dans tout `ImageComponent`, décodage asynchrone des images de jeux (`TextureLoader`), cache LRU `MaxVRAM` ; #47–#49 étaient incomplètes (voir le plan, « Écarts constatés ») | #41, #47, #48, #49, correction |
-| 8 — Audio | **fusionnée** : décodage FFmpeg, `SDL_AudioStream` par source, musique de fond | #51, #52 |
+| 8 — Audio | **fusionnée** : décodage FFmpeg, `SDL_AudioStream` par source, musique de fond ; réglages de volume corrigés (curseurs à la manette, volume du système enregistré, choix de la carte son) | #51, #52, #59, #71 |
 | 9 — Vidéo | **fusionnée** : `VideoPlayer`/`VideoComponent` FFmpeg, piste audio, pause | #54, #55 |
 | 10 à 12 | à faire | — |
 
@@ -233,8 +233,16 @@ voulu, expliqué dans la PR.
   en mémoire ; ne copie jamais un `0xRRGGBBAA` tel quel dans `Vertex::color` (erreur de #40).
 - **Batcher et état GL** : tout ce qui change l'état d'un dessin en attente (clip, contenu
   ou suppression d'une texture, fin d'image, `deinit`) doit vider le lot avant (`flushBatch`).
-- **Retour d'un jeu sans carte son** : `VolumeControl` (ALSA direct) écrit un `[ERROR]` ;
-  `capture.sh` ignore cette seule ligne.
+- **Pas de carte son (CI, Xvfb)** : `VolumeControl` ne fait qu'avertir (`[WARNING]`) depuis
+  #71 ; `capture.sh` refuse tout `[ERROR]`, sans exception. N'y remets pas d'erreur.
+- **Volume du système** : `SystemVolume` (0-100, -1 = laissé au système) est enregistré
+  seulement si le curseur a bougé et appliqué au démarrage (`main` crée `VolumeControl`) ;
+  carte `AudioCard` (`""` = automatique) et contrôle `AudioDevice` (`""` = `Master`, `PCM`…).
+  Fonctions pures testées dans `test_Volume.cpp` (`volume::toPercent`/`toRaw`/`chooseControl`).
+- **Curseurs (`SliderComponent`) et hat** : un hat n'envoie qu'un relâchement « centré » pour
+  ses quatre directions, que `isMappedTo` associe à toutes. Un composant ne doit jamais
+  consommer un relâchement qui n'est pas le sien, sinon la liste défile toute seule (#71,
+  `classifySliderInput`).
 - **Job de captures et base fausse** : il compare avec la base de la PR. Pour comparer avec
   un autre état (ici la phase 5, alors que `main` contenait le rendu faux de #40), pousse une
   branche à ce commit et ouvre une PR brouillon « à ne pas fusionner » vers elle (#43).
