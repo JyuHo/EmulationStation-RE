@@ -1154,7 +1154,12 @@ est fourni : il est rempli PR par PR.
   curseur, images des boutons ; barre thémée : toute la ligne sélectionnée redessinée dans la
   couleur sélectionnée (les libellés disparaissaient) ; police de thème introuvable : police par
   défaut au lieu d'un arrêt ; sondes ajoutées à `menu-icons`, écran `menu-switch` ; tests `[11f2]`.
-- Reste : 11f5, 11g à 11i.
+- **11f5** (PR « clavier virtuel thémé ») : `GuiVirtualKeyboard` (disposition originale, MAJ à
+  trois états, effacement UTF-8) et son modèle testable `VirtualKeyboardModel` ; réglage
+  `VirtualKeyboard` (faux par défaut) et `openTextInput` pour les deux champs de saisie ;
+  élément `keyboard` lu dans la vue sous le clavier ; écran `keyboard` de `capture-themes.sh`
+  avec saisie enregistrée ; tests `[11f5]`.
+- Reste : 11g à 11i.
 
 ---
 

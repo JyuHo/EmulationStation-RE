@@ -1,6 +1,6 @@
 <!-- Fixture written for EmulationStation-RE (MIT): Recalbox format 4, own content.
      Main theme of the set (<set>/theme.xml), read for the menus only (docs/THEMES.md section 10,
-     "Vue menu"). Probes: tests/smoke/capture-themes.sh, screens menu-icons, menu-section and menu-switch. -->
+     "Vue menu"). Probes: tests/smoke/capture-themes.sh, screens menu-icons, menu-section, menu-switch and keyboard. -->
 <theme>
 	<formatVersion>4</formatVersion>
 	<view name="menu">
@@ -25,5 +25,13 @@
 		<menuSection name="menusection">
 			<color>FF00FFFF</color>
 		</menuSection>
+	</view>
+	<!-- on-screen keyboard over the game list of the system "options" (basic view): keys gray,
+	     selected key magenta (11f5) -->
+	<view name="basic, detailed">
+		<keyboard name="keyboard">
+			<keyColor>808080FF</keyColor>
+			<keySelectedColor>FF00FFFF</keySelectedColor>
+		</keyboard>
 	</view>
 </theme>
