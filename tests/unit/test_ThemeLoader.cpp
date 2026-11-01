@@ -326,3 +326,25 @@ TEST_CASE("Loader: properties as attributes, value attribute and property condit
 	CHECK(value(*theme, "detailed", "md_image", "pos") == "0.6 0.6");
 	CHECK_FALSE(d.hasErrors());
 }
+
+TEST_CASE("Loader: an option in variants includes only the one whose condition holds", "[ThemeLoader][11e2]")
+{
+	// Recalbox includes a node only if its condition and its option both hold
+	// (themes/ThemeData.cpp:199-201 @10.1.1); its choices are a map by name (ThemeOption.h:77)
+	Diagnostics d;
+	const auto theme = loadTheme(kDir / "variants.xml", context("en", "eu", {{"layout", "wheel"}}), d);
+	REQUIRE(theme.has_value());
+	// "tate" is false: the blue variant, not the red one declared after it
+	CHECK(value(*theme, "detailed", "md_description", "color") == "0000FFFF");
+
+	const auto layout = std::ranges::find(theme->subsets, std::string("layout"), &ThemeSubset::id);
+	REQUIRE(layout != theme->subsets.end());
+	REQUIRE(layout->choices.size() == 2);
+	CHECK(layout->choices[0].name == "wheel");
+	CHECK(layout->choices[1].name == "top");
+
+	Diagnostics d2;
+	const auto top = loadTheme(kDir / "variants.xml", context("en", "eu", {{"layout", "top"}}), d2);
+	REQUIRE(top.has_value());
+	CHECK(value(*top, "detailed", "md_description", "color") == "FF0000FF");
+}
