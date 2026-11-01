@@ -4,6 +4,7 @@
 #include "components/ScrollableContainer.h"
 #include "components/RatingComponent.h"
 #include "components/DateTimeComponent.h"
+#include "components/VideoComponent.h"
 
 class DetailedGameListView : public BasicGameListView
 {
@@ -24,6 +25,9 @@ private:
 	void initMDValues();
 
 	ImageComponent mImage;
+	// only used when the theme has an md_video element
+	VideoComponent mVideo;
+	bool mVideoEnabled = false;
 
 	TextComponent mLblRating, mLblReleaseDate, mLblDeveloper, mLblPublisher, mLblGenre, mLblPlayers, mLblLastPlayed,
 		mLblPlayCount;

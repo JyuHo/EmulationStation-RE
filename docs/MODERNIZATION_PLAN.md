@@ -828,8 +828,18 @@ découpler de FFmpeg : `dr_wav`/`dr_mp3`/`stb_vorbis` vendored.
   (fixtures `tests/data/video/`). TSan signale des courses **internes à FFmpeg** avec le
   décodage multithread (`thread_count = 0`), absentes avec un seul thread : FFmpeg n'est
   pas instrumenté, ce sont des faux positifs connus.
-- Restent : 9b (élément de thème `video`, champ `<video>`, délai, image de remplacement),
-  9c (économiseur « clips de jeux »), VA-API.
+- **9b** : élément de thème `video` (`pos`, `size`, `maxSize`, `origin`, `default`,
+  `delay` en secondes, `showSnapshotNoVideo`, `showSnapshotDelay`, comme l'élément d'ES),
+  champ `<video>` des gamelists (jeux et dossiers, chemin relatif résolu et réécrit comme
+  `<image>`), `md_video` dans la vue détaillée (sans cet élément, rendu inchangé). Lecture
+  après le délai (2 s par défaut), arrêt pendant le défilement, image du jeu pendant le délai
+  ou sans vidéo selon le thème. `GuiComponent::onShow`/`onHide` : la vidéo s'arrête quand
+  la vue n'est plus affichée (autre vue, jeu lancé, veille, fermeture avant
+  `AudioManager::shutdown()`) et reprend après le délai. Musique de fond en pause tant qu'une
+  vidéo avec son joue, y compris au changement de piste. Une liste contenant des vidéos
+  passe en vue détaillée. Tests : `test_VideoComponent.cpp`, élément `video`
+  (`test_ThemeData`), champ `video` (`test_MetaData`).
+- Restent : 9c (économiseur « clips de jeux »), VA-API.
 
 ---
 

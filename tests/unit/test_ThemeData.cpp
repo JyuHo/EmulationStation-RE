@@ -41,3 +41,19 @@ TEST_CASE("ThemeData resolves ./ paths and includes relative to the theme file",
 	REQUIRE(background != nullptr);
 	CHECK(background->get<std::string>("path") == dir + "/nes/../art/background.png");
 }
+
+TEST_CASE("ThemeData reads the video element", "[ThemeData]")
+{
+	ThemeData theme;
+	REQUIRE_NOTHROW(theme.loadFile(ES_TEST_DATA_DIR "/themes/video.xml"));
+
+	const ThemeData::ThemeElement* video = theme.getElement("detailed", "md_video", "video");
+	REQUIRE(video != nullptr);
+	CHECK(video->get<glm::vec2>("pos") == glm::vec2(0.25f, 0.4f));
+	CHECK(video->get<glm::vec2>("maxSize") == glm::vec2(0.45f, 0.4f));
+	CHECK(video->get<glm::vec2>("origin") == glm::vec2(0.5f, 0.5f));
+	CHECK(video->get<std::string>("default") == ES_TEST_DATA_DIR "/themes/default.mp4");
+	CHECK(video->get<float>("delay") == 1.5f);
+	CHECK(video->get<bool>("showSnapshotNoVideo"));
+	CHECK(video->get<bool>("showSnapshotDelay"));
+}

@@ -45,6 +45,7 @@ public:
 	bool input(InputConfig* config, Input input) override;
 	void update(int deltaTime) override;
 	void render(const glm::mat4& parentTrans) override;
+	void onShow() override; // the current view only
 
 	enum ViewMode
 	{
@@ -82,6 +83,8 @@ private:
 	static ViewController* sInstance;
 
 	void playViewTransition();
+	// hides the previous view and shows the new one (their videos stop and start)
+	void setCurrentView(std::shared_ptr<GuiComponent> view);
 	int getSystemId(SystemData* system);
 
 	std::shared_ptr<GuiComponent> mCurrentView;

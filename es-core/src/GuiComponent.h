@@ -83,6 +83,11 @@ public:
 	virtual void onFocusGained() {};
 	virtual void onFocusLost() {};
 
+	// The component's view becomes the shown one, or stops being (another view, a game
+	// launched, sleep). Forwarded to the children.
+	virtual void onShow();
+	virtual void onHide();
+
 	// Default implementation just handles <pos> and <size> tags as normalized float pairs.
 	// You probably want to keep this behavior for any derived classes as well as add your own.
 	virtual void applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view,

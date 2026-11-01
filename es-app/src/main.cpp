@@ -328,6 +328,8 @@ int main(int argc, char* argv[])
 
 	while(window.peekGui() != ViewController::get())
 		delete window.peekGui();
+	// stops the videos: their threads feed audio streams that AudioManager::shutdown() frees
+	ViewController::get()->onHide();
 	MusicPlayer::getInstance().deinit();
 	// before window.deinit(), whose SDL_Quit() frees the audio streams that the sounds
 	// still point to (the AudioManager destructor runs later, at static destruction)

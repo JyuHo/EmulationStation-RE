@@ -128,7 +128,7 @@ void MusicPlayer::playCurrent()
 	if(!mStream) return;
 	if(!SDL_BindAudioStream(AudioManager::getDevice(), mStream)) { SDL_DestroyAudioStream(mStream); mStream = nullptr; return; }
 	SDL_PutAudioStreamData(mStream, mPcm.data(), (int)(mPcm.size() * sizeof(float)));
-	float gain = Settings::getInstance()->getInt("MusicVolume") / 100.0f;
+	float gain = mPaused ? 0.0f : Settings::getInstance()->getInt("MusicVolume") / 100.0f;
 	SDL_SetAudioStreamGain(mStream, gain);
 	SDL_ResumeAudioDevice(AudioManager::getDevice());
 	mPlaying = true;
@@ -142,11 +142,13 @@ void MusicPlayer::stop()
 
 void MusicPlayer::pause()
 {
+	mPaused = true;
 	if(mStream) SDL_SetAudioStreamGain(mStream, 0.0f);
 }
 
 void MusicPlayer::resume()
 {
+	mPaused = false;
 	if(mStream)
 	{
 		float gain = Settings::getInstance()->getInt("MusicVolume") / 100.0f;
