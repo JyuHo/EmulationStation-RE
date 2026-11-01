@@ -25,7 +25,7 @@ namespace fs = std::filesystem;
 
 ThemeData::ThemeData() : mVersion(0) {}
 
-void ThemeData::loadFile(const std::string& path)
+void ThemeData::loadFile(const std::string& path, const std::string& systemName)
 {
 	es::theme::Diagnostics diag;
 	// conditions such as "hd" depend on the real screen; 1920 x 1080 before Renderer::init
@@ -49,7 +49,7 @@ bool ThemeData::loadFile(const std::string& path, es::theme::Diagnostics& diag, 
 
 	// build loader context
 	es::theme::LoaderContext ctx;
-	ctx.legacy.system = "";
+	ctx.legacy.system = "default";
 	ctx.legacy.language = Settings::getInstance()->getString("Language");
 	ctx.region = "eu";
 	ctx.variables.set("root", fs::path(path).parent_path().generic_string(), diag, {path, 0});

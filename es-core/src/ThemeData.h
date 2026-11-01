@@ -87,7 +87,14 @@ struct ThemeSet
 	std::filesystem::path path;
 
 	inline std::string getName() const { return path.stem().string(); }
-	inline std::filesystem::path getThemePath(const std::string& system) const { return path / system / "theme.xml"; }
+	inline std::filesystem::path getThemePath(const std::string& system) const
+	{
+		const std::filesystem::path p1 = path / system / "theme.xml";
+		if(std::filesystem::exists(p1)) return p1;
+		const std::filesystem::path p2 = path / "default" / "theme.xml";
+		if(std::filesystem::exists(p2)) return p2;
+		return path / "theme.xml";
+	}
 };
 
 class ThemeData
@@ -119,7 +126,7 @@ public:
 
 	// Logs the diagnostics once. Throws ThemeException only when the main file is unusable
 	// (missing, malformed, no version); every caller catches it (SystemData, getDefault).
-	void loadFile(const std::string& path);
+	void loadFile(const std::string& path, const std::string& systemName = "");
 	// Same load, for --check-theme and tests: nothing is logged and nothing is thrown, the
 	// diagnostics go to diag. Returns false when the main file is unusable (theme left empty).
 	bool loadFile(const std::string& path, es::theme::Diagnostics& diag, int screenWidth, int screenHeight);
