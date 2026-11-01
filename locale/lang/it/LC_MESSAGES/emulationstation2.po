@@ -262,6 +262,10 @@ msgstr "scorrimento"
 msgid "Theme set"
 msgstr "Tema"
 
+#, c++-format
+msgid "{} configuration"
+msgstr "Configurazione di {}"
+
 msgid "Theme region"
 msgstr "Theme region"
 

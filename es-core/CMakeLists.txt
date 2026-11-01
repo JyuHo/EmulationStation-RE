@@ -50,6 +50,7 @@ set(CORE_HEADERS
 	src/components/ImageComponent.h
 	src/components/ImageGridComponent.h
 	src/components/MenuComponent.h
+	src/components/MenuSectionComponent.h
 	src/components/NinePatchComponent.h
 	src/components/OptionListComponent.h
 	src/components/ScrollableContainer.h
@@ -125,6 +126,7 @@ set(CORE_SOURCES
 	src/components/HelpComponent.cpp
 	src/components/ImageComponent.cpp
 	src/components/MenuComponent.cpp
+	src/components/MenuSectionComponent.cpp
 	src/components/NinePatchComponent.cpp
 	src/components/ScrollableContainer.cpp
 	src/components/SliderComponent.cpp

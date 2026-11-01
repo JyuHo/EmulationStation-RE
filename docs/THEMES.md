@@ -616,29 +616,54 @@ ces tableaux et échoue si le schéma (`es-core/src/theme/ThemeSchema.cpp`) en d
 
 | Propriété | Type | Source | Statut ici |
 |---|---|---|---|
-| `iconKodi` | Path | `ThemeSupport.cpp:517`, nom `:706`, type `:70` | 11f |
-| `iconSystem` | Path | `ThemeSupport.cpp:518`, nom `:728`, type `:92` | 11f |
-| `iconUpdates` | Path | `ThemeSupport.cpp:519`, nom `:734`, type `:98` | 11f |
-| `iconControllers` | Path | `ThemeSupport.cpp:520`, nom `:688`, type `:52` | 11f |
-| `iconGames` | Path | `ThemeSupport.cpp:521`, nom `:691`, type `:55` | 11f |
-| `iconUI` | Path | `ThemeSupport.cpp:522`, nom `:731`, type `:95` | 11f |
-| `iconSound` | Path | `ThemeSupport.cpp:523`, nom `:726`, type `:90` | 11f |
-| `iconNetwork` | Path | `ThemeSupport.cpp:524`, nom `:716`, type `:80` | 11f |
-| `iconScraper` | Path | `ThemeSupport.cpp:525`, nom `:723`, type `:87` | 11f |
-| `iconAdvanced` | Path | `ThemeSupport.cpp:526`, nom `:682`, type `:46` | 11f |
-| `iconQuit` | Path | `ThemeSupport.cpp:527`, nom `:717`, type `:81` | 11f |
-| `iconRestart` | Path | `ThemeSupport.cpp:528`, nom `:722`, type `:86` | 11f |
-| `iconShutdown` | Path | `ThemeSupport.cpp:529`, nom `:725`, type `:89` | 11f |
-| `iconFastShutdown` | Path | `ThemeSupport.cpp:530`, nom `:690`, type `:54` | 11f |
-| `iconLicense` | Path | `ThemeSupport.cpp:531`, nom `:713`, type `:77` | 11f |
-| `iconList` | Path | `ThemeSupport.cpp:532`, nom `:714`, type `:78` | 11f |
-| `iconBios` | Path | `ThemeSupport.cpp:533`, nom `:685`, type `:50` | 11f |
-| `iconRecalboxRGBDual` | Path | `ThemeSupport.cpp:534`, nom `:721`, type `:85` | 11f |
-| `iconTate` | Path | `ThemeSupport.cpp:535`, nom `:729`, type `:93` | 11f |
-| `iconArcade` | Path | `ThemeSupport.cpp:536`, nom `:683`, type `:47` | 11f |
-| `iconDownload` | Path | `ThemeSupport.cpp:537`, nom `:689`, type `:53` | 11f |
-| `iconThemes` | Path | `ThemeSupport.cpp:538`, nom `:730`, type `:94` | 11f |
-| `iconCardReader` | Path | `ThemeSupport.cpp:539`, nom `:686`, type `:51` | 11f |
+| `iconKodi` | Path | `ThemeSupport.cpp:517`, nom `:706`, type `:70` | lue (11f1), sans effet : entrée absente d'ES |
+| `iconSystem` | Path | `ThemeSupport.cpp:518`, nom `:728`, type `:92` | lue (11f1), sans effet : entrée absente d'ES |
+| `iconUpdates` | Path | `ThemeSupport.cpp:519`, nom `:734`, type `:98` | lue (11f1), sans effet : entrée absente d'ES |
+| `iconControllers` | Path | `ThemeSupport.cpp:520`, nom `:688`, type `:52` | pris en charge (11f4) |
+| `iconGames` | Path | `ThemeSupport.cpp:521`, nom `:691`, type `:55` | lue (11f1), sans effet : entrée absente d'ES |
+| `iconUI` | Path | `ThemeSupport.cpp:522`, nom `:731`, type `:95` | pris en charge (11f4) |
+| `iconSound` | Path | `ThemeSupport.cpp:523`, nom `:726`, type `:90` | pris en charge (11f4) |
+| `iconNetwork` | Path | `ThemeSupport.cpp:524`, nom `:716`, type `:80` | lue (11f1), sans effet : entrée absente d'ES |
+| `iconScraper` | Path | `ThemeSupport.cpp:525`, nom `:723`, type `:87` | pris en charge (11f4) |
+| `iconAdvanced` | Path | `ThemeSupport.cpp:526`, nom `:682`, type `:46` | lue (11f1), sans effet : entrée absente d'ES |
+| `iconQuit` | Path | `ThemeSupport.cpp:527`, nom `:717`, type `:81` | pris en charge (11f4) |
+| `iconRestart` | Path | `ThemeSupport.cpp:528`, nom `:722`, type `:86` | pris en charge (11f4) |
+| `iconShutdown` | Path | `ThemeSupport.cpp:529`, nom `:725`, type `:89` | pris en charge (11f4) |
+| `iconFastShutdown` | Path | `ThemeSupport.cpp:530`, nom `:690`, type `:54` | lue (11f1), sans effet : entrée absente d'ES |
+| `iconLicense` | Path | `ThemeSupport.cpp:531`, nom `:713`, type `:77` | lue (11f1), sans effet : entrée absente d'ES |
+| `iconList` | Path | `ThemeSupport.cpp:532`, nom `:714`, type `:78` | lue (11f1), sans effet : entrée absente d'ES |
+| `iconBios` | Path | `ThemeSupport.cpp:533`, nom `:685`, type `:50` | lue (11f1), sans effet : entrée absente d'ES |
+| `iconRecalboxRGBDual` | Path | `ThemeSupport.cpp:534`, nom `:721`, type `:85` | lue (11f1), sans effet : entrée absente d'ES |
+| `iconTate` | Path | `ThemeSupport.cpp:535`, nom `:729`, type `:93` | lue (11f1), sans effet : entrée absente d'ES |
+| `iconArcade` | Path | `ThemeSupport.cpp:536`, nom `:683`, type `:47` | lue (11f1), sans effet : entrée absente d'ES |
+| `iconDownload` | Path | `ThemeSupport.cpp:537`, nom `:689`, type `:53` | lue (11f1), sans effet : entrée absente d'ES |
+| `iconThemes` | Path | `ThemeSupport.cpp:538`, nom `:730`, type `:94` | lue (11f1), sans effet : entrée absente d'ES |
+| `iconCardReader` | Path | `ThemeSupport.cpp:539`, nom `:686`, type `:51` | lue (11f1), sans effet : entrée absente d'ES |
+
+Effet (11f4, `es-app/src/guis/menus/base/Menu.cpp:38,309-337` @10.1.1) :
+
+- icône dessinée seulement si le thème donne l'image de ce type ; pas d'icône par défaut (les
+  images de Recalbox, `MenuThemeData.h:142-168`, ne sont pas reprises) ;
+- carré de côté `(int)(0,8 × hauteur de ligne)`, centré verticalement, à `3 + largeur d'écran / 320`
+  pixels du bord gauche de la liste ; le libellé est décalé du côté plus cette marge ;
+- teinte : couleur de `menutext` (défaut ES `777777`) ; sur la ligne sélectionnée, l'icône suit le
+  libellé (barre d'origine : inversion ; barre thémée de 11f2 : comme le libellé, la couleur
+  sélectionnée de Recalbox `:325` n'est pas encore appliquée aux libellés).
+
+| Entrée ES (`GuiMenu.cpp`) | Icône | Source |
+|---|---|---|
+| Scraper | `iconScraper` | `data/resources/menu.xml:491` |
+| Sound settings | `iconSound` | `menu.xml:466` |
+| UI settings | `iconUI` | `menu.xml:417` |
+| Configure input | `iconControllers` | `menu.xml:461` |
+| Quit | `iconQuit` | `menu.xml:591` |
+| Quit → Restart system | `iconRestart` | `menu.xml:132` |
+| Quit → Shut down system | `iconShutdown` | `menu.xml:130` |
+| Quit → Quit EmulationStation | aucune | pas d'équivalent chez Recalbox |
+
+Les 16 autres propriétés sont lues sans effet : ES n'a pas les entrées correspondantes.
+Tests : `[11f4]` de `tests/unit/test_MenuEntries.cpp` ; sondes `menu-icons` de
+`tests/smoke/capture-themes.sh`.
 
 #### `menuSwitch`
 
@@ -697,11 +722,27 @@ ces tableaux et échoue si le schéma (`es-core/src/theme/ThemeSchema.cpp`) en d
 
 | Propriété | Type | Source | Statut ici |
 |---|---|---|---|
-| `fontPath` | Path | `ThemeSupport.cpp:586`, nom `:674`, type `:38` | 11f |
-| `fontSize` | Float | `ThemeSupport.cpp:587`, nom `:675`, type `:39` | 11f |
-| `color` | Color | `ThemeSupport.cpp:588`, nom `:659`, type `:23` | 11f |
-| `selectedColor` | Color | `ThemeSupport.cpp:589`, nom `:761`, type `:125` | 11f |
-| `alignment` | String | `ThemeSupport.cpp:590`, nom `:656`, type `:20` | 11f |
+| `fontPath` | Path | `ThemeSupport.cpp:586`, nom `:674`, type `:38` | pris en charge (11f4) |
+| `fontSize` | Float | `ThemeSupport.cpp:587`, nom `:675`, type `:39` | pris en charge (11f4) |
+| `color` | Color | `ThemeSupport.cpp:588`, nom `:659`, type `:23` | pris en charge (11f4) |
+| `selectedColor` | Color | `ThemeSupport.cpp:589`, nom `:761`, type `:125` | pris en charge (11f4) |
+| `alignment` | String | `ThemeSupport.cpp:590`, nom `:656`, type `:20` | pris en charge (11f4) |
+
+Effet (11f4, `es-app/src/guis/menus/base/ItemHeader.h:20-22,58-69,94-153` @10.1.1) :
+
+- une ligne du menu, sélectionnable, sans action (le repli est commenté chez Recalbox) ;
+- texte en majuscules avec la marque `▼ ` : après le texte aligné à gauche, avant sinon ;
+- couleur `color`, `selectedColor` sur la ligne sélectionnée (barre thémée ; avec la barre
+  d'origine, la ligne est inversée comme les libellés) ;
+- trait de 2 px (1 px à 480 lignes ou moins) au milieu de la ligne, du côté libre du texte (des
+  deux côtés s'il est centré), à `largeur d'écran / 160 + 2` pixels du texte ; ES : la zone de la
+  ligne est celle des éléments de `ComponentList` (10 px de marge de chaque côté) ;
+- valeurs absentes : celles de `menutext` (copie, 11f1), alignement centré, police de `menutext`
+  (sinon police et taille par défaut d'ES).
+
+Seul en-tête : « `<jeu de thèmes>` configuration » (`_U("{} configuration")`) dans « UI settings »,
+juste avant les options du thème, seulement si le thème en a (Recalbox `menu.xml:435-436`).
+Tests : `[11f4]` de `tests/unit/test_MenuEntries.cpp` ; sonde `menu-section`.
 
 #### `menuSize`
 

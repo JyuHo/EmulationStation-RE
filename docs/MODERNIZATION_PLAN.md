@@ -1145,7 +1145,11 @@ est fourni : il est rempli PR par PR.
   Reste de 11f2 non fait (cadres des autres fenêtres, couleur des bords, fondu, titres et pied,
   textes des entrées, listes d'options, flèches, séparateurs, ligne du curseur) : repris avec
   11f4.
-- Reste : 11f2 (fin), 11f4, 11f5, 11g à 11i.
+- **11f4** (PR « icônes d'entrée et en-têtes de section ») : icônes de menu thémées sur 7 entrées
+  (`menu.xml` de Recalbox), 16 propriétés `icon…` lues sans effet ; `MenuComponent::addSection`
+  et en-tête « `<jeu>` configuration » avant les options du thème ; sondes `options`,
+  `menu-icons`, `menu-section` dans `capture-themes.sh` ; tests `[11f4]`.
+- Reste : 11f2 (fin), 11f5, 11g à 11i.
 
 ---
 

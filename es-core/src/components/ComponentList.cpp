@@ -6,7 +6,6 @@
 #include "Util.h"
 #include "Log.h"
 
-#define TOTAL_HORIZONTAL_PADDING_PX 20
 
 ComponentList::ComponentList(Window* window) :
 	IList<ComponentListRow, void*>(window, LIST_SCROLL_STYLE_SLOW, LIST_NEVER_LOOP)
@@ -145,7 +144,9 @@ void ComponentList::updateCameraOffset()
 {
 	// move the camera to scroll
 	const float totalHeight = getTotalRowHeight();
-	if(totalHeight > mSize.y)
+	// an empty list has no cursor row: MenuComponent can give it a negative height while it lays
+	// out its title and buttons, before any row is added (UI settings with recalbox-next)
+	if(!mEntries.empty() && totalHeight > mSize.y)
 	{
 		float target = mSelectorBarOffset + getRowHeight(mEntries.at(mCursor).data) / 2 - (mSize.y / 2);
 
@@ -212,7 +213,7 @@ void ComponentList::render(const glm::mat4& parentTrans)
 	if(mFocused)
 	{
 		const es::theme::MenuTheme& mt = mWindow->getMenuTheme();
-		const bool themed = mt.text.selectorColor.has_value() || mt.text.selectedColor.has_value() || mt.backgroundColor.has_value();
+		const bool themed = mt.themedSelector();
 
 		const float selectedRowHeight = getRowHeight(mEntries.at(mCursor).data);
 
@@ -305,7 +306,7 @@ void ComponentList::updateElementPosition(const ComponentListRow& row)
 	// assumes updateElementSize has already been called
 	float rowHeight = getRowHeight(row);
 
-	float x = TOTAL_HORIZONTAL_PADDING_PX / 2;
+	float x = kHorizontalPadding / 2;
 	for(unsigned int i = 0; i < row.elements.size(); i++)
 	{
 		const auto comp = row.elements.at(i).component;
@@ -318,7 +319,7 @@ void ComponentList::updateElementPosition(const ComponentListRow& row)
 
 void ComponentList::updateElementSize(const ComponentListRow& row)
 {
-	float width = mSize.x - TOTAL_HORIZONTAL_PADDING_PX;
+	float width = mSize.x - kHorizontalPadding;
 	std::vector<std::shared_ptr<GuiComponent>> resizeVec;
 
 	for(auto it = row.elements.begin(); it != row.elements.end(); it++)

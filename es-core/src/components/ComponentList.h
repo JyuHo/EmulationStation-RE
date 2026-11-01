@@ -48,6 +48,9 @@ class ComponentList : public IList<ComponentListRow, void*>
 public:
 	ComponentList(Window* window);
 
+	// horizontal space left free around the elements of a row, half on each side
+	static constexpr float kHorizontalPadding = 20.0f;
+
 	void addRow(const ComponentListRow& row, bool setCursorHere = false);
 
 	void textInput(const char* text) override;

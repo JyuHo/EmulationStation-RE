@@ -262,6 +262,10 @@ msgstr "Schieben"
 msgid "Theme set"
 msgstr "Theme"
 
+#, c++-format
+msgid "{} configuration"
+msgstr "{}-Konfiguration"
+
 msgid "Theme region"
 msgstr "Theme region"
 

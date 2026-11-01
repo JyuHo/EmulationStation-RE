@@ -60,7 +60,9 @@ check "R9: no rendu-modifié bypass in the workflow" bash -c "git diff -U0 '$bas
 case "$pr" in
 11a | 11b | 11c | 11c2 | 11d | 11e | 11f) ;;
 *)
-	if git diff "$base" -- tests | grep -qE '^\+TEST_CASE\(.*\['"$pr"'\]'; then
+	# grep reads the whole diff: with -q it could exit first, and git diff, killed by SIGPIPE,
+	# would fail the pipeline (pipefail)
+	if git diff "$base" -- tests | grep -E '^\+TEST_CASE\(.*\['"$pr"'\]' >/dev/null; then
 		echo "OK    R10: the PR adds TEST_CASEs tagged [$pr]"
 	else
 		echo "FAIL  R10: the PR adds no TEST_CASE tagged [$pr]"

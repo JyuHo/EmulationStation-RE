@@ -1,0 +1,7 @@
+<!-- Fixture written for EmulationStation-RE (MIT): value "blue" of the option "tint". -->
+<theme>
+	<formatVersion>4</formatVersion>
+	<view name="system">
+		<image name="tint" extra="true" path="${root}/art/blue.png" pos="0.1 0.05" size="0.2 0.2" zIndex="20"/>
+	</view>
+</theme>

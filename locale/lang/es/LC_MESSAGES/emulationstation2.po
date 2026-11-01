@@ -262,6 +262,10 @@ msgstr "deslizar"
 msgid "Theme set"
 msgstr "Tema"
 
+#, c++-format
+msgid "{} configuration"
+msgstr "Configuración de {}"
+
 msgid "Theme region"
 msgstr "Theme region"
 

@@ -262,6 +262,10 @@ msgstr "glissement"
 msgid "Theme set"
 msgstr "Thème"
 
+#, c++-format
+msgid "{} configuration"
+msgstr "Configuration de {}"
+
 msgid "Theme region"
 msgstr "Région du thème"
 
