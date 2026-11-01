@@ -135,6 +135,7 @@ fi
 # edges (linear filtering), hence a small tolerance.
 failed=0
 probe() { "$here/probe.sh" "$outdir/$1.png" "$2" "$3" "$4" 4 || failed=$((failed + 1)); }
+probe_area() { "$here/probe-area.sh" "$outdir/$1.png" "$2" "$3" "$4" "$5" "$6" 4 || failed=$((failed + 1)); }
 for screen in 01-zindex 02-zswap 03-rotation 04-rorigin 05-disabled 06-options; do
 	probe "$screen" 1088 72 00FFFF # control rectangle: the screen is drawn
 done
@@ -164,14 +165,16 @@ probe 07-menu-icons 346 324 770000
 probe 08-menu-section 400 372 FF00FF
 # themed menu (11f2), on the main menu of 07: frame center EFEFEF x menubg 00FF00 = 00EF00;
 # selector bar (Scraper, row 1): green removed (dst x (1 - 00FF00) = 000000), then 0000FF added;
-# separator under the selected row (y 299), menutext separatorColor FFFF00
+# separators every 49 to 50 px (y 299 here), menutext separatorColor FFFF00: one of them in a
+# 45 px column, wherever the font metrics put the rows
 probe 07-menu-icons 640 470 00EF00
 probe 07-menu-icons 640 212 0000FF
-probe 07-menu-icons 640 299 FFFF00
+probe_area 07-menu-icons 640 275 1 45 FFFF00
 # frame edge tinted too (Recalbox BusyComponent.cpp:32-34): edge pixel CBCBCB x 00FF00 = 00CB00
 probe 07-menu-icons 320 470 00CB00
-# label of the selected row drawn over the bar in menutext selectedColor FF0000 ("S" of SCRAPER)
-probe 07-menu-icons 336 214 FF0000
+# label of the selected row drawn over the bar in menutext selectedColor FF0000: a glyph pixel
+# somewhere on the start of SCRAPER (1 px strokes, their exact place depends on FreeType)
+probe_area 07-menu-icons 325 203 145 42 FF0000
 # switches (11f2): Sound settings, "Enable sounds" on = menuswitch pathOn (cyan, no tint)
 probe 09-menu-switch 937 324 00FFFF
 
