@@ -99,6 +99,7 @@ add_custom_target(es-update-pot
 		--keyword=_U
 		--keyword=N_
 		--add-comments=TRANSLATORS:
+		--no-location
 		--package-name=emulationstation-re
 		--sort-by-file
 		--force-po
