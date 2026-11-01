@@ -23,7 +23,8 @@ public:
 	void setUppercase(bool uppercase);
 	void onSizeChanged() override;
 	void setText(const std::string& text);
-	void setColor(unsigned int color);
+	void setColor(unsigned int color) override;
+	unsigned int getColor() const override { return mColor; }
 	void setAlignment(Alignment align);
 	void setLineSpacing(float spacing);
 

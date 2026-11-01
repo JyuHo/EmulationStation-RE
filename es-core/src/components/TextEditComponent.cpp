@@ -24,6 +24,10 @@ TextEditComponent::TextEditComponent(Window* window) :
 {
 	addChild(&mBox);
 
+	const auto& mt = mWindow->getMenuTheme();
+	if(mt.text.font)
+		mFont = Font::get((unsigned int)(mt.text.font->size * Renderer::getScreenHeight()), mt.text.font->path.c_str());
+
 	onFocusLost();
 
 	setSize(256, mFont->getHeight() + TEXT_PADDING_VERT);

@@ -24,4 +24,6 @@ private:
 
 	ImageComponent mImage;
 	bool mState;
+	std::string mOnPath;
+	std::string mOffPath;
 };

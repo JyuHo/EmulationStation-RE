@@ -6,7 +6,10 @@
 
 SwitchComponent::SwitchComponent(Window* window, bool state) : GuiComponent(window), mImage(window), mState(state)
 {
-	mImage.setImage(":/off.svg");
+	const auto& mt = mWindow->getMenuTheme();
+	mOffPath = mt.switchOffPath.value_or(":/off.svg");
+	mOnPath = mt.switchOnPath.value_or(":/on.svg");
+	mImage.setImage(mState ? mOnPath : mOffPath);
 	mImage.setResize(0, Font::get(FONT_SIZE_MEDIUM)->getLetterHeight());
 	mSize = mImage.getSize();
 }
@@ -50,7 +53,7 @@ void SwitchComponent::setState(bool state)
 
 void SwitchComponent::onStateChanged()
 {
-	mImage.setImage(mState ? ":/on.svg" : ":/off.svg");
+	mImage.setImage(mState ? mOnPath : mOffPath);
 }
 
 std::vector<HelpPrompt> SwitchComponent::getHelpPrompts()

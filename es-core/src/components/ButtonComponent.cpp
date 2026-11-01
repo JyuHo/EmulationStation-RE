@@ -14,6 +14,12 @@ ButtonComponent::ButtonComponent(
 	mTextColorUnfocused(0x777777FF),
 	mBox(window, ":/button.png")
 {
+	const auto& mt = mWindow->getMenuTheme();
+	if(mt.buttonPath) mBox.setImagePath(*mt.buttonPath);
+	if(mt.text.font) mFont = Font::get((unsigned int)(mt.text.font->size * Renderer::getScreenHeight()), mt.text.font->path.c_str());
+	if(mt.text.color) mTextColorUnfocused = *mt.text.color;
+	if(mt.text.selectedColor) mTextColorFocused = *mt.text.selectedColor;
+
 	setPressedFunc(func);
 	setText(text, helpText);
 	updateImage();

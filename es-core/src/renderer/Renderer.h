@@ -44,7 +44,8 @@ enum class BlendMode
 {
 	Alpha,
 	Additive,
-	InvertDst
+	InvertDst,
+	MultiplyInvSrc
 };
 
 // Alpha8: one channel, sampled as (1, 1, 1, a) (font atlases)
