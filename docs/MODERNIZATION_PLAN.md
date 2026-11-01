@@ -1121,7 +1121,16 @@ est fourni : il est rempli PR par PR.
   `rotationOrigin`, `disabled`, dans `GuiComponent` ; captures à sondes
   (`tests/smoke/capture-themes.sh`, `probe.sh` réécrit, fixture `tests/data/capture-themes/`).
   `opacity` et repli de chemin retirés des sondes prévues : absents de Recalbox 10.1.1.
-- Reste : 11e à 11i.
+- **11e** (#86, fusionnée) : `Settings::getStringOr`, entrées « Theme region » et options dans
+  « UI settings ». Non conforme : `ThemeData::loadFile` ne lit ni `ThemeRegion` ni les options
+  enregistrées (le choix n'a aucun effet), textes du thème passés par `_U()`, valeur affichée
+  sans valeur enregistrée différente de celle du chargeur, aucun test, aucune capture,
+  `docs/THEMES.md` non mis à jour. Reporté à **11e2** (`docs/phase11/11e2.md`).
+- **11f** (#87, fusionnée) : squelette `MenuTheme` qui ne lit rien, sans test, valeurs par défaut
+  différentes de celles d'ES. Phase découpée en **11f1** à **11f5** (`docs/phase11/README.md`).
+  Décision du propriétaire (01/11/2026) : icônes de menu, sections et clavier virtuel créés
+  (11f4, 11f5).
+- Reste : 11e2, 11f1 à 11f5, 11g à 11i.
 
 ---
 

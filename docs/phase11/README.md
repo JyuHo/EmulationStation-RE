@@ -12,13 +12,25 @@ prime en cas d'écart.
 | 4 | [11c2.md](11c2.md) | mise en conformité de 11a–11c (section 11 de `THEMES.md`, recherche du fichier, contexte, tests manquants) | #76 fusionnée |
 | 5 | [11d.md](11d.md) | propriétés communes, captures à sondes | 11c2 fusionnée |
 | 6 | [11e.md](11e.md) | menu « Options du thème », région, rechargement | 11d fusionnée |
-| 7 | [11f.md](11f.md) | menus thémés | 11e fusionnée |
-| 8 | [11g.md](11g.md) | carrousel système | 11f fusionnée |
-| 9 | [11h.md](11h.md) | vues restantes | 11g fusionnée |
-| 10 | [11i.md](11i.md) | thème par défaut, clôture | 11h fusionnée |
+| 7 | [11e2.md](11e2.md) | 11e rendue effective (réglages lus au chargement, tests, captures, docs) | #86 fusionnée |
+| 8 | [11f1.md](11f1.md) | thème des menus : chargement et données, aucun rendu changé | 11e2 fusionnée |
+| 9 | [11f2.md](11f2.md) | thème des menus appliqué aux fenêtres et composants | 11f1 fusionnée |
+| 10 | [11f3.md](11f3.md) | fermeture des GUI sans `delete this` | 11f2 fusionnée |
+| 11 | [11f4.md](11f4.md) | icônes d'entrée et en-têtes de section | 11f3 fusionnée |
+| 12 | [11f5.md](11f5.md) | clavier virtuel thémé | 11f4 fusionnée |
+| 13 | [11g.md](11g.md) | carrousel système | 11f5 fusionnée |
+| 14 | [11h.md](11h.md) | vues restantes | 11g fusionnée |
+| 15 | [11i.md](11i.md) | thème par défaut, clôture | 11h fusionnée |
 
 11c2 a été ajoutée après le contrôle de 11a–11c du 01/11/2026 (écarts : plan, phase 11,
 « Écarts constatés »). Règles ajoutées à cette occasion : R14 à R17 (`PROMPT.md` 14.2).
+
+11e2 et le découpage de 11f en 11f1 à 11f5 ont été ajoutés après le contrôle du 01/11/2026 :
+#86 (11e) a été fusionnée sans tests ni captures et ses réglages n'ont aucun effet ; #87 (11f) n'était
+qu'un squelette `MenuTheme` aux valeurs fausses. [11f.md](11f.md) est remplacé. Décision du
+propriétaire du même jour : les icônes de menu, les sections et le clavier virtuel de Recalbox
+sont créés (11f4, 11f5). Depuis 11e2, `phase11-check.sh` exige que la PR ajoute des `TEST_CASE`
+étiquetés à son nom.
 
 ## Pour le propriétaire : contrôle d'une PR de la phase 11
 
@@ -48,7 +60,10 @@ fusionner**, demander la correction. Ne jamais fusionner avec un job rouge, mêm
      « ouverte » (R15) ;
    - chaque ligne ajoutée à `docs/THEMES.md` a une source `fichier:ligne` (R4) ;
    - `PROMPT.md` section 0 et le plan ne déclarent rien « terminé » avant fusion (R12).
-6. Les critères du prompt de la PR sont tous cochés, chacun avec sa preuve.
+6. Les critères du prompt de la PR sont tous cochés, chacun avec sa preuve. Une case non
+   cochée, « tests à ajouter », « à implémenter » ou « non vérifié localement, mais CI verte »
+   dans la description : **ne pas fusionner** (c'est ce qui s'est passé avec #86 et #87).
+7. Le diff ne touche que les « Fichiers autorisés » du prompt, ou l'inventaire dit pourquoi.
 
 ## Pour l'agent : capture locale impossible ou écran noir
 
