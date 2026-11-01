@@ -272,6 +272,9 @@ msgstr "Région du thème"
 msgid "Language"
 msgstr "Langue"
 
+msgid "Virtual keyboard"
+msgstr "Clavier virtuel"
+
 msgid "Configure input"
 msgstr "Configurer les manettes"
 
@@ -636,3 +639,15 @@ msgstr "Déjà attribué !"
 
 msgid "discard changes"
 msgstr "abandonner les modifications"
+
+msgid "Shift"
+msgstr "Maj"
+
+msgid "Space"
+msgstr "Espace"
+
+msgid "move"
+msgstr "déplacer"
+
+msgid "press"
+msgstr "appuyer"

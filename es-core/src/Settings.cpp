@@ -36,6 +36,7 @@ void Settings::setDefaults()
 	mBoolMap["GamepadSwapAB"] = false; // Nintendo style: A on the east face button of recognized gamepads
 	mBoolMap["ParseGamelistOnly"] = false;
 	mBoolMap["DrawFramerate"] = false;
+	mBoolMap["VirtualKeyboard"] = false; // text input with the on-screen keyboard (11f5)
 	mBoolMap["ShowExit"] = true;
 	mBoolMap["Windowed"] = false;
 

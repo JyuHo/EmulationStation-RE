@@ -272,6 +272,9 @@ msgstr "Theme region"
 msgid "Language"
 msgstr "Sprache"
 
+msgid "Virtual keyboard"
+msgstr "Bildschirmtastatur"
+
 msgid "Configure input"
 msgstr "Eingabe konfigurieren"
 
@@ -636,3 +639,15 @@ msgstr "Bereits belegt!"
 
 msgid "discard changes"
 msgstr "Änderungen verwerfen"
+
+msgid "Shift"
+msgstr "Umschalt"
+
+msgid "Space"
+msgstr "Leertaste"
+
+msgid "move"
+msgstr "bewegen"
+
+msgid "press"
+msgstr "drücken"
