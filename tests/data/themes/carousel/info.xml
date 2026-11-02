@@ -1,0 +1,8 @@
+<!-- Fixture written for EmulationStation-RE (MIT), own content: a systemInfo text and no
+     carousel (phase 11g). -->
+<theme>
+	<formatVersion>4</formatVersion>
+	<view name="system">
+		<text name="systemInfo"><color>FF0000FF</color></text>
+	</view>
+</theme>
