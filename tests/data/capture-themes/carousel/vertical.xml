@@ -1,0 +1,18 @@
+<!-- Fixture written for EmulationStation-RE (MIT): Recalbox format 4, own content.
+     Main theme of a carousel set (11g): vertical carousel on the left (384x720), logos 256x144
+     aligned left, selected x 1.5, three per screen. -->
+<theme>
+	<formatVersion>4</formatVersion>
+	<view name="system">
+		<carousel name="systemcarousel">
+			<type>vertical</type>
+			<pos>0 0</pos>
+			<size>0.3 1</size>
+			<color>808080FF</color>
+			<logoSize>0.2 0.2</logoSize>
+			<logoScale>1.5</logoScale>
+			<logoAlignment>left</logoAlignment>
+			<maxLogoCount>3</maxLogoCount>
+		</carousel>
+	</view>
+</theme>

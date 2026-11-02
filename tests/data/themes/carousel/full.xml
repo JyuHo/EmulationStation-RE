@@ -1,0 +1,38 @@
+<!-- Fixture written for EmulationStation-RE (MIT), own content: a system carousel with every
+     property, in a "carousel" feature block (phase 11g). -->
+<theme>
+	<formatVersion>4</formatVersion>
+	<feature supported="carousel">
+		<view name="system">
+			<carousel name="systemcarousel">
+				<type>vertical_wheel</type>
+				<size>0.5 0.25</size>
+				<pos>0.1 0.2</pos>
+				<origin>0.5 0</origin>
+				<color>11223344</color>
+				<fontSize>0.05</fontSize>
+				<fontColor>55667788</fontColor>
+				<logoScale>2</logoScale>
+				<logoRotation>10</logoRotation>
+				<logoRotationOrigin>-2 0.5</logoRotationOrigin>
+				<logoSize>0.1 0.2</logoSize>
+				<textOnly>true</textOnly>
+				<forceUppercase>true</forceUppercase>
+				<logoAlignment>right</logoAlignment>
+				<maxLogoCount>4.6</maxLogoCount>
+				<selectorColor>010203FF</selectorColor>
+				<selectedColor>040506FF</selectedColor>
+				<primaryColor>070809FF</primaryColor>
+				<secondaryColor>0A0B0CFF</secondaryColor>
+				<selectorHeight>0.1</selectorHeight>
+				<selectorOffsetX>0.01</selectorOffsetX>
+				<selectorOffsetY>0.02</selectorOffsetY>
+				<textOffsetX>0.03</textOffsetX>
+				<lineSpacing>2</lineSpacing>
+				<horizontalMargin>0.05</horizontalMargin>
+				<defaultTransition>instant</defaultTransition>
+				<zIndex>60</zIndex>
+			</carousel>
+		</view>
+	</feature>
+</theme>

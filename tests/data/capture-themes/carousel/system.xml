@@ -1,0 +1,12 @@
+<!-- Fixture written for EmulationStation-RE (MIT): Recalbox format 4, own content.
+     System theme of the carousel sets of tests/smoke/capture-themes.sh (11g): gray background,
+     a yellow square above the carousel (zIndex 50 > 40), the system logo (a plain square). The
+     script removes the logo line for the system "zindex" (text instead of a logo). -->
+<theme>
+	<formatVersion>4</formatVersion>
+	<view name="system">
+		<image name="bg" extra="true" path="${root}/art/gray.png" pos="0 0" size="1 1" zIndex="1"/>
+		<image name="over" extra="true" path="${root}/art/yellow.png" pos="0.9 0.45" size="0.1 0.1" zIndex="50"/>
+		<image name="logo" path="${root}/art/@LOGO@.png"/>
+	</view>
+</theme>

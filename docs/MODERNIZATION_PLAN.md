@@ -1159,7 +1159,13 @@ est fourni : il est rempli PR par PR.
   `VirtualKeyboard` (faux par défaut) et `openTextInput` pour les deux champs de saisie ;
   élément `keyboard` lu dans la vue sous le clavier ; écran `keyboard` de `capture-themes.sh`
   avec saisie enregistrée ; tests `[11f5]`.
-- Reste : 11g à 11i.
+- **11g** (PR « carrousel système ») : blocs `<feature supported="…">` lus (`carousel`, `z-index`,
+  décision du propriétaire du 02/11/2026) ; `es::carousel` (valeurs, placement, liste texte,
+  transition, sans rendu) et vue système thémée quand le thème principal a un carrousel ou un
+  `systemInfo` : types horizontal, vertical et roue, liste texte, barre d'information, `extra`
+  placés par `zIndex`, transition du thème ; sans ces éléments, vue d'ES inchangée ; écrans
+  `carousel-*` de `capture-themes.sh` ; tests `[11g]`.
+- Reste : 11h et 11i.
 
 ---
 

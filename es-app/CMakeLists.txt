@@ -38,6 +38,7 @@ set(ES_HEADERS
     src/views/gamelist/ISimpleGameListView.h
     src/views/gamelist/GridGameListView.h
     src/views/SystemView.h
+    src/views/SystemCarousel.h
     src/views/ViewController.h
 
     # Animations
@@ -84,6 +85,7 @@ set(ES_SOURCES
     src/views/gamelist/ISimpleGameListView.cpp
     src/views/gamelist/GridGameListView.cpp
     src/views/SystemView.cpp
+    src/views/SystemCarousel.cpp
     src/views/ViewController.cpp
 )
 

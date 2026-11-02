@@ -1,0 +1,26 @@
+<theme>
+	<formatVersion>4</formatVersion>
+	<view name="system">
+		<text name="root"><text>root</text></text>
+	</view>
+	<feature supported="carousel">
+		<view name="system">
+			<carousel name="systemcarousel"><type>vertical</type></carousel>
+		</view>
+	</feature>
+	<feature supported="z-index">
+		<view name="system">
+			<text name="zindexed"><text>z</text></text>
+		</view>
+	</feature>
+	<feature supported="video">
+		<view name="system">
+			<text name="unsupported"><text>no</text></text>
+		</view>
+	</feature>
+	<feature>
+		<view name="system">
+			<text name="noattribute"><text>no</text></text>
+		</view>
+	</feature>
+</theme>

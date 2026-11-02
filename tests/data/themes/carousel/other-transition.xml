@@ -1,0 +1,7 @@
+<!-- Fixture written for EmulationStation-RE (MIT), own content (phase 11g). -->
+<theme>
+	<formatVersion>4</formatVersion>
+	<view name="system">
+		<carousel name="systemcarousel"><defaultTransition>zoom</defaultTransition></carousel>
+	</view>
+</theme>

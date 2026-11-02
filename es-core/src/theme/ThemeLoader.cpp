@@ -23,8 +23,13 @@
 namespace fs = std::filesystem;
 namespace es::theme {
 
-namespace {
+bool isSupportedFeature(std::string_view feature)
+{
+	return feature == "carousel" || feature == "z-index";
+}
 
+namespace
+{
 std::string readFile(const fs::path& path, std::error_code& ec)
 {
 	std::ifstream in(path, std::ios::binary);
@@ -390,8 +395,10 @@ bool processFile(const fs::path& file, LoadedTheme& theme, LoaderContext& ctx, D
 			diag.warn(where, "failed to load include " + incPath);
 	}
 
-	// views
-	for(pugi::xml_node viewNode = root.child("view"); viewNode; viewNode = viewNode.next_sibling("view"))
+	// views of a node: the root, then each supported <feature> (Recalbox parseViews then
+	// parseFeatures, themes/ThemeData.cpp:144-145)
+	auto parseViews = [&](const pugi::xml_node& parent) {
+	for(pugi::xml_node viewNode = parent.child("view"); viewNode; viewNode = viewNode.next_sibling("view"))
 	{
 		SourceLocation where{file, (int)li.lineAt(viewNode.offset_debug())};
 		if(!conditionHolds(viewNode, ctx, diag, where)) continue;
@@ -416,6 +423,23 @@ bool processFile(const fs::path& file, LoadedTheme& theme, LoaderContext& ctx, D
 				processViewElement(child, file, li, view, ctx, diag, false);
 			}
 		}
+	}
+	};
+	parseViews(root);
+
+	// <feature supported="...">: its views are read only for a feature this engine supports
+	// (themes/ThemeData.cpp:259-269, ThemeSupport.cpp:166-173: "carousel", "z-index")
+	for(pugi::xml_node feature = root.child("feature"); feature; feature = feature.next_sibling("feature"))
+	{
+		SourceLocation where{file, (int)li.lineAt(feature.offset_debug())};
+		if(!feature.attribute("supported"))
+		{
+			diag.warn(where, "feature missing \"supported\" attribute");
+			continue;
+		}
+		const std::string supported = ctx.variables.resolve(feature.attribute("supported").as_string(), diag, where);
+		if(isSupportedFeature(supported))
+			parseViews(feature);
 	}
 
 	includeStack.erase(file);

@@ -1,0 +1,19 @@
+<!-- Fixture written for EmulationStation-RE (MIT): Recalbox format 4, own content.
+     Main theme of a carousel set (11g): wheel on the left (384x720), logos 256x144, selected
+     x 1.5, 30 degrees per logo around a point one logo width left of the logo. -->
+<theme>
+	<formatVersion>4</formatVersion>
+	<view name="system">
+		<carousel name="systemcarousel">
+			<type>vertical_wheel</type>
+			<pos>0 0</pos>
+			<size>0.3 1</size>
+			<color>808080FF</color>
+			<logoSize>0.2 0.2</logoSize>
+			<logoScale>1.5</logoScale>
+			<logoRotation>30</logoRotation>
+			<logoRotationOrigin>-1 0.5</logoRotationOrigin>
+			<maxLogoCount>3</maxLogoCount>
+		</carousel>
+	</view>
+</theme>

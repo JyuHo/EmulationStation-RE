@@ -58,6 +58,15 @@ chaîne ; `recalboxVersion` vaut la version **majeure** (`"10"` et `"10.1"` donn
 `compatibility` et `resolutions` sont lues mais n'ont aucun effet (matériel hors périmètre,
 `PROMPT.md` 14.1).
 
+Blocs `<feature supported="…">` (enfants de `<theme>`, dans le fichier principal comme dans
+une inclusion) : leurs `<view>` ne sont lues que si le moteur gère la fonction nommée, après
+les vues hors bloc (`themes/ThemeData.cpp:144-145`, `:259-269`). Fonctions gérées :
+`carousel` et `z-index` (`ThemeSupport.cpp:166-173`) ; toute autre valeur : bloc ignoré sans
+message. Sans attribut `supported` : bloc ignoré, avertissement `fichier:ligne`. La valeur
+passe par la résolution des variables. Ici : `es::theme::isSupportedFeature`, lu par le
+chargeur depuis 11g (décision du propriétaire du 02/11/2026). Tests : `[11g]` de
+`tests/unit/test_ThemeLoader.cpp`.
+
 ## 4. Inclusions
 
 - `<include>` : chemin en texte du nœud ou dans l'attribut `path` ; résolu par rapport au
@@ -189,7 +198,7 @@ Vues lues par Recalbox (`ThemeSupport::SupportedViews`, `themes/ThemeSupport.cpp
 
 | Vue | Statut ici |
 |---|---|
-| `system` | lue (format 3) ; carrousel et nouveautés : PR 11g |
+| `system` | lue (format 3) ; carrousel, `systemInfo`, transition et `extra` placés par `zIndex` depuis 11g (ci-dessous) |
 | `basic`, `detailed` | lues (format 3) |
 | `menu` | lue dans `<jeu>/theme.xml` seul, sans système (`ThemeManager.cpp:54-74`) depuis 11f1 ; application aux menus : 11f2, 11f4, 11f5 |
 | `gameclip` | économiseur d'écran : PR 11h |
@@ -243,6 +252,68 @@ Barre de sélection, choisie par la présence d'au moins une des valeurs `menute
   éléments de la ligne sélectionnée redessinés par-dessus dans la couleur sélectionnée ; pas de
   bords. Tests : `[11f2]`, sondes `menu-icons` et `menu-switch` de `capture-themes.sh`.
 
+### Vue système (11g)
+
+Modèle : `views/SystemView.cpp` de Recalbox @10.1.1, lu comme référence. Code :
+`es-app/src/views/SystemCarousel.{h,cpp}` (valeurs et placement, sans rendu) et `SystemView`.
+
+- Le carrousel et la barre d'information sont lus dans le **thème principal**
+  (`<jeu>/theme.xml`, comme la vue menu) : élément `carousel` nommé « systemcarousel » et
+  élément `text` nommé « systemInfo » de la vue `system` (`SystemView.cpp:616-633`). Les `extra`
+  restent ceux du thème de chaque système.
+- Mode thémé : le thème principal a l'un de ces deux éléments (`es::carousel::isThemed`).
+  Sinon la vue système d'ES est inchangée (R5 : captures format 3 à 0 pixel).
+- Valeurs sans propriété (`getDefaultElements`, `SystemView.cpp:982-1015`) : type horizontal,
+  taille `1 × 0,2325`, position `0, (1 − 0,2325) / 2`, origine `0 0`, couleur `FFFFFFD8`,
+  `logoScale` 1,2, `logoRotation` 7,5, `logoRotationOrigin` `-5 0.5`, `logoSize`
+  `0,25 × max(l, h)` et `0,155 × min(l, h)`, alignement centré, `maxLogoCount` 3, `fontColor`
+  `E6E6E6FF`, `zIndex` 40 ; liste texte : sélecteur `FFFFFF33`, sélectionné `FFFFFFFF`,
+  primaire `E6E6E6FF`, secondaire `C6C6C6FF`, `lineSpacing` 1,5.
+- Valeurs lues (`getCarouselFromTheme`, `SystemView.cpp:1029-1071`) : `type` (« vertical »,
+  « vertical_wheel », toute autre valeur horizontal), `size`, `pos`, `logoSize` en fractions de
+  l'écran ; `selectorHeight`, `selectorOffsetY` et `textOffsetX`, `selectorOffsetX`,
+  `horizontalMargin` en fractions de la hauteur et de la largeur ; `maxLogoCount` arrondi ;
+  `logoAlignment` avec les noms de `themes/ThemeElement.cpp:68-90` (inconnu : centre gauche).
+- Placement (`renderCarousel`, `SystemView.cpp:636-787`) : un emplacement de `logoSize` par
+  système ; pas `(étendue − logo × n) / n + logo` dans le sens du défilement (`n` =
+  `maxLogoCount`), logo sélectionné au centre ; en travers, alignement début `logo / 10`, fin
+  `étendue − 1,1 × logo`, sinon centré. Roue : tous les logos au même emplacement, tournés de
+  `logoRotation × distance` autour de `logoRotationOrigin`. Échelle : `logoScale` au centre,
+  1 à partir d'un emplacement ; opacité `FF` au centre, `80` à partir d'un emplacement.
+  Systèmes dessinés : `maxLogoCount` (au plus le nombre de systèmes) autour du centre, plus
+  un de chaque côté, en boucle. Fond : rectangle `color` sur la zone du carrousel, logos
+  découpés à cette zone.
+- Logo : `logo` du thème du système ; un logo nommé « default » reçoit le nom du système par
+  dessus (police moyenne, `fontColor ^ 80808000`, `SystemView.cpp:59-165`) ; sans logo : nom
+  complet du système, grande police du carrousel (`fontPath`, `fontSize` ; fichier introuvable :
+  police par défaut), noir.
+- `textOnly` : liste de noms (`renderTextList`, `SystemView.cpp:789-885`) : lignes de hauteur
+  `police × lineSpacing`, teinte `FFFFFF08` (impaires) ou `00000008` (paires), sélecteur
+  `selectorColor`, couleurs `selectedColor`, `secondaryColor` (impaires), `primaryColor`
+  (paires), `forceUppercase`.
+- `systemInfo` (`SystemView.cpp:1017-1026`) : petite police, hauteur `2,2 ×` celle de la police,
+  sous le carrousel, centré, noir, `zIndex` 50, fond `DDDDDDD8` ; puis les propriétés `text`
+  du thème.
+- Ordre de dessin (`Render`, `SystemView.cpp:527-545`) : `extra` de `zIndex` inférieur au plus
+  petit des deux, puis le premier des deux, les `extra` entre eux, le second, et les `extra`
+  au-dessus.
+- Commandes : haut et bas pour les types vertical et roue (`ProcessInput`,
+  `SystemView.cpp:260-286`), gauche et droite sinon ; l'aide affiche la même direction.
+- Transition (`ThemeData::getThemeTransition`, `themes/ThemeData.cpp:668-679`) : la valeur
+  `defaultTransition` du carrousel (« fade », « instant », toute autre valeur « slide »)
+  remplace le réglage de l'utilisateur, entre systèmes et vers les listes. « instant » : les
+  `extra` et la caméra sautent, les logos glissent (`onCursorChanged`,
+  `SystemView.cpp:423-525`).
+- Tests : `[11g]` de `tests/unit/test_SystemCarousel.cpp` (fixtures
+  `tests/data/themes/carousel/`) ; écrans `carousel-horizontal`, `carousel-vertical`,
+  `carousel-wheel`, `carousel-text` de `capture-themes.sh`.
+
+Limites (hors de 11g) : `origin` et `backgroundColor` de `systemInfo` sont des lignes 11h ;
+pas de défilement de texte ni de barre de défilement dans la liste texte ; pas de logos ni de
+genres intégrés ; la variable `system.logo` (logo intégré, `ThemeManager.cpp:356`) n'est pas
+prise en charge (section 5) : un thème qui l'écrit, comme `recalbox-next`, n'a pas de logo et
+la vue affiche le nom du système.
+
 ### Propriétés communes et ordre de dessin (11d)
 
 Recalbox applique ces propriétés dans `components/base/Themable.cpp:66-77` (sources de
@@ -271,8 +342,9 @@ l'interface, même version que `themes/`) ; ce projet fait de même dans
 Ces valeurs suivent l'ordre où ce projet dessinait déjà ces éléments : un thème format 3, sans
 `zIndex`, garde exactement son rendu (R5). Les éléments `extra` d'une vue de liste sont
 désormais des enfants de la vue (`ThemeExtras`, paramètre `host`) pour se placer entre les
-autres éléments. Vue `system` : le carrousel et la barre d'information ne sont pas encore
-thémables, les `extra` restent dessinés derrière eux (PR 11g).
+autres éléments. Vue `system` : sans carrousel ni `systemInfo` dans le thème principal, les
+`extra` restent dessinés derrière le carrousel d'ES ; sinon ils se placent par rapport au
+carrousel et à la barre d'information (section « Vue système (11g) »).
 
 ## 11. Éléments et propriétés
 
@@ -299,7 +371,7 @@ une propriété écrit la valeur du composant dans sa description.
   composant qui lit l'élément ; détails et valeurs par défaut en section 10 (« Propriétés
   communes »).
 - `11f` : éléments des menus thémés et clavier.
-- `11g` : carrousel système.
+- `pris en charge (11g)` : carrousel système (section 10, « Vue système (11g) »).
 - `11h` : le reste.
 
 Toutes ces propriétés sont **acceptées** par le schéma dès maintenant (pas d'avertissement),
@@ -605,34 +677,34 @@ ces tableaux et échoue si le schéma (`es-core/src/theme/ThemeSchema.cpp`) en d
 
 | Propriété | Type | Source | Statut ici |
 |---|---|---|---|
-| `type` | String | `ThemeSupport.cpp:476`, nom `:774`, type `:138` | 11g |
-| `size` | NormalizedPair | `ThemeSupport.cpp:477`, nom `:769`, type `:133` | 11g |
-| `pos` | NormalizedPair | `ThemeSupport.cpp:478`, nom `:754`, type `:118` | 11g |
-| `origin` | NormalizedPair | `ThemeSupport.cpp:479`, nom `:750`, type `:114` | 11g |
-| `color` | Color | `ThemeSupport.cpp:480`, nom `:659`, type `:23` | 11g |
-| `fontPath` | Path | `ThemeSupport.cpp:481`, nom `:674`, type `:38` | 11g |
-| `fontSize` | Float | `ThemeSupport.cpp:482`, nom `:675`, type `:39` | 11g |
-| `fontColor` | Color | `ThemeSupport.cpp:483`, nom `:677`, type `:41` | 11g |
-| `logoScale` | Float | `ThemeSupport.cpp:484`, nom `:743`, type `:107` | 11g |
-| `logoRotation` | Float | `ThemeSupport.cpp:485`, nom `:741`, type `:105` | 11g |
-| `logoRotationOrigin` | NormalizedPair | `ThemeSupport.cpp:486`, nom `:742`, type `:106` | 11g |
-| `logoSize` | NormalizedPair | `ThemeSupport.cpp:487`, nom `:744`, type `:108` | 11g |
-| `textOnly` | Boolean | `ThemeSupport.cpp:488`, nom `:745`, type `:109` | 11g |
-| `forceUppercase` | Boolean | `ThemeSupport.cpp:489`, nom `:678`, type `:42` | 11g |
-| `logoAlignment` | String | `ThemeSupport.cpp:490`, nom `:740`, type `:104` | 11g |
-| `maxLogoCount` | Float | `ThemeSupport.cpp:491`, nom `:747`, type `:111` | 11g |
-| `selectorColor` | Color | `ThemeSupport.cpp:492`, nom `:762`, type `:126` | 11g |
-| `selectedColor` | Color | `ThemeSupport.cpp:493`, nom `:761`, type `:125` | 11g |
-| `primaryColor` | Color | `ThemeSupport.cpp:494`, nom `:755`, type `:119` | 11g |
-| `secondaryColor` | Color | `ThemeSupport.cpp:495`, nom `:760`, type `:124` | 11g |
-| `selectorHeight` | Float | `ThemeSupport.cpp:496`, nom `:763`, type `:127` | 11g |
-| `selectorOffsetX` | Float | `ThemeSupport.cpp:497`, nom `:766`, type `:130` | 11g |
-| `selectorOffsetY` | Float | `ThemeSupport.cpp:498`, nom `:767`, type `:131` | 11g |
-| `textOffsetX` | Float | `ThemeSupport.cpp:499`, nom `:772`, type `:136` | 11g |
-| `lineSpacing` | Float | `ThemeSupport.cpp:500`, nom `:738`, type `:102` | 11g |
-| `horizontalMargin` | Float | `ThemeSupport.cpp:501`, nom `:680`, type `:44` | 11g |
-| `defaultTransition` | String | `ThemeSupport.cpp:502`, nom `:668`, type `:32` | 11g |
-| `zIndex` | Float | `ThemeSupport.cpp:503`, nom `:776`, type `:141` | 11g |
+| `type` | String | `ThemeSupport.cpp:476`, nom `:774`, type `:138` | pris en charge (11g) |
+| `size` | NormalizedPair | `ThemeSupport.cpp:477`, nom `:769`, type `:133` | pris en charge (11g) |
+| `pos` | NormalizedPair | `ThemeSupport.cpp:478`, nom `:754`, type `:118` | pris en charge (11g) |
+| `origin` | NormalizedPair | `ThemeSupport.cpp:479`, nom `:750`, type `:114` | pris en charge (11g) |
+| `color` | Color | `ThemeSupport.cpp:480`, nom `:659`, type `:23` | pris en charge (11g) |
+| `fontPath` | Path | `ThemeSupport.cpp:481`, nom `:674`, type `:38` | pris en charge (11g) |
+| `fontSize` | Float | `ThemeSupport.cpp:482`, nom `:675`, type `:39` | pris en charge (11g) |
+| `fontColor` | Color | `ThemeSupport.cpp:483`, nom `:677`, type `:41` | pris en charge (11g) |
+| `logoScale` | Float | `ThemeSupport.cpp:484`, nom `:743`, type `:107` | pris en charge (11g) |
+| `logoRotation` | Float | `ThemeSupport.cpp:485`, nom `:741`, type `:105` | pris en charge (11g) |
+| `logoRotationOrigin` | NormalizedPair | `ThemeSupport.cpp:486`, nom `:742`, type `:106` | pris en charge (11g) |
+| `logoSize` | NormalizedPair | `ThemeSupport.cpp:487`, nom `:744`, type `:108` | pris en charge (11g) |
+| `textOnly` | Boolean | `ThemeSupport.cpp:488`, nom `:745`, type `:109` | pris en charge (11g) |
+| `forceUppercase` | Boolean | `ThemeSupport.cpp:489`, nom `:678`, type `:42` | pris en charge (11g) |
+| `logoAlignment` | String | `ThemeSupport.cpp:490`, nom `:740`, type `:104` | pris en charge (11g) |
+| `maxLogoCount` | Float | `ThemeSupport.cpp:491`, nom `:747`, type `:111` | pris en charge (11g) |
+| `selectorColor` | Color | `ThemeSupport.cpp:492`, nom `:762`, type `:126` | pris en charge (11g) |
+| `selectedColor` | Color | `ThemeSupport.cpp:493`, nom `:761`, type `:125` | pris en charge (11g) |
+| `primaryColor` | Color | `ThemeSupport.cpp:494`, nom `:755`, type `:119` | pris en charge (11g) |
+| `secondaryColor` | Color | `ThemeSupport.cpp:495`, nom `:760`, type `:124` | pris en charge (11g) |
+| `selectorHeight` | Float | `ThemeSupport.cpp:496`, nom `:763`, type `:127` | pris en charge (11g) |
+| `selectorOffsetX` | Float | `ThemeSupport.cpp:497`, nom `:766`, type `:130` | pris en charge (11g) |
+| `selectorOffsetY` | Float | `ThemeSupport.cpp:498`, nom `:767`, type `:131` | pris en charge (11g) |
+| `textOffsetX` | Float | `ThemeSupport.cpp:499`, nom `:772`, type `:136` | pris en charge (11g) |
+| `lineSpacing` | Float | `ThemeSupport.cpp:500`, nom `:738`, type `:102` | pris en charge (11g) |
+| `horizontalMargin` | Float | `ThemeSupport.cpp:501`, nom `:680`, type `:44` | pris en charge (11g) |
+| `defaultTransition` | String | `ThemeSupport.cpp:502`, nom `:668`, type `:32` | pris en charge (11g) |
+| `zIndex` | Float | `ThemeSupport.cpp:503`, nom `:776`, type `:141` | pris en charge (11g) |
 
 #### `menuBackground`
 
@@ -864,6 +936,10 @@ EFFACER, OK, ANNULER), sans rien des trois claviers de Recalbox.
   référence (par exemple une police `:/…ttf`). Ce projet n'a pas ces fichiers : une valeur
   `:/…` est un fichier introuvable, avertissement et propriété ignorée (la valeur par défaut
   du composant reste).
+- Vue système, roue (`vertical_wheel`) : l'aide affiche haut et bas, les touches utilisées ;
+  Recalbox affiche gauche et droite (`SystemView.cpp:553`, seul le type `vertical` y donne
+  haut et bas). `systemInfo` garde la petite police à toute résolution (Recalbox prend la
+  moyenne en 480p et moins, `:1022`).
 
 ## 15. Non vérifié ou à trancher
 

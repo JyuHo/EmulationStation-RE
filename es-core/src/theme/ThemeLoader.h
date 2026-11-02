@@ -14,6 +14,7 @@
 #include <map>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace es::theme {
@@ -98,6 +99,10 @@ struct LoadedTheme
 // condition syntax...) is a Warning and the faulty node is skipped.
 [[nodiscard]] std::optional<LoadedTheme> loadTheme(
 	const std::filesystem::path& file, const LoaderContext& context, Diagnostics& diagnostics);
+
+// Features of <feature supported="..."> whose views are read: "carousel" and "z-index"
+// (Recalbox ThemeSupport::SupportedFeatures, themes/ThemeSupport.cpp:166-173 @10.1.1).
+[[nodiscard]] bool isSupportedFeature(std::string_view feature);
 
 // Reads only the root attributes and the subsets of a theme (following its includes, but
 // keeping no view): used by the theme list and the "Theme options" menu. Same failure rules as loadTheme().

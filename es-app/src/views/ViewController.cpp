@@ -1,4 +1,5 @@
 #include "views/ViewController.h"
+#include "views/SystemCarousel.h"
 #include "utils/I18n.h"
 #include <cassert>
 #include "Log.h"
@@ -135,7 +136,16 @@ void ViewController::playViewTransition()
 	if(target == -getTranslation(mCamera) && !isAnimationPlaying(0))
 		return;
 
-	if(Settings::getInstance()->getString("TransitionStyle") == "fade")
+	// the main theme's defaultTransition, else the setting (docs/THEMES.md, carousel, PR 11g)
+	const std::string transition = es::carousel::transitionStyle(
+		mWindow->getMainTheme().get(), Settings::getInstance()->getString("TransitionStyle"));
+	if(transition == "instant")
+	{
+		cancelAnimation(0);
+		setTranslation(mCamera, -target);
+		updateHelpPrompts();
+	}
+	else if(transition == "fade")
 	{
 		// fade
 		// stop whatever's currently playing, leaving mFadeOpacity wherever it is
