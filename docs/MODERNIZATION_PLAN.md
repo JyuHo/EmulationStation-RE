@@ -18,11 +18,11 @@
 | 4 | Remplacement d'Eigen par une petite bibliothèque mathématique (glm) | 2 | M (**fait** : PR #30 à #32) |
 | 5 | Migration SDL2 → SDL3 (fenêtre, événements, manettes, audio) | 3, 4 | L (**fait** : PR #33, #34, #37) |
 | 6 | Nouveau moteur de rendu OpenGL 3.3 core à shaders | 5 | L (**terminée**) |
-| 7 | Images : WebP/GIF animés, chargement asynchrone, cache VRAM | 6 | M |
-| 8 | Audio : sons de navigation et musique de fond sur SDL3 | 5 | M |
-| 9 | Vidéo : lecture des « snaps » avec FFmpeg | 6, 8 | L |
-| 10 | Internationalisation : gettext .pot/.po/.mo | 3 | M |
-| 11 | Thèmes sur le modèle de Recalbox 10 | 6, 7, 9, 10 | XL |
+| 7 | Images : WebP/GIF animés, chargement asynchrone, cache VRAM | 6 | M (**fait** : PR #41, #47 à #49) |
+| 8 | Audio : sons de navigation et musique de fond sur SDL3 | 5 | M (**fait** : PR #51, #52, #59, #66, #71) |
+| 9 | Vidéo : lecture des « snaps » avec FFmpeg | 6, 8 | L (**fait** : PR #54, #55) |
+| 10 | Internationalisation : gettext .pot/.po/.mo | 3 | M (**fait** : PR #57 à #68) |
+| 11 | Thèmes sur le modèle de Recalbox 10 | 6, 7, 9, 10 | XL (en cours : 11a à 11f5) |
 | 12 | Paquet Arch (PKGBUILD), installation, session kiosque | 1 à 11 | S |
 
 Cible unique : **Linux x86_64, Arch Linux / CachyOS**, GCC 14+ ou Clang 18+, Mesa

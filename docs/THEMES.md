@@ -191,7 +191,7 @@ Vues lues par Recalbox (`ThemeSupport::SupportedViews`, `themes/ThemeSupport.cpp
 |---|---|
 | `system` | lue (format 3) ; carrousel et nouveautés : PR 11g |
 | `basic`, `detailed` | lues (format 3) |
-| `menu` | lue dans `<jeu>/theme.xml` seul, sans système (`ThemeManager.cpp:54-74`) depuis 11f1 ; application aux menus : 11f2 (partielle), 11f4, 11f5 |
+| `menu` | lue dans `<jeu>/theme.xml` seul, sans système (`ThemeManager.cpp:54-74`) depuis 11f1 ; application aux menus : 11f2, 11f4, 11f5 |
 | `gameclip` | économiseur d'écran : PR 11h |
 | `gamelistlogo` | non prise en charge. **Contradiction** chez Recalbox : testée par `ThemeData::HasLogoView` (`themes/ThemeData.h:93`) mais absente de `SupportedViews` ; à trancher par le propriétaire (R13) |
 | `challenge` | non prise en charge (pas de système de défis) : avertissement, vue ignorée |
