@@ -56,11 +56,11 @@ Raspberry Pi, Windows, macOS et OpenGL ES ne sont plus pris en charge.
 | 4 | Eigen → glm | fait (PR #30 à #32) |
 | 5 | SDL2 → SDL3, manettes reconnues par `SDL_Gamepad` | fait (PR #33, #34, #37) |
 | 6 | Rendu OpenGL 3.3 core | **terminée** : moteur à shaders et regroupement (PR #40, #42, #44, #45) ; ≈ 3 500 i/s sur APU AMD |
-| 7 | Images animées, chargement asynchrone, cache | à faire |
-| 8 | Audio (sons, musique de fond) | à faire |
-| 9 | Vidéo avec FFmpeg | à faire |
+| 7 | Images animées, chargement asynchrone, cache | fait (PR #41, #47 à #49) |
+| 8 | Audio (sons, musique de fond) | fait (PR #51, #52, #59, #66, #71) |
+| 9 | Vidéo avec FFmpeg | fait (PR #54, #55) |
 | 10 | Traductions gettext | fait (PR #57 à #68) : français, anglais, allemand, espagnol, italien |
-| 11 | Thèmes Recalbox 10 | à faire |
+| 11 | Thèmes Recalbox 10 | en cours : 11a à 11f5 fusionnées (PR #70 à #97) ; reste 11g, 11h, 11i |
 | 12 | Paquet Arch, installation, session kiosque | à faire |
 
 Détails : [plan de modernisation](docs/MODERNIZATION_PLAN.md) et
