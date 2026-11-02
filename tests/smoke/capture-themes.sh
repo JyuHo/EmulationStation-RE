@@ -174,6 +174,58 @@ if [ "$status" -ne 0 ] || grep -q ' \[ERROR\] ' "$log" 2>/dev/null; then
 	exit 1
 fi
 
+# themed system carousel (11g): one theme set per type, main theme from tests/data/capture-themes/
+# carousel/<type>.xml, every system with the same theme (system.xml: logo green for zswap, blue
+# for options, red for the others, none for zindex). One run per set, a screen of the system
+# view at start (zindex selected).
+carousel="$here/../data/capture-themes/carousel"
+n=11
+for type in horizontal vertical wheel text; do
+	set_dir="$home/data/emulationstation/themes/carousel-$type"
+	mkdir -p "$set_dir"
+	cp -r "$fixture/themes/probes/art" "$set_dir/"
+	cp "$carousel/$type.xml" "$set_dir/theme.xml"
+	for system in "${systems[@]}"; do
+		mkdir -p "$set_dir/$system"
+		case "$system" in
+			zswap) logo=green ;;
+			options) logo=blue ;;
+			*) logo=red ;;
+		esac
+		if [ "$system" = zindex ]; then
+			grep -v '@LOGO@' "$carousel/system.xml" > "$set_dir/$system/theme.xml"
+		else
+			sed "s/@LOGO@/$logo/" "$carousel/system.xml" > "$set_dir/$system/theme.xml"
+		fi
+	done
+	report="$("$binary" --check-theme "$set_dir" zswap 2>&1 || true)"
+	if ! grep -q '^0 error(s), 0 warning(s)$' <<<"$report"; then
+		echo "$report"
+		echo "FAIL: --check-theme carousel-$type"
+		exit 1
+	fi
+	printf '<?xml version="1.0"?>\n<string name="ThemeSet" value="carousel-%s" />\n' "$type" \
+		> "$home/config/emulationstation/es_settings.cfg"
+	screen="$outdir/$(printf %02d "$n")-carousel-$type.png"
+	HOME="$fakehome" ES_HOME="$home" xvfb-run -a -s '-screen 0 1280x720x24' bash -c '
+		"$0" --windowed --resolution 1280 720 --debug 2>>"$ES_HOME/stderr.txt" &
+		pid=$!
+		sleep 8
+		import -window root "$1"
+		if ! kill -0 "$pid" 2>/dev/null; then wait "$pid"; echo "emulationstation exited early with code $?"; exit 1; fi
+		kill "$pid"
+		code=0; wait "$pid" || code=$?
+		if [ "$code" -ne 0 ]; then echo "emulationstation exited with code $code after SIGTERM"; exit 1; fi
+	' "$binary" "$screen" || status=$?
+	if [ "$status" -ne 0 ] || grep -q ' \[ERROR\] ' "$log" 2>/dev/null; then
+		echo "----- es_log.txt -----"
+		cat "$log" 2>/dev/null || echo "(no log written)"
+		echo "FAIL: carousel run $type did not complete cleanly"
+		exit 1
+	fi
+	n=$((n + 1))
+done
+
 # Probes: <screen> <x> <y> <RRGGBB>. The rectangles are plain images, probed away from their
 # edges (linear filtering), hence a small tolerance.
 failed=0
@@ -223,6 +275,39 @@ probe 09-menu-switch 937 324 00FFFF
 # on-screen keyboard (11f5): keyColor 808080 on the key "2", keySelectedColor FF00FF on "1"
 probe 10-keyboard 344 325 808080
 probe 10-keyboard 240 325 FF00FF
+# themed carousel (11g), logos are plain squares, unselected ones at opacity 0x80 over the
+# carousel color 808080: green -> 40C040, blue -> 4040C0
+# horizontal: band y 252-468; zindex selected, no logo: its name in black in the middle slot;
+# right neighbor zswap (green) 426.7 px further, 1/1.5 of the full size: 144 px square around
+# (1066,360), so 80 px below its center is the band; left neighbor options (blue) wraps around;
+# the yellow extra (zIndex 50) is drawn above the band (40); systemInfo text magenta on Recalbox's
+# bar DDDDDDD8 at y 612 (pos 0 0.85)
+probe 11-carousel-horizontal 1066 360 40C040
+probe 11-carousel-horizontal 1066 440 808080
+probe 11-carousel-horizontal 213 360 4040C0
+probe 11-carousel-horizontal 640 240 404040
+probe 11-carousel-horizontal 1200 360 FFFF00
+probe_area 11-carousel-horizontal 512 288 256 144 000000
+probe 11-carousel-horizontal 20 650 C5C5C5
+probe_area 11-carousel-horizontal 400 612 480 72 FF00FF
+# vertical (384 px wide on the left), logos aligned left: next logo 240 px lower, previous one
+# 240 px higher; right of the logos, the band
+probe 12-carousel-vertical 97 600 40C040
+probe 12-carousel-vertical 97 120 4040C0
+probe 12-carousel-vertical 300 360 808080
+probe 12-carousel-vertical 500 100 404040
+# wheel: every logo on the middle slot (center 192,360), turned 30 degrees per step around a
+# point 216 px to its left: next logo centered at (163,468), previous at (163,252)
+probe 13-carousel-wheel 163 468 40C040
+probe 13-carousel-wheel 163 252 4040C0
+# text list: selector blue on row 0 with the selected name yellow; row 1 tint FFFFFF08 and name
+# green (odd), row 2 tint 00000008 and name red (even)
+probe 14-carousel-text 10 10 0000FF
+probe_area 14-carousel-text 0 0 512 100 FFFF00
+probe 14-carousel-text 500 180 848484
+probe_area 14-carousel-text 0 120 512 90 00FF00
+probe 14-carousel-text 500 290 7C7C7C
+probe_area 14-carousel-text 0 230 512 90 FF0000
 
 ls "$outdir"/*.png
 if [ "$failed" -ne 0 ]; then

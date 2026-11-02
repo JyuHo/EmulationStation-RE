@@ -1,0 +1,24 @@
+<!-- Fixture written for EmulationStation-RE (MIT): Recalbox format 4, own content.
+     Main theme of a carousel set (11g): system names as a list on the left (512x720), rows of
+     2 x the font height (fontSize 0.05), selector blue, selected yellow, odd rows green, even
+     rows red, names left-aligned. -->
+<theme>
+	<formatVersion>4</formatVersion>
+	<view name="system">
+		<carousel name="systemcarousel">
+			<type>vertical</type>
+			<pos>0 0</pos>
+			<size>0.4 1</size>
+			<color>808080FF</color>
+			<textOnly>true</textOnly>
+			<fontSize>0.05</fontSize>
+			<lineSpacing>2</lineSpacing>
+			<logoAlignment>left</logoAlignment>
+			<horizontalMargin>0.02</horizontalMargin>
+			<selectorColor>0000FFFF</selectorColor>
+			<selectedColor>FFFF00FF</selectedColor>
+			<primaryColor>FF0000FF</primaryColor>
+			<secondaryColor>00FF00FF</secondaryColor>
+		</carousel>
+	</view>
+</theme>
