@@ -301,13 +301,15 @@ probe 12-carousel-vertical 500 100 404040
 probe 13-carousel-wheel 163 468 40C040
 probe 13-carousel-wheel 163 252 4040C0
 # text list: selector blue on row 0 with the selected name yellow; row 1 tint FFFFFF08 and name
-# green (odd), row 2 tint 00000008 and name red (even)
+# green (odd), row 2 tint 00000008 and name red (even). Rows are 2 x the glyph height of the
+# 36 px font: 74 px here, a few pixels less with Arch's FreeType; points and bands sit in the
+# middle of rows 1 (74-148) and 2 (148-222).
 probe 14-carousel-text 10 10 0000FF
-probe_area 14-carousel-text 0 0 512 100 FFFF00
-probe 14-carousel-text 500 180 848484
-probe_area 14-carousel-text 0 120 512 90 00FF00
-probe 14-carousel-text 500 290 7C7C7C
-probe_area 14-carousel-text 0 230 512 90 FF0000
+probe_area 14-carousel-text 0 0 512 60 FFFF00
+probe 14-carousel-text 500 111 848484
+probe_area 14-carousel-text 0 80 512 56 00FF00
+probe 14-carousel-text 500 185 7C7C7C
+probe_area 14-carousel-text 0 154 512 50 FF0000
 
 ls "$outdir"/*.png
 if [ "$failed" -ne 0 ]; then
