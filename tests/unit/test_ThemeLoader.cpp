@@ -348,3 +348,24 @@ TEST_CASE("Loader: an option in variants includes only the one whose condition h
 	REQUIRE(top.has_value());
 	CHECK(value(*top, "detailed", "md_description", "color") == "FF0000FF");
 }
+
+TEST_CASE("Loader: views of supported <feature> blocks", "[phase11][11g][ThemeLoader]")
+{
+	CHECK(isSupportedFeature("carousel"));
+	CHECK(isSupportedFeature("z-index"));
+	CHECK_FALSE(isSupportedFeature("video"));
+	CHECK_FALSE(isSupportedFeature(""));
+
+	Diagnostics d;
+	const auto theme = loadTheme(kDir / "features.xml", context(), d);
+	REQUIRE(theme.has_value());
+	CHECK(find(*theme, "system", "root") != nullptr);
+	CHECK(value(*theme, "system", "systemcarousel", "type") == "vertical");
+	CHECK(find(*theme, "system", "zindexed") != nullptr);
+	CHECK(find(*theme, "system", "unsupported") == nullptr);
+	// no "supported" attribute: skipped, warning at its line
+	CHECK(find(*theme, "system", "noattribute") == nullptr);
+	const bool warned = std::ranges::any_of(
+		d.all(), [](const Diagnostic& x) { return x.where == SourceLocation{kDir / "features.xml", 21}; });
+	CHECK(warned);
+}

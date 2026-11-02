@@ -58,6 +58,15 @@ chaîne ; `recalboxVersion` vaut la version **majeure** (`"10"` et `"10.1"` donn
 `compatibility` et `resolutions` sont lues mais n'ont aucun effet (matériel hors périmètre,
 `PROMPT.md` 14.1).
 
+Blocs `<feature supported="…">` (enfants de `<theme>`, dans le fichier principal comme dans
+une inclusion) : leurs `<view>` ne sont lues que si le moteur gère la fonction nommée, après
+les vues hors bloc (`themes/ThemeData.cpp:144-145`, `:259-269`). Fonctions gérées :
+`carousel` et `z-index` (`ThemeSupport.cpp:166-173`) ; toute autre valeur : bloc ignoré sans
+message. Sans attribut `supported` : bloc ignoré, avertissement `fichier:ligne`. La valeur
+passe par la résolution des variables. Ici : `es::theme::isSupportedFeature`, lu par le
+chargeur depuis 11g (décision du propriétaire du 02/11/2026). Tests : `[11g]` de
+`tests/unit/test_ThemeLoader.cpp`.
+
 ## 4. Inclusions
 
 - `<include>` : chemin en texte du nœud ou dans l'attribut `path` ; résolu par rapport au
