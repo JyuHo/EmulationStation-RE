@@ -12,8 +12,8 @@
 
 > Section à lire en premier. Elle décrit l'état réel du dépôt et dit exactement où
 > reprendre. **Mets-la à jour à la fin de chaque phase** (c'est la mémoire du projet entre
-> deux agents). Dernière mise à jour : 31/10/2026, audit et clôture de la phase 6 (#42,
-> #44, #45 après #40) ; mesure de performance faite par le propriétaire (#46). Audit précédent : [`docs/AUDIT.md`](docs/AUDIT.md).
+> deux agents). Dernière mise à jour : 02/11/2026, état des phases 7 à 11 (11f5 fusionnée, #97) ;
+> clôture de la phase 6 le 31/10/2026 (#42, #44, #45 après #40, mesure #46). Audit précédent : [`docs/AUDIT.md`](docs/AUDIT.md).
 
 ### 0.1 État au moment de la passation
 | Phase | État | PR |
@@ -23,7 +23,7 @@
 | 3.A — Module XDG `es::paths` | **terminée** : tous les chemins, migration, `--home`, tests, étape CI | #3, #25 |
 | 3.B — `std::filesystem` | **fusionnée** | #4 |
 | 3.C — `std::chrono`, Assign, Variant, Locale ; Boost supprimé | **fusionnée** (locale numérique corrigée en 3.E) | #5 |
-| 3.D — Propriété mémoire (`unique_ptr`) | **terminée** pour cette phase (reste : arbre `FileData`/`SystemData`, `delete this` des GUI) | #6–#23, #26, #27 |
+| 3.D — Propriété mémoire (`unique_ptr`) | **terminée** pour cette phase (reste : arbre `FileData`/`SystemData` ; `delete this` des GUI remplacés en 11f3, #92) | #6–#23, #26, #27 |
 | 3.E — Finitions de la phase 3 (issues de l'audit) | **terminée** : XDG (#25), job `asan` (#26), locale numérique et restes Windows (#28) | #25, #26, #28 |
 | 4 — Eigen → glm | **terminée** : glm, `math/Math.h`, captures identiques au pixel près, Eigen retiré ; correctif des chemins `./` des thèmes | #30, #31, #32 |
 | 5 — SDL2 → SDL3 | **terminée** : SDL3 partout, manettes reconnues par `SDL_Gamepad` avec configuration par défaut, captures identiques au pixel près ; testée par le propriétaire avec une vraie manette | #33, #34, #35 (#37) |
@@ -31,7 +31,9 @@
 | 7 — Images | **terminée après correction** : façade `ImageIO::load` (PNG/JPEG/WebP fixe et animé/GIF animé), textures animées dans tout `ImageComponent`, décodage asynchrone des images de jeux (`TextureLoader`), cache LRU `MaxVRAM` ; #47–#49 étaient incomplètes (voir le plan, « Écarts constatés ») | #41, #47, #48, #49, correction |
 | 8 — Audio | **fusionnée** : décodage FFmpeg, `SDL_AudioStream` par source, musique de fond ; réglages de volume corrigés (curseurs à la manette, volume du système enregistré, choix de la carte son) | #51, #52, #59, #71 |
 | 9 — Vidéo | **fusionnée** : `VideoPlayer`/`VideoComponent` FFmpeg, piste audio, pause | #54, #55 |
-| 10 à 12 | à faire | — |
+| 10 — Traductions gettext | **fusionnée** : .pot/.po/.mo, français, anglais, allemand, espagnol, italien | #57–#68 |
+| 11 — Thèmes Recalbox 10 | **en cours** : 11a à 11f5 fusionnées (spécification, chargeur, schéma, propriétés communes, options du thème, menus thémés, icônes et sections, clavier virtuel) ; reste 11g (carrousel), 11h (vues restantes), 11i (clôture) | #70–#97 |
+| 12 — Paquet Arch | à faire | — |
 
 Toutes les PR ont été fusionnées par **merge commit** : le commit de reformatage
 `4b943d7` est dans l'historique et `.git-blame-ignore-revs` est valide.
@@ -103,7 +105,12 @@ Ce qui existe et que tu dois **réutiliser** (ne le recrée pas) :
   dans le conteneur pour `test_Locale`. Boost et Eigen ne sont plus installés. Job
   « Screenshots vs base branch » (PR seulement) : captures de la base et de la PR comparées.
 
-### 0.2 Point de reprise : phase 10 (Internationalisation)
+### 0.2 Point de reprise : phase 11, PR 11g (carrousel système)
+**État du 02/11/2026.** Phase 11 en cours : 11a à 11f5 fusionnées (#70 à #97). Reprends avec
+le prompt [`docs/phase11/11g.md`](docs/phase11/11g.md), puis 11h et 11i, dans l'ordre de
+[`docs/phase11/README.md`](docs/phase11/README.md) ; le cahier des charges est en section 14.
+Ce qui suit est l'historique des audits précédents.
+
 **Audit du 31/10/2026.** La PR #40 (un seul commit, sans le découpage 6a–6d) est passée en
 3.3 core mais avec les couleurs des sommets dans le mauvais ordre d'octets et les
 séparateurs de `ComponentGrid` en blanc : les 8 captures différaient de la phase 5 (2 000 à
