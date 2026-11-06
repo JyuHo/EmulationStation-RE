@@ -1,55 +1,12 @@
-# Compiled Object files
-*.slo
-*.lo
-*.o
-# batocera
-*.mo
+# Build folders (the build never writes into the source tree)
+/build*/
+/cmake-build-*/
 
-# Compiled Dynamic libraries
-*.so
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-
-# Dependency makefiles
-*.d
-
-# Compiled executable
-emulationstation
-
-# build directory
-build
-Debug
-Release
-MinSizeRel
-RelWithDebInfo
-bin
-win32-libs
-
-# CMake
-CMakeCache.txt
-CMakeFiles
-cmake_install.cmake
-Makefile
-
-# Eclipse
-.cproject
-.project
-.settings/
-
-# VSCode
+# Editors
 .vscode/
-
-# Clion
 .idea/
-CPackConfig.cmake
-CPackSourceConfig.cmake
+.cache/
+compile_commands.json
 
-# batocera
-# po backup
+# gettext backups
 *.po~
-/.vs/
-*.sqlite
-.DS_Store
