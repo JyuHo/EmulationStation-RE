@@ -4092,3 +4092,113 @@ msgstr[1] "Il y a %d secondes"
 
 #~ msgid "Building image cache"
 #~ msgstr "Génération du cache d’images"
+
+# Emulator catalog
+
+msgid "Archive"
+msgstr "Archive"
+
+msgid "CORE INSTALLED SUCCESSFULLY"
+msgstr "CŒUR INSTALLÉ AVEC SUCCÈS"
+
+msgid "CORE REMOVED SUCCESSFULLY"
+msgstr "CŒUR SUPPRIMÉ AVEC SUCCÈS"
+
+msgid "Cannot download the catalog"
+msgstr "Impossible de télécharger le catalogue"
+
+msgid "Cannot extract the archive"
+msgstr "Impossible d'extraire l'archive"
+
+msgid "Cannot install the core"
+msgstr "Impossible d'installer le cœur"
+
+msgid "Cannot install the emulator"
+msgstr "Impossible d'installer l'émulateur"
+
+msgid "Cannot load the catalog"
+msgstr "Impossible de charger le catalogue"
+
+msgid "Cannot remove the core"
+msgstr "Impossible de supprimer le cœur"
+
+msgid "Cannot remove"
+msgstr "Impossible de supprimer"
+
+msgid "Cannot write"
+msgstr "Impossible d'écrire"
+
+msgid "Checking"
+msgstr "Vérification de"
+
+msgid "Download failed"
+msgstr "Échec du téléchargement"
+
+msgid "EMULATOR CATALOG"
+msgstr "CATALOGUE D'ÉMULATEURS"
+
+msgid "EMULATOR INSTALLED SUCCESSFULLY"
+msgstr "ÉMULATEUR INSTALLÉ AVEC SUCCÈS"
+
+msgid "EMULATOR REMOVED SUCCESSFULLY"
+msgstr "ÉMULATEUR SUPPRIMÉ AVEC SUCCÈS"
+
+msgid "Flatpak installation failed"
+msgstr "Échec de l'installation Flatpak"
+
+msgid "Flatpak uninstallation failed"
+msgstr "Échec de la désinstallation Flatpak"
+
+msgid "INSTALLED BY THE SYSTEM"
+msgstr "INSTALLÉ PAR LE SYSTÈME"
+
+msgid "INSTALLED"
+msgstr "INSTALLÉ"
+
+msgid "Installing"
+msgstr "Installation de"
+
+msgid "NOT INSTALLED"
+msgstr "NON INSTALLÉ"
+
+msgid "Needs Flatpak, which is not installed"
+msgstr "Nécessite Flatpak, qui n'est pas installé"
+
+msgid "Not in the catalog for this machine"
+msgstr "Absent du catalogue pour cette machine"
+
+msgid "Not installed by EmulationStation"
+msgstr "Non installé par EmulationStation"
+
+msgid "On this machine, this emulator is only available as a Flatpak. Install Flatpak with your package manager first."
+msgstr "Sur cette machine, cet émulateur n'existe qu'en Flatpak. Installez d'abord Flatpak avec votre gestionnaire de paquets."
+
+msgid "RETROARCH CORES"
+msgstr "CŒURS RETROARCH"
+
+msgid "Removing"
+msgstr "Suppression de"
+
+msgid "Requires Flatpak"
+msgstr "Nécessite Flatpak"
+
+msgid "SELECT EMULATORS AND CORES TO INSTALL/REMOVE"
+msgstr "SÉLECTIONNEZ LES ÉMULATEURS ET CŒURS À INSTALLER/SUPPRIMER"
+
+msgid "STANDALONE EMULATORS"
+msgstr "ÉMULATEURS STANDALONE"
+
+msgid "The archive does not contain the core"
+msgstr "L'archive ne contient pas le cœur"
+
+msgid "The archive does not contain the emulator"
+msgstr "L'archive ne contient pas l'émulateur"
+
+msgid "The downloaded file is corrupted"
+msgstr "Le fichier téléchargé est corrompu"
+
+msgid "This core is installed by your distribution. Update or remove it with your package manager."
+msgstr "Ce cœur est installé par votre distribution. Mettez-le à jour ou supprimez-le avec votre gestionnaire de paquets."
+
+msgid "This emulator is installed by your distribution. Update or remove it with your package manager."
+msgstr "Cet émulateur est installé par votre distribution. Mettez-le à jour ou supprimez-le avec votre gestionnaire de paquets."

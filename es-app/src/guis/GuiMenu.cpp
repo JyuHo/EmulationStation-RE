@@ -10,6 +10,7 @@
 #include "guis/GuiScraperStart.h"
 #include "guis/GuiHashStart.h"
 #include "guis/GuiThemeInstaller.h"
+#include "guis/GuiEmulatorCatalog.h"
 #include "guis/GuiSettings.h"
 #include "guis/GuiRetroAchievements.h"
 #include "guis/GuiGamelistOptions.h"
@@ -189,6 +190,8 @@ GuiMenu::GuiMenu(Window *window, bool animate) : GuiComponent(window), mMenu(win
 		if (ApiSystem::getInstance()->isScriptingSupported(ApiSystem::THEMESDOWNLOADER))
 			addEntry(_("UPDATES & DOWNLOADS"), true, [this] { openUpdatesSettings(); }, "iconUpdates");
 
+		// Works offline too: the last downloaded catalog is kept, so installed items can be removed
+		addEntry(_("EMULATOR CATALOG"), true, [this] { mWindow->pushGui(new GuiEmulatorCatalog(mWindow)); }, "iconGames");
 
 		addEntry(_("SYSTEM SETTINGS").c_str(), true, [this] { openSystemSettings(); }, "iconSystem");
 	}
