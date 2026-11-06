@@ -45,7 +45,7 @@ protected:
 	using IList<TextListData, T>::mIsMouseOver;
 	using IList<TextListData, T>::mScrollVelocity;
 	using IList<TextListData, T>::mWindow;
-	using IList<TextListData, T>::Entry;
+	using typename IList<TextListData, T>::Entry;
 
 public:
 	using IList<TextListData, T>::size;
