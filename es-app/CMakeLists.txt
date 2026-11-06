@@ -231,7 +231,9 @@ target_link_libraries(emulationstation ${COMMON_LIBRARIES} es-core)
 
 install(TARGETS emulationstation
     RUNTIME
-    DESTINATION bin)
+    DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/resources
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/emulationstation)
 
 INCLUDE(InstallRequiredSystemLibraries)
 

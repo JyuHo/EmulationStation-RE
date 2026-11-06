@@ -149,18 +149,18 @@ namespace Utils
 
 			case QuitMode::RESTART:
 				LOG(LogInfo) << "Restarting EmulationStation";
-				touch("/tmp/restart.please");
+				touch(Paths::getRuntimePath() + "/restart.please");
 				break;
 			case QuitMode::REBOOT:
 			case QuitMode::FAST_REBOOT:
 				LOG(LogInfo) << "Rebooting system";
-				touch("/tmp/reboot.please");
+				touch(Paths::getRuntimePath() + "/reboot.please");
 				runRestartCommand();
 				break;
 			case QuitMode::SHUTDOWN:
 			case QuitMode::FAST_SHUTDOWN:
 				LOG(LogInfo) << "Shutting system down";
-				touch("/tmp/shutdown.please");
+				touch(Paths::getRuntimePath() + "/shutdown.please");
 				runShutdownCommand();
 				break;
 			}

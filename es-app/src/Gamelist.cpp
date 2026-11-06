@@ -16,7 +16,7 @@
 
 std::string getGamelistRecoveryPath(SystemData* system)
 {
-	return Utils::FileSystem::getGenericPath(Paths::getUserEmulationStationPath() + "/recovery/" + system->getName());
+	return Utils::FileSystem::getGenericPath(Paths::getDataPath() + "/recovery/" + system->getName());
 }
 
 FileData* findOrCreateFile(SystemData* system, const std::string& path, FileType type, std::unordered_map<std::string, FileData*>& fileMap)

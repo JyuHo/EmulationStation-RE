@@ -81,7 +81,7 @@ WebImageComponent::~WebImageComponent()
 	{
 		Utils::FileSystem::removeFile(mLocalFile);
 
-		auto root = Utils::FileSystem::getGenericPath(Paths::getUserEmulationStationPath() + "/tmp");
+		auto root = Utils::FileSystem::getGenericPath(Paths::getCachePath() + "/tmp");
 		auto file = Utils::FileSystem::getParent(Utils::FileSystem::getGenericPath(mLocalFile));
 
 		while (!file.empty() && file != root && file != mLocalFile)
@@ -129,7 +129,7 @@ void WebImageComponent::setImage(const std::string& path, bool tile, const MaxSi
 		queryCrc = "-" + Utils::String::toHexString(file_crc32);
 	}
 
-	std::string localFile = Paths::getUserEmulationStationPath() + "/tmp/" + uri.host + "/" + uri.path + queryCrc;	
+	std::string localFile = Paths::getCachePath() + "/tmp/" + uri.host + "/" + uri.path + queryCrc;	
 	if (Utils::FileSystem::exists(localFile))
 	{
 		bool keepLoadingLocal = true;

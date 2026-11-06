@@ -3,10 +3,9 @@ Gamelists
 
 The gamelist.xml file for a system defines metadata for a system's games, such as a name, image (like a screenshot or box art), description, release date, and rating.
 
-ES will check three places for a gamelist.xml in the following order, using the first one it finds:
+ES will check two places for a gamelist.xml in the following order, using the first one it finds:
 * `[SYSTEM_PATH]/gamelist.xml`
-* `~/.emulationstation/gamelists/[SYSTEM_NAME]/gamelist.xml`
-* `/etc/emulationstation/gamelists/[SYSTEM_NAME]/gamelist.xml`
+* `~/.local/share/emulationstation/gamelists/[SYSTEM_NAME]/gamelist.xml`
 
 An example gamelist.xml:
 ```xml
@@ -15,7 +14,7 @@ An example gamelist.xml:
 		<path>/home/pi/ROMs/nes/mm2.nes</path>
 		<name>Mega Man 2</name>
 		<desc>Mega Man 2 is a classic NES game which follows Mega Man as he murders eight robot masters in cold blood.</desc>
-		<image>~/.emulationstation/downloaded_images/nes/Mega Man 2-image.png</image>
+		<image>~/.local/share/emulationstation/downloaded_images/nes/Mega Man 2-image.png</image>
 	</game>
 </gameList>
 ```
@@ -31,7 +30,7 @@ Reference
 There are a few types of metadata:
 
 * `string` - just text.
-* `image_path` - a path to an image. This path should be either the absolute to the image, a path relative to the system games folder that starts with "./" (e.g. `./mm2_image.png`), or a path relative to the home directory that starts with "~/" (e.g. `~/.emulationstation/downloaded_images/nes/mm2-image.png`).  Images will be automatically resized by OpenGL to fit the corresponding `<image>` tag in the current theme.  Smaller images will load faster, so try to keep resolution low!
+* `image_path` - a path to an image. This path should be either the absolute to the image, a path relative to the system games folder that starts with "./" (e.g. `./mm2_image.png`), or a path relative to the home directory that starts with "~/" (e.g. `~/.local/share/emulationstation/downloaded_images/nes/mm2-image.png`).  Images will be automatically resized by OpenGL to fit the corresponding `<image>` tag in the current theme.  Smaller images will load faster, so try to keep resolution low!
 * `video_path` - a path to a video. Similar to `image_path`.
 * `float` - a floating-point decimal value (written as a string).
 * `integer` - an integer value (written as a string).

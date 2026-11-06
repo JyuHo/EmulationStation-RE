@@ -315,7 +315,7 @@ bool TextureData::loadFromVideo()
 	auto val = Utils::FileSystem::createRelativePath(Utils::FileSystem::changeExtension(mPath, ".jpg"), Paths::getHomePath(), true);
 	val = Utils::String::replace(val, "~/../", "./");
 
-	std::string localFile = Utils::FileSystem::resolveRelativePath(val, Paths::getUserEmulationStationPath() + "/tmp/videothumbs/", true);
+	std::string localFile = Utils::FileSystem::resolveRelativePath(val, Paths::getCachePath() + "/videothumbs/", true);
 
 	if (Utils::FileSystem::exists(localFile))
 	{

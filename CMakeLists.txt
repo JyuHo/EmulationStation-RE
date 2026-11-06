@@ -29,6 +29,10 @@ option(USE_SYSTEM_PUGIXML "Set to ON to use system-wide pugixml library" OFF)
 
 project(emulationstation-all)
 
+include(GNUInstallDirs)
+# Installed files are also looked up in $XDG_DATA_DIRS, this is the fallback when the prefix is not listed there
+add_compile_definitions(ES_INSTALL_DATADIR="${CMAKE_INSTALL_FULL_DATADIR}" ES_INSTALL_LOCALEDIR="${CMAKE_INSTALL_FULL_LOCALEDIR}")
+
 #-------------------------------------------------------------------------------
 #add local find scripts to CMAKE path
 LIST(APPEND CMAKE_MODULE_PATH

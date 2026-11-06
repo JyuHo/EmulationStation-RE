@@ -582,7 +582,7 @@ std::string FileData::getlaunchCommand(LaunchGameOptions& options, bool includeC
 	command = Utils::String::replace(command, "%SYSTEMNAME%", formatCommandLineArgument(system->getFullName()));
 
 	// Export Game info XML is requested
-	std::string fileInfo = "/tmp/game.xml";
+	std::string fileInfo = Paths::getRuntimePath() + "/game.xml";
 
 	if (command.find("%GAMEINFOXML%") != std::string::npos && saveToXml(gameToUpdate, fileInfo, true))
 		command = Utils::String::replace(command, "%GAMEINFOXML%", Utils::FileSystem::getEscapedPath(fileInfo));
@@ -665,7 +665,7 @@ std::string FileData::getMessageFromExitCode(int exitCode)
 	case 299:
 	case 250:
 		{
-			std::string messageFile = "/tmp/launch_error.log";
+			std::string messageFile = Paths::getRuntimePath() + "/launch_error.log";
 			if (Utils::FileSystem::exists(messageFile))
 			{
 				auto message = Utils::FileSystem::readAllText(messageFile);

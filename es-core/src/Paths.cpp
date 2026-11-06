@@ -3,6 +3,9 @@
 #include <iostream>
 #include <fstream>
 #include <map>
+#include <algorithm>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include "utils/FileSystemUtil.h"
 #include "utils/StringUtil.h"
@@ -10,45 +13,130 @@
 Paths* Paths::_instance = nullptr;
 
 #define SETTINGS_FILENAME "emulationstation.ini"
+#define APP_DIR "emulationstation"
 
+static bool homePathOverridden = false;
 
+// $VAR/emulationstation if VAR holds an absolute path, else ~/fallback/emulationstation
+static std::string getUserDirectory(const char* var, const char* fallback)
+{
+	if (!homePathOverridden)
+	{
+		const char* value = getenv(var);
+		if (value != nullptr && value[0] == '/')
+			return Utils::FileSystem::getGenericPath(value) + "/" APP_DIR;
+	}
 
+	return Paths::getHomePath() + "/" + fallback + "/" APP_DIR;
+}
+
+// Each absolute entry of the colon separated list $VAR (or fallback), with /emulationstation appended
+static void addSystemDirectories(std::vector<std::string>& list, const char* var, const char* fallback)
+{
+	const char* value = getenv(var);
+	std::string dirs = (value != nullptr && value[0] != 0) ? value : fallback;
+
+	for (const auto& dir : Utils::String::split(dirs, ':', true))
+	{
+		if (dir.empty() || dir[0] != '/')
+			continue;
+
+		std::string path = Utils::FileSystem::getGenericPath(dir) + "/" APP_DIR;
+		if (std::find(list.cbegin(), list.cend(), path) == list.cend())
+			list.push_back(path);
+	}
+}
+
+static std::string getRuntimeDirectory()
+{
+	const char* value = getenv("XDG_RUNTIME_DIR");
+	if (value != nullptr && value[0] == '/')
+		return Utils::FileSystem::getGenericPath(value) + "/" APP_DIR;
+
+	// No session runtime dir (started outside a login session): use a private folder in /tmp
+	return "/tmp/" APP_DIR "-" + std::to_string(getuid());
+}
+
+static std::string firstExistingDirectory(const std::vector<std::string>& roots, const std::string& name)
+{
+	for (const auto& root : roots)
+	{
+		std::string path = root + "/" + name;
+		if (Utils::FileSystem::isDirectory(path))
+			return path;
+	}
+
+	return std::string();
+}
 
 Paths::Paths()
-{	
+{
+	mConfigPath = getUserDirectory("XDG_CONFIG_HOME", ".config");
+	mDataPath = getUserDirectory("XDG_DATA_HOME", ".local/share");
+	mCachePath = getUserDirectory("XDG_CACHE_HOME", ".cache");
+	mStatePath = getUserDirectory("XDG_STATE_HOME", ".local/state");
+	mRuntimePath = getRuntimeDirectory();
+
+	addSystemDirectories(mSystemConfigPaths, "XDG_CONFIG_DIRS", "/etc/xdg");
+	addSystemDirectories(mSystemDataPaths, "XDG_DATA_DIRS", "/usr/local/share:/usr/share");
+#ifdef ES_INSTALL_DATADIR
+	addSystemDirectories(mSystemDataPaths, "", ES_INSTALL_DATADIR);
+#endif
 
 	mEmulationStationPath = getExePath();
-	mUserEmulationStationPath = Utils::FileSystem::getCanonicalPath(getHomePath() + "/.emulationstation");
-	mRootPath = Utils::FileSystem::getParent(getHomePath());
+	mRootPath = getHomePath();
 
-	mLogPath = mUserEmulationStationPath;
-	mThemesPath = mUserEmulationStationPath + "/themes";
-	mMusicPath = mUserEmulationStationPath + "/music";
-	mKeyboardMappingsPath = mUserEmulationStationPath + "/padtokey";
-	mUserManualPath = mUserEmulationStationPath + "/notice.pdf";
-
+	mLogPath = mStatePath;
+	mUserThemesPath = mDataPath + "/themes";
+	mThemesPath = firstExistingDirectory(mSystemDataPaths, "themes");
+	mUserMusicPath = mDataPath + "/music";
+	mMusicPath = firstExistingDirectory(mSystemDataPaths, "music");
+	mKeyboardMappingsPath = mConfigPath + "/padtokey";
+	mUserManualPath = mDataPath + "/notice.pdf";
 
 	loadCustomConfiguration(false); // Try to detect alternate paths ( Decorations, Shaders... ) without loading overrides
-
-
-
-/* EmuElec sample locations.
-#ifdef _ENABLEEMUELEC
-	mRootPath = "/storage/roms"; // ?
-	mEmulationStationPath = Utils::FileSystem::getExePath();
-	mUserEmulationStationPath = Utils::FileSystem::getCanonicalPath(Utils::FileSystem::getHomePath() + "/.emulationstation");
-	mLogPath = "/storage/.config/emuelec/logs";
-	mThemesPath = mEmulationStationPath + "/themes";
-	mUserThemesPath = "/emuelec/themes";
-	mMusicPath = "/storage/roms/BGM";
-	mUserMusicPath = "/storage/.config/emuelec/BGM";
-	mDecorationsPath = "/storage/roms/bezels";
-	mUserDecorationsPath = "/tmp/overlays/bezels";
-	mVersionInfoPath = "/usr/config/EE_VERSION";
-	mSystemConfFilePath = "/storage/.config/emuelec/configs/emuelec.conf";
-#endif
-*/
 	loadCustomConfiguration(true); // Load paths overrides from emulationstation.ini file
+}
+
+bool Paths::createUserDirectories()
+{
+	bool ok = true;
+
+	for (const auto& dir : { getConfigPath(), getDataPath(), getCachePath(), getStatePath(), getRuntimePath() })
+	{
+		if (Utils::FileSystem::isDirectory(dir))
+			continue;
+
+		Utils::FileSystem::createDirectory(dir);
+		if (!Utils::FileSystem::isDirectory(dir))
+		{
+			std::cerr << "Could not create directory \"" << dir << "\"\n";
+			ok = false;
+		}
+	}
+
+	// The runtime dir holds flag files and must stay private (XDG spec: mode 0700)
+	chmod(getRuntimePath().c_str(), S_IRWXU);
+	return ok;
+}
+
+std::string Paths::findSystemFile(const std::string& fileName)
+{
+	std::vector<std::string> roots = { getConfigPath(), getEmulationStationPath() };
+	roots.insert(roots.end(), getSystemConfigPaths().cbegin(), getSystemConfigPaths().cend());
+	roots.insert(roots.end(), getSystemDataPaths().cbegin(), getSystemDataPaths().cend());
+
+	for (const auto& root : roots)
+	{
+		if (root.empty())
+			continue;
+
+		std::string path = root + "/" + fileName;
+		if (Utils::FileSystem::exists(path))
+			return path;
+	}
+
+	return std::string();
 }
 
 void Paths::loadCustomConfiguration(bool overridesOnly)
@@ -90,9 +178,7 @@ void Paths::loadCustomConfiguration(bool overridesOnly)
 
 	std::string path = mEmulationStationPath + std::string("/") + SETTINGS_FILENAME;
 	if (!Utils::FileSystem::exists(path))
-		path = mUserEmulationStationPath + std::string("/") + SETTINGS_FILENAME;
-	if (!Utils::FileSystem::exists(path))
-		path = Utils::FileSystem::getParent(mUserEmulationStationPath) + std::string("/") + SETTINGS_FILENAME;
+		path = mConfigPath + std::string("/") + SETTINGS_FILENAME;
 
 	if (!Utils::FileSystem::exists(path))
 		return;
@@ -113,7 +199,7 @@ void Paths::loadCustomConfiguration(bool overridesOnly)
 
 			if (variable == "log")
 			{
-				ret[variable] = mUserEmulationStationPath;
+				ret[variable] = mStatePath;
 				continue;
 			}
 
@@ -122,7 +208,7 @@ void Paths::loadCustomConfiguration(bool overridesOnly)
 			{
 				auto name = Utils::FileSystem::getGenericPath(variable.substr(7));
 
-				auto dir = Utils::FileSystem::getCanonicalPath(mUserEmulationStationPath + "/" + name);
+				auto dir = Utils::FileSystem::getCanonicalPath(mConfigPath + "/" + name);
 				if (Utils::FileSystem::isDirectory(dir))
 					ret[variable] = dir;
 				else
@@ -206,9 +292,6 @@ std::string& Paths::getHomePath()
 		return homePath;
 
 
-	// HOME has different usages in Linux & Windows
-	// On Windows,  "HOME" is not a system variable but a user's environment variable that can be defined by users in batch files. 
-	// If defined : The environment variable has priority over all
 	char* envHome = getenv("HOME");
 	if (envHome)
 		homePath = Utils::FileSystem::getGenericPath(envHome);
@@ -228,6 +311,7 @@ std::string& Paths::getHomePath()
 
 void Paths::setHomePath(const std::string& _path)
 {
+	homePathOverridden = true;
 	homePath = Utils::FileSystem::getGenericPath(_path);
 }
 
@@ -249,17 +333,20 @@ void Paths::setExePath(const std::string& _path)
 
 std::string Paths::findEmulationStationFile(const std::string& fileName)
 {
-	std::string localVersionFile = Paths::getEmulationStationPath() + "/" + fileName;
-	if (Utils::FileSystem::exists(localVersionFile))
-		return localVersionFile;
+	// Install files (version.info, about.info...): executable dir first, then the system data dirs
+	std::vector<std::string> roots = { getEmulationStationPath() };
+	roots.insert(roots.end(), getSystemDataPaths().cbegin(), getSystemDataPaths().cend());
+	roots.push_back(getConfigPath());
 
-	localVersionFile = Paths::getUserEmulationStationPath() + "/" + fileName;
-	if (Utils::FileSystem::exists(localVersionFile))
-		return localVersionFile;
+	for (const auto& root : roots)
+	{
+		if (root.empty())
+			continue;
 
-	localVersionFile = Utils::FileSystem::getParent(Paths::getUserEmulationStationPath()) + "/" + fileName;
-	if (Utils::FileSystem::exists(localVersionFile))
-		return localVersionFile;
+		std::string path = root + "/" + fileName;
+		if (Utils::FileSystem::exists(path))
+			return path;
+	}
 
 	return std::string();
 }

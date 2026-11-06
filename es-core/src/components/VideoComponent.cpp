@@ -17,10 +17,9 @@ std::string getTitlePath()
 	return titleFolder + "subtitle.srt";
 }
 
-std::string getTitleFolder() 
+std::string getTitleFolder()
 {
-
-	return "/tmp/";
+	return Paths::getRuntimePath() + "/";
 }
 
 void writeSubtitle(const char* gameName, const char* systemName, bool always)

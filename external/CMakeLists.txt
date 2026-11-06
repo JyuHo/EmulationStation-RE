@@ -3,9 +3,9 @@
 
 add_subdirectory("nanosvg")
 if (NOT USE_SYSTEM_PUGIXML)
-  add_subdirectory("pugixml")
+  add_subdirectory("pugixml" EXCLUDE_FROM_ALL)
 endif()
 
-add_subdirectory("id3v2lib")
+add_subdirectory("id3v2lib" EXCLUDE_FROM_ALL)
 add_subdirectory("libcheevos")
 add_subdirectory("audio_decoders")

@@ -22,7 +22,7 @@ GuiSystemInformation::GuiSystemInformation(Window* window) : GuiSettings(window,
 
 		std::string path = "/media";
 		for (const auto & entry : Utils::FileSystem::getDirContent(path)) {
-			if (entry != "/media/SHARE" && entry != "/media/BATOCERA") {
+			{
 				addWithLabel(_("DISK USAGE") + " " + entry, std::make_shared<TextComponent>(window, ApiSystem::getInstance()->getFreeSpaceInfo(entry), font, warning ? 0xFF0000FF : color));
 			}
 		}

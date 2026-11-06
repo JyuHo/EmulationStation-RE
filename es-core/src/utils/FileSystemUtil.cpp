@@ -1244,7 +1244,7 @@ namespace Utils
 
 			if (path.empty())
 			{
-					path = Utils::FileSystem::getGenericPath(Paths::getUserEmulationStationPath() + "/tmp");
+					path = Utils::FileSystem::getGenericPath(Paths::getCachePath() + "/tmp");
 			}
 
 			if (!Utils::FileSystem::isDirectory(path))
@@ -1259,7 +1259,7 @@ namespace Utils
 
 			if (pdfpath.empty())
 			{
-					pdfpath = Utils::FileSystem::getGenericPath(Paths::getUserEmulationStationPath() + "/pdftmp");
+					pdfpath = Utils::FileSystem::getGenericPath(Paths::getCachePath() + "/pdftmp");
 			}
 
 			if (!Utils::FileSystem::isDirectory(pdfpath))

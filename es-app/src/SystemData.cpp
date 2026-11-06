@@ -804,7 +804,9 @@ bool SystemData::isFeatureSupported(std::string emulatorName, std::string coreNa
 // Load custom additionnal config from es_systems_*.cfg files
 void SystemData::loadAdditionnalConfig(pugi::xml_node& srcSystems)
 {	
-	std::vector<std::string> rootPaths = { Paths::getUserEmulationStationPath(), Paths::getEmulationStationPath() };
+	std::vector<std::string> rootPaths = { Paths::getConfigPath(), Paths::getEmulationStationPath() };
+	rootPaths.insert(rootPaths.end(), Paths::getSystemConfigPaths().cbegin(), Paths::getSystemConfigPaths().cend());
+	rootPaths.insert(rootPaths.end(), Paths::getSystemDataPaths().cbegin(), Paths::getSystemDataPaths().cend());
 	for (auto rootPath : VectorHelper::distinct(rootPaths, [](auto x) { return x; }))
 	{
 		for (auto customPath : Utils::FileSystem::getDirContent(rootPath, false, false))
@@ -1329,19 +1331,16 @@ void SystemData::deleteSystems()
 
 std::string SystemData::getConfigPath()
 {
-	std::string customPath = Paths::getUserEmulationStationPath() + "/es_systems_custom.cfg";
+	std::string customPath = Paths::getConfigPath() + "/es_systems_custom.cfg";
 	if (Utils::FileSystem::exists(customPath))
 		return customPath;
 
-	std::string userdataPath = Paths::getUserEmulationStationPath() + "/es_systems.cfg";
-	if(Utils::FileSystem::exists(userdataPath))
-		return userdataPath;
+	std::string path = Paths::findSystemFile("es_systems.cfg");
+	if (!path.empty())
+		return path;
 
-	userdataPath = Paths::getEmulationStationPath() + "/es_systems.cfg";
-	if (Utils::FileSystem::exists(userdataPath))
-		return userdataPath;
-
-	return "/etc/emulationstation/es_systems.cfg"; // Backward compatibility with Retropie
+	// Not found: point to the user file, so that the error message tells where to put it
+	return Paths::getConfigPath() + "/es_systems.cfg";
 }
 
 bool SystemData::isVisible()
@@ -1404,7 +1403,7 @@ std::string SystemData::getGamelistPath(bool forWrite) const
 	if(Utils::FileSystem::exists(filePath))
 		return filePath;
 
-	std::string localPath = Paths::getUserEmulationStationPath() + "/gamelists/" + mMetadata.name + "/gamelist.xml";
+	std::string localPath = Paths::getDataPath() + "/gamelists/" + mMetadata.name + "/gamelist.xml";
 	if (Utils::FileSystem::exists(localPath))
 		return localPath;
 
