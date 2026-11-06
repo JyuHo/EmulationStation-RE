@@ -38,13 +38,17 @@ or, in an existing clone, `git submodule update --init`.
 Then configure and build:
 
 ```bash
-# x86_64, desktop OpenGL
+# x86_64, desktop OpenGL 3.3 core
 cmake -S . -B build -G Ninja -DGL=ON -DCMAKE_BUILD_TYPE=Release
 # Raspberry Pi 4 and later, OpenGL ES 3.x
 cmake -S . -B build -G Ninja -DGLES3=ON -DCMAKE_BUILD_TYPE=Release
 
 cmake --build build
 ```
+
+There is a single renderer, built either for desktop OpenGL 3.3 core (`GL`) or
+for OpenGL ES 3.x (`GLES3`). When neither option is given, ARM builds pick
+`GLES3` and the others pick `GL`.
 
 Launching outside of Batocera
 =============================

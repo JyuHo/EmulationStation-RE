@@ -9,20 +9,15 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
 endif()
 
-option(GLES "Set to ON if targeting Embedded OpenGL" ${GLES})
-option(GLES2 "Set to ON if targeting OpenGL ES 2.0" ${GLES2})
-option(GLES3 "Set to ON if targeting OpenGL ES 3.0" ${GLES3})
-option(GL "Set to ON if targeting Desktop OpenGL" ${GL})
+# Graphics API : one GL 3 renderer, built either for desktop OpenGL 3.3 core
+# (default on x86_64) or for OpenGL ES 3.x (default on ARM, Raspberry Pi 4+).
+option(GL "Build the desktop OpenGL 3.3 core renderer" OFF)
+option(GLES3 "Build the OpenGL ES 3.x renderer" OFF)
 
-set(OPENGL_OPTION_COUNT 0)
-foreach(OPENGL_OPTION GLES GLES2 GLES3 GL)
-    if(${OPENGL_OPTION})
-        math(EXPR OPENGL_OPTION_COUNT "${OPENGL_OPTION_COUNT} + 1")
-    endif()
-endforeach()
-if(OPENGL_OPTION_COUNT GREATER 1)
-    message(FATAL_ERROR "GLES, GLES2, GLES3, and GL are mutually exclusive; enable only one graphics API")
+if(GL AND GLES3)
+    message(FATAL_ERROR "GL and GLES3 are mutually exclusive; enable only one graphics API")
 endif()
+
 option(CEC "CEC" ON)
 
 
@@ -56,42 +51,33 @@ if(ENABLE_FILEMANAGER)
 endif()
 
 #-------------------------------------------------------------------------------
-#set up OpenGL system variable
-if(GLES)
-    set(GLSystem "Embedded OpenGL" CACHE STRING "The OpenGL system to be used" FORCE)
-elseif(GLES2)
-    set(GLSystem "OpenGL ES 2.0" CACHE STRING "The OpenGL system to be used" FORCE)
-elseif(GLES3)
-    set(GLSystem "OpenGL ES 3.0" CACHE STRING "The OpenGL system to be used" FORCE)
-elseif(GL)
-    set(GLSystem "Desktop OpenGL" CACHE STRING "The OpenGL system to be used" FORCE)
-elseif(NOT GLSystem)
-    set(_ES_DEFAULT_GLSYSTEM "Desktop OpenGL")
-    find_package(OpenGLES2 QUIET)
-    if(OPENGLES2_FOUND OR OpenGLES2_FOUND)
-        set(_ES_DEFAULT_GLSYSTEM "OpenGL ES 2.0")
+# pick the graphics API
+if(NOT GL AND NOT GLES3)
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(arm|aarch64)")
+        set(GLES3 ON)
+    else()
+        set(GL ON)
     endif()
-    set(GLSystem "${_ES_DEFAULT_GLSYSTEM}" CACHE STRING "The OpenGL system to be used" FORCE)
-    unset(_ES_DEFAULT_GLSYSTEM)
 endif()
 
-set_property(CACHE GLSystem PROPERTY STRINGS "Desktop OpenGL" "Embedded OpenGL" "OpenGL ES 2.0" "OpenGL ES 3.0")
-
-MESSAGE("-- Graphics API: ${GLSystem}")
-if(NOT GLES AND NOT GLES2 AND NOT GLES3 AND NOT GL)
-    MESSAGE("-- No graphics API selected; using ${GLSystem}. Pass -DGLES3=ON for the OpenGL ES 3.0 renderer.")
+if(GLES3)
+    MESSAGE("-- Graphics API: OpenGL ES 3.x")
+else()
+    MESSAGE("-- Graphics API: OpenGL 3.3 core")
 endif()
 
 #finding necessary packages
 #-------------------------------------------------------------------------------
-if(${GLSystem} MATCHES "Desktop OpenGL")
-    find_package(OpenGL REQUIRED)
-elseif(${GLSystem} MATCHES "OpenGL ES 3.0")
+if(GLES3)
     find_package(OpenGLES3 REQUIRED)
-elseif(${GLSystem} MATCHES "OpenGL ES 2.0")
-    find_package(OpenGLES2 REQUIRED)
 else()
-    find_package(OpenGLES REQUIRED)
+    find_package(OpenGL REQUIRED)
+    # Prefer glvnd's libOpenGL (no GLX dependency); SDL creates the context itself
+    if(TARGET OpenGL::OpenGL)
+        set(ES_OPENGL_TARGET OpenGL::OpenGL)
+    else()
+        set(ES_OPENGL_TARGET OpenGL::GL)
+    endif()
 endif()
 find_package(Freetype REQUIRED)
 find_package(FreeImage REQUIRED)
@@ -191,14 +177,9 @@ endif()
 
 add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-Wno-attributes>)
 
-if(${GLSystem} MATCHES "Desktop OpenGL")
-    add_definitions(-DUSE_OPENGL_21)
-elseif(${GLSystem} MATCHES "OpenGL ES 3.0")
-    add_definitions(-DUSE_OPENGLES_30)
-elseif(${GLSystem} MATCHES "OpenGL ES 2.0")
-    add_definitions(-DUSE_OPENGLES_20)
-else()
-    add_definitions(-DUSE_OPENGLES_10)
+add_definitions(-DUSE_GL3)
+if(GLES3)
+    add_definitions(-DUSE_GLES)
 endif()
 
 #-------------------------------------------------------------------------------
@@ -241,22 +222,8 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     )
 endif()
 
-if(${GLSystem} MATCHES "Desktop OpenGL")
-    LIST(APPEND COMMON_INCLUDE_DIRS
-        ${OPENGL_INCLUDE_DIR}
-    )
-elseif(${GLSystem} MATCHES "OpenGL ES 3.0")
-    LIST(APPEND COMMON_INCLUDE_DIRS
-        ${OPENGLES3_INCLUDE_DIR}
-    )
-elseif(${GLSystem} MATCHES "OpenGL ES 2.0")
-    LIST(APPEND COMMON_INCLUDE_DIRS
-        ${OPENGLES2_INCLUDE_DIR}
-    )
-else()
-    LIST(APPEND COMMON_INCLUDE_DIRS
-        ${OPENGLES_INCLUDE_DIR}
-    )
+if(GLES3)
+    LIST(APPEND COMMON_INCLUDE_DIRS ${OPENGLES3_INCLUDE_DIR})
 endif()
 
 #-------------------------------------------------------------------------------
@@ -310,25 +277,10 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     )
 endif()
 
-if(${GLSystem} MATCHES "Desktop OpenGL")
-    LIST(APPEND COMMON_LIBRARIES
-        ${OPENGL_LIBRARIES}
-    )
-elseif(${GLSystem} MATCHES "OpenGL ES 3.0")
-    LIST(APPEND COMMON_LIBRARIES
-        EGL
-        ${OPENGLES3_LIBRARIES}
-    )
-elseif(${GLSystem} MATCHES "OpenGL ES 2.0")
-    LIST(APPEND COMMON_LIBRARIES
-        EGL
-        ${OPENGLES2_LIBRARIES}
-    )
+if(GLES3)
+    LIST(APPEND COMMON_LIBRARIES EGL ${OPENGLES3_LIBRARIES})
 else()
-    LIST(APPEND COMMON_LIBRARIES
-        EGL
-        ${OPENGLES_LIBRARIES}
-    )
+    LIST(APPEND COMMON_LIBRARIES ${ES_OPENGL_TARGET})
 endif()
 
 # batocera / i18n

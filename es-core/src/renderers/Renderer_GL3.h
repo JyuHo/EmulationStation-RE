@@ -1,19 +1,22 @@
 #pragma once
+#ifndef ES_CORE_RENDERER_GL3_H
+#define ES_CORE_RENDERER_GL3_H
 
-#ifndef ES_CORE_RENDERER_GLES10_H
-#define ES_CORE_RENDERER_GLES10_H
 
-#if defined(USE_OPENGLES_10)
+#define RENDERER_GL3
 
-#define RENDERER_OPENGLES_10
+#include <map>
+#include <cstring>
 
 #include "Renderer.h"
 
 namespace Renderer
 {
-	class GLES10Renderer : public IRenderer
+	class GL3Renderer : public IRenderer
 	{
 	public:
+		GL3Renderer();
+
 		std::string getDriverName() override;
 		std::vector<std::pair<std::string, std::string>> getDriverInformation() override;
 
@@ -26,6 +29,7 @@ namespace Renderer
 		void		 resetCache() override;
 
 		unsigned int createTexture(const Texture::Type _type, const bool _linear, const bool _repeat, const unsigned int _width, const unsigned int _height, void* _data) override;
+		unsigned int createMipmappedTexture(const Texture::Type _type, const bool _linear, const bool _repeat, const unsigned int _width, const unsigned int _height, void* _data) override;
 		void         destroyTexture(const unsigned int _texture) override;
 		void         updateTexture(const unsigned int _texture, const Texture::Type _type, const unsigned int _x, const unsigned _y, const unsigned int _width, const unsigned int _height, void* _data) override;
 		void         bindTexture(const unsigned int _texture) override;
@@ -45,9 +49,19 @@ namespace Renderer
 
 		void         setSwapInterval() override;
 		void         swapBuffers() override;
-	};
-};
 
-#endif // USE_OPENGLES_10
+		void		 postProcessShader(const std::string& path, const float _x, const float _y, const float _w, const float _h, const std::map<std::string, std::string>& parameters, unsigned int* data = nullptr);
+
+		size_t		 getTotalMemUsage() override;
+
+		bool		 supportShaders() { return true; }
+		bool		 shaderSupportsCornerSize(const std::string& shader) override;
+
+	private:
+		unsigned int createTextureInternal(const Texture::Type _type, const bool _linear, const bool _repeat, const unsigned int _width, const unsigned int _height, void* _data, const bool _mipmapped);
+		unsigned int mFrameBuffer;
+	};
+}
+
 
 #endif

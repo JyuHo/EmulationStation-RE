@@ -2,7 +2,7 @@
 #ifndef ES_CORE_RENDERER_SHADER_H
 #define ES_CORE_RENDERER_SHADER_H
 
-#include "GlExtensions.h"
+#include "GlHeaders.h"
 #include "math/Transform4x4f.h"
 // Vector2f is held by value in the uniform cache below.
 #include "math/Vector2f.h"
@@ -44,11 +44,7 @@ namespace Renderer
 		// Links vertex and fragment shaders together to make a GLSL program
 		bool createShaderProgram(Shader &vertexShader, Shader &fragmentShader);
 
-#if defined(USE_OPENGLES_30)
 		void select(GLuint vertexBuffer, GLuint indexBuffer);
-#else
-		void select();
-#endif
 		void unSelect();
 
 		void setMatrix(const Transform4x4f& mvpMatrix);
@@ -87,7 +83,6 @@ namespace Renderer
 		GLint mCornerRadius;
 		GLint mFrameCount;
 		GLint mFrameDirection;
-#if defined(USE_OPENGLES_30)
 		GLint mSamplerUniform;
 		bool mSamplerInitialized;
 		GLuint mVertexArray;
@@ -126,18 +121,15 @@ namespace Renderer
 		UniformCache mUniformCache;
 
 		void invalidateUniformCache() { mUniformCache = UniformCache(); }
-#endif
 		
 		struct UniformInfo
 		{
 			GLint location;
 			GLenum type;
-#if defined(USE_OPENGLES_30)
 			// Last value uploaded, so unchanged parameters skip parsing and the GL call.
 			enum class State { UNKNOWN, ZERO, VALUE };
 			State state = State::UNKNOWN;
 			std::string value;
-#endif
 		};
 
 		std::map<std::string, UniformInfo> mCustomUniforms;
