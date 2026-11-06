@@ -665,7 +665,7 @@ namespace Renderer
 	{
 		resetCache();
 
-		SDL_GL_DeleteContext(sdlContext);
+		SDL_GL_DestroyContext(sdlContext);
 		sdlContext = nullptr;
 
 	} // destroyContext
@@ -1049,7 +1049,7 @@ namespace Renderer
 			// SDL_GL_SetSwapInterval returns 0 on success, -1 on error.
 			// if vsync is requested, try normal vsync; if that doesn't work, try late swap tearing
 			// if that doesn't work, report an error
-			if (SDL_GL_SetSwapInterval(1) != 0 && SDL_GL_SetSwapInterval(-1) != 0)
+			if (!SDL_GL_SetSwapInterval(1) && !SDL_GL_SetSwapInterval(-1))
 				LOG(LogWarning) << "Tried to enable vsync, but failed! (" << SDL_GetError() << ")";
 		}
 		else

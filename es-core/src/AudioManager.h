@@ -2,10 +2,10 @@
 #ifndef ES_CORE_AUDIO_MANAGER_H
 #define ES_CORE_AUDIO_MANAGER_H
 
-#include <SDL_audio.h>
+#include <SDL3/SDL_audio.h>
 #include <memory>
 #include <vector>
-#include "SDL_mixer.h"
+#include "audio/AudioMixer.h"
 #include <string> 
 #include <iostream> 
 #include <deque>
@@ -22,7 +22,7 @@ private:
 	static std::vector<std::shared_ptr<Sound>> sSoundVector;
 	static AudioManager* sInstance;
 	
-	Mix_Music* mCurrentMusic; 
+	bool mCurrentMusic; // a song is loaded in the mixer
 	void getMusicIn(const std::string &path, std::vector<std::string>& all_matching_files); 
 	void playMusic(const std::string& path);
 	static void musicEnd_callback();	
@@ -58,7 +58,7 @@ public:
 	bool songNameChanged() { return mSongNameChanged; }
 	void resetSongNameChangedFlag() { mSongNameChanged = false; }
 	
-	inline bool isSongPlaying() { return (mCurrentMusic != NULL); }
+	inline bool isSongPlaying() { return mCurrentMusic; }
 
 	void changePlaylist(const std::shared_ptr<ThemeData>& theme, bool force = false);
 

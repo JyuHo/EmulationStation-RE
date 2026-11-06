@@ -1,5 +1,5 @@
 #include "GlExtensions.h"
-#include <SDL.h>
+#include <SDL3/SDL.h>
 #include "Log.h"
 
 #ifdef OPENGL_EXTENSIONS
@@ -44,7 +44,7 @@ namespace glext
 
 	void* _glProcAddress(const char *proc)
 	{
-		void* ret = SDL_GL_GetProcAddress(proc);
+		void* ret = reinterpret_cast<void*>(SDL_GL_GetProcAddress(proc));
 		if (ret == nullptr)
 			LOG(LogError) << "FAILED TO INITIALISE GL Extension: " << proc;
 

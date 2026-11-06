@@ -7,11 +7,11 @@
 #include "Settings.h"
 #include <vlc/vlc.h>
 #include <vlc/libvlc_version.h>
-#include <SDL_mutex.h>
+#include <SDL3/SDL_mutex.h>
 #include <cmath>
 #include "SystemConf.h"
 #include "ThemeData.h"
-#include <SDL_timer.h>
+#include <SDL3/SDL_timer.h>
 #include "AudioManager.h"
 
 
