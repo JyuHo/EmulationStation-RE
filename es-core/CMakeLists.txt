@@ -124,6 +124,7 @@ set(CORE_HEADERS
 	${CMAKE_CURRENT_SOURCE_DIR}/src/utils/zip_file.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/utils/ZipFile.h
 	${CMAKE_CURRENT_SOURCE_DIR}/src/utils/md5.h
+	${CMAKE_CURRENT_SOURCE_DIR}/src/utils/Sha256.h
 	${CMAKE_CURRENT_SOURCE_DIR}/src/utils/MathExpr.h
 	${CMAKE_CURRENT_SOURCE_DIR}/src/utils/Delegate.h
 	${CMAKE_CURRENT_SOURCE_DIR}/src/utils/Randomizer.h
@@ -253,6 +254,7 @@ set(CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/utils/MathExpr.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/utils/ZipFile.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/utils/md5.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/utils/Sha256.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/utils/Randomizer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/utils/HtmlColor.cpp
 
