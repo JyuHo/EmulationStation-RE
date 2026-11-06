@@ -313,10 +313,12 @@ void onExit()
 
 int setLocale(char * argv1)
 {
-	if (Utils::FileSystem::exists("./locale/lang")) // for local builds
-		EsLocale::init("", "./locale/lang");	
+	// A build run from its build folder has its compiled translations next to the executable
+	std::string localDir = Paths::getExePath() + "/locale";
+	if (Utils::FileSystem::isDirectory(localDir))
+		EsLocale::init("", localDir);
 	else
-		EsLocale::init("", ES_INSTALL_LOCALEDIR);	
+		EsLocale::init("", ES_INSTALL_LOCALEDIR);
 
 	setlocale(LC_TIME, "");
 

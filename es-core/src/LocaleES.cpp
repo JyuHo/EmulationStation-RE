@@ -6,19 +6,6 @@
 
 #include "SystemConf.h"
 
-#ifndef HAVE_INTL
-const char* ngettext(const char* msgid, const char* msgid_plural, unsigned long int n)
-{
-	if (n != 1)
-		return msgid_plural;
-
-	return msgid;
-}
-const char* pgettext(const char* context, const char* msgid) {
-	return msgid;
-}
-#endif
-
 std::string EsLocale::default_LANGUAGE = "";
 
 std::string EsLocale::changeLocale(const std::string& locale) {

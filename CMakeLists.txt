@@ -294,7 +294,8 @@ find_program (MSGMERGE_EXECUTABLE msgmerge)
 find_program (XGETTEXT_EXECUTABLE xgettext)
 find_package(Intl)
 
-if(MSGFMT_EXECUTABLE AND MSGMERGE_EXECUTABLE AND XGETTEXT_EXECUTABLE AND Intl_FOUND)
+# gettext itself is part of glibc; msgfmt is only needed to compile the translations
+if(Intl_FOUND)
   message (STATUS "Native language support enabled.")
   add_definitions(-DHAVE_INTL)
 else()
@@ -308,21 +309,13 @@ if(PYTHON3_EXECUTABLE)
 endif()
 
 #-------------------------------------------------------------------------------
-# set up build directories
-
-set(dir ${CMAKE_CURRENT_SOURCE_DIR})
-
-set(EXECUTABLE_OUTPUT_PATH ${dir} CACHE PATH "Build directory" FORCE)
-set(LIBRARY_OUTPUT_PATH ${dir} CACHE PATH "Build directory" FORCE)
-
-#-------------------------------------------------------------------------------
 # add each component
 
 add_subdirectory("external")
 add_subdirectory("es-core")
 add_subdirectory("es-app")
 
-if(MSGFMT_EXECUTABLE AND MSGMERGE_EXECUTABLE AND XGETTEXT_EXECUTABLE AND Intl_FOUND)
+if(MSGFMT_EXECUTABLE AND Intl_FOUND)
   add_subdirectory (locale)
 endif()
 
