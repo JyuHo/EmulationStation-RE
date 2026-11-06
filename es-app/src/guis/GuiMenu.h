@@ -49,7 +49,7 @@ private:
         void openScreensaverOptions();  
         void openSoundSettings();
         void openUISettings();
-        void openUpdatesSettings(bool selectTorrentService = false);
+        void openUpdatesSettings();
         
         void openSystemSettings();
         void openGamesSettings();       
@@ -58,19 +58,13 @@ private:
         void openWifiNetwork(const std::string& slot, const std::function<void()>& onClose);
         void openQuitMenu();
         void openSystemInformations();
-        void openServicesSettings();
         void openMultiScreensSettings();
-        void openDmdSettings();
         void openDeveloperSettings();
         void openNetplaySettings(); 
         void openRetroachievementsSettings();
         void openMissingBiosSettings();
-        void openFormatDriveSettings();
         void exitKidMode();
 
-#ifdef BATOCERA
-        void openUnmountDriveSettings();
-#endif
 
         // windows
         void openEmulatorSettings();

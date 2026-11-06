@@ -193,174 +193,10 @@ std::string ApiSystem::getApplicationName()
 		return aboutInfo;
 	}
 
-#if BATOCERA
-	return "BATOCERA";
-#else
 	return "EMULATIONSTATION";
-#endif
 }
-
-bool ApiSystem::setOverscan(bool enable) 
-{
-	return executeScript("batocera-config overscan " + std::string(enable ? "enable" : "disable"));
-}
-
-bool ApiSystem::setOverclock(std::string mode) 
-{
-	if (mode.empty())
-		return false;
-
-	return executeScript("batocera-overclock set " + mode);
-}
-
-#ifdef BATOCERA
-bool ApiSystem::areCpuMitigationsEnabled()
-{
-	auto result = executeScript("batocera-mitigations status", nullptr);
-
-	if (result.second != 0)
-		return true;
-
-	return Utils::String::trim(result.first) != "0";
-}
-
-bool ApiSystem::setCpuMitigationsEnabled(bool enabled)
-{
-	return executeScript(std::string("batocera-mitigations ") + (enabled ? "on" : "off"));
-}
-#endif
 
 // BusyComponent* ui
-std::pair<std::string, int> ApiSystem::updateSystem(const std::function<void(const std::string)>& func, bool fromlocalmedia)
-{
-	LOG(LogDebug) << "ApiSystem::updateSystem";
-
-	std::string upgradeScriptPath = "batocera-upgrade";
-
-	// Fetch the latest script from GitHub if performing an online upgrade
-	if (!fromlocalmedia)
-	{
-		if (func != nullptr)
-			func(_("Checking for latest upgrade script..."));
-
-		std::string downloadCommand = "curl --connect-timeout 10 -m 30 -L -f -s -o /tmp/batocera-upgrade "
-		                              "https://github.com/batocera-linux/batocera.linux/raw/refs/heads/master/package/batocera/core/batocera-scripts/scripts/batocera-upgrade "
-		                              "&& chmod +x /tmp/batocera-upgrade";
-		
-		int downloadRes = system(downloadCommand.c_str());
-		if (downloadRes == 0 && Utils::FileSystem::exists("/tmp/batocera-upgrade"))
-		{
-			LOG(LogInfo) << "Successfully fetched the latest batocera-upgrade script from GitHub.";
-			upgradeScriptPath = "/tmp/batocera-upgrade";
-		}
-		else
-		{
-			LOG(LogWarning) << "Failed to fetch latest upgrade script from GitHub, falling back to built-in version.";
-		}
-	}
-
-	std::string updatecommand = upgradeScriptPath + " --upgrade";
-	if (fromlocalmedia) {
-		updatecommand = upgradeScriptPath + " --media-upgrade --media";
-	}
-
-	FILE *pipe = popen(updatecommand.c_str(), "r");
-	if (pipe == nullptr)
-	{
-		// Clean up the downloaded script if we failed to execute popen
-		if (upgradeScriptPath == "/tmp/batocera-upgrade") {
-			Utils::FileSystem::removeFile("/tmp/batocera-upgrade");
-		}
-		return std::pair<std::string, int>(std::string("Cannot call update command"), -1);
-	}
-	
-	char line[1024] = "";
-	FILE *flog = fopen(Utils::FileSystem::combine(Paths::getLogPath(), "batocera-upgrade.log").c_str(), "w");
-	while (fgets(line, 1024, pipe)) 
-	{
-		strtok(line, "\n");
-		if (flog != nullptr) 
-			fprintf(flog, "%s\n", line);
-
-		if (func != nullptr)
-			func(std::string(line));		
-	}
-
-	int exitCode = WEXITSTATUS(pclose(pipe));
-
-	// Clean up the temporary script to free RAM disk space
-	if (upgradeScriptPath == "/tmp/batocera-upgrade") {
-		Utils::FileSystem::removeFile("/tmp/batocera-upgrade");
-	}
-
-	if (flog != NULL)
-	{
-		fprintf(flog, "Exit code : %d\n", exitCode);
-		fclose(flog);
-	}
-
-	return std::pair<std::string, int>(std::string(line), exitCode);
-}
-
-std::pair<std::string, int> ApiSystem::backupSystem(BusyComponent* ui, std::string device) 
-{
-	LOG(LogDebug) << "ApiSystem::backupSystem";
-
-	std::string updatecommand = "batocera-sync sync " + device;
-	FILE* pipe = popen(updatecommand.c_str(), "r");
-	if (pipe == NULL)
-		return std::pair<std::string, int>(std::string("Cannot call sync command"), -1);
-
-	char line[1024] = "";
-
-	FILE* flog = fopen(Utils::FileSystem::combine(Paths::getLogPath(), "batocera-sync.log").c_str(), "w");
-	while (fgets(line, 1024, pipe)) 
-	{
-		strtok(line, "\n");
-
-		if (flog != NULL) 
-			fprintf(flog, "%s\n", line);
-
-		ui->setText(std::string(line));
-	}
-
-	if (flog != NULL) 
-		fclose(flog);
-
-	int exitCode = WEXITSTATUS(pclose(pipe));
-	return std::pair<std::string, int>(std::string(line), exitCode);
-}
-
-std::pair<std::string, int> ApiSystem::installSystem(BusyComponent* ui, std::string device, std::string architecture) 
-{
-	LOG(LogDebug) << "ApiSystem::installSystem";
-
-	std::string updatecommand = "batocera-install install " + device + " " + architecture;
-	FILE *pipe = popen(updatecommand.c_str(), "r");
-	if (pipe == NULL)
-		return std::pair<std::string, int>(std::string("Cannot call install command"), -1);
-
-	char line[1024] = "";
-
-	FILE *flog = fopen(Utils::FileSystem::combine(Paths::getLogPath(), "batocera-install.log").c_str(), "w");
-	while (fgets(line, 1024, pipe)) 
-	{
-		strtok(line, "\n");
-		if (flog != NULL) fprintf(flog, "%s\n", line);
-		ui->setText(std::string(line));
-	}
-
-	int exitCode = WEXITSTATUS(pclose(pipe));
-
-	if (flog != NULL)
-	{
-		fprintf(flog, "Exit code : %d\n", exitCode);
-		fclose(flog);
-	}
-
-	return std::pair<std::string, int>(std::string(line), exitCode);
-}
-
 std::pair<std::string, int> ApiSystem::scrape(BusyComponent* ui) 
 {
 	LOG(LogDebug) << "ApiSystem::scrape";
@@ -406,136 +242,6 @@ bool ApiSystem::ping()
     return true;
 }
 
-bool ApiSystem::torrentIsReadyForUpdate() {
-  LOG(LogDebug) << "ApiSystem::torrentIsReadyForUpdate";
-
-  FILE *pipe = popen("batocera-upgrade-torrent --is-file-ready-to-update", "r");
-  if (pipe == NULL)
-    return false;
-
-  int res = WEXITSTATUS(pclose(pipe));
-  if (res == 0) 
-    {
-      LOG(LogInfo) << "Can update via torrent";
-      return true;
-    }
-
-  LOG(LogInfo) << "Cannot update via torrent";
-  return false;
-}
-
-std::string ApiSystem::torrentStatus() {
-  LOG(LogDebug) << "ApiSystem::torrentStatus";
-
-  std::vector<std::string> results = executeEnumerationScript("batocera-upgrade-torrent --status");
-  if (results.empty())
-    return "UNKNOWN";
-
-  return results[0];
-}
-
-std::pair<std::string, int> ApiSystem::torrentUpdateSystem(const std::function<void(const std::string)>& func)
-{
-	LOG(LogDebug) << "ApiSystem::torrentUpdateSystem";
-
-	std::string updatecommand = "batocera-upgrade-torrent --upgrade";
-
-	FILE *pipe = popen(updatecommand.c_str(), "r");
-	if (pipe == nullptr)
-		return std::pair<std::string, int>(std::string("Cannot call update command"), -1);
-	
-	char line[1024] = "";
-	FILE *flog = fopen(Utils::FileSystem::combine(Paths::getLogPath(), "batocera-upgrade-torrent.log").c_str(), "w");
-	while (fgets(line, 1024, pipe)) 
-	{
-		strtok(line, "\n");
-		if (flog != nullptr) 
-			fprintf(flog, "%s\n", line);
-
-		if (func != nullptr)
-			func(std::string(line));		
-	}
-
-	int exitCode = WEXITSTATUS(pclose(pipe));
-
-	if (flog != NULL)
-	{
-		fprintf(flog, "Exit code : %d\n", exitCode);
-		fclose(flog);
-	}
-
-	return std::pair<std::string, int>(std::string(line), exitCode);
-}
-
-bool ApiSystem::canLocalUpdate() {
-	LOG(LogDebug) << "ApiSystem::canMediaUpgrade";
-
-	FILE *pipe = popen("batocera-upgrade --check-media-upgrade", "r");
-	if (pipe == NULL)
-		return false;
-
-	int res = WEXITSTATUS(pclose(pipe));
-	if (res == 0) 
-	{
-		LOG(LogInfo) << "Can media upgrade";
-		return true;
-	}
-
-	LOG(LogInfo) << "Cannot media upgrade";
-	return false;
-}
-
-bool ApiSystem::canArchitectureUpdate(std::string& architecture) {
-	LOG(LogDebug) << "ApiSystem::canArchitectureUpdate";
-
-	FILE *pipe = popen("batocera-architecture-compatibility", "r");
-	if (pipe == NULL)
-		return false;
-
-	char line[1024];
-	while (fgets(line, 1024, pipe)) 
-	{
-	    strtok(line, "\n");
-	    architecture = std::string(line);
-	}
-
-	int res = WEXITSTATUS(pclose(pipe));
-	if (res == 0) 
-	{
-		LOG(LogInfo) << "Can Architecture Update";
-		return true;
-	}
-
-	LOG(LogInfo) << "Cannot Architecture Update";
-	return false;
-}
-
-bool ApiSystem::canUpdate(std::vector<std::string>& output) 
-{
-	LOG(LogDebug) << "ApiSystem::canUpdate";
-
-	FILE *pipe = popen("batocera-upgrade --check-upgrade", "r");
-	if (pipe == NULL)
-		return false;
-
-	char line[1024];
-	while (fgets(line, 1024, pipe)) 
-	{
-		strtok(line, "\n");
-		output.push_back(std::string(line));
-	}
-
-	int res = WEXITSTATUS(pclose(pipe));
-	if (res == 0) 
-	{
-		LOG(LogInfo) << "Can update ";
-		return true;
-	}
-
-	LOG(LogInfo) << "Cannot update ";
-	return false;
-}
-
 void ApiSystem::launchExternalWindow_before(Window *window) 
 {
 	LOG(LogDebug) << "ApiSystem::launchExternalWindow_before";
@@ -564,11 +270,6 @@ void ApiSystem::launchExternalWindow_after(Window *window)
 	LOG(LogDebug) << "ApiSystem::launchExternalWindow_after OK";
 }
 
-#ifdef BATOCERA
-void ApiSystem::launchControlcenter() {
-  system("batocera-controlcenter");
-}
-#endif
 
 bool ApiSystem::launchKodi(Window *window) 
 {
@@ -706,11 +407,6 @@ std::vector<std::string> ApiSystem::getPairedBluetoothDeviceList()
 	return executeEnumerationScript("batocera-bluetooth list");
 }
 
-std::vector<std::string> ApiSystem::getAvailableStorageDevices() 
-{
-	return executeEnumerationScript("batocera-config storage list");
-}
-
 std::vector<std::string> ApiSystem::getVideoModes(const std::string output)
 {
   if(output == "") {
@@ -720,41 +416,10 @@ std::vector<std::string> ApiSystem::getVideoModes(const std::string output)
   }
 }
 
-#ifdef BATOCERA
-bool ApiSystem::isHdrSupported()
-{
-	return executeScript("batocera-resolution supportHdr", nullptr).second == 0;
-}
-
-bool ApiSystem::isVrrSupported()
-{
-	return executeScript("batocera-resolution supportVrr", nullptr).second == 0;
-}
-#endif
 
 std::vector<std::string> ApiSystem::getCustomRunners() 
 {
 	return executeEnumerationScript("batocera-wine-runners");
-}
-
-std::vector<std::string> ApiSystem::getAvailableBackupDevices() 
-{
-	return executeEnumerationScript("batocera-sync list");
-}
-
-std::vector<std::string> ApiSystem::getAvailableInstallDevices() 
-{
-	return executeEnumerationScript("batocera-install listDisks");
-}
-
-std::vector<std::string> ApiSystem::getAvailableInstallArchitectures() 
-{
-	return executeEnumerationScript("batocera-install listArchs");
-}
-
-std::vector<std::string> ApiSystem::getAvailableOverclocking() 
-{
-	return executeEnumerationScript("batocera-overclock list");
 }
 
 std::vector<std::string> ApiSystem::getSystemInformations() 
@@ -811,74 +476,6 @@ std::vector<BiosSystem> ApiSystem::getBiosInformations(const std::string system)
 		res.push_back(current);
 
 	return res;
-}
-
-bool ApiSystem::generateSupportFile() 
-{
-	return executeScript("batocera-support");
-}
-
-std::string ApiSystem::getCurrentStorage() 
-{
-	LOG(LogDebug) << "ApiSystem::getCurrentStorage";
-
-
-	std::ostringstream oss;
-	oss << "batocera-config storage current";
-	FILE *pipe = popen(oss.str().c_str(), "r");
-	char line[1024];
-
-	if (pipe == NULL)
-		return "";	
-
-	if (fgets(line, 1024, pipe)) {
-		strtok(line, "\n");
-		pclose(pipe);
-		return std::string(line);
-	}
-	return "INTERNAL";
-}
-
-bool ApiSystem::setStorage(std::string selected) 
-{
-	return executeScript("batocera-config storage " + selected);
-}
-
-bool ApiSystem::setButtonColorGameForce(std::string selected)
-{
-	return executeScript("batocera-gameforce buttonColorLed " + selected);
-}
-
-bool ApiSystem::setPowerLedGameForce(std::string selected)
-{
-	return executeScript("batocera-gameforce powerLed " + selected);
-}
-
-bool ApiSystem::setButtonColorR36Ultra(const std::string& selected)
-{
-	static const std::map<std::string, std::string> r36UltraModeMap = {
-		{"off", "0 0 0"},
-		{"red", "255 0 0"},
-		{"yellow", "255 255 0"},
-		{"green", "0 255 0"},
-		{"cyan", "0 255 255"},
-		{"blue", "0 0 255"},
-		{"purple", "255 0 255"},
-		{"white", "255 255 255"}
-	};
-	SystemConf::getInstance()->set("led.colour", r36UltraModeMap.at(selected));
-	SystemConf::getInstance()->saveSystemConf();
-	return executeScript("batocera-led-handheld set_color_force_dec " + r36UltraModeMap.at(selected));
-}
-
-bool ApiSystem::setPowerLedR36(const std::string& selected)
-{
-	if(selected == "off") {
-		Utils::FileSystem::writeAllText("/sys/class/leds/blue:power/brightness", "0");
-		return true;
-	}
-	Utils::FileSystem::writeAllText("/sys/class/leds/blue:power/brightness", "1");
-	return true;
 }
 
 bool ApiSystem::forgetBluetoothControllers() 
@@ -998,22 +595,14 @@ bool ApiSystem::setAudioOutputProfile(std::string selected)
 	return exitcode == 0;
 }
 
-std::string ApiSystem::getUpdateUrl()
-{
-	auto systemsetting = SystemConf::getInstance()->get("global.updates.url");
-	if (!systemsetting.empty())
-		return systemsetting;
-
-	return "https://updates.batocera.org";
-}
-
 std::string ApiSystem::getThemesUrl()
 {
 	auto systemsetting = SystemConf::getInstance()->get("global.themes.url");
 	if (!systemsetting.empty())
 		return systemsetting;
 
-	return getUpdateUrl() + "/themes.json";
+	// Theme catalogue maintained by Batocera; override with global.themes.url
+	return "https://updates.batocera.org/themes.json";
 }
 
 std::string ApiSystem::getGitRepositoryDefaultBranch(const std::string& url)
@@ -1257,35 +846,6 @@ std::pair<std::string, int> ApiSystem::uninstallBatoceraTheme(std::string thname
 	}
 
 	return std::pair<std::string, int>(std::string(""), 1);
-}
-
-std::vector<BatoceraBezel> ApiSystem::getBatoceraBezelsList()
-{
-	LOG(LogInfo) << "ApiSystem::getBatoceraBezelsList";
-
-	std::vector<BatoceraBezel> res;
-
-	auto lines = executeEnumerationScript("batocera-es-thebezelproject list");
-	for (auto line : lines)
-	{
-		auto parts = Utils::String::splitAny(line, " \t");
-		if (parts.size() < 2)
-			continue;
-
-		if (!Utils::String::startsWith(parts[0], "[I]") && !Utils::String::startsWith(parts[0], "[A]"))
-			continue;
-
-		BatoceraBezel bz;
-		bz.isInstalled = (Utils::String::startsWith(parts[0], "[I]"));
-		bz.name = parts[1];
-		bz.url = parts.size() < 3 ? "" : (parts[2] == "-" ? parts[3] : parts[2]);
-		bz.folderPath = parts.size() < 4 ? "" : parts[3];
-
-		if (bz.name != "?")
-			res.push_back(bz);
-	}
-
-	return res;
 }
 
 std::pair<std::string, int> ApiSystem::installBatoceraBezel(std::string bezelsystem, const std::function<void(const std::string)>& func)
@@ -2140,12 +1700,6 @@ bool ApiSystem::isScriptingSupported(ScriptId script)
 	case ApiSystem::BIOSINFORMATION:
 		executables.push_back("batocera-systems");
 		break;
-	case ApiSystem::DISKFORMAT:
-		executables.push_back("batocera-format");
-		break;
-	case ApiSystem::OVERCLOCK:
-		executables.push_back("batocera-overclock");
-		break;
 	case ApiSystem::NETPLAY:
 		executables.push_back("7zr");
 		break;
@@ -2153,20 +1707,11 @@ bool ApiSystem::isScriptingSupported(ScriptId script)
 		executables.push_back("pdftoppm");
 		executables.push_back("pdfinfo");
 		break;
-	case ApiSystem::BATOCERASTORE:
-		executables.push_back("batocera-store");
-		break;
-	case ApiSystem::THEBEZELPROJECT:
-		executables.push_back("batocera-es-thebezelproject");
-		break;		
 	case ApiSystem::PADSINFO:
 		executables.push_back("batocera-padsinfo");
 		break;
 	case ApiSystem::EVMAPY:
 		executables.push_back("evmapy");
-		break;
-	case ApiSystem::BATOCERAPREGAMELISTSHOOK:
-		executables.push_back("batocera-preupdate-gamelists-hook");
 		break;
 	case ApiSystem::TIMEZONES:
 		executables.push_back("batocera-timezone");
@@ -2174,35 +1719,13 @@ bool ApiSystem::isScriptingSupported(ScriptId script)
 	case ApiSystem::AUDIODEVICE:
 		executables.push_back("batocera-audio");
 		break;		
-	case ApiSystem::BACKUP:
-		executables.push_back("batocera-sync");
-		break;
-	case ApiSystem::INSTALL:
-		executables.push_back("batocera-install");
-		break;	
-	case ApiSystem::SUPPORTFILE:
-		executables.push_back("batocera-support");
-		break;
-	case ApiSystem::UPGRADE:
-		executables.push_back("batocera-upgrade");
-		break;
-	case ApiSystem::UPGRADEVIATORRENT:
-		executables.push_back("batocera-upgrade-torrent");
-		break;
 	case ApiSystem::SUSPEND:
 		return (Utils::FileSystem::exists("/usr/sbin/pm-suspend") && Utils::FileSystem::exists("/usr/bin/pm-is-supported") && executeScript("/usr/bin/pm-is-supported --suspend"));
 	case ApiSystem::VERSIONINFO:
 		executables.push_back("batocera-version");
 		break;
 	case ApiSystem::READPLANEMODE:
-	case ApiSystem::WRITEPLANEMODE:
 		executables.push_back("batocera-planemode");
-		break;
-	case ApiSystem::SERVICES:
-		executables.push_back("batocera-services");
-		break;
-	case ApiSystem::BACKGLASS:
-		executables.push_back("batocera-backglass");
 		break;
 	case ApiSystem::NFC:
 		executables.push_back("batocera-nfc");
@@ -2255,16 +1778,6 @@ void ApiSystem::setReadyFlag(bool ready)
 bool ApiSystem::isReadyFlagSet()
 {
 	return Utils::FileSystem::exists("/tmp/emulationstation.ready");
-}
-
-std::vector<std::string> ApiSystem::getFormatDiskList()
-{
-	return executeEnumerationScript("batocera-format listDisks");
-}
-
-std::vector<std::string> ApiSystem::getFormatFileSystems()
-{
-	return executeEnumerationScript("batocera-format listFstypes");
 }
 
 int ApiSystem::formatDisk(const std::string disk, const std::string format, const std::function<void(const std::string)>& func)
@@ -2377,79 +1890,6 @@ std::vector<std::string> ApiSystem::extractPdfImages(const std::string& fileName
 }
 
 
-std::vector<PacmanPackage> ApiSystem::getBatoceraStorePackages()
-{
-	std::vector<PacmanPackage> packages;
-
-	LOG(LogDebug) << "ApiSystem::getBatoceraStorePackages";
-
-	auto res = executeEnumerationScript("batocera-store list");
-	std::string data = Utils::String::join(res, "\n");
-	if (data.empty())
-	{
-		LOG(LogError) << "Package list is empty";
-		return packages;
-	}
-
-	pugi::xml_document doc;
-	pugi::xml_parse_result result = doc.load_string(data.c_str());
-	if (!result)
-	{
-		LOG(LogError) << "Unable to parse packages";
-		return packages;
-	}
-
-	pugi::xml_node root = doc.child("packages");
-	if (!root)
-	{
-		LOG(LogError) << "Could not find <packages> node";
-		return packages;
-	}
-
-	for (pugi::xml_node pkgNode = root.child("package"); pkgNode; pkgNode = pkgNode.next_sibling("package"))
-	{
-		PacmanPackage package;
-
-		for (pugi::xml_node node = pkgNode.first_child(); node; node = node.next_sibling())
-		{
-			std::string tag = node.name();
-			if (tag == "name")
-				package.name = node.text().get();
-			if (tag == "repository")
-				package.repository = node.text().get();
-			if (tag == "available_version")
-				package.available_version = node.text().get();
-			if (tag == "description")
-				package.description = node.text().get();
-			if (tag == "group")
-				package.group = node.text().get(); // groups.push_back(
-			if (tag == "license")
-				package.licenses.push_back(node.text().get());
-			if (tag == "packager")
-				package.packager = node.text().get();
-			if (tag == "status")
-				package.status = node.text().get();
-			if (tag == "repository")
-				package.repository = node.text().get();
-			if (tag == "url")
-				package.url = node.text().get();			
-			if (tag == "arch")
-				package.arch = node.text().get();
-			if (tag == "download_size")
-				package.download_size = node.text().as_llong();
-			if (tag == "installed_size")
-				package.installed_size = node.text().as_llong();
-			if (tag == "preview_url")
-				package.preview_url = node.text().get();
-		}
-
-		if (!package.name.empty())
-			packages.push_back(package);		
-	}
-
-	return packages;
-}
-
 std::pair<std::string, int> ApiSystem::installBatoceraStorePackage(std::string name, const std::function<void(const std::string)>& func)
 {
 	return executeScript("batocera-store install \"" + name + "\"", func);
@@ -2458,22 +1898,6 @@ std::pair<std::string, int> ApiSystem::installBatoceraStorePackage(std::string n
 std::pair<std::string, int> ApiSystem::uninstallBatoceraStorePackage(std::string name, const std::function<void(const std::string)>& func)
 {
 	return executeScript("batocera-store remove \"" + name + "\"", func);
-}
-
-void ApiSystem::refreshBatoceraStorePackageList()
-{
-	executeScript("batocera-store refresh");
-	executeScript("batocera-store clean-all");
-}
-
-void ApiSystem::callBatoceraPreGameListsHook()
-{
-	executeScript("batocera-preupdate-gamelists-hook");
-}
-
-void ApiSystem::updateBatoceraStorePackageList()
-{
-	executeScript("batocera-store update");
 }
 
 std::vector<std::string> ApiSystem::getShaderList(const std::string& systemName, const std::string& emulator, const std::string& core)
@@ -2727,34 +2151,6 @@ bool ApiSystem::isPlaneMode()
 bool ApiSystem::isReadPlaneModeSupported()
 {
 	return isScriptingSupported(READPLANEMODE);
-}
-
-bool ApiSystem::setPlaneMode(bool enable)
-{
-	LOG(LogDebug) << "ApiSystem::setPlaneMode";
-	return executeScript("batocera-planemode " + std::string(enable ? "enable" : "disable"));
-}
-
-std::vector<Service> ApiSystem::getServices()
-{
-	std::vector<Service> services;
-
-	LOG(LogDebug) << "ApiSystem::getServices";
-
-	auto slines = executeEnumerationScript("batocera-services list");
-
-	for (auto sline : slines) 
-	{
-		auto splits = Utils::String::split(sline, ';', true);
-		if (splits.size() == 2) 
-		{
-			Service s;
-			s.name = splits[0];
-			s.enabled = (splits[1] == "*");
-			services.push_back(s);
-		}
-	}
-	return services;
 }
 
 std::vector<Hotkey> ApiSystem::getJoysticksHotkeys() {
@@ -3214,40 +2610,6 @@ std::string ApiSystem::detectEvKey(const std::string& device_path) {
     }
 
   return vkey;
-}
-
-std::vector<std::string> ApiSystem::backglassThemes() {
-  std::vector<std::string> themes;
-
-  LOG(LogDebug) << "ApiSystem::backglassThemes";
-
-  auto slines = executeEnumerationScript("batocera-backglass list-themes");
-
-  for (auto sline : slines) 
-    {
-      themes.push_back(sline);
-    }
-  return themes;
-}
-
-void ApiSystem::restartBackglass() {
-  LOG(LogDebug) << "ApiSystem::restartBackglass";
-  executeScript("/usr/bin/batocera-backglass restart");
-}
-
-bool ApiSystem::enableService(std::string name, bool enable) 
-{
-	std::string serviceName = name;
-	if (serviceName.find(" ") != std::string::npos)
-		serviceName = "\"" + serviceName + "\"";
-
-	LOG(LogDebug) << "ApiSystem::enableService " << serviceName;
-
-	bool res = executeScript("batocera-services " + std::string(enable ? "enable" : "disable") + " " + serviceName);
-	if (res)
-		res = executeScript("batocera-services " + std::string(enable ? "start" : "stop") + " " + serviceName);
-	
-	return res;
 }
 
 std::vector<std::string> ApiSystem::getEjectableDrives()

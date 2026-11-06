@@ -17,12 +17,6 @@ Paths* Paths::_instance = nullptr;
 Paths::Paths()
 {	
 
-#ifdef BATOCERA
-	LOG(LogInfo) << "BATOCERA is defined";
-#else
-	LOG(LogInfo) << "BATOCERA is NOT defined";
-#endif
-
 	mEmulationStationPath = getExePath();
 	mUserEmulationStationPath = Utils::FileSystem::getCanonicalPath(getHomePath() + "/.emulationstation");
 	mRootPath = Utils::FileSystem::getParent(getHomePath());
@@ -36,35 +30,7 @@ Paths::Paths()
 
 	loadCustomConfiguration(false); // Try to detect alternate paths ( Decorations, Shaders... ) without loading overrides
 
-	// Here, BATOCERA & Forks can define their own paths
 
-#if BATOCERA
-	mRootPath = "/userdata";
-	mEmulationStationPath = "/usr/share/emulationstation";
-	mUserEmulationStationPath = "/userdata/system/configs/emulationstation";
-
-	mLogPath = "/userdata/system/logs";
-	mScreenShotsPath = "/userdata/screenshots";
-	mSaveStatesPath = "/userdata/saves";
-	mMusicPath = "/usr/share/batocera/music";
-	mUserMusicPath = "/userdata/music";
-	mThemesPath = "/usr/share/emulationstation/themes";
-	mUserThemesPath = "/userdata/themes";
-	mKeyboardMappingsPath = "/usr/share/evmapy";
-	mUserKeyboardMappingsPath = "/userdata/system/configs/evmapy";
-	mDecorationsPath = "/usr/share/batocera/datainit/decorations";
-	mUserDecorationsPath = "/userdata/decorations";
-	mShadersPath = "/usr/share/batocera/shaders/configs";
-	mUserShadersPath = "/userdata/shaders/configs";
-	mTimeZonesPath = "/usr/share/zoneinfo/";
-	mRetroachivementSounds = "/usr/share/libretro/assets/sounds";
-	mUserRetroachivementSounds = "/userdata/sounds/retroachievements";
-	
-	mSystemConfFilePath = "/userdata/system/batocera.conf";
-	mUserManualPath = "/usr/share/batocera/doc/notice.pdf";
-	mVersionInfoPath = "/usr/share/batocera/batocera.version";
-	mKodiPath = "/usr/bin/kodi";
-#endif
 
 /* EmuElec sample locations.
 #ifdef _ENABLEEMUELEC
