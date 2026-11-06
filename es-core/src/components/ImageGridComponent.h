@@ -73,7 +73,7 @@ protected:
 	using IList<ImageGridData, T>::mCursor;
 	using IList<ImageGridData, T>::mShowing;
 	using IList<ImageGridData, T>::mVisible;
-	using IList<ImageGridData, T>::Entry;
+	using typename IList<ImageGridData, T>::Entry;
 	using IList<ImageGridData, T>::mWindow;
 
 public:

@@ -11,7 +11,7 @@ EmulationStation-RE targets Linux only, on two platforms:
 * x86_64 (Arch Linux / CachyOS)
 * Raspberry Pi 4 and later (Armbian trixie)
 
-You need CMake, a C++ compiler, SDL2, SDL2_mixer, FreeImage, FreeType, cURL, RapidJSON, LibVLC, ALSA and gettext. FriBidi, libudev and libcec are optional. The `fonts-droid-fallback` package (or equivalent) provides fallback fonts for Chinese/Japanese/Korean characters at run time.
+The code is built as C++23, so you need GCC 13+ or Clang 18+ and CMake 3.25+. You also need SDL2, SDL2_mixer, FreeImage, FreeType, cURL, RapidJSON, LibVLC, ALSA and gettext. FriBidi, libudev and libcec are optional. The `fonts-droid-fallback` package (or equivalent) provides fallback fonts for Chinese/Japanese/Korean characters at run time.
 
 **On Arch Linux / CachyOS:**
 ```bash
