@@ -2,10 +2,6 @@
 
 #include <SDL_events.h>
 
-#if WIN32
-#include <codecvt>
-#include <windows.h>
-#else
 #include <sys/types.h>
 #include <unistd.h>
 #include <ifaddrs.h>
@@ -14,7 +10,6 @@
 #include <arpa/inet.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#endif
 
 #include <fcntl.h>
 #include "Window.h"
@@ -38,10 +33,8 @@ namespace Utils
 			window = nullptr;
 			waitForExit = true;
 			showWindow = true;
-#ifndef WIN32
 			stderrFilename = "es_launch_stderr.log";
 			stdoutFilename = "es_launch_stdout.log";
-#endif
 		}
 
 		ProcessStartInfo::ProcessStartInfo(const std::string& cmd)
@@ -50,10 +43,8 @@ namespace Utils
 			window = nullptr;
 			waitForExit = true;
 			showWindow = true;
-#ifndef WIN32
 			stderrFilename = "es_launch_stderr.log";
 			stdoutFilename = "es_launch_stdout.log";
-#endif
 		}
 
 		int ProcessStartInfo::run() const
@@ -66,96 +57,6 @@ namespace Utils
 
 			std::string cmd_utf8 = command;
 
-#ifdef WIN32
-			std::wstring cmd_w = Utils::String::convertToWideString(cmd_utf8);
-
-			DWORD dwLen = ExpandEnvironmentStringsW(cmd_w.c_str(), NULL, 0);
-			if (dwLen > 0)
-			{
-				WCHAR* szEnvPath = new WCHAR[dwLen];
-
-				dwLen = ExpandEnvironmentStringsW(cmd_w.c_str(), szEnvPath, dwLen);
-				if (dwLen > 0)
-					cmd_utf8 = Utils::String::convertFromWideString(szEnvPath);
-
-				delete[] szEnvPath;
-			}
-
-			std::string exe;
-			std::string args;
-			Utils::FileSystem::splitCommand(cmd_utf8, &exe, &args);
-
-			exe = Utils::FileSystem::getPreferredPath(exe);
-
-			std::wstring wexe = Utils::String::convertToWideString(exe);
-			std::wstring wargs = Utils::String::convertToWideString(args);
-
-			SHELLEXECUTEINFOW lpExecInfo;
-			lpExecInfo.cbSize = sizeof(SHELLEXECUTEINFOW);
-			lpExecInfo.lpFile = wexe.c_str();
-			lpExecInfo.fMask = SEE_MASK_DOENVSUBST | SEE_MASK_NOCLOSEPROCESS;
-			lpExecInfo.hwnd = NULL;
-			lpExecInfo.lpVerb = L"open"; // to open  program
-			lpExecInfo.lpDirectory = NULL;
-			lpExecInfo.nShow = showWindow ? SW_SHOW : SW_HIDE;  // show command prompt with normal window size
-			lpExecInfo.hInstApp = (HINSTANCE)SE_ERR_DDEFAIL;   //WINSHELLAPI BOOL WINAPI result;
-			lpExecInfo.lpParameters = wargs.c_str(); //  file name as an argument
-
-			std::wstring wpath;
-
-			// Don't set directory for relative paths
-			if (!Utils::String::startsWith(exe, ".") && !Utils::String::startsWith(exe, "/") && !Utils::String::startsWith(exe, "\\"))
-			{
-				wpath = Utils::String::convertToWideString(Utils::FileSystem::getAbsolutePath(Utils::FileSystem::getParent(exe)));
-				lpExecInfo.lpDirectory = wpath.c_str();
-			}
-
-			if (waitForExit)
-				Renderer::setWindowResizable(false);
-
-			ShellExecuteExW(&lpExecInfo);
-
-			if (lpExecInfo.hProcess != NULL)
-			{
-				if (!waitForExit)
-					return 0;
-
-				if (window == nullptr)
-					WaitForSingleObject(lpExecInfo.hProcess, INFINITE);
-				else
-				{
-				
-
-					while (WaitForSingleObject(lpExecInfo.hProcess, 50) == 0x00000102L)
-					{
-						bool polled = false;
-
-						SDL_Event event;
-						while (SDL_PollEvent(&event))
-							polled = true;
-
-						if (window != nullptr && polled)
-							window->renderSplashScreen();
-					}				
-				}
-
-				DWORD dwExitCode;
-				if (!GetExitCodeProcess(lpExecInfo.hProcess, &dwExitCode))
-					dwExitCode = 0;
-
-				CloseHandle(lpExecInfo.hProcess); 
-				
-				if (waitForExit)
-					Renderer::setWindowResizable(true);
-
-				return dwExitCode;
-			}
-
-			if (waitForExit)
-				Renderer::setWindowResizable(true);
-
-			return 1;
-#else
 			// getting the output when in a pipe is not easy...
 			// https://stackoverflow.com/questions/1221833/pipe-output-and-capture-exit-status-in-bash
 			std::string cmdOutput = "((((" + cmd_utf8 + " 2> " + Utils::FileSystem::combine(Paths::getLogPath(), stderrFilename) + " ; echo $? >&3) | head -300 > " + Utils::FileSystem::combine(Paths::getLogPath(), stdoutFilename) + ") 3>&1) | (read xs; exit $xs))";
@@ -189,25 +90,16 @@ namespace Utils
 			}
 
 			return 0;
-#endif
 		}
 
 		int runShutdownCommand()
 		{
-#ifdef WIN32 // windows
-			return system("shutdown -s -t 0");
-#else // osx / linux
 		return system("shutdown -P -h now");
-#endif
 		}
 
 		int runRestartCommand()
 		{
-#ifdef WIN32 // windows
-			return system("shutdown -r -t 0");
-#else // osx / linux
 			return system("shutdown -r now");
-#endif
 		}
 
 		static QuitMode quitMode = QuitMode::QUIT;
@@ -239,13 +131,11 @@ namespace Utils
 
 		void touch(const std::string& filename)
 		{
-#ifndef WIN32
 			int fd = open(filename.c_str(), O_CREAT | O_WRONLY, 0644);
 			if (fd >= 0)
 				close(fd);
 
 			// system(("touch " + filename).c_str());
-#endif
 		}
 
 		void processQuitMode()
@@ -289,32 +179,6 @@ namespace Utils
 
 			std::string result;
 
-#if WIN32
-			// Init WinSock
-			WSADATA wsa_Data;
-			int wsa_ReturnCode = WSAStartup(0x101, &wsa_Data);
-			if (wsa_ReturnCode != 0)
-				return "";
-
-			char* szLocalIP = nullptr;
-
-			// Get the local hostname
-			char szHostName[255];
-			if (gethostname(szHostName, 255) == 0)
-			{
-				struct hostent* host_entry;
-				host_entry = gethostbyname(szHostName);
-				if (host_entry != nullptr)
-					szLocalIP = inet_ntoa(*(struct in_addr*)*host_entry->h_addr_list);
-			}
-
-			WSACleanup();
-
-			if (szLocalIP == nullptr)
-				return "";
-
-			return std::string(szLocalIP); // "127.0.0.1"
-#else
 			struct ifaddrs* ifAddrStruct = NULL;
 			struct ifaddrs* ifa = NULL;
 			void* tmpAddrPtr = NULL;
@@ -372,7 +236,6 @@ namespace Utils
 
 			if (ifAddrStruct != NULL)
 				freeifaddrs(ifAddrStruct);
-#endif
 
 			return result;
 
@@ -397,25 +260,6 @@ namespace Utils
 			return ret;
 #endif
 
-#ifdef WIN32
-			SYSTEM_POWER_STATUS systemPowerStatus;
-			if (GetSystemPowerStatus(&systemPowerStatus))
-			{
-				if ((systemPowerStatus.BatteryFlag & 128) == 128)
-					ret.hasBattery = false;
-				else
-				{
-					ret.hasBattery = true;
-					ret.isCharging = (systemPowerStatus.BatteryFlag & 8) == 8;
-					ret.level = systemPowerStatus.BatteryLifePercent;
-				}
-			}
-			else
-				ret.hasBattery = false;
-
-			return ret;
-
-#endif
 
 			static std::string batteryStatusPath;
 			static std::string batteryCapacityPath;
@@ -547,130 +391,6 @@ namespace Utils
 			return ret;
 		}
 
-#if WIN32
-		static bool _getWindowsVersion(WORD& major, WORD& minor, WORD& build, WORD& revision)
-		{
-			// Use product version in kernel32.dll to have real Windows version as we don't have a compatibility manifest (GetVersion is limited to 6.2)
-			HMODULE kernel32Module = GetModuleHandle("kernel32.dll");
-			if (kernel32Module != nullptr)
-			{
-				wchar_t filePath[MAX_PATH];
-				DWORD length = GetModuleFileNameW(kernel32Module, filePath, MAX_PATH);
-				if (length > 0)
-				{
-					DWORD dummy;
-					DWORD versionSize = GetFileVersionInfoSizeW(filePath, &dummy);
-
-					std::vector<char> versionData(versionSize);
-					if (GetFileVersionInfoW(filePath, 0, versionSize, versionData.data()))
-					{
-						VS_FIXEDFILEINFO* fileInfo;
-						UINT fileInfoSize;
-
-						if (VerQueryValueW(versionData.data(), L"\\", reinterpret_cast<void**>(&fileInfo), &fileInfoSize))
-						{
-						    major = HIWORD(fileInfo->dwProductVersionMS);
-							minor = LOWORD(fileInfo->dwProductVersionMS);
-							build = HIWORD(fileInfo->dwProductVersionLS);
-							revision = LOWORD(fileInfo->dwProductVersionLS);
-
-							return true;
-						}
-					}
-				}
-			}
-
-			return false;
-		}
-
-		bool isWindows10()
-		{
-			static const bool result = []()
-			{
-				WORD major, minor, build, revision;
-
-				if (_getWindowsVersion(major, minor, build, revision))
-					return major > 10 || (major == 10);
-
-				return false;
-			}();
-
-			return result;
-		}
-
-		bool isWindows11()
-		{
-			static const bool result = []()
-			{
-				WORD major, minor, build, revision;
-
-				if (_getWindowsVersion(major, minor, build, revision))
-					return major > 10 || (major == 10 && (minor > 0 || build >= 22000));
-
-				return false;
-			}();
-
-			return result;
-		}
-
-		// Declared locally (instead of pulled from ShellScalingApi.h / a newer
-		// winuser.h) so this builds regardless of which Windows SDK version ES is
-		// compiled against; on older SDKs the constant/type simply doesn't exist yet.
-#ifndef DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2
-		DECLARE_HANDLE(DPI_AWARENESS_CONTEXT);
-#define DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 ((DPI_AWARENESS_CONTEXT)-4)
-#endif
-
-		typedef BOOL(WINAPI* SetProcessDpiAwarenessContext_t)(DPI_AWARENESS_CONTEXT);
-		typedef HRESULT(WINAPI* SetProcessDpiAwareness_t)(int);
-		typedef BOOL(WINAPI* SetProcessDPIAware_t)();
-
-		// Marks the process Per-Monitor-V2 DPI aware so Windows stops bitmap-
-		// stretching our output on displays scaled above 100% (e.g. 4K @ 150%).
-		// Without this, ES is treated as DPI-unaware, gets handed a virtualized
-		// logical resolution, and users have to manually enable the "Override high
-		// DPI scaling" compatibility option for fullscreen/video sizing to be correct.
-		// Resolved dynamically (rather than via an app manifest or direct linking) so
-		// the same binary degrades gracefully on Windows 8.1/7, where PMv2 and even
-		// PROCESS_PER_MONITOR_DPI_AWARE don't exist.
-		void setDpiAwareness()
-		{
-			HMODULE user32 = LoadLibraryA("user32.dll");
-			if (user32 != NULL)
-			{
-				auto setContext = (SetProcessDpiAwarenessContext_t)GetProcAddress(user32, "SetProcessDpiAwarenessContext");
-				if (setContext != NULL && setContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2))
-				{
-					FreeLibrary(user32);
-					return;
-				}
-			}
-
-			HMODULE shcore = LoadLibraryA("Shcore.dll");
-			if (shcore != NULL)
-			{
-				auto setAwareness = (SetProcessDpiAwareness_t)GetProcAddress(shcore, "SetProcessDpiAwareness");
-				if (setAwareness != NULL && SUCCEEDED(setAwareness(2 /* PROCESS_PER_MONITOR_DPI_AWARE */)))
-				{
-					FreeLibrary(shcore);
-					if (user32 != NULL)
-						FreeLibrary(user32);
-					return;
-				}
-
-				FreeLibrary(shcore);
-			}
-
-			if (user32 != NULL)
-			{
-				auto setAware = (SetProcessDPIAware_t)GetProcAddress(user32, "SetProcessDPIAware");
-				if (setAware != NULL)
-					setAware();
-
-				FreeLibrary(user32);
-			}
-		}
-#else
 		bool isBuildroot()
 		{
 			static const bool cached = []() 
@@ -689,13 +409,9 @@ namespace Utils
 
 			return cached;
 		}
-#endif
 
 		std::string getArchString()
 		{
-#if WIN32
-			return "windows";
-#else
 			std::string arch = Utils::FileSystem::readAllText("/usr/share/batocera/batocera.arch");
 			if (!arch.empty())
 				return arch;
@@ -800,28 +516,18 @@ namespace Utils
 			return "s922x";
 #endif
 
-#endif
 
 			return "";
 		}
 
 		unsigned long long getTotalSystemMemory() 
 		{
-#ifdef WIN32
-			MEMORYSTATUSEX status;
-			status.dwLength = sizeof(status);
-			if (GlobalMemoryStatusEx(&status))
-				return status.ullTotalPhys;
-			
-			return 0;
-#else
 			long pages = sysconf(_SC_PHYS_PAGES);
 			long page_size = sysconf(_SC_PAGE_SIZE);
 			if (pages == -1 || page_size == -1)
 				return 0;
 			
 			return (unsigned long long)pages * (unsigned long long)page_size;
-#endif
 		}
 	}
 }

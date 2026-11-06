@@ -14,9 +14,6 @@
 #include <SDL_timer.h>
 #include "AudioManager.h"
 
-#ifdef WIN32
-#include <codecvt>
-#endif
 
 #include "ImageIO.h"
 
@@ -482,11 +479,6 @@ void VideoVlcComponent::render(const Transform4x4f& parentTrans)
 				trans = parentTrans * getTransform();
 			}
 
-#ifdef _RPI_
-			// Rpi : A lot of videos are encoded in 60fps on screenscraper
-			// Try to limit transfert to opengl textures to 30fps to save CPU
-			if (!Settings::getInstance()->getBool("OptimizeVideo") || mElapsed >= 40) // 40ms = 25fps, 33.33 = 30 fps
-#endif
 			{
 				mContext->mutexes[frame].lock();
 				mTexture->updateFromExternalPixels(mContext->surfaces[frame], mVideoWidth, mVideoHeight);
@@ -589,59 +581,6 @@ VideoContext* VideoVlcComponent::createContext()
 	return ctx;
 }
 
-#if WIN32
-#include <Windows.h>
-#pragma comment(lib, "Version.lib")
-
-// If Vlc2 dlls have been upgraded with vlc3 dlls, libqt4_plugin.dll is not compatible, so check if libvlc is 3.x then delete obsolete libqt4_plugin.dll
-void _checkUpgradedVlcVersion()
-{
-	char str[1024] = { 0 };
-	if (GetModuleFileNameA(NULL, str, 1024) == 0)
-		return;
-
-	auto dir = Utils::FileSystem::getParent(str);
-	auto path = Utils::FileSystem::getPreferredPath(Utils::FileSystem::combine(dir, "libvlc.dll"));
-	if (Utils::FileSystem::exists(path))
-	{
-		// Get the version information for the file requested
-		DWORD dwSize = GetFileVersionInfoSize(path.c_str(), NULL);
-		if (dwSize == 0)
-		{
-			printf("Error in GetFileVersionInfoSize: %d\n", GetLastError());
-			return;
-		}
-
-		BYTE                *pbVersionInfo = NULL;
-		VS_FIXEDFILEINFO    *pFileInfo = NULL;
-		UINT                puLenFileInfo = 0;
-
-		pbVersionInfo = new BYTE[dwSize];
-
-		if (!GetFileVersionInfo(path.c_str(), 0, dwSize, pbVersionInfo))
-		{
-			printf("Error in GetFileVersionInfo: %d\n", GetLastError());
-			delete[] pbVersionInfo;
-			return;
-		}
-
-		if (!VerQueryValue(pbVersionInfo, TEXT("\\"), (LPVOID*)&pFileInfo, &puLenFileInfo))
-		{
-			printf("Error in VerQueryValue: %d\n", GetLastError());
-			delete[] pbVersionInfo;
-			return;
-		}
-
-		// FileVersion for libvlc.dll is >= 3.x.x.x ???
-		if (HIWORD(pFileInfo->dwFileVersionMS) >= 3)
-		{
-			auto badV2PluginPath = Utils::FileSystem::getPreferredPath(Utils::FileSystem::combine(dir, "plugins/gui/libqt4_plugin.dll"));
-			if (Utils::FileSystem::exists(badV2PluginPath))
-				Utils::FileSystem::removeFile(badV2PluginPath);
-		}
-	}
-}
-#endif
 
 void VideoVlcComponent::init()
 {
@@ -665,9 +604,6 @@ void VideoVlcComponent::init()
 	for (int i = 0 ; i < cmdline.size() ; i++)
 		theArgs[i] = cmdline[i].c_str();
 
-#if WIN32
-	_checkUpgradedVlcVersion();
-#endif
 
 	mVLC = libvlc_new(cmdline.size(), theArgs);
 
@@ -776,11 +712,6 @@ void VideoVlcComponent::onMediaParsed()
 		// Avoid videos bigger than resolution
 		Vector2f maxSize(Renderer::getScreenWidth(), Renderer::getScreenHeight());
 
-#ifdef _RPI_
-		// Temporary -> RPI -> Try to limit videos to 400x300 for performance benchmark
-		if (!Renderer::isSmallScreen())
-			maxSize = Vector2f(400, 300);
-#endif
 
 		if (!mTargetSize.empty() && (mTargetSize.x() < maxSize.x() || mTargetSize.y() < maxSize.y()))
 			maxSize = mTargetSize;
@@ -830,11 +761,7 @@ void VideoVlcComponent::startVideo()
 
 	StopWatch stopWatch("[VideoVlcComponent] startVideo", LogDebug);
 
-#ifdef WIN32
-	std::string path = Utils::String::replace(mVideoPath, "/", "\\");
-#else
 	std::string path = mVideoPath;
-#endif
 
 	mMedia = libvlc_media_new_path(mVLC, path.c_str());
 	if (!mMedia)
@@ -869,12 +796,6 @@ void VideoVlcComponent::startVideo()
 		libvlc_media_add_option(mMedia, ":start-time=0.7");
 
 #if LIBVLC_VERSION_MAJOR >= 3
-	#if WIN32
-		const char* vlc_ver = libvlc_get_version();
-		if (vlc_ver[0] < '3')
-			libvlc_media_parse(mMedia);
-		else
-	#endif
 	{
 		libvlc_media_parse_with_options(mMedia, libvlc_media_parse_local, 0);
 		if ((int)libvlc_media_get_parsed_status(mMedia) == 0)

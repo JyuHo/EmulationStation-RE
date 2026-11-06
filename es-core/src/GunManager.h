@@ -8,9 +8,6 @@
 
 #ifdef HAVE_UDEV
 #include <libudev.h>
-#elif WIN32
-#include <SDL.h>
-#include <Windows.h>
 #endif
 
 class InputConfig;
@@ -73,10 +70,6 @@ public:
 #ifdef HAVE_UDEV
 		dev = nullptr;
 		fd = 0;
-#elif WIN32
-		m_internalButtonState = 0;
-		m_internalX = 0;
-		m_internalY = 0;			
 #endif
 	}
 
@@ -106,11 +99,6 @@ private:
 	udev_device* dev;
 	int fd;
 	bool	mIsCalibrating;
-#elif WIN32
-	std::string mPath;
-	int		m_internalButtonState;
-	float	m_internalX;
-	float	m_internalY;
 #endif
 
 	int		m_lastTick;
@@ -144,11 +132,6 @@ private:
   bool udev_addGun(struct udev_device *dev, Window* window, bool needGunBorder);
   bool udev_removeGun(struct udev_device *dev, Window* window);
   void udev_closeGun(Gun* gun);
-#elif WIN32
-	static bool mMessageHookRegistered;	
-	static void WindowsMessageHook(void* userdata, void* hWnd, unsigned int message, Uint64 wParam, Sint64 lParam);
-	void enableRawInputCapture(bool enable);
-	bool mInitialScan = true;
 #endif
 };
 

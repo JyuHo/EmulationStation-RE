@@ -2,9 +2,6 @@
 #include "httplib.h"
 #include "Log.h"
 
-#ifdef WIN32
-#include <Windows.h>
-#endif
 
 #include "utils/Platform.h"
 #include "Gamelist.h"

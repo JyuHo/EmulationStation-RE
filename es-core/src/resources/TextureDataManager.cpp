@@ -235,16 +235,9 @@ TextureLoader::~TextureLoader()
 		t.join();
 }
 
-#if WIN32
-#include <Windows.h>
-#endif
 
 void TextureLoader::threadProc()
 {
-#if WIN32
-	if (Utils::Platform::isWindows10())
-		SetThreadDescription(GetCurrentThread(), L"TextureLoader::threadProc");
-#endif
 
 	while (true)
 	{		

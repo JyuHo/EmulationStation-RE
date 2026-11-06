@@ -5,12 +5,6 @@
 #include <string>
 #include <memory>
 
-#if WIN32
-#include <thread>
-#include <mutex>
-#include <list>
-#include <condition_variable>
-#endif
 
 /*!
 Singleton pattern. Call getInstance() to get an object.
@@ -41,23 +35,6 @@ private:
 	void init();
 	void deinit();
 
-#if WIN32
-	void SpeakThread();
-
-	std::thread*				mSpeakThread;
-	std::mutex					mMutex;
-	std::condition_variable		mEvent;
-	bool						mShouldTerminate;
-
-	class SpeakItem
-	{
-	public:
-		std::string text;
-		bool expand;
-	};
-
-	std::list<SpeakItem*>		mSpeechQueue;
-#endif
 
 };
 

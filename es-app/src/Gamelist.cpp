@@ -12,12 +12,7 @@
 #include "Paths.h"
 #include "utils/ThreadPool.h"
 
-#ifdef WIN32
-#include <Windows.h>
-#include <direct.h>
-#else
 #include <unistd.h>
-#endif
 
 std::string getGamelistRecoveryPath(SystemData* system)
 {

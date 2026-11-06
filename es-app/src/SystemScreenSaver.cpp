@@ -1,8 +1,5 @@
 #include "SystemScreenSaver.h"
 
-#ifdef _RPI_
-#include "components/VideoPlayerComponent.h"
-#endif
 #include "components/VideoVlcComponent.h"
 #include "utils/FileSystemUtil.h"
 #include "views/gamelist/IGameListView.h"
@@ -391,19 +388,6 @@ std::string  SystemScreenSaver::selectGameMedia(FileData* game, bool video)
 	mGameName = game->getSourceFileData()->getSystem()->getName();
 	mCurrentGame = game;
 
-#ifdef _RPI_
-	if (Settings::getInstance()->getBool("ScreenSaverOmxPlayer"))
-	{
-		if (Settings::getInstance()->getString("ScreenSaverGameInfo") != "never" && video)
-		{
-			std::string path = getTitleFolder();
-			if (!Utils::FileSystem::exists(path))
-				Utils::FileSystem::createDirectory(path);
-
-			writeSubtitle(mGameName.c_str(), mSystemName.c_str(), (Settings::getInstance()->getString("ScreenSaverGameInfo") == "always"));
-		}
-	}
-#endif
 
 	return path;
 }
@@ -685,9 +669,6 @@ void GameScreenSaverBase::setGame(FileData* game)
 
 	std::string decos = Settings::getInstance()->getString("ScreenSaverDecorations");
 
-#ifdef _RPI_
-	if (!Settings::getInstance()->getBool("ScreenSaverOmxPlayer"))
-#endif
 	if (decos != "none")
 	{
 		auto sets = GuiMenu::getDecorationsSets(game->getSystem());
@@ -1003,12 +984,6 @@ void VideoScreenSaver::setVideo(const std::string path)
 {
 	if (mVideo == nullptr)
 	{
-#ifdef _RPI_
-		// Create the correct type of video component
-		if (Settings::getInstance()->getBool("ScreenSaverOmxPlayer"))
-			mVideo = new VideoPlayerComponent(mWindow, getTitlePath());
-		else
-#endif
 		mVideo = new VideoVlcComponent(mWindow);
 
 		mVideo->setRoundCorners(0);
@@ -1056,10 +1031,6 @@ void VideoScreenSaver::render(const Transform4x4f& transform)
 		Renderer::popClipRect();
 	}
 
-#ifdef _RPI_
-	if (Settings::getInstance()->getBool("ScreenSaverOmxPlayer"))
-		return;
-#endif
 
 	if (Settings::getInstance()->getString("ScreenSaverGameInfo") != "never")
 	{

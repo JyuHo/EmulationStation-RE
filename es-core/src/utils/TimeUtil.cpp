@@ -3,9 +3,7 @@
 #include "LocaleES.h"
 #include "Settings.h"
 
-#if WIN32
-#include <Windows.h>
-#elif defined(__linux__)
+#if defined(__linux__)
 #include <langinfo.h>
 #endif
 
@@ -25,67 +23,7 @@ namespace Utils
 
 			std::string ret;
 
-#if WIN32
-			int bufferSize = GetLocaleInfoA(LOCALE_USER_DEFAULT, LOCALE_SSHORTDATE, nullptr, 0);
-			if (bufferSize > 0)
-			{
-				// Allocate a buffer to store the short date format
-				char* buffer = new char[bufferSize];
-
-				char dateTimeStr[64];
-				SYSTEMTIME st;
-				GetDateFormatA(LOCALE_USER_DEFAULT, DATE_SHORTDATE, NULL, NULL, dateTimeStr, sizeof(dateTimeStr));
-
-				// Get the short date format
-				if (GetLocaleInfoA(LOCALE_USER_DEFAULT, LOCALE_SSHORTDATE, buffer, bufferSize) > 0)
-				{
-					ret = buffer;
-
-					if (ret.find("yyyy") != std::string::npos)
-						ret = Utils::String::replace(ret, "yyyy", "%Y");
-					else
-						ret = Utils::String::replace(ret, "yy", "%y");
-
-					if (ret.find("MM") != std::string::npos)
-						ret = Utils::String::replace(ret, "MM", "%m");
-					else
-						ret = Utils::String::replace(ret, "M", "%m"); // %#m
-
-					if (ret.find("dd") != std::string::npos)
-						ret = Utils::String::replace(ret, "dd", "%d");
-					else
-						ret = Utils::String::replace(ret, "d", "%d");
-
-					if (ret.find("tt") != std::string::npos)
-						ret = Utils::String::replace(ret, "tt", "%p");
-					else
-						ret = Utils::String::replace(ret, "t", "%p");
-
-					if (ret.find("HH") != std::string::npos)
-						ret = Utils::String::replace(ret, "HH", "%H");
-					else
-						ret = Utils::String::replace(ret, "H", "%H");
-
-					if (ret.find("hh") != std::string::npos)
-						ret = Utils::String::replace(ret, "hh", "%I");
-					else
-						ret = Utils::String::replace(ret, "h", "%I");
-
-					ret = Utils::String::replace(ret, "mm", "%M");
-					ret = Utils::String::replace(ret, "ss", "%S");
-				}
-
-				if (includeHours && ret.find("%H") == std::string::npos)
-				{
-					if (Settings::ClockMode12())
-						ret += " %I:%M %p";
-					else
-						ret += " %H:%M";
-				}
-
-				delete[] buffer;
-			}
-#elif defined(__linux__)
+#if defined(__linux__)
 			char* date = nl_langinfo(D_FMT);
 			if (date)
 				ret = date;

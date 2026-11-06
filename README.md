@@ -6,105 +6,44 @@ EmulationStation is a cross-platform graphical front-end for emulators with cont
 Building
 ========
 
-EmulationStation uses some C++11 code, which means you'll need to use at least g++-4.7 on Linux, or Visual Studio 2015 on Windows, to compile.
+EmulationStation-RE targets Linux only, on two platforms:
 
-EmulationStation has a few dependencies. For building, you'll need CMake, SDL2, FreeImage, FreeType, cURL, RapidJSON, LibVLC, SDLMixer.  You also should probably install the `fonts-droid` package which contains fallback fonts for Chinese/Japanese/Korean characters, but ES will still work fine without it (this package is only used at run-time). Your distro may also offer a "system developer" group of packages that includes essential compilation tools, it is recommended to install that first.
+* x86_64 (Arch Linux / CachyOS)
+* Raspberry Pi 4 and later (Armbian trixie)
 
-**On Debian/Ubuntu:**
-All of this can be easily installed with `apt-get`:
+You need CMake, a C++ compiler, SDL2, SDL2_mixer, FreeImage, FreeType, cURL, RapidJSON, LibVLC, ALSA and gettext. FriBidi, libudev and libcec are optional. The `fonts-droid-fallback` package (or equivalent) provides fallback fonts for Chinese/Japanese/Korean characters at run time.
+
+**On Arch Linux / CachyOS:**
 ```bash
-sudo apt-get install libsdl2-dev libsdl2-mixer-dev libfreeimage-dev libfreetype6-dev \
-  libcurl4-openssl-dev rapidjson-dev libasound2-dev libgl1-mesa-dev build-essential \
-  libboost-all-dev cmake fonts-droid-fallback libvlc-dev libvlccore-dev vlc-bin libint-dev gettext
-```
-**On Fedora:**
-All of this can be easily installed with `dnf` (with rpmfusion activated) :
-```bash
-sudo dnf install SDL2-devel freeimage-devel freetype-devel curl-devel \
-  alsa-lib-devel mesa-libGL-devel cmake \
-  vlc-devel rapidjson-devel 
-```
-**On Arch/Manjaro:**
-All of this can be easily installed with `pacman`:
-```bash
-sudo pacman -S base-devel cmake freeimage sdl2_mixer sdl2 rapidjson boost
-```
-**On Solus:**
-All of this can be easily installed with `eopkg`:
-```bash
-sudo eopkg it -c system.devel sdl2-devel freeimage-devel freetype2-devel curl-devel \
-  rapidjson-devel alsa-lib-devel mesalib-devel vlc-devel sdl2-mixer-devel \
-  libcec-devel
+sudo pacman -S --needed base-devel cmake ninja sdl2 sdl2_mixer freeimage freetype2 curl \
+  rapidjson vlc alsa-lib gettext fribidi libcec
 ```
 
-Note this Repository uses a git submodule - to checkout the source and all submodules, use
+**On Armbian trixie / Debian:**
+```bash
+sudo apt-get install build-essential cmake ninja-build libsdl2-dev libsdl2-mixer-dev \
+  libfreeimage-dev libfreetype-dev libcurl4-openssl-dev rapidjson-dev libvlc-dev \
+  libasound2-dev libgles-dev libgl-dev libudev-dev libfribidi-dev libcec-dev gettext \
+  fonts-droid-fallback
+```
+
+This repository uses a git submodule:
 
 ```bash
-git clone --recursive https://github.com/batocera-linux/batocera-emulationstation.git
+git clone --recursive https://github.com/JyuHo/emulationstation-re.git
 ```
 
-or 
+or, in an existing clone, `git submodule update --init`.
+
+Then configure and build:
 
 ```bash
-git clone https://github.com/batocera-linux/batocera-emulationstation.git
-cd batocera-emulationstation
-git submodule update --init
-```
+# x86_64, desktop OpenGL
+cmake -S . -B build -G Ninja -DGL=ON -DCMAKE_BUILD_TYPE=Release
+# Raspberry Pi 4 and later, OpenGL ES 3.x
+cmake -S . -B build -G Ninja -DGLES3=ON -DCMAKE_BUILD_TYPE=Release
 
-To setup compilation, generate and build the Makefile with CMake:
-```bash
-cmake .
-```
-
-And then begin compilation:
-```bash
-make
-```
-
-**On the Raspberry Pi:**
-
-Every model from the Pi 1 onwards is supported, but the graphics API to build against depends
-on the GPU:
-
-| Model | GPU | Max OpenGL ES | Configure with |
-| --- | --- | --- | --- |
-| Pi 1, Pi 2, Pi 3, Zero, Zero 2 W | VideoCore IV | 2.0 | `cmake -DGLES2=ON .` |
-| Pi 4, Pi 400, CM4 | VideoCore VI | 3.1 | `cmake -DGLES3=ON .` |
-| Pi 5, CM5 | VideoCore VII | 3.1 | `cmake -DGLES3=ON .` |
-
-`-DGLES3=ON` selects the OpenGL ES 3.x renderer, which is the faster of the two backends. It
-requires a driver that can create an ES 3.x context, so it is only suitable for the Pi 4 and
-later.
-
-Running plain `cmake .` is also fine: with no graphics option set the build detects GLES and
-defaults to the OpenGL ES 2.0 renderer, which works on every model. Pass `-DGLES3=ON`
-explicitly on a Pi 4 or later to get the faster path.
-
-**On Windows:**
-
-[FreeImage](http://downloads.sourceforge.net/freeimage/FreeImage3154Win32.zip)
-
-[FreeType2](http://download.savannah.gnu.org/releases/freetype/freetype-2.4.9.tar.bz2) (you'll need to compile)
-
-[SDL2](http://www.libsdl.org/release/SDL2-devel-2.0.8-VC.zip)
-
-[cURL](http://curl.haxx.se/download.html) (you'll need to compile or get the pre-compiled DLL version)
-
-[RapisJSON](https://github.com/tencent/rapidjson) (you'll need the `include/rapidsjon` added to the include path)
-
-[SDL Mixer](https://www.libsdl.org/projects/SDL_mixer/) 
-
-[LibVlc](http://download.videolan.org/pub/videolan/vlc/) (x86 sdk files are present in .7z files)
-
-[CMake](http://www.cmake.org/cmake/resources/software.html) (this is used for generating the Visual Studio project)
-
-```
-set ES_LIB_DIR=c:\src\lib
-
-mkdir c:\src\batocera-emulationstation\build
-cd c:\src\batocera-emulationstation\build /D
-
-cmake -g "Visual Studio 14 2015 x86" .. -DEIGEN3_INCLUDE_DIR=%ES_LIB_DIR%\eigen -DRAPIDJSON_INCLUDE_DIRS=%ES_LIB_DIR%\rapidjson\include -DFREETYPE_INCLUDE_DIRS=%ES_LIB_DIR%\freetype-2.7\include -DFREETYPE_LIBRARY=%ES_LIB_DIR%\freetype-2.7\objs\vc2010\Win32\freetype27.lib -DFreeImage_INCLUDE_DIR=%ES_LIB_DIR%\FreeImage\Source -DFreeImage_LIBRARY=%ES_LIB_DIR%\FreeImage\Dist\x32\FreeImage.lib -DSDL2_INCLUDE_DIR=%ES_LIB_DIR%\SDL2-2.0.9\include -DSDL2_LIBRARY=%ES_LIB_DIR%\SDL2-2.0.9\build\Release\SDL2.lib;%ES_LIB_DIR%\SDL2-2.0.9\build\Release\SDL2main.lib;Imm32.lib;version.lib -DBOOST_ROOT=%ES_LIB_DIR%\boost_1_61_0 -DBoost_LIBRARY_DIR=%ES_LIB_DIR%\boost_1_61_0\lib32-msvc-14.0 -DCURL_INCLUDE_DIR=%ES_LIB_DIR%\curl-7.50.3\include -DCURL_LIBRARY=%ES_LIB_DIR%\curl-7.50.3\builds\libcurl-vc14-x86-release-dll-ipv6-sspi-winssl\lib\libcurl.lib -DVLC_INCLUDE_DIR=%ES_LIB_DIR%\libvlc-2.2.2\include -DVLC_LIBRARIES=%ES_LIB_DIR%\libvlc-2.2.2\lib\msvc\libvlc.lib;%ES_LIB_DIR%\libvlc-2.2.2\lib\msvc\libvlccore.lib -DVLC_VERSION=1.0.0 -DSDLMIXER_INCLUDE_DIR=%ES_LIB_DIR%\SDL2_mixer-2.0.4\include -DSDLMIXER_LIBRARY=%ES_LIB_DIR%\SDL2_mixer-2.0.4\lib\x86\SDL2_mixer.lib
+cmake --build build
 ```
 
 Launching outside of Batocera
@@ -138,7 +77,7 @@ Configuring
 ===========
 
 **~/.emulationstation/es_systems.cfg:**
-When first run, an example systems configuration file will be created at `~/.emulationstation/es_systems.cfg`.  `~` is `$HOME` on Linux, and `%HOMEPATH%` on Windows.  This example has some comments explaining how to write the configuration file. See the "Writing an es_systems.cfg" section for more information.
+When first run, an example systems configuration file will be created at `~/.emulationstation/es_systems.cfg`.  `~` is `$HOME`.  This example has some comments explaining how to write the configuration file. See the "Writing an es_systems.cfg" section for more information.
 
 **Keep in mind you'll have to set up your emulator separately from EmulationStation if not launching from within Batocera!**
 
@@ -167,7 +106,7 @@ You can use `--help` or `-h` to view a list of command-line options. Briefly out
 --draw-framerate                display the framerate
 --no-exit                       don't show the exit option in the menu
 --no-splash                     don't show the splash screen
---debug                         more logging, show console on Windows
+--debug                         more logging
 --scrape                        scrape using command line interface
 --windowed                      not fullscreen, should be used with --resolution
 --fullscreen-borderless			fullscreen, non exclusive.
@@ -176,7 +115,7 @@ You can use `--help` or `-h` to view a list of command-line options. Briefly out
 --force-kid             		Force the UI mode to be Kid
 --force-kiosk           		Force the UI mode to be Kiosk
 --force-disable-filters         Force the UI to ignore applied filters in gamelist
---home							Force the .emulationstation folder (windows)
+--home							Force the .emulationstation folder
 --help, -h                      summon a sentient, angry tuba
 ```
 

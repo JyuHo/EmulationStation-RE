@@ -239,134 +239,6 @@ void InputManager::clearJoysticks()
 	mJoysticksLock.unlock();
 }
 
-#if defined(WIN32)
-#include <cfgmgr32.h>
-
-class Win32RawInputApi
-{
-public:
-	Win32RawInputApi()
-	{		
-		m_hSDL2 = ::LoadLibrary("SDL2.dll");
-		if (m_hSDL2 != NULL)
-		{
-			m_JoystickPathForIndex = (SDL_JoystickPathForIndexPtr) ::GetProcAddress(m_hSDL2, "SDL_JoystickPathForIndex");
-		}
-
-		m_hSetupapi = ::LoadLibrary("setupapi.dll");
-		if (m_hSetupapi != NULL)
-		{
-			m_CM_Locate_DevNodeA = (CM_Locate_DevNodeAPtr) ::GetProcAddress(m_hSetupapi, "CM_Locate_DevNodeA");
-			m_CM_Get_Parent = (CM_Get_ParentPtr) ::GetProcAddress(m_hSetupapi, "CM_Get_Parent");
-			m_CM_Get_Device_IDA = (CM_Get_Device_IDAPtr) ::GetProcAddress(m_hSetupapi, "CM_Get_Device_IDA");
-		}
-	}
-
-	~Win32RawInputApi()
-	{
-		if (m_hSDL2 != NULL)
-			::FreeLibrary(m_hSDL2);
-
-		m_hSDL2 = NULL;
-
-		if (m_hSetupapi != NULL)
-			::FreeLibrary(m_hSetupapi);
-
-		m_hSetupapi = NULL;
-	}
-	
-	std::string SDL_JoystickPathForIndex(int device_index)
-	{
-		if (m_JoystickPathForIndex != NULL)
-		{
-			const char* path = m_JoystickPathForIndex(device_index);
-			if (path != NULL)
-				return std::string(path);
-		}
-
-		return "";
-	}
-
-	std::string getHidCollectionSuffix(const std::string& devicePath)
-	{
-		std::string upper = Utils::String::toUpper(devicePath);
-
-		size_t idx = upper.find("&COL");
-		if (idx == std::string::npos)
-			return "";
-
-		size_t start = idx + 4;
-		size_t end = start;
-		while (end < upper.size() && upper[end] >= '0' && upper[end] <= '9')
-			end++;
-
-		if (end == start)
-			return "";
-
-		return "#COL" + upper.substr(start, end - start);
-	}
-
-	std::string getInputDeviceParent(const std::string& devicePath)
-	{
-		if (m_CM_Locate_DevNodeA == NULL || m_CM_Get_Parent == NULL || m_CM_Get_Device_IDA == NULL)
-			return devicePath;
-
-		std::string path = devicePath;
-
-		auto vidindex = path.find("VID_");
-		if (vidindex == std::string::npos)
-			vidindex = path.find("vid_");
-
-		if (vidindex != std::string::npos)
-		{
-			auto cut = path.find("#{", vidindex);
-			if (cut != std::string::npos)
-				path = path.substr(0, cut);
-		}
-
-		path = Utils::String::replace(path, "\\\\?\\", "");
-		path = Utils::String::replace(path, "#", "\\");
-
-		// Multi-collection HID devices (Xin-Mo / Xinmotek dual arcade encoders, DragonRise and
-		// "Twin USB" 2-players boards, ...) expose one joystick per top-level collection, and all
-		// these collections share the exact same parent device node. Keep the collection index,
-		// otherwise every player would be given the very same device path.
-		std::string collection = getHidCollectionSuffix(devicePath);
-
-		DEVINST nDevInst;
-		int apiResult = m_CM_Locate_DevNodeA(&nDevInst, (DEVINSTID_A)path.c_str(), CM_LOCATE_DEVNODE_NORMAL);
-		if (apiResult == CR_SUCCESS)
-		{
-			if (m_CM_Get_Parent(&nDevInst, nDevInst, 0) == CR_SUCCESS)
-			{
-				char buf[255];
-				if (m_CM_Get_Device_IDA(nDevInst, buf, 255, 0) == CR_SUCCESS)
-					return std::string(buf) + collection;
-			}
-		}
-
-		return devicePath;
-	}
-
-private:	
-	HMODULE m_hSDL2;
-	HMODULE m_hSetupapi;
-
-	typedef const char *(SDLCALL *SDL_JoystickPathForIndexPtr)(int);
-	SDL_JoystickPathForIndexPtr m_JoystickPathForIndex;
-	
-	typedef CONFIGRET(WINAPI* CM_Locate_DevNodeAPtr)(PDEVINST pdnDevInst, DEVINSTID_A pDeviceID, ULONG ulFlags);
-	CM_Locate_DevNodeAPtr m_CM_Locate_DevNodeA;
-
-	typedef CONFIGRET(WINAPI* CM_Get_ParentPtr)(PDEVINST pdnDevInst, DEVINST dnDevInst, ULONG ulFlags);
-	CM_Get_ParentPtr m_CM_Get_Parent;
-
-	typedef CONFIGRET(WINAPI* CM_Get_Device_IDAPtr)(DEVINST dnDevInst, PSTR Buffer, ULONG BufferLen, ULONG ulFlags);
-	CM_Get_Device_IDAPtr m_CM_Get_Device_IDA;
-};
-
-Win32RawInputApi Win32RawInput;
-#endif
 
 void InputManager::rebuildAllJoysticks(bool deinit)
 {
@@ -378,138 +250,15 @@ void InputManager::rebuildAllJoysticks(bool deinit)
 	if (deinit)
 		SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
 
-#if WIN32
-	if (!Settings::getInstance()->getBool("HidJoysticks"))
-		SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI, "0");
-
-	SDL_SetHint("SDL_JOYSTICK_HIDAPI_WII", "0");
-
-	// Disable PS5 enhanced feature reports (rumble, LED, haptics).
-	// On Windows, SDL attempts these HID exchanges during HIDAPI init.
-	// If the Bluetooth audio endpoint isn't ready yet, SDL gets an error,
-	// marks the controller disconnected, and retries endlessly — causing
-	// the infinite "DualSense connected" notification loop. Disabling them
-	// prevents that cycle and also allows the controller to be detected
-	// when it is already paired before ES starts.
-	SDL_SetHint("SDL_JOYSTICK_HIDAPI_PS5_RUMBLE", "0");
-	SDL_SetHint("SDL_JOYSTICK_HIDAPI_PS5_PLAYER_LED", "0");
-#endif
 			
 	SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, Settings::getInstance()->getBool("BackgroundJoystickInput") ? "1" : "0");
 	SDL_InitSubSystem(SDL_INIT_JOYSTICK);
 
-#if WIN32
-	// Load additional controller mappings into SDL, before enumerating the devices.
-	// SDL_QuitSubSystem(SDL_INIT_JOYSTICK) frees every mapping added at runtime, so this has to be
-	// done on every rebuild, not once at startup.
-	// Load order defines priority : a mapping added later overrides the previous one for the same
-	// GUID, and any file entry overrides SDL's built-in database.
-	// 1. Community database shipped next to the ES executable.
-	// 2. User file, in the user configuration folder, so it is never overwritten by an update.
-	const std::string mappingFiles[] =
-	{
-		Paths::getEmulationStationPath() + "/gamecontrollerdb.txt",
-		Paths::getUserEmulationStationPath() + "/gamecontrollerdb.txt"
-	};
-
-	for (auto& mappingFile : mappingFiles)
-	{
-		if (!Utils::FileSystem::exists(mappingFile))
-			continue;
-
-		// The file is read line by line instead of using SDL_GameControllerAddMappingsFromFile,
-		// only to be tolerant on the platform field : SDL requires it and silently drops every line
-		// that does not declare one, which is a common mistake when a mapping is pasted by hand.
-		// Everything else, and above all the GUID matching, is left to SDL.
-		std::ifstream dbFile(mappingFile);
-		std::string line;
-		int added = 0;
-		int failed = 0;
-
-		while (std::getline(dbFile, line))
-		{
-			line = Utils::String::trim(line);
-
-			if (line.empty() || line[0] == '#')
-				continue;
-
-			if (line.find("platform:") == std::string::npos)
-			{
-				// Assume Windows when the platform is not specified
-				if (line.back() != ',')
-					line += ",";
-
-				line += "platform:Windows,";
-			}
-			else if (line.find("platform:Windows,") == std::string::npos)
-				continue; // Another platform, or a custom tag like WindowsWheel / WindowsGun
-
-			if (SDL_GameControllerAddMapping(line.c_str()) >= 0)
-				added++;
-			else
-			{
-				failed++;
-				LOG(LogWarning) << "Invalid controller mapping in " << mappingFile << " : " << SDL_GetError();
-			}
-		}
-
-		LOG(LogInfo) << "Loaded " << added << " controller mapping(s) from " << mappingFile << " (" << failed << " rejected)";
-	}
-
-	// SDL's HIDAPI thread enumerates devices asynchronously after SDL_InitSubSystem.
-	// For DualSense/DS4 over Bluetooth, the HID handshake is not complete by the
-	// time SDL_NumJoysticks() is called immediately after init, so the controller
-	// is missed. Poll until the count stabilises (max 500ms) instead of a fixed sleep.
-	if (!deinit)
-	{
-		int prevCount = -1;
-		int stableCount = SDL_NumJoysticks();
-		int attempts = 0;
-		while (stableCount != prevCount && attempts < 10)
-		{
-			prevCount = stableCount;
-			SDL_Delay(50);
-			SDL_PumpEvents();
-			stableCount = SDL_NumJoysticks();
-			attempts++;
-		}
-
-		if (attempts >= 10)
-			LOG(LogWarning) << "Joystick count did not stabilise after 500ms, continuing with " << stableCount << " joystick(s)";
-	}
-#endif
 
 	mJoysticksLock.lock();
 
 	int numJoysticks = SDL_NumJoysticks();
 
-#if WIN32
-	// SDL can expose the same physical pad twice when its internal deduplication
-	// between RAWINPUT and XInput loses the race during a hotplug: XInput enumerates before
-	// RAWINPUT_IsDevicePresent() can respond true, and the WINDOWS backend only
-	// re-enumerates on the next WM_DEVICECHANGE notification, so the duplicate remains
-	// until restart. Cold SDL only keeps the RAWINPUT view: we restore the
-	// same result hot. The redundant XInput view exposes no HID path, the RAWINPUT view does.
-	SDL_version sdlVer;
-	SDL_GetVersion(&sdlVer);
-	bool hasPathApi = (sdlVer.major > 2 || (sdlVer.major == 2 && sdlVer.minor >= 24));
-
-	std::vector<std::string> sdlDevicePaths;
-	std::set<std::string> vendorProductWithPath;
-
-	for (int i = 0; i < numJoysticks; i++)
-	{
-		std::string path = hasPathApi ? Win32RawInput.SDL_JoystickPathForIndex(i) : "";
-		sdlDevicePaths.push_back(path);
-
-		if (path.empty())
-			continue;
-
-		char preGuid[40];
-		SDL_JoystickGetGUIDString(SDL_JoystickGetDeviceGUID(i), preGuid, 40);
-		vendorProductWithPath.insert(std::string(preGuid).substr(8, 16)); // vendor + product
-	}
-#endif
 
 	for (int idx = 0; idx < numJoysticks; idx++)
 	{
@@ -529,19 +278,6 @@ void InputManager::rebuildAllJoysticks(bool deinit)
 		const char* joyName = SDL_JoystickName(joy);
 		std::string deviceName = (joyName != nullptr) ? joyName : "Unknown joystick";
 
-#if WIN32
-		// SDL 2.26 + -> Remove new CRC-16 name hash encoding
-		for (int i = 4; i < 8; i++) guid[i] = '0';
-
-		// Drop the redundant XInput view : it carries no HID device path while the
-		// RAWINPUT view of the same VID/PID does.
-		if (hasPathApi && sdlDevicePaths[idx].empty() && vendorProductWithPath.count(std::string(guid).substr(8, 16)) > 0)
-		{
-			LOG(LogWarning) << "Skipping redundant XInput view of " << deviceName << " (GUID: " << guid << ", instance ID: " << joyId << ", device index: " << idx << ")";
-			SDL_JoystickClose(joy);
-			continue;
-		}
-#endif
 
 		mJoysticks.erase(joyId);
 		mJoysticks[joyId] = joy;
@@ -559,15 +295,7 @@ void InputManager::rebuildAllJoysticks(bool deinit)
 		// if SDL_JoystickPathForIndex does not exist, store a value containing index + guid
 		std::string devicePath = Utils::String::padLeft(std::to_string(idx), 4, '0') + "@" + std::string(guid);
 
-#if WIN32
-		if (hasPathApi)
-		{
-			if (!sdlDevicePaths[idx].empty())
-				devicePath = Win32RawInput.getInputDeviceParent(sdlDevicePaths[idx]);
-			else
-				LOG(LogWarning) << "SDL_JoystickPathForIndex returned no path for index " << idx << ", falling back to index@guid";
-		}
-#elif SDL_VERSION_ATLEAST(2, 24, 0)
+#if SDL_VERSION_ATLEAST(2, 24, 0)
 		{
 			const char* sdlPath = SDL_JoystickPathForIndex(idx);
 			if (sdlPath != nullptr)
@@ -626,16 +354,6 @@ void InputManager::rebuildAllJoysticks(bool deinit)
 	SDL_JoystickEventState(SDL_ENABLE);
 }
 
-#if WIN32
-// Retrocompatible declaration for SDL_JoyBatteryEvent
-typedef struct SDL_JoyBatteryEventX
-{
-	Uint32 type;        
-	Uint32 timestamp;   
-	SDL_JoystickID which; 
-	SDL_JoystickPowerLevel level;
-} SDL_JoyBatteryEventX;
-#endif
 
 bool InputManager::parseEvent(const SDL_Event& ev, Window* window)
 {
@@ -643,41 +361,6 @@ bool InputManager::parseEvent(const SDL_Event& ev, Window* window)
 
 	switch (ev.type)
 	{
-#if WIN32
-	case 1543: // SDL_JOYBATTERYUPDATED, new event with SDL 2.24+
-	{
-		SDL_JoyBatteryEventX* jbattery = (SDL_JoyBatteryEventX*)&ev;
-
-		auto inputConfig = mInputConfigs.find(jbattery->which);
-		if (inputConfig != mInputConfigs.cend() && inputConfig->second != nullptr && inputConfig->second->isConfigured() && jbattery->level != SDL_JoystickPowerLevel::SDL_JOYSTICK_POWER_UNKNOWN)
-		{
-			int level = 0;
-
-			switch (jbattery->level)
-			{
-			case SDL_JoystickPowerLevel::SDL_JOYSTICK_POWER_LOW:
-				level = 25;
-				break;
-			case SDL_JoystickPowerLevel::SDL_JOYSTICK_POWER_MEDIUM:
-				level = 50;
-				break;
-			case SDL_JoystickPowerLevel::SDL_JOYSTICK_POWER_MAX:
-				level = 75;
-				break;
-			case SDL_JoystickPowerLevel::SDL_JOYSTICK_POWER_FULL:
-				level = 100;
-				break;
-			case SDL_JoystickPowerLevel::SDL_JOYSTICK_POWER_WIRED:
-				level = -1;
-				break;
-			}
-
-			inputConfig->second->updateBatteryLevel(level);
-			computeLastKnownPlayersDeviceIndexes();
-		}
-	}
-	break;
-#endif
 
 	case SDL_JOYAXISMOTION:
 	{		
@@ -755,9 +438,7 @@ bool InputManager::parseEvent(const SDL_Event& ev, Window* window)
 		return true;
 
 	case SDL_MOUSEMOTION:
-#if !WIN32
 	  if (!Utils::Platform::isBuildroot() || ev.motion.which == SDL_TOUCH_MOUSEID)
-#endif
 		if (!getGunManager()->isReplacingMouse())
 			window->processMouseMove(ev.motion.x, ev.motion.y, ev.motion.which == SDL_TOUCH_MOUSEID);
 	  
@@ -780,7 +461,6 @@ bool InputManager::parseEvent(const SDL_Event& ev, Window* window)
 		if (ev.key.repeat)
 			return false;
 
-#if !WIN32
 		if (ev.key.keysym.sym == SDLK_F4)
 		{
 			SDL_Event* quit = new SDL_Event();
@@ -788,7 +468,6 @@ bool InputManager::parseEvent(const SDL_Event& ev, Window* window)
 			SDL_PushEvent(quit);
 			return false;
 		}
-#endif
 
 		window->input(getInputConfigByDevice(DEVICE_KEYBOARD), Input(DEVICE_KEYBOARD, TYPE_KEY, ev.key.keysym.sym, 1, false));
 		return true;
@@ -837,11 +516,7 @@ bool InputManager::parseEvent(const SDL_Event& ev, Window* window)
 			}
 #endif
 #endif
-#if WIN32
-			rebuildAllJoysticks(false);
-#else
 			rebuildAllJoysticks();
-#endif
 			if (Settings::getInstance()->getBool("ShowControllerNotifications") && !addedDeviceName.empty()) {
 			  if(isWheel) {
 			    window->displayNotificationMessage(_U("\uF1B9 ") + Utils::String::format(_("%s connected").c_str(), Utils::String::trim(addedDeviceName).c_str()));
@@ -1105,11 +780,6 @@ bool InputManager::loadInputConfig(InputConfig* config)
 {
 	std::string path = getConfigPath();
 
-#if WIN32
-	// Find exact device
-	if (tryLoadInputConfig(path, config, false))
-		return true;
-#else
 	// Find exact device
 	if (tryLoadInputConfig(path, config, false))
 		return true;
@@ -1126,7 +796,6 @@ bool InputManager::loadInputConfig(InputConfig* config)
 	// Find system Approximative device
 	if (tryLoadInputConfig(sharedPath, config, true))
 		return true;
-#endif
 
 	return false;
 }
@@ -1193,9 +862,7 @@ void InputManager::writeDeviceConfig(InputConfig* config)
 				for (pugi::xml_node item = root.child("inputConfig"); item; item = item.next_sibling("inputConfig")) 
 				{
 					if (strcmp(config->getDeviceGUIDString().c_str(), item.attribute("deviceGUID").value()) == 0
-#if !WIN32
 						&& strcmp(config->getDeviceName().c_str(), item.attribute("deviceName").value()) == 0
-#endif
 						) 
 					{
 						oldEntry = item;
@@ -1471,9 +1138,6 @@ std::string InputManager::configureEmulators() {
     if(playerInputConfig != NULL){
       command <<  "-p" << player+1 << "index "      << playerInputConfig->getDeviceIndex();
       command << " -p" << player+1 << "guid "       << playerInputConfig->getDeviceGUIDString();
-#if WIN32
-	  command << " -p" << player+1 << "path \""     << playerInputConfig->getDevicePath() << "\"";
-#endif
       command << " -p" << player+1 << "name \""     << playerInputConfig->getDeviceName() << "\"";
       command << " -p" << player+1 << "nbbuttons "  << playerInputConfig->getDeviceNbButtons();
       command << " -p" << player+1 << "nbhats "     << playerInputConfig->getDeviceNbHats();
@@ -1482,7 +1146,6 @@ std::string InputManager::configureEmulators() {
     }
   }
 
-#ifndef WIN32
   // the launcher reads the configs resolved here instead of searching every es_input.cfg
   pugi::xml_document doc;
   pugi::xml_node root = doc.append_child("inputList");
@@ -1490,7 +1153,6 @@ std::string InputManager::configureEmulators() {
     if (playerJoysticks[player] != NULL)
       playerJoysticks[player]->writeToXML(root);
   doc.save_file("/tmp/es_input_players.cfg");
-#endif
 
   LOG(LogInfo) << "Configure emulators command : " << command.str().c_str();
   return command.str();

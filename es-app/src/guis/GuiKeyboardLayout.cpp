@@ -61,13 +61,8 @@ GuiKeyboardLayout::GuiKeyboardLayout(Window* window, const std::function<void(co
 
 GuiKeyboardLayout::~GuiKeyboardLayout()
 {
-#if WIN32
-	Utils::FileSystem::removeFile(Utils::FileSystem::getGenericPath(Utils::FileSystem::getTempPath() + "/kblayout-1.svg"));
-	Utils::FileSystem::removeFile(Utils::FileSystem::getGenericPath(Utils::FileSystem::getTempPath() + "/kblayout-2.svg"));
-#else
 	Utils::FileSystem::removeFile("/tmp/kblayout-1.svg");
 	Utils::FileSystem::removeFile("/tmp/kblayout-2.svg");
-#endif
 }
 
 bool GuiKeyboardLayout::isEnabled()
@@ -155,11 +150,7 @@ void GuiKeyboardLayout::selectKey(const std::string& keyName)
 	svg = Utils::String::replace(svg, ";stroke-width:5.14240026", "");
 	svg = Utils::String::replace(svg, "inkscape:connector-curvature=\"0\"", "");
 
-#if WIN32
-	auto newPath = Utils::FileSystem::getGenericPath(Utils::FileSystem::getTempPath() + "/kblayout"+ std::string(mImageToggle ? "-1" : "-2") +".svg");
-#else
 	auto newPath = "/tmp/kblayout" + std::string(mImageToggle ? "-1" : "-2") + ".svg";
-#endif
 
 	Utils::FileSystem::writeAllText(newPath, svg);
 	mKeyboard.setImage(newPath);	

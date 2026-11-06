@@ -45,11 +45,6 @@
 #include "ZaparooSupport.h"
 #include "utils/ThreadPool.h"
 
-#ifdef WIN32
-#include <Windows.h>
-#include <direct.h>
-#define PATH_MAX MAX_PATH
-#endif
 
 static std::string gPlayVideo;
 static int gPlayVideoDuration = 0;
@@ -242,14 +237,6 @@ bool parseArgs(int argc, char* argv[])
 		}
 		else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
 		{
-#ifdef WIN32
-			// This is a bit of a hack, but otherwise output will go to nowhere
-			// when the application is compiled with the "WINDOWS" subsystem (which we usually are).
-			// If you're an experienced Windows programmer and know how to do this
-			// the right way, please submit a pull request!
-			AttachConsole(ATTACH_PARENT_PROCESS);
-			freopen("CONOUT$", "wb", stdout);
-#endif
 			std::cout <<
 				"EmulationStation, a graphical front-end for ROM browsing.\n"
 				"Written by Alec \"Aloshi\" Lofquist.\n"
@@ -332,21 +319,13 @@ void onExit()
 	Log::close();
 }
 
-#ifdef WIN32
-#define PATH_MAX MAX_PATH
-#include <direct.h>
-#endif
 
 int setLocale(char * argv1)
 {
-#if WIN32
-	std::locale::global(std::locale("en-US"));
-#else
 	if (Utils::FileSystem::exists("./locale/lang")) // for local builds
 		EsLocale::init("", "./locale/lang");	
 	else
 		EsLocale::init("", "/usr/share/locale");	
-#endif
 
 	setlocale(LC_TIME, "");
 
@@ -466,10 +445,6 @@ int main(int argc, char* argv[])
 {
 	// Utils::MathExpr::performUnitTests();
 
-#ifdef WIN32
-	// Must run before any window/message-queue APIs are touched.
-	Utils::Platform::setDpiAwareness();
-#endif
 
 	// signal(SIGABRT, signalHandler);
 	signal(SIGFPE, signalHandler);
@@ -486,37 +461,6 @@ int main(int argc, char* argv[])
 		return 0;
 
 	// only show the console on Windows if HideConsole is false
-#ifdef WIN32
-	// MSVC has a "SubSystem" option, with two primary options: "WINDOWS" and "CONSOLE".
-	// In "WINDOWS" mode, no console is automatically created for us.  This is good,
-	// because we can choose to only create the console window if the user explicitly
-	// asks for it, preventing it from flashing open and then closing.
-	// In "CONSOLE" mode, a console is always automatically created for us before we
-	// enter main. In this case, we can only hide the console after the fact, which
-	// will leave a brief flash.
-	// TL;DR: You should compile ES under the "WINDOWS" subsystem.
-	// I have no idea how this works with non-MSVC compilers.
-	if(!Settings::getInstance()->getBool("HideConsole"))
-	{
-		// we want to show the console
-		// if we're compiled in "CONSOLE" mode, this is already done.
-		// if we're compiled in "WINDOWS" mode, no console is created for us automatically;
-		// the user asked for one, so make one and then hook stdin/stdout/sterr up to it
-		if(AllocConsole()) // should only pass in "WINDOWS" mode
-		{
-			freopen("CONIN$", "r", stdin);
-			freopen("CONOUT$", "wb", stdout);
-			freopen("CONOUT$", "wb", stderr);
-		}
-	}else{
-		// we want to hide the console
-		// if we're compiled with the "WINDOWS" subsystem, this is already done.
-		// if we're compiled with the "CONSOLE" subsystem, a console is already created;
-		// it'll flash open, but we hide it nearly immediately
-		if(GetConsoleWindow()) // should only pass in "CONSOLE" mode
-			ShowWindow(GetConsoleWindow(), SW_HIDE);
-	}
-#endif
 
 	// call this ONLY when linking with FreeImage as a static library
 #ifdef FREEIMAGE_LIB
@@ -544,12 +488,10 @@ int main(int argc, char* argv[])
 	// Set locale
 	setLocale(argv[0]);	
 
-#if !WIN32
 	if(enable_startup_game) {
 	  // Run boot game, before Window Create for linux
 	  launchStartupGame();
 	}
-#endif
 
 	// Threaded initializations
 	auto threadPool = new Utils::ThreadPool("main()", -3);
@@ -666,23 +608,6 @@ int main(int argc, char* argv[])
 		AudioManager::getInstance()->playRandomMusic();
 
 
-#ifdef WIN32	
-	DWORD displayFrequency = 60;
-
-	DEVMODE lpDevMode;
-	memset(&lpDevMode, 0, sizeof(DEVMODE));
-	lpDevMode.dmSize = sizeof(DEVMODE);
-	lpDevMode.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT | DM_DISPLAYFLAGS | DM_DISPLAYFREQUENCY;
-	lpDevMode.dmDriverExtra = 0;
-
-	if (EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &lpDevMode) != 0) {
-		displayFrequency = lpDevMode.dmDisplayFrequency; // default value if cannot retrieve from user settings.
-	}
-
-	int timeLimit = (1000 / displayFrequency) - 10;	 // Margin for vsync
-	if (timeLimit < 0)
-		timeLimit = 0;
-#endif
 
 	Renderer::setWindowResizable(true);
 

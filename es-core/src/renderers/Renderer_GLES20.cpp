@@ -1063,10 +1063,6 @@ namespace Renderer
 	{
 		useProgram(nullptr);
 
-#ifdef WIN32		
-		glFlush();
-		Sleep(0);
-#endif
 		SDL_GL_SwapWindow(getSDLWindow());
 		GL_CHECK_ERROR(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 	} // swapBuffers

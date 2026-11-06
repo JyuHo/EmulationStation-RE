@@ -34,21 +34,12 @@
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/pointer.h>
 
-#if WIN32
-#include <Windows.h>
-#define popen _popen
-#define pclose _pclose
-#define WIFEXITED(x) x
-#define WEXITSTATUS(x) x
-#include "Win32ApiSystem.h"
-#else
 #include <sys/statvfs.h>
 #include <ifaddrs.h>
 #include <netinet/in.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <arpa/inet.h>
-#endif
 
 /*
 #define script_config "batocera-config"; // canupdate, overscan enable, overscan disable, storage 'X', storage current, storage list, forgetBT, getRootPassword, lsoutputs
@@ -85,11 +76,7 @@ ApiSystem *ApiSystem::getInstance()
 {
 	if (ApiSystem::instance == nullptr)
 	{
-#if WIN32
-		ApiSystem::instance = new Win32ApiSystem();
-#else
 		ApiSystem::instance = new ApiSystem();
-#endif
 		
 		IExternalActivity::Instance = ApiSystem::instance;
 	}
@@ -103,11 +90,9 @@ unsigned long ApiSystem::getFreeSpaceGB(std::string mountpoint)
 
 	int free = 0;
 
-#if !WIN32
 	struct statvfs fiData;
 	if ((statvfs(mountpoint.c_str(), &fiData)) >= 0)
 		free = (fiData.f_bfree * fiData.f_bsize) / (1024 * 1024 * 1024);
-#endif
 
 	return free;
 }
@@ -128,7 +113,6 @@ std::string ApiSystem::getFreeSpaceInfo(const std::string mountpoint)
 
 	std::ostringstream oss;
 
-#if !WIN32
 	struct statvfs fiData;
 	if ((statvfs(mountpoint.c_str(), &fiData)) < 0)
 		return "";
@@ -145,7 +129,6 @@ std::string ApiSystem::getFreeSpaceInfo(const std::string mountpoint)
 	}
 	else
 		oss << "N/A";	
-#endif
 
 	return oss.str();
 }
@@ -637,7 +620,6 @@ bool ApiSystem::launchFileManager(Window *window)
 	return exitCode == 0;
 }
 
-#if !WIN32
 bool ApiSystem::enableWifi(std::string ssid, std::string key, std::string country)
 {
 	ssid = Utils::String::replace(ssid, "'", "'\\''");
@@ -646,14 +628,7 @@ bool ApiSystem::enableWifi(std::string ssid, std::string key, std::string countr
 
 	return executeScript("batocera-wifi enable '" + ssid + "' '" + key + "' '" + country + "'");
 }
-#else
-bool ApiSystem::enableWifi(std::string ssid, std::string key) 
-{
-	return executeScript("batocera-wifi enable \"" + ssid + "\" \"" + key + "\"");
-}
-#endif
 
-#if !WIN32
 bool ApiSystem::configureWifi()
 {
 	return executeScript("batocera-wifi configure");
@@ -664,7 +639,6 @@ bool ApiSystem::connectWifi(const std::string& ssid)
 	const std::string escapedSSID = Utils::String::replace(ssid, "'", "'\\''");
 	return executeScript("batocera-wifi connect '" + escapedSSID + "'");
 }
-#endif
 
 bool ApiSystem::disableWifi() 
 {
@@ -848,9 +822,6 @@ std::string ApiSystem::getCurrentStorage()
 {
 	LOG(LogDebug) << "ApiSystem::getCurrentStorage";
 
-#if WIN32
-	return "DEFAULT";
-#endif
 
 	std::ostringstream oss;
 	oss << "batocera-config storage current";
@@ -943,20 +914,12 @@ std::vector<std::string> ApiSystem::getAvailableVideoOutputDevices()
 
 std::vector<std::string> ApiSystem::getAvailableAudioOutputDevices() 
 {
-#if WIN32
-	std::vector<std::string> res;
-	res.push_back("auto");
-	return res;
-#endif
 
 	return executeEnumerationScript("batocera-audio list");
 }
 
 std::string ApiSystem::getCurrentAudioOutputDevice() 
 {
-#if WIN32
-	return "auto";
-#endif
 
 	LOG(LogDebug) << "ApiSystem::getCurrentAudioOutputDevice";
 
@@ -994,20 +957,12 @@ bool ApiSystem::setAudioOutputDevice(std::string selected)
 
 std::vector<std::string> ApiSystem::getAvailableAudioOutputProfiles()
 {
-#if WIN32
-	std::vector<std::string> res;
-	res.push_back("auto");
-	return res;
-#endif
 
 	return executeEnumerationScript("batocera-audio list-profiles");
 }
 
 std::string ApiSystem::getCurrentAudioOutputProfile() 
 {
-#if WIN32
-	return "auto";
-#endif
 
 	LOG(LogDebug) << "ApiSystem::getCurrentAudioOutputProfile";
 
@@ -1153,9 +1108,7 @@ bool ApiSystem::isThemeInstalled(const std::string& themeName, const std::string
 		Paths::getUserThemesPath(),
 		Paths::getThemesPath(),
 		Paths::getUserEmulationStationPath() + "/themes"
-#if !WIN32
 		,"/etc/emulationstation/themes" // Backward compatibility with Retropie
-#endif
 	};
 
 	for (auto path : VectorHelper::distinct(paths, [](auto x) { return x; }))
@@ -1377,7 +1330,6 @@ std::string ApiSystem::getMD5(const std::string fileName, bool fromZipContents)
 		}
 	}
 
-#if !WIN32
 	if (fromZipContents && ext == ".7z")
 	{
 		auto cmd = getSevenZipCommand() + " x -so \"" + fileName + "\" | md5sum";
@@ -1385,7 +1337,6 @@ std::string ApiSystem::getMD5(const std::string fileName, bool fromZipContents)
 		if (ret.size() == 1 && ret.cbegin()->length() >= 32)
 			return ret.cbegin()->substr(0, 32);
 	}
-#endif
 
 	std::string contentFile = fileName;
 	std::string ret;
@@ -1520,9 +1471,6 @@ bool ApiSystem::unzipFile(const std::string fileName, const std::string destFold
 
 bool ApiSystem::getBrightness(std::vector<BrightnessDevice>& values)
 {	
-	#if WIN32
-	return false;
-	#endif
 
 	auto files = Utils::FileSystem::getDirContent("/sys/class/backlight");
 
@@ -1555,9 +1503,6 @@ bool ApiSystem::getBrightness(std::vector<BrightnessDevice>& values)
 
 void ApiSystem::setBrightness(BrightnessDevice bd)
 {
-#if WIN32	
-	return;
-#endif 
 	if (bd.value < 1)
 		bd.value = 1;
 
@@ -1580,9 +1525,6 @@ static std::string LED_MAX_BRIGHTNESS_VALUE;
 
 bool ApiSystem::getLED(int& red, int& green, int& blue)
 {	
-#if WIN32
-	return false;
-#endif
 
 	if (mSystemLedType != LED_TYPE_NONE)
 		return true;
@@ -1775,9 +1717,6 @@ static std::string ledMultiIntensity(const std::string& ledPath, int red, int gr
 
 void ApiSystem::setLEDColours(int red, int green, int blue)
 {
-#if WIN32    
-    return;
-#endif
 
 	if (mSystemLedType == LED_TYPE_NONE)
 		return;
@@ -1869,9 +1808,6 @@ void ApiSystem::setLEDColours(int red, int green, int blue)
 
 bool ApiSystem::getLEDBrightness(int& value)
 {   
-#if WIN32
-    return false;
-#endif
 
     // Handle software-controlled brightness platforms directly from configuration
     if (LED_COLOUR_NAME == "cubexx" || LED_COLOUR_NAME == "rg_vita_pro" || LED_COLOUR_NAME == "legiongos" || LED_COLOUR_NAME == "legiongo" || LED_COLOUR_NAME == "rg55g1")
@@ -1949,9 +1885,6 @@ bool ApiSystem::getLEDBrightness(int& value)
 
 void ApiSystem::setLEDBrightness(int value) 
 {
-#if WIN32
-    return;
-#endif
     // If we haven't resolved the path yet, try to do it now
     int dummy;
     if (LED_BRIGHTNESS_VALUE.empty()) getLEDBrightness(dummy);
@@ -2051,19 +1984,12 @@ void ApiSystem::setLEDBrightness(int value)
 
 bool ApiSystem::isLEDEnabled()
 {
-#if WIN32
-	return false;
-#else
 	// Check batocera.conf for "led.enabled" setting, default to "1" (true) if not found
 	return SystemConf::getInstance()->get("led.enabled") != "0";
-#endif
 }
 
 void ApiSystem::setLEDMode(const std::string& mode)
 {
-#if WIN32
-    return;
-#else
     SystemConf::getInstance()->set("led.mode", mode);
     SystemConf::getInstance()->saveSystemConf();
 
@@ -2082,14 +2008,10 @@ void ApiSystem::setLEDMode(const std::string& mode)
         getLEDColours(r, g, b);
         setLEDColours(r, g, b);
     }
-#endif
 }
 
 void ApiSystem::setLEDEnabled(bool enabled)
 {
-#if WIN32
-    return;
-#else
 	SystemConf::getInstance()->set("led.enabled", enabled ? "1" : "0");
 
 	if (!enabled)
@@ -2115,16 +2037,11 @@ void ApiSystem::setLEDEnabled(bool enabled)
 	}
 
 	SystemConf::getInstance()->saveSystemConf();
-#endif
 }
 
 bool ApiSystem::isLEDMonochrome()
 {
-#if WIN32
-    return false;
-#else
     return (LED_COLOUR_NAME == "monochrome");
-#endif
 }
 
 std::vector<std::string> ApiSystem::getWifiNetworks(bool scan)
@@ -2342,23 +2259,11 @@ bool ApiSystem::isReadyFlagSet()
 
 std::vector<std::string> ApiSystem::getFormatDiskList()
 {
-#if WIN32 && _DEBUG
-	std::vector<std::string> ret;
-	ret.push_back("d:\\ DRIVE D:");
-	ret.push_back("e:\\ DRIVE Z:");
-	return ret;
-#endif
 	return executeEnumerationScript("batocera-format listDisks");
 }
 
 std::vector<std::string> ApiSystem::getFormatFileSystems()
 {
-#if WIN32 && _DEBUG
-	std::vector<std::string> ret;
-	ret.push_back("exfat");	
-	ret.push_back("brfs");
-	return ret;
-#endif
 	return executeEnumerationScript("batocera-format listFstypes");
 }
 
@@ -2450,11 +2355,7 @@ std::vector<std::string> ApiSystem::extractPdfImages(const std::string& fileName
 		page = " -f " + std::to_string(pageIndex) + " -l " + std::to_string(pageIndex + pageCount - 1);
 	}
 
-#if WIN32
-	executeEnumerationScript("pdftoppm -r "+ squality + page +" \"" + fileName + "\" \""+ pdfFolder +"/" + prefix +"\"");
-#else
 	executeEnumerationScript("pdftoppm -jpeg -r "+ squality +" -cropbox" + page + " \"" + fileName + "\" \"" + pdfFolder + "/" + prefix + "\"");
-#endif
 
 	int time = SDL_GetTicks() - lastTime;
 	std::string text = std::to_string(time);

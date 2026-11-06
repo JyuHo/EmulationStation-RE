@@ -5,13 +5,6 @@
 #include <SDL_events.h>
 #include <iostream> // bad bad cecloader
 #include <libcec/cecloader.h>
-#ifdef _RPI_
-extern "C" {
-#include <interface/vmcs_host/vc_cecservice.h>
-#include <interface/vmcs_host/vc_tvservice.h>
-#include <interface/vmcs_host/vchost.h>
-}
-#endif // _RPI_
 #endif // HAVE_LIBCEC
 
 // hack for cec support
@@ -50,25 +43,6 @@ static void onLogMessage(void* /*cbParam*/, const CEC::cec_log_message* message)
 
 } // onLogMessage
 
-#ifdef _RPI_
-static void vchi_tv_and_cec_init()
-{
-	VCHI_INSTANCE_T vchi_instance;
-	VCHI_CONNECTION_T* vchi_connection;
-	vc_host_get_vchi_state(&vchi_instance, &vchi_connection);
-
-	vc_vchi_tv_init(vchi_instance, &vchi_connection, 1);
-	vc_vchi_cec_init(vchi_instance, &vchi_connection, 1);
-
-} // vchi_tv_and_cec_init
-
-static void vchi_tv_and_cec_deinit()
-{
-	vc_vchi_cec_stop();
-	vc_vchi_tv_stop();
-
-} // vchi_tv_and_cec_deinit
-#endif // _RPI_
 #endif // HAVE_LIBCEC
 
 void CECInput::init()
@@ -92,11 +66,6 @@ CECInput::CECInput() : mlibCEC(nullptr)
 {
 
 #ifdef HAVE_LIBCEC
-#ifdef _RPI_
-	// restart vchi tv and cec in case we just came back from another app using cec (like Kodi)
-	vchi_tv_and_cec_deinit();
-	vchi_tv_and_cec_init();
-#endif // _RPI_
 
 	// CEC::ICECCallbacks        callbacks;
 	// CEC::libcec_configuration config;
@@ -159,10 +128,6 @@ CECInput::~CECInput()
 		mlibCEC = nullptr;
 	}
 
-#ifdef _RPI_
-	// deinit vchi tv and cec in case we are going to launch another app using cec (like Kodi)
-	vchi_tv_and_cec_deinit();
-#endif // _RPI_
 #endif // HAVE_LIBCEC
 
 } // ~CECInput

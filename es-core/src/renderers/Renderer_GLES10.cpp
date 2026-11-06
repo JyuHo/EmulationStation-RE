@@ -7,11 +7,7 @@
 #include "Log.h"
 #include "Settings.h"
 
-#if WIN32
-#include "GlExtensions.h" // TEMPORAIRE
-#else
 #include <GLES/gl.h>
-#endif
 
 #include <SDL.h>
 #include <vector>

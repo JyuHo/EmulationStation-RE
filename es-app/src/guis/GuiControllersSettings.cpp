@@ -29,13 +29,8 @@
 #define gettext_playerid _("P%i'S CONTROLLER")
 
 // Windows build does not have bluetooth support, so affect the label for Windows
-#if WIN32
-#define controllers_settings_label		gettext_controllers_settings
-#define controllers_group_label		gettext_controllers_priority
-#else
 #define controllers_settings_label		gettext_controllers_and_bluetooth_settings
 #define controllers_group_label		gettext_controllers_player_assigments
-#endif
 
 struct hotkeyInputDefinition
 {
@@ -152,7 +147,7 @@ GuiControllersSettings::GuiControllersSettings(Window* wnd, int autoSel) : GuiSe
 		// PAIR A BLUETOOTH CONTROLLER
 		addEntry(_("PAIR BLUETOOTH PADS AUTOMATICALLY"), false, [window] { ThreadedBluetooth::start(window); });
 
-#if defined(BATOCERA) || defined(WIN32)
+#if defined(BATOCERA)
 		// PAIR A BLUETOOTH CONTROLLER OR BT AUDIO DEVICE
 		addEntry(_("PAIR A BLUETOOTH DEVICE MANUALLY"), false, [window]
 		{
@@ -340,89 +335,6 @@ GuiControllersSettings::GuiControllersSettings(Window* wnd, int autoSel) : GuiSe
 
 	auto configList = InputManager::getInstance()->getInputConfigs();
 
-#if WIN32
-	for (int player = 0; player < MAX_PLAYERS; player++)
-	{
-		std::string label = Utils::String::format(gettext_controllerid.c_str(), player + 1);
-
-		auto inputOptionList = std::make_shared<OptionListComponent<InputConfigInfo*> >(mWindow, label, false);
-		inputOptionList->add(_("default"), nullptr, false);
-		options.push_back(inputOptionList);
-
-		// Checking if a setting has been saved, else setting to default
-		std::string configuratedName = Settings::getInstance()->getString(Utils::String::format("INPUT P%iNAME", player + 1));
-		std::string configuratedGuid = Settings::getInstance()->getString(Utils::String::format("INPUT P%iGUID", player + 1));
-		std::string configuratedPath = Settings::getInstance()->getString(Utils::String::format("INPUT P%iPATH", player + 1));
-
-		bool found = false;
-
-		// Add configurated controller even if it's disconnected
-		InputConfigInfo* defaultInputConfig = nullptr;
-
-		if (!configuratedPath.empty())
-		{
-			InputConfigInfo* newInputConfig = new InputConfigInfo(configuratedName, configuratedGuid, configuratedPath);
-			mLoadedInput.push_back(newInputConfig);
-
-			auto it = std::find_if(configList.cbegin(), configList.cend(), [&configuratedPath, &alreadyTaken](InputConfig* x)
-			{
-				return x->getSortDevicePath() == configuratedPath
-					&& std::find(alreadyTaken.begin(), alreadyTaken.end(), x->getDeviceId()) == alreadyTaken.end();
-			});
-			
-			if (it != configList.cend())
-			{
-				inputOptionList->addEx(configuratedName, configuratedPath, newInputConfig, true, false, false);
-				alreadyTaken.push_back((*it)->getDeviceId());
-				defaultInputConfig = newInputConfig;
-			}
-			else if (std::find_if(configList.cbegin(), configList.cend(), [&configuratedPath](InputConfig* x) { return x->getSortDevicePath() == configuratedPath; }) == configList.cend())
-			{
-				inputOptionList->addEx(configuratedName + " (" + _("NOT CONNECTED") + ")", configuratedPath, newInputConfig, true, false, false);
-			}
-
-			found = true;
-		}
-
-		// for each available and configured input
-		for (auto config : configList)
-		{
-			if (defaultInputConfig != nullptr && defaultInputConfig->name == config->getDeviceName() && defaultInputConfig->guid == config->getDeviceGUIDString() && defaultInputConfig->path == config->getSortDevicePath())
-				continue;
-
-			// Prefix with the device index, like the non Windows branch does: two boards of the
-			// same model, or the two halves of a 2-players arcade encoder, are otherwise shown
-			// as two strictly identical lines and cannot be told apart.
-			std::string displayName = "#" + std::to_string(config->getDeviceIndex()) + " " + config->getDeviceName();
-
-			bool foundFromConfig = !configuratedPath.empty() ? config->getSortDevicePath() == configuratedPath : configuratedName == config->getDeviceName() && configuratedGuid == config->getDeviceGUIDString();
-			int deviceID = config->getDeviceId();
-
-			InputConfigInfo* newInputConfig = new InputConfigInfo(config->getDeviceName(), config->getDeviceGUIDString(), config->getSortDevicePath());
-			mLoadedInput.push_back(newInputConfig);
-
-			if (foundFromConfig && std::find(alreadyTaken.begin(), alreadyTaken.end(), deviceID) == alreadyTaken.end() && !found)
-			{
-				found = true;
-				alreadyTaken.push_back(deviceID);
-
-				LOG(LogWarning) << "adding entry for player" << player << " (selected): " << config->getDeviceName() << "  " << config->getDeviceGUIDString() << "  " << config->getDevicePath();
-				inputOptionList->addEx(displayName, config->getDevicePath(), newInputConfig, true, false, false);
-			}
-			else
-			{
-				LOG(LogInfo) << "adding entry for player" << player << " (not selected): " << config->getDeviceName() << "  " << config->getDeviceGUIDString() << "  " << config->getDevicePath();
-				inputOptionList->addEx(displayName, config->getDevicePath(), newInputConfig, false, false, false);
-			}
-		}
-
-		if (!inputOptionList->hasSelection())
-			inputOptionList->selectFirstItem();
-
-		// Populate controllers list
-		addWithLabel(label, inputOptionList);
-	}
-#else
 	for (int player = 0; player < MAX_PLAYERS; player++)
 	{
 		std::string confName = Utils::String::format("INPUT P%iNAME", player + 1);
@@ -474,7 +386,6 @@ GuiControllersSettings::GuiControllersSettings(Window* wnd, int autoSel) : GuiSe
 		// Populate controllers list
 		addWithLabel(label, inputOptionList);
 	}
-#endif
 
 	addSaveFunc([this, options, window]
 	{

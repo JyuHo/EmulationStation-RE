@@ -33,11 +33,7 @@ NetworkThread::NetworkThread(Window* window) : mWindow(window)
 
 CheckPadsBatteryLevelComponent::CheckPadsBatteryLevelComponent()
 {
-#if WIN32		
-	mEnabled = false; // Windows uses SDL_JOYBATTERYUPDATED event instead
-#else
 	mEnabled = ApiSystem::getInstance()->isScriptingSupported(ApiSystem::PADSINFO);
-#endif
 }
 
 bool CheckPadsBatteryLevelComponent::check()

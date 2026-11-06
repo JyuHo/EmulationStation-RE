@@ -19,11 +19,7 @@
 #include <string>
 #include <algorithm>
 
-#ifdef WIN32
-#include <time.h>
-#else
 #include <unistd.h>
-#endif
 
 // batocera
 // Size of last played music history as a percentage of file total

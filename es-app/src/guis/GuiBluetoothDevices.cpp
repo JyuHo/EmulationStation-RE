@@ -109,9 +109,6 @@ void GuiBluetoothDevices::onRemoveAll()
 		[this, window](auto gui)
 		{
 			mWaitingLoad = true;
-#if WIN32 && _DEBUG
-			std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-#endif
 			return ApiSystem::getInstance()->forgetBluetoothControllers();
 		},
 		[this, window](bool ret)

@@ -27,9 +27,6 @@
 #include "SystemRandomPlaylist.h"
 #include "ThemeData.h"
 
-#if WIN32
-#include "Win32ApiSystem.h"
-#endif
 
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/document.h>
@@ -1875,11 +1872,7 @@ SystemData* SystemData::getParentGroupSystem()
 
 std::string SystemData::getEmulator(bool resolveDefault)
 {
-#if WIN32 && !_DEBUG
-	std::string emulator = Settings::getInstance()->getString(getName() + ".emulator");
-#else
 	std::string emulator = SystemConf::getInstance()->get(getName() + ".emulator");
-#endif
 
 	for (auto emul : mEmulators)
 		if (emul.name == emulator)
@@ -1893,11 +1886,7 @@ std::string SystemData::getEmulator(bool resolveDefault)
 
 std::string SystemData::getCore(bool resolveDefault)
 {
-#if WIN32 && !_DEBUG
-	std::string core = Settings::getInstance()->getString(getName() + ".core");
-#else
 	std::string core = SystemConf::getInstance()->get(getName() + ".core");
-#endif
 
 	if (!core.empty() && core != "auto")
 	{

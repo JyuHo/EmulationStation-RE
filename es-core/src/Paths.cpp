@@ -9,11 +9,7 @@
 
 Paths* Paths::_instance = nullptr;
 
-#ifdef WIN32
-#define SETTINGS_FILENAME "emulatorLauncher.cfg"
-#else
 #define SETTINGS_FILENAME "emulationstation.ini"
-#endif
 
 
 
@@ -37,9 +33,6 @@ Paths::Paths()
 	mKeyboardMappingsPath = mUserEmulationStationPath + "/padtokey";
 	mUserManualPath = mUserEmulationStationPath + "/notice.pdf";
 
-#if defined(WIN32) && defined(_DEBUG)
-	mSystemConfFilePath = mUserEmulationStationPath + "/batocera.conf";
-#endif
 
 	loadCustomConfiguration(false); // Try to detect alternate paths ( Decorations, Shaders... ) without loading overrides
 
@@ -125,9 +118,6 @@ void Paths::loadCustomConfiguration(bool overridesOnly)
 		{ "system.retroachievementsounds", &mRetroachivementSounds },
 		{ "retroachievementsounds", &mUserRetroachivementSounds },
 		{ "timezones", &mTimeZonesPath },
-#if WIN32
-		{ "kodi", &mKodiPath }
-#endif
 	};
 
 	std::map<std::string, std::string> ret;
@@ -161,19 +151,6 @@ void Paths::loadCustomConfiguration(bool overridesOnly)
 				continue;
 			}
 
-#if WIN32
-			if (variable == "kodi")
-			{
-				if (Utils::FileSystem::exists("C:\\Program Files\\Kodi\\kodi.exe"))
-					ret[variable] = "C:\\Program Files\\Kodi\\kodi.exe";
-				else if (Utils::FileSystem::exists("C:\\Program Files (x86)\\Kodi\\kodi.exe"))
-					ret[variable] = "C:\\Program Files (x86)\\Kodi\\kodi.exe";
-				else if (Utils::FileSystem::exists(Utils::FileSystem::combine(Utils::FileSystem::getParent(relativeTo), "kodi\\kodi.exe")))
-					ret[variable] = Utils::FileSystem::combine(Utils::FileSystem::getParent(relativeTo), "kodi\\kodi.exe");
-
-				continue;
-			}
-#endif
 
 			if (Utils::String::startsWith(variable, "system."))
 			{
@@ -262,15 +239,6 @@ std::string& Paths::getHomePath()
 	if (homePath.length())
 		return homePath;
 
-#ifdef WIN32
-	// Is it a portable installation ? Check if ".emulationstation/es_systems.cfg" exists in the exe's path
-	if (!homePath.length())
-	{
-		std::string portableCfg = getExePath() + "/.emulationstation/es_systems.cfg";
-		if (Utils::FileSystem::exists(portableCfg))
-			homePath = getExePath();
-	}
-#endif
 
 	// HOME has different usages in Linux & Windows
 	// On Windows,  "HOME" is not a system variable but a user's environment variable that can be defined by users in batch files. 
@@ -279,17 +247,6 @@ std::string& Paths::getHomePath()
 	if (envHome)
 		homePath = Utils::FileSystem::getGenericPath(envHome);
 
-#ifdef WIN32
-	// On Windows, getenv("HOME") is not the system's user path but a user environment variable.
-	// Instead we get the home user's path using %HOMEDRIVE%/%HOMEPATH% which are system variables.
-	if (!homePath.length())
-	{
-		char* envHomeDrive = getenv("HOMEDRIVE");
-		char* envHomePath = getenv("HOMEPATH");
-		if (envHomeDrive && envHomePath)
-			homePath = Utils::FileSystem::getGenericPath(std::string(envHomeDrive) + "/" + envHomePath);
-	}
-#endif // _WIN32
 
 	// no homepath found, fall back to current working directory
 	if (!homePath.length())

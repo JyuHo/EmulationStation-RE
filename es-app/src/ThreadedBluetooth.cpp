@@ -95,9 +95,6 @@ void ThreadedFormatter::updateNotificationComponentContent(const std::string inf
 
 void ThreadedFormatter::run()
 {
-#if WIN32
-	std::this_thread::sleep_for(std::chrono::milliseconds(10000));
-#endif
 
 	int ret = ApiSystem::getInstance()->formatDisk(mDisk, mFileSystem, [this](const std::string info)
 	{

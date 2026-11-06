@@ -14,24 +14,9 @@
 #include <shared_mutex>
 #include <thread>
 
-#if defined(_WIN32)
-// because windows...
-#include <direct.h>
-#include <Windows.h>
-#include <mutex>
-#include <io.h> 
-#define getcwd _getcwd
-#define mkdir(x,y) _mkdir(x)
-#define snprintf _snprintf
-#define stat64 _stat64
-#define unlink _unlink
-#define S_ISREG(x) (((x) & S_IFMT) == S_IFREG)
-#define S_ISDIR(x) (((x) & S_IFMT) == S_IFDIR)
-#else // _WIN32
 #include <dirent.h>
 #include <unistd.h>
 #include <mutex>
-#endif // _WIN32
 
 #include <fstream>
 #include <sstream>
@@ -63,86 +48,9 @@ namespace Utils
 				_symlink = symLink;
 			}
 
-#if WIN32			
-			FileCache(DWORD dwFileAttributes)
-			{
-				if (0xFFFFFFFF == dwFileAttributes)
-				{
-					_directory = false;
-					_exists = false;
-					_hidden = false;
-					_symlink = false;
-				}
-				else
-				{
-					_exists = true;
-					_directory = dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
-					_hidden = dwFileAttributes & FILE_ATTRIBUTE_HIDDEN;
-					_symlink = dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT;
-				}
-			}			
-			
-			FileCache(WIN32_FIND_DATAW& data)
-			{
-				_exists = true;
-				_directory = data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
-				_hidden = data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN;
-				_symlink = data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT;
-			}
-
-			static void add(const std::string& key, WIN32_FIND_DATAW& data)
-			{
-				if (!Settings::UseFileCache())
-					return;
-
-				std::unique_lock<std::shared_mutex> guard(mFileCacheMutex);
-
-				auto [it, inserted] = mFileCache.try_emplace(hashPath(key), data);
-				if (!inserted)
-				{
-					it->second._exists = true;
-					it->second._directory = data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
-					it->second._hidden = data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN;
-					it->second._symlink = data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT;
-				}
-			}
-
-			static void add(const std::string& key, DWORD dwFileAttributes)
-			{
-				if (!Settings::UseFileCache())
-					return;
-
-				std::unique_lock<std::shared_mutex> guard(mFileCacheMutex);
-
-				auto [it, inserted] = mFileCache.try_emplace(hashPath(key), dwFileAttributes); 
-				if (!inserted)
-				{
-					if (0xFFFFFFFF == dwFileAttributes)
-					{
-						it->second._directory = false;
-						it->second._exists = false;
-						it->second._hidden = false;
-						it->second._symlink = false;
-					}
-					else
-					{
-						it->second._exists = true;
-						it->second._directory = dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
-						it->second._hidden = dwFileAttributes & FILE_ATTRIBUTE_HIDDEN;
-						it->second._symlink = dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT;
-					}					
-				}
-			}
-#endif
 
 			static int fromStat64(const std::string& key, struct stat64* info)
 			{
-#if WIN32			
-				int ret = _wstat64(Utils::String::convertToWideString(key).c_str(), info);
-
-				std::unique_lock<std::shared_mutex> guard(mFileCacheMutex);
-				mFileCache.try_emplace(hashPath(key), ret == 0, ret == 0 && S_ISDIR(info->st_mode));				
-#else
 				int ret = stat64(key.c_str(), info);
 
 				FileCache cache(ret == 0, false);
@@ -160,7 +68,6 @@ namespace Utils
 
 				std::unique_lock<std::shared_mutex> guard(mFileCacheMutex);
 				mFileCache[hashPath(key)] = cache;			
-#endif
 
 				return ret;
 			}
@@ -287,9 +194,6 @@ namespace Utils
 			// Performs filesystem I/O with NO lock held — safe to call concurrently.
 			static FileCache statKey(const std::string& key)
 			{
-#ifdef WIN32
-				return FileCache(GetFileAttributesW(Utils::String::convertToWideString(key).c_str()));
-#else
 				struct stat64 info;
 				int ret = stat64(key.c_str(), &info);
 
@@ -304,7 +208,6 @@ namespace Utils
 				}
 
 				return FileCache(exists, directory, symlink);
-#endif
 			}
 
 			// Inserts a pre-computed entry. MUST be called with exclusive lock held.
@@ -363,43 +266,6 @@ namespace Utils
 				// tell filecache we enumerated the folder
 				FileCache::add(path + "/*", true, true);
 
-#if defined(_WIN32)
-				WIN32_FIND_DATAW findData;
-				std::string      wildcard = path + "/*";
-				
-				HANDLE hFind = FindFirstFileExW(Utils::String::convertToWideString(wildcard).c_str(),
-					FINDEX_INFO_LEVELS::FindExInfoBasic, &findData, FINDEX_SEARCH_OPS::FindExSearchNameMatch
-					, NULL, FIND_FIRST_EX_LARGE_FETCH);
-
-				if (hFind != INVALID_HANDLE_VALUE)
-				{
-					std::string pathPrefix = path + "/";
-
-					// loop over all files in the directory
-					do
-					{
-						if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY && 
-							(findData.cFileName[0] == L'.' && (findData.cFileName[1] == L'\0' || (findData.cFileName[1] == L'.' && findData.cFileName[2] == L'\0'))))
-							continue;
-
-						std::string fullName = getGenericPath(pathPrefix + Utils::String::convertFromWideString(findData.cFileName));
-						FileCache::add(fullName, findData);
-
-						if (!includeHidden && (findData.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN) == FILE_ATTRIBUTE_HIDDEN)
-							continue;
-
-						contentList.push_back(fullName);
-
-						if (_recursive && (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY)
-						{
-							for (auto item : getDirContent(fullName, true, includeHidden))
-								contentList.push_back(item);
-						}
-					} while (FindNextFileW(hFind, &findData));
-
-					FindClose(hFind);
-				}
-#else // _WIN32
 				DIR* dir = opendir(path.c_str());
 
 				if(dir != NULL)
@@ -447,7 +313,6 @@ namespace Utils
 
 					closedir(dir);
 				}
-#endif // _WIN32
 
 			}
 
@@ -459,16 +324,6 @@ namespace Utils
 
 		} // getDirContent
 
-#if WIN32
-		static time_t to_time_t(FILETIME& ft)
-		{
-			ULARGE_INTEGER ull;
-			ull.LowPart = ft.dwLowDateTime;
-			ull.HighPart = ft.dwHighDateTime;
-			time_t ret = (ull.QuadPart / 10000000ULL - 11644473600ULL);
-			return ret;
-		}
-#endif
 
 		fileList getDirectoryFiles(const std::string& _path)
 		{
@@ -481,66 +336,6 @@ namespace Utils
 			// only parse the directory, if it's a directory
 			// if (isDirectory(path))
 			{			
-#if defined(_WIN32)
-
-				if (_path.empty() || _path == "\\" || _path == "/")
-				{
-					char drive = 'A';
-
-					DWORD uDriveMask = ::GetLogicalDrives();
-					while (uDriveMask)
-					{
-						if (uDriveMask & 1)
-						{
-							contentList.emplace_back();
-							FileInfo& fi = contentList.back();												
-							fi.path = std::string(1, drive) + ":";
-							fi.hidden = false;
-							fi.directory = true;							
-						}
-
-						drive++;
-						uDriveMask >>= 1;
-					}
-
-					return contentList;
-				}
-
-				WIN32_FIND_DATAW findData;
-				std::string      wildcard = path + "/*";
-				
-				HANDLE hFind = FindFirstFileExW(Utils::String::convertToWideString(wildcard).c_str(),
-					FINDEX_INFO_LEVELS::FindExInfoBasic, &findData, FINDEX_SEARCH_OPS::FindExSearchNameMatch
-					, NULL, FIND_FIRST_EX_LARGE_FETCH);
-
-				if (hFind != INVALID_HANDLE_VALUE)
-				{
-					std::string pathPrefix = path + "/";
-
-					// loop over all files in the directory
-					do
-					{
-						if (findData.cFileName == nullptr)
-							continue;
-
-						if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY &&
-							(findData.cFileName[0] == '.' && (findData.cFileName[1] == '.' || findData.cFileName[1] == 0)))
-							continue;
-
-						contentList.emplace_back();
-						FileInfo& fi = contentList.back();						
-						fi.path = pathPrefix + Utils::String::convertFromWideString(findData.cFileName);
-						fi.hidden = (findData.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN) == FILE_ATTRIBUTE_HIDDEN;
-						fi.directory = (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY;
-						fi.lastWriteTime = to_time_t(findData.ftLastWriteTime);						
-
-						FileCache::add(fi.path, findData);						
-					} 
-					while (FindNextFileW(hFind, &findData));
-
-					FindClose(hFind);
-				}
-#else // _WIN32
 				DIR* dir = opendir(path.c_str());
 
 				if (dir != NULL)
@@ -581,7 +376,6 @@ namespace Utils
 
 					closedir(dir);
 				}
-#endif // _WIN32
 
 			}
 
@@ -624,19 +418,7 @@ namespace Utils
 
 		std::string getPreferredPath(const std::string& _path)
 		{
-#if _WIN32
-			std::string path   = _path;
-
-			// convert '/' to '\\'
-
-			size_t      offset = std::string::npos;
-			while((offset = path.find('/')) != std::string::npos)
-				path.replace(offset, 1, "\\");
-
-			return path;
-#else
 			return _path;
-#endif
 		}
 
 		std::string getGenericPath(const std::string& _path)
@@ -671,10 +453,6 @@ namespace Utils
 		{
 			std::string path = getGenericPath(_path);
 
-#if defined(_WIN32)
-			// windows escapes stuff by just putting everything in quotes
-			return '"' + getPreferredPath(path) + '"';
-#else // _WIN32
 			// insert a backslash before most characters that would mess up a bash path
 			const char* invalidChars = "\\ '\"!$^&*(){}[]?;<>";
 			const char* invalidChar  = invalidChars;
@@ -700,7 +478,6 @@ namespace Utils
 
 			// return escaped path
 			return path;
-#endif // _WIN32
 
 		}
 
@@ -710,18 +487,12 @@ namespace Utils
 			if (_path.size() >= 2 && _path[0] == ':' && _path[1] == '/')
 				return _path;
 
-#if WIN32
-			std::string path = _path[0] == '.' ? getAbsolutePath(_path) : _path;
-			if (path.find("./") == std::string::npos && path.find(".\\") == std::string::npos)
-				return path;
-#else
 			// For absolute paths, skip the stat — exists() is only needed to resolve
 			// relative paths, and getAbsolutePath() on an already-absolute path is a no-op.
 			std::string path = isAbsolute(_path) ? getGenericPath(_path) : (exists(_path) ? getAbsolutePath(_path) : getGenericPath(_path));
 			// Early return if there are no . or .. components to normalize
 			if (path.find("/.") == std::string::npos)
 				return path;
-#endif
 			
 			int indexes[32];
 			int index = -1;
@@ -1001,20 +772,6 @@ namespace Utils
 			std::string path = getGenericPath(_path);
 			std::string resolved;
 
-#if defined(_WIN32)
-			HANDLE hFile = CreateFile(path.c_str(), FILE_READ_ATTRIBUTES, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, 0);
-
-			if(hFile != INVALID_HANDLE_VALUE)
-			{
-				resolved.resize(GetFinalPathNameByHandle(hFile, nullptr, 0, FILE_NAME_NORMALIZED) + 1);
-				if(GetFinalPathNameByHandle(hFile, (LPSTR)resolved.data(), (DWORD)resolved.size(), FILE_NAME_NORMALIZED) > 0)
-				{
-					resolved.resize(resolved.size() - 1);
-					resolved = getGenericPath(resolved);
-				}
-				CloseHandle(hFile);
-			}
-#else // _WIN32
 			struct stat info;
 
 			// check if lstat succeeded
@@ -1033,7 +790,6 @@ namespace Utils
 						resolved = getAbsolutePath(resolved, getParent(path));
 				}
 			}
-#endif // _WIN32
 
 			// return resolved path
 			return resolved;
@@ -1049,11 +805,7 @@ namespace Utils
 				return true;
 
 			FileCache::remove(path);
-#if WIN32			
-			return RemoveDirectoryW(Utils::String::convertToWideString(getPreferredPath(_path)).c_str());
-#else
 			return (rmdir(path.c_str()) == 0);
-#endif
 		}
 
 		bool removeFile(const std::string& _path)
@@ -1065,24 +817,11 @@ namespace Utils
 				return true;
 
 			FileCache::remove(path);
-#if WIN32			
-			if (isDirectory(_path))
-				return RemoveDirectoryW(Utils::String::convertToWideString(getPreferredPath(_path)).c_str());
-						
-			if (!DeleteFileW(Utils::String::convertToWideString(_path).c_str()))
-			{
-				SetFileAttributesW(Utils::String::convertToWideString(_path).c_str(), FILE_ATTRIBUTE_NORMAL);
-				return DeleteFileW(Utils::String::convertToWideString(_path).c_str());
-			}
-
-			return true;
-#else
 			if (isDirectory(_path))
 				return (rmdir(path.c_str()) == 0);
 
 			// try to remove file
 			return (unlink(path.c_str()) == 0);
-#endif
 
 		} // removeFile
 
@@ -1096,10 +835,6 @@ namespace Utils
 
 			FileCache::remove(path);
 
-#ifdef WIN32	
-			if (::CreateDirectoryW(Utils::String::convertToWideString(_path).c_str(), nullptr))
-				return true;
-#endif
 
 			// try to create directory
 			if (mkdir(path.c_str(), 0755) == 0)
@@ -1131,19 +866,10 @@ namespace Utils
 					return *val;
 			}
 
-#ifdef WIN32			
-			DWORD dwAttr = GetFileAttributesW(Utils::String::convertToWideString(_path).c_str());
-			FileCache::add(_path, dwAttr);
-			if (0xFFFFFFFF == dwAttr)
-				return false;
-
-			return true;
-#else
 			std::string path = getGenericPath(_path);
 			struct stat64 info;
 
 			return FileCache::fromStat64(path, &info) == 0;
-#endif
 		} // exists
 
 		bool isAbsolute(const std::string& _path)
@@ -1153,11 +879,7 @@ namespace Utils
 		
 			std::string path = getGenericPath(_path);
 
-#ifdef WIN32
-			return ((path.size() > 1) && (path[1] == ':'));
-#else // _WIN32
 			return ((path.size() > 0) && (path[0] == '/'));
-#endif // _WIN32
 
 		} // isAbsolute
 
@@ -1183,12 +905,6 @@ namespace Utils
 			auto it = FileCache::isDirectory(_path);
 			if (it) return *it;
 
-#ifdef WIN32
-			// check for symlink attribute
-			DWORD dwAttributes = GetFileAttributesW(Utils::String::convertToWideString(_path).c_str());
-			FileCache::add(_path, dwAttributes);
-			return (dwAttributes != INVALID_FILE_ATTRIBUTES) && (dwAttributes & FILE_ATTRIBUTE_DIRECTORY);
-#else // _WIN32
 			std::string path = getGenericPath(_path);
 			struct stat64 info;
 
@@ -1204,7 +920,6 @@ namespace Utils
 
 			// check for S_IFDIR attribute
 			return (S_ISDIR(info.st_mode));
-#endif
 		} // isDirectory
 
 		bool isSymlink(const std::string& _path)
@@ -1214,16 +929,6 @@ namespace Utils
 				
 			std::string path = getGenericPath(_path);
 
-#ifdef WIN32
-			// check for symlink attribute
-			DWORD dwAttributes = GetFileAttributes(path.c_str());
-			FileCache::add(_path, dwAttributes);
-			if((dwAttributes != INVALID_FILE_ATTRIBUTES) && (dwAttributes & FILE_ATTRIBUTE_REPARSE_POINT))
-				return true;
-
-			// not a symlink
-			return false;
-#else // WIN32
 			struct stat64 info;
 
 			// check if lstat succeeded
@@ -1232,7 +937,6 @@ namespace Utils
 
 			// check for S_IFLNK attribute
 			return (S_ISLNK(info.st_mode));
-#endif //_WIN32
 			
 		} // isSymlink
 
@@ -1243,13 +947,6 @@ namespace Utils
 
 			std::string path = getGenericPath(_path);
 
-#ifdef WIN32
-			// check for hidden attribute
-			DWORD dwAttributes = GetFileAttributes(path.c_str());
-			FileCache::add(_path, dwAttributes);
-			if ((dwAttributes != INVALID_FILE_ATTRIBUTES) && (dwAttributes & FILE_ATTRIBUTE_HIDDEN))
-				return true;
-#endif // _WIN32
 
 			// Filenames starting with . are hidden in linux, we do this check for windows as well
 			if (getFileName(path)[0] == '.')
@@ -1322,14 +1019,9 @@ namespace Utils
 			struct stat64 info;
 
 
-#if defined(_WIN32)
-			if ((_wstat64(Utils::String::convertToWideString(path).c_str(), &info) == 0))
-				return (unsigned long long)info.st_size;
-#else
 			// check if stat64 succeeded
 			if ((stat64(path.c_str(), &info) == 0))
 				return (unsigned long long)info.st_size;
-#endif
 
 			return 0;
 		}
@@ -1340,13 +1032,8 @@ namespace Utils
 			struct stat64 info;
 
 			// check if stat64 succeeded
-#if defined(_WIN32)
-			if ((_wstat64(Utils::String::convertToWideString(path).c_str(), &info) == 0))
-				return Utils::Time::DateTime(info.st_ctime);
-#else
 			if ((stat64(path.c_str(), &info) == 0))
 				return Utils::Time::DateTime(info.st_ctime);
-#endif
 			return Utils::Time::DateTime();
 		}
 
@@ -1356,13 +1043,8 @@ namespace Utils
 			struct stat64 info;
 
 			// check if stat64 succeeded
-#if defined(_WIN32)
-			if ((_wstat64(Utils::String::convertToWideString(path).c_str(), &info) == 0))
-				return Utils::Time::DateTime(info.st_mtime);
-#else
 			if ((stat64(path.c_str(), &info) == 0))
 				return Utils::Time::DateTime(info.st_mtime);
-#endif
 			return Utils::Time::DateTime();
 		}
 
@@ -1428,11 +1110,7 @@ namespace Utils
 
 		void writeAllText(const std::string& fileName, const std::string& text)
 		{
-#if defined(_WIN32)
-			FILE* file = _wfopen(Utils::String::convertToWideString(fileName).c_str(), L"wb");
-#else
 			FILE* file = fopen(fileName.c_str(), "wb");
-#endif
 			if (file == nullptr)
 				return;		
 
@@ -1457,11 +1135,7 @@ namespace Utils
 			FileCache::remove(path);
 			FileCache::remove(dst);
 
-#if WIN32			
-			return MoveFileW(Utils::String::convertToWideString(path).c_str(), Utils::String::convertToWideString(dst).c_str());
-#else
 			return std::rename(src.c_str(), dst.c_str()) == 0;
-#endif
 		}
 
 		bool copyFile(const std::string& src, const std::string& dst)
@@ -1478,19 +1152,11 @@ namespace Utils
 			char buf[512];
 			size_t size;
 
-#if defined(_WIN32)
-			FILE* source = _wfopen(Utils::String::convertToWideString(path).c_str(), L"rb");
-#else
 			FILE* source = fopen(path.c_str(), "rb");
-#endif
 			if (source == nullptr)
 				return false;
 
-#if defined(_WIN32)
-			FILE* dest = _wfopen(Utils::String::convertToWideString(pathD).c_str(), L"wb");
-#else
 			FILE* dest = fopen(pathD.c_str(), "wb");
-#endif
 			if (dest == nullptr)
 			{
 				fclose(source);
@@ -1578,15 +1244,6 @@ namespace Utils
 
 			if (path.empty())
 			{
-#ifdef WIN32
-				// Set tmp files to local drive : usually faster since it's generally a SSD Drive
-				WCHAR lpTempPathBuffer[MAX_PATH];
-				lpTempPathBuffer[0] = 0;
-				DWORD dwRetVal = ::GetTempPathW(MAX_PATH, lpTempPathBuffer);
-				if (dwRetVal > 0 && dwRetVal <= MAX_PATH)
-					path = Utils::FileSystem::getGenericPath(Utils::String::convertFromWideString(lpTempPathBuffer)) + "/emulationstation.tmp";
-				else
-#endif
 					path = Utils::FileSystem::getGenericPath(Paths::getUserEmulationStationPath() + "/tmp");
 			}
 
@@ -1602,15 +1259,6 @@ namespace Utils
 
 			if (pdfpath.empty())
 			{
-#ifdef WIN32
-				// Extract PDFs to local drive : usually faster since it's generally a SSD Drive
-				WCHAR lpTempPathBuffer[MAX_PATH];
-				lpTempPathBuffer[0] = 0;
-				DWORD dwRetVal = ::GetTempPathW(MAX_PATH, lpTempPathBuffer);
-				if (dwRetVal > 0 && dwRetVal <= MAX_PATH)
-					pdfpath = Utils::FileSystem::getGenericPath(Utils::String::convertFromWideString(lpTempPathBuffer)) + "/pdftmp";
-				else
-#endif						
 					pdfpath = Utils::FileSystem::getGenericPath(Paths::getUserEmulationStationPath() + "/pdftmp");
 			}
 
@@ -1624,11 +1272,7 @@ namespace Utils
 		{
 			std::string hex;
 
-#if defined(_WIN32)
-			FILE* file = _wfopen(Utils::String::convertToWideString(filename).c_str(), L"rb");
-#else			
 			FILE* file = fopen(filename.c_str(), "rb");
-#endif
 			if (file)
 			{
 				// Retroarch CRC calculations are limited in size. See encoding_crc32.c
@@ -1665,11 +1309,7 @@ namespace Utils
 		{
 			std::string hex;
 
-#if defined(_WIN32)
-			FILE* file = _wfopen(Utils::String::convertToWideString(filename).c_str(), L"rb");
-#else			
 			FILE* file = fopen(filename.c_str(), "rb");
-#endif
 			if (file)
 			{
 				#define CRCBUFFERSIZE 64 * 1024
@@ -1719,42 +1359,6 @@ namespace Utils
 			return _audioExtensions.find(Utils::String::toLower(Utils::FileSystem::getExtension(_path))) != _audioExtensions.cend();
 		}
 
-#ifdef WIN32
-		void splitCommand(const std::string& cmd, std::string* executable, std::string* parameters)
-		{
-			std::string c = Utils::String::trim(cmd);
-			size_t exec_end;
-
-			if (c[0] == '\"')
-			{
-				exec_end = c.find_first_of('\"', 1);
-				if (std::string::npos != exec_end)
-				{
-					*executable = c.substr(1, exec_end - 1);
-					*parameters = c.substr(exec_end + 1);
-				}
-				else
-				{
-					*executable = c.substr(1, exec_end);
-					std::string().swap(*parameters);
-				}
-			}
-			else
-			{
-				exec_end = c.find_first_of(' ', 0);
-				if (std::string::npos != exec_end)
-				{
-					*executable = c.substr(0, exec_end);
-					*parameters = c.substr(exec_end + 1);
-				}
-				else
-				{
-					*executable = c.substr(0, exec_end);
-					std::string().swap(*parameters);
-				}
-			}
-		}
-#endif
 		void preloadFileSystemCache(const std::string& path, bool trySaveStates)
 		{
 			if (path.empty())
@@ -1787,12 +1391,6 @@ namespace Utils
 
 			std::thread thread(doWork, new std::string(path));
 
-#if WIN32		
-			if (Utils::Platform::isWindows10())
-				::SetThreadDescription(thread.native_handle(), L"PreloadFileSystemCache");
-
-			::SetThreadPriority(thread.native_handle(), THREAD_PRIORITY_LOWEST);
-#endif
 
 			thread.detach();
 		}
