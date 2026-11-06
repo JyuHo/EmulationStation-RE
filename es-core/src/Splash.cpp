@@ -328,10 +328,5 @@ void Splash::render(float opacity, bool swapBuffers)
 	{
 		Renderer::swapBuffers();
 
-#if defined(_WIN32)
-		// Avoid Window Freezing on Windows
-		SDL_Event event;
-		while (SDL_PollEvent(&event));
-#endif
 	}
 }

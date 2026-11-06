@@ -19,9 +19,6 @@ std::string getTitlePath()
 
 std::string getTitleFolder() 
 {
-#if WIN32
-	return Utils::FileSystem::getGenericPath(Paths::getUserEmulationStationPath() + "/tmp/");
-#endif
 
 	return "/tmp/";
 }

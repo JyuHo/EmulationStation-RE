@@ -4,12 +4,6 @@
 
 #include <string>
 
-#ifdef WIN32
-#include <Windows.h>
-#include <intrin.h>
-
-#define sleep Sleep
-#endif
 
 class Window;
 
@@ -39,10 +33,8 @@ namespace Utils
 			bool waitForExit;
 			bool showWindow;
 			Window* window;
-#ifndef WIN32
 			std::string stderrFilename;
 			std::string stdoutFilename;
-#endif
 		};
 
 		int quitES(QuitMode mode = QuitMode::QUIT);
@@ -69,13 +61,7 @@ namespace Utils
 		std::string getArchString();
 		unsigned long long getTotalSystemMemory();
 
-#if WIN32
-		bool isWindows10();
-		bool isWindows11();
-		void setDpiAwareness();
-#else
 		bool isBuildroot();
-#endif
 	}
 }
 

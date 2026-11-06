@@ -65,7 +65,6 @@
 #include "Paths.h"
 #include <set>
 
-#if !WIN32
 #include <vector>
 #include <string>
 #include <utility>
@@ -73,11 +72,7 @@
 #include <memory>
 #include <sstream>
 #include <cstdio>
-#endif
 
-#if WIN32
-#include "Win32ApiSystem.h"
-#endif
 
 #define fake_gettext_fade _("fade")
 #define fake_gettext_fastfade _("fast fade")
@@ -220,11 +215,7 @@ GuiMenu::GuiMenu(Window *window, bool animate) : GuiComponent(window), mMenu(win
 		addEntry(_("UNLOCK USER INTERFACE MODE").c_str(), true, [this] { exitKidMode(); }, "iconAdvanced");
 	}
 
-#ifdef WIN32
-	addEntry(_("QUIT"), !Settings::getInstance()->getBool("ShowOnlyExit") || !Settings::getInstance()->getBool("ShowExit"), [this] { openQuitMenu(); }, "iconQuit");
-#else
 	addEntry(_("QUIT").c_str(), true, [this] { openQuitMenu(); }, "iconQuit");
-#endif
 
 	addChild(&mMenu);
 	addVersionInfo();
@@ -753,31 +744,9 @@ void GuiMenu::openDeveloperSettings()
 	});
 #endif
 
-#ifdef _RPI_
-	// Video Player - VideoOmxPlayer
-	auto omx_player = std::make_shared<SwitchComponent>(mWindow);
-	omx_player->setState(Settings::getInstance()->getBool("VideoOmxPlayer"));
-	s->addWithLabel(_("USE OMX PLAYER (HARDWARE ACCELERATED)"), omx_player);
-	s->addSaveFunc([omx_player, window]
-	{
-		// need to reload all views to re-create the right video components
-		bool needReload = false;
-		if (Settings::getInstance()->getBool("VideoOmxPlayer") != omx_player->getState())
-			needReload = true;
-
-		Settings::getInstance()->setBool("VideoOmxPlayer", omx_player->getState());
-
-		if (needReload)
-		{
-			ViewController::get()->reloadAll(window);
-			window->closeSplashScreen();
-		}
-	});
-#endif
 
 	s->addGroup(_("TOOLS"));
 
-#ifndef WIN32
 	// GAME AT STARTUP
 	if (!SystemConf::getInstance()->get("global.bootgame.path").empty())
 	{
@@ -792,7 +761,6 @@ void GuiMenu::openDeveloperSettings()
 			s->close();
 		});
 	}
-#endif
 
 	// WEB ACCESS
 	auto hostName = Utils::String::toLower(ApiSystem::getInstance()->getHostsName());
@@ -1016,7 +984,7 @@ void GuiMenu::openDeveloperSettings()
 	s->addWithLabel(_("ON-SCREEN KEYBOARD"), osk_enable);
 	s->addSaveFunc([osk_enable] { Settings::getInstance()->setBool("UseOSK", osk_enable->getState()); });
 
-#if defined(_WIN32) || defined(X86) || defined(X86_64)
+#if defined(X86) || defined(X86_64)
 	// Hide EmulationStation Window when running a game ( windows only )
 	auto hideWindowScreen = std::make_shared<SwitchComponent>(mWindow);
 	hideWindowScreen->setState(Settings::getInstance()->getBool("HideWindow"));
@@ -1024,13 +992,6 @@ void GuiMenu::openDeveloperSettings()
 	s->addSaveFunc([hideWindowScreen] { Settings::getInstance()->setBool("HideWindow", hideWindowScreen->getState()); });
 #endif
 
-#if defined(WIN32) && !defined(_DEBUG)
-	// full exit
-	auto fullExitMenu = std::make_shared<SwitchComponent>(mWindow);
-	fullExitMenu->setState(!Settings::getInstance()->getBool("ShowOnlyExit"));
-	s->addWithLabel(_("COMPLETE QUIT MENU"), fullExitMenu);
-	s->addSaveFunc([fullExitMenu] { Settings::getInstance()->setBool("ShowOnlyExit", !fullExitMenu->getState()); });
-#endif
 
 	if (ApiSystem::getInstance()->isScriptingSupported(ApiSystem::GAMESETTINGS))
 	{
@@ -1071,7 +1032,6 @@ void GuiMenu::openDeveloperSettings()
              _("Move the right stick up/down to raise or lower the audio volume."),
              "RightStickVolume", true, nullptr);
 
-//#if !defined(WIN32)
 	{
 	  auto gun_mt = std::make_shared<SliderComponent>(mWindow, 0.f, 10.f, 0.1f, "%");
 	  gun_mt->setValue(Settings::getInstance()->getFloat("GunMoveTolerence"));
@@ -1099,19 +1059,6 @@ void GuiMenu::openDeveloperSettings()
 	});
 #endif
 
-#if defined(WIN32)
-
-	auto hidJoysticks = std::make_shared<SwitchComponent>(mWindow);
-	hidJoysticks->setState(Settings::getInstance()->getBool("HidJoysticks"));
-	s->addWithLabel(_("ENABLE HID JOYSTICK DRIVERS"), hidJoysticks);
-	s->addSaveFunc([this, hidJoysticks] { Settings::getInstance()->setBool("HidJoysticks", hidJoysticks->getState()); });
-
-	// Network Indicator
-	auto networkIndicator = std::make_shared<SwitchComponent>(mWindow);
-	networkIndicator->setState(Settings::getInstance()->getBool("ShowNetworkIndicator"));
-	s->addWithLabel(_("SHOW NETWORK INDICATOR"), networkIndicator);
-	s->addSaveFunc([networkIndicator] { Settings::getInstance()->setBool("ShowNetworkIndicator", networkIndicator->getState()); });
-#endif
 
 	s->addGroup(_("OPTIMIZATIONS"));
 
@@ -1243,11 +1190,6 @@ void GuiMenu::openUpdatesSettings(bool selectTorrentService)
 
 		std::string updatesType = SystemConf::getInstance()->get("updates.type");
 
-#if WIN32
-		if (updatesType == "unstable")
-			updatesTypeList->add("unstable", "unstable", updatesType == "unstable");
-		else
-#endif
 			if (updatesType.empty() || updatesType != BETA_NAME)
 				updatesType = "stable";
 
@@ -1375,7 +1317,6 @@ bool GuiMenu::checkNetwork()
 }
 
 // Keyboard helper function that parses output "code Description" into a pair { "code", "Description" }
-#if !WIN32
 static std::vector<std::pair<std::string, std::string>> getScriptOutput(const std::string& command)
 {
 	std::vector<std::pair<std::string, std::string>> results;
@@ -1413,7 +1354,6 @@ static std::vector<std::pair<std::string, std::string>> getScriptOutput(const st
 	}
 	return results;
 }
-#endif
 
 void GuiMenu::openSystemSettings()
 {
@@ -1492,7 +1432,6 @@ void GuiMenu::openSystemSettings()
 	});
 
 	// Keyboard layout & variant
-#if !WIN32
 
 	std::string curLayout = SystemConf::getInstance()->get("system.kblayout");
 	if (curLayout.empty()) curLayout = "us";
@@ -1575,7 +1514,6 @@ void GuiMenu::openSystemSettings()
 			}
 		}
 	});
-#endif
 
 	// Timezone
 	if (ApiSystem::getInstance()->isScriptingSupported(ApiSystem::ScriptId::TIMEZONES))
@@ -1617,7 +1555,7 @@ void GuiMenu::openSystemSettings()
 		PowerSaver::init();
 	});
 
-#if defined(_ENABLE_TTS_) || defined(WIN32)
+#if defined(_ENABLE_TTS_)
 	if (TextToSpeech::getInstance()->isAvailable())
 	{
 			// tts
@@ -1694,13 +1632,11 @@ void GuiMenu::openSystemSettings()
 	      brightness_new.value = (int)Math::round(newVal);
 
 	      ApiSystem::getInstance()->setBrightness(brightness_new);
-#if !WIN32
 	      std::string nstr = "";
 	      if(n > 1) {
 		nstr = std::to_string(n);
 	      }
 	      SystemConf::getInstance()->set("display.brightness"+nstr, std::to_string((int)Math::round(newVal)));
-#endif
 	    });
 
 	    std::string lnstr = "";
@@ -4263,9 +4199,7 @@ void GuiMenu::openSoundSettings()
 		s->addSaveFunc([this, volume]
 		{
 			VolumeControl::getInstance()->setVolume((int)Math::round(volume->getValue()));
-#if !WIN32
 			SystemConf::getInstance()->set("audio.volume", std::to_string((int)round(volume->getValue())));
-#endif
 		});
 
 
@@ -4413,7 +4347,6 @@ void GuiMenu::openWifiSettings(Window* win, std::string title, std::string data,
 	win->pushGui(new GuiWifi(win, title, data, onsave));
 }
 
-#if !WIN32
 // other networks are wifi2.ssid/wifi2.key, wifi3.*, ... in batocera.conf
 static std::vector<std::string> getOtherWifiSlots()
 {
@@ -4591,7 +4524,6 @@ void GuiMenu::openWifiNetwork(const std::string& slot, const std::function<void(
 
 	mWindow->pushGui(s);
 }
-#endif
 
 void GuiMenu::openNetworkSettings(bool selectWifiEnable)
 {
@@ -4620,10 +4552,8 @@ void GuiMenu::openNetworkSettings(bool selectWifiEnable)
 
 	s->addGroup(_("SETTINGS"));
 
-#if !WIN32
 	// Hostname
 	s->addInputTextConfigRow(_("HOSTNAME"), "system.hostname", false);
-#endif
 
 	// Wifi enable
 	auto enable_wifi = std::make_shared<SwitchComponent>(mWindow);
@@ -4633,14 +4563,11 @@ void GuiMenu::openNetworkSettings(bool selectWifiEnable)
 	// window, title, settingstring,
 	const std::string baseSSID = SystemConf::getInstance()->get("wifi.ssid");
 	const std::string baseKEY = SystemConf::getInstance()->get("wifi.key");
-#if !WIN32
 	const std::string baseOthers = getOtherWifiNetworksState();
 	const std::string baseCountry = SystemConf::getInstance()->get("wifi.country");
-#endif
 
 	if (baseWifiEnabled)
 	{
-#if !WIN32
 		s->addSubMenu(_("WI-FI NETWORKS"), [this] { openWifiNetworks(); });
 
         // Batocera-specific WI-FI COUNTRY option
@@ -4657,16 +4584,10 @@ void GuiMenu::openNetworkSettings(bool selectWifiEnable)
 
         s->addWithLabel(_("WI-FI COUNTRY"), country);
         s->addSaveFunc([country] { SystemConf::getInstance()->set("wifi.country", country->getSelected()); });
-#else
-		s->addInputTextConfigRow(_("WI-FI SSID"), "wifi.ssid", false, false, &openWifiSettings);
-		s->addInputTextConfigRow(_("WI-FI KEY"), "wifi.key", true);
-#endif
 	}
 
 	s->addSaveFunc([baseWifiEnabled, baseSSID, baseKEY,
-#if !WIN32
 	baseOthers, baseCountry,
-#endif
 	enable_wifi, window]
 	{
 		bool wifienabled = enable_wifi->getState();
@@ -4677,7 +4598,6 @@ void GuiMenu::openNetworkSettings(bool selectWifiEnable)
 		{
 			std::string newSSID = SystemConf::getInstance()->get("wifi.ssid");
 			std::string newKey = SystemConf::getInstance()->get("wifi.key");
-#if !WIN32
 			std::string newCountry = SystemConf::getInstance()->get("wifi.country");
 
 			const bool primaryChanged = baseSSID != newSSID || baseKEY != newKey;
@@ -4697,15 +4617,6 @@ void GuiMenu::openNetworkSettings(bool selectWifiEnable)
 				SystemConf::getInstance()->saveSystemConf();
 				ApiSystem::getInstance()->configureWifi();
 			}
-#else
-			if (baseSSID != newSSID || baseKEY != newKey || !baseWifiEnabled)
-			{
-				if (ApiSystem::getInstance()->enableWifi(newSSID, newKey))
-					window->pushGui(new GuiMsgBox(window, _("WI-FI ENABLED")));
-				else
-					window->pushGui(new GuiMsgBox(window, _("WI-FI CONFIGURATION ERROR")));
-			}
-#endif
 		}
 		else if (baseWifiEnabled)
 			ApiSystem::getInstance()->disableWifi();
@@ -4721,12 +4632,8 @@ void GuiMenu::openNetworkSettings(bool selectWifiEnable)
 
 			if (wifienabled)
 			{
-#if !WIN32
 				std::string country = SystemConf::getInstance()->get("wifi.country");
 				ApiSystem::getInstance()->enableWifi(SystemConf::getInstance()->get("wifi.ssid"), SystemConf::getInstance()->get("wifi.key"), country);
-#else
-				ApiSystem::getInstance()->enableWifi(SystemConf::getInstance()->get("wifi.ssid"), SystemConf::getInstance()->get("wifi.key"));
-#endif
 			}
 			else
 				ApiSystem::getInstance()->disableWifi();
@@ -4746,13 +4653,6 @@ void GuiMenu::openQuitMenu()
 
 void GuiMenu::openQuitMenu_static(Window *window, bool quickAccessMenu, bool animate)
 {
-#ifdef WIN32
-	if (!quickAccessMenu && Settings::getInstance()->getBool("ShowOnlyExit") && Settings::getInstance()->getBool("ShowExit"))
-	{
-		Utils::Platform::quitES(Utils::Platform::QuitMode::QUIT);
-		return;
-	}
-#endif
 
 	auto s = new GuiSettings(window, (quickAccessMenu ? _("QUICK ACCESS") : _("QUIT")).c_str());
 	s->setCloseButton("select");
@@ -4907,16 +4807,6 @@ void GuiMenu::openQuitMenu_static(Window *window, bool quickAccessMenu, bool ani
 			_("NO"), nullptr));
 	}, "iconFastShutdown");
 
-#ifdef WIN32
-	if (Settings::getInstance()->getBool("ShowExit"))
-	{
-		s->addEntry(_("QUIT EMULATIONSTATION"), false, [window] {
-			window->pushGui(new GuiMsgBox(window, _("REALLY QUIT?"),
-				_("YES"), [] { Utils::Platform::quitES(Utils::Platform::QuitMode::QUIT); },
-				_("NO"), nullptr));
-		}, "iconQuit");
-	}
-#endif
 
 	if (quickAccessMenu && animate)
 		s->getMenu().animateTo(Vector2f((Renderer::getScreenWidth() - s->getMenu().getSize().x()) / 2, (Renderer::getScreenHeight() - s->getMenu().getSize().y()) / 2));
@@ -5462,7 +5352,6 @@ void GuiMenu::popSpecificConfigurationGui(Window* mWindow, std::string title, st
 			systemConfiguration->addEntry(_("CREATE PADTOKEY PROFILE"), true, [mWindow, systemData] { editKeyboardMappings(mWindow, systemData, true); });
 	}
 
-#ifndef WIN32
 	// Set as boot game
 	if (fileData != nullptr)
 	{
@@ -5480,7 +5369,6 @@ void GuiMenu::popSpecificConfigurationGui(Window* mWindow, std::string title, st
 			}
 		});
 	}
-#endif
 
 	mWindow->pushGui(systemConfiguration);
 }
@@ -5551,9 +5439,6 @@ std::vector<DecorationSetInfo> GuiMenu::getDecorationsSets(SystemData* system)
 
 	std::vector<std::string> paths =
 	{
-#if WIN32
-		Paths::getUserEmulationStationPath() + "/decorations", // for win32 testings
-#endif
 		Paths::getUserDecorationsPath(),
 		Paths::getDecorationsPath()
 	};

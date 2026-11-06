@@ -16,15 +16,6 @@
 #include <SDL.h>
 #include <stack>
 
-#if WIN32
-#include <Windows.h>
-#include <SDL_syswm.h>
-
-#include <dwmapi.h>
-#pragma comment(lib, "Dwmapi.lib")
-
-#include "utils/Platform.h"
-#endif
 
 namespace Renderer
 {
@@ -218,12 +209,6 @@ namespace Renderer
 
 		unsigned int windowFlags = (Settings::getInstance()->getBool("Windowed") ? 0 : (Settings::getInstance()->getBool("FullscreenBorderless") ? SDL_WINDOW_BORDERLESS : SDL_WINDOW_FULLSCREEN)) | getWindowFlags();
 
-#if WIN32
-		if (Settings::getInstance()->getBool("AlwaysOnTop"))
-			windowFlags |= SDL_WINDOW_ALWAYS_ON_TOP;
-
-		windowFlags |= SDL_WINDOW_ALLOW_HIGHDPI;
-#endif
 
 		if (Settings::getInstance()->getBool("Windowed"))
 		{
@@ -263,53 +248,6 @@ namespace Renderer
 		setSwapInterval();
 		swapBuffers();
 
-#if WIN32
-		if (windowFlags & SDL_WINDOW_BORDERLESS)
-		{
-			int x;
-			int y;
-			SDL_GetWindowPosition(sdlWindow, &x, &y);
-
-			SDL_SetWindowBordered(sdlWindow, SDL_bool::SDL_TRUE);
-			
-			SDL_SysWMinfo wmInfo;
-			SDL_VERSION(&wmInfo.version);
-			SDL_GetWindowWMInfo(sdlWindow, &wmInfo);
-			HWND hWnd = wmInfo.info.win.window;
-			if (hWnd != NULL)
-			{
-				LONG lStyle = GetWindowLong(hWnd, GWL_STYLE);
-				lStyle &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU);
-				SetWindowLong(hWnd, GWL_STYLE, lStyle);
-
-				LONG lExStyle = GetWindowLong(hWnd, GWL_EXSTYLE);
-				lExStyle &= ~(WS_EX_DLGMODALFRAME | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE);
-				SetWindowLong(hWnd, GWL_EXSTYLE, lExStyle);
-
-				// Check if the major and minor versions indicate Windows 11 or newer
-				if (Utils::Platform::isWindows11()) 
-				{
-					BOOL isComposited;
-					HRESULT result = ::DwmIsCompositionEnabled(&isComposited);
-					if (SUCCEEDED(result) && isComposited)
-					{
-						int preference = 1; // DWM_WINDOW_CORNER_PREFERENCE::DWMWCP_DONOTROUND;
-						HRESULT ret = ::DwmSetWindowAttribute(hWnd, 33, &preference, sizeof(preference)); // DWMWA_WINDOW_CORNER_PREFERENCE
-					}
-				}
-
-				SetWindowPos(hWnd, NULL,
-					x, y,
-					windowWidth, windowHeight,
-					SWP_FRAMECHANGED | SWP_NOZORDER | SWP_NOOWNERZORDER);
-			}
-			else
-			{
-				SDL_SetWindowBordered(sdlWindow, SDL_bool::SDL_FALSE);
-				SDL_SetWindowPosition(sdlWindow, x, y);
-			}
-		}
-#endif
 
 		return true;
 
@@ -335,103 +273,6 @@ namespace Renderer
 
 	} // destroyWindow
 
-#if WIN32
-	// A game may have changed the desktop resolution : Windows then moves windows so that their title bar stays visible.
-	// Put a screen-sized window (windowed or borderless) back on its monitor origin, so its title bar is hidden again.
-	// Win32 only : the borderless style is applied behind SDL's back, so SDL_SetWindowPosition would compute a wrong frame and could resize the window.
-	static void restoreScreenSizedWindow(HWND hWnd)
-	{
-		if (SDL_GetWindowFlags(sdlWindow) & SDL_WINDOW_FULLSCREEN)
-			return;
-
-		// Never touch minimized or maximized windows, Windows manages them
-		if (IsIconic(hWnd) || IsZoomed(hWnd))
-			return;
-
-		HMONITOR hMonitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
-		if (hMonitor == NULL)
-			return;
-
-		MONITORINFO mi;
-		mi.cbSize = sizeof(MONITORINFO);
-		if (!GetMonitorInfo(hMonitor, &mi))
-			return;
-
-		RECT rcClient;
-		if (!GetClientRect(hWnd, &rcClient))
-			return;
-
-		// Only screen-sized windows : user-sized windows keep their position
-		if (rcClient.right - rcClient.left != mi.rcMonitor.right - mi.rcMonitor.left ||
-			rcClient.bottom - rcClient.top != mi.rcMonitor.bottom - mi.rcMonitor.top)
-			return;
-
-		POINT ptClient = { 0, 0 };
-		RECT rcWindow;
-		if (!ClientToScreen(hWnd, &ptClient) || !GetWindowRect(hWnd, &rcWindow))
-			return;
-
-		if (ptClient.x == mi.rcMonitor.left && ptClient.y == mi.rcMonitor.top)
-			return;
-
-		// Keep the current frame : only the client area origin must match the monitor origin
-		int x = mi.rcMonitor.left - (ptClient.x - rcWindow.left);
-		int y = mi.rcMonitor.top - (ptClient.y - rcWindow.top);
-		SetWindowPos(hWnd, NULL, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOACTIVATE);
-	}
-
-	void activateWindow()
-	{
-		if (SDL_GetWindowFlags(sdlWindow) & SDL_WINDOW_MINIMIZED)
-			SDL_RestoreWindow(sdlWindow);
-
-		SDL_SysWMinfo wmInfo;
-		SDL_VERSION(&wmInfo.version);
-		SDL_GetWindowWMInfo(sdlWindow, &wmInfo);
-		HWND hWnd = wmInfo.info.win.window;
-		if (!IsWindow(hWnd))
-			return;
-
-		HWND hWndParent = GetParent(hWnd);
-		while (hWndParent != NULL && hWndParent != GetDesktopWindow())
-		{
-			hWnd = hWndParent;
-			hWndParent = GetParent(hWnd);
-		}
-
-		restoreScreenSizedWindow(hWnd);
-
-		DWORD currentThread = GetCurrentThreadId();
-
-		HWND activeWindow = GetForegroundWindow();
-		DWORD activeProcess;
-		DWORD activeThread = GetWindowThreadProcessId(activeWindow, &activeProcess);
-
-		DWORD windowProcess;
-		DWORD windowThread = GetWindowThreadProcessId(hWnd, &windowProcess);
-
-		if (currentThread != activeThread)
-			AttachThreadInput(currentThread, activeThread, true);
-		if (windowThread != currentThread)
-			AttachThreadInput(windowThread, currentThread, true);
-
-		DWORD oldTimeout = 0, newTimeout = 0;
-		SystemParametersInfo(SPI_GETFOREGROUNDLOCKTIMEOUT, 0, &oldTimeout, 0);
-		SystemParametersInfo(SPI_SETFOREGROUNDLOCKTIMEOUT, 0, &newTimeout, 0);
-		LockSetForegroundWindow(LSFW_UNLOCK);
-		AllowSetForegroundWindow(ASFW_ANY);
-
-		SetForegroundWindow(hWnd);
-		ShowWindowAsync(hWnd, SW_SHOW);
-
-		SystemParametersInfo(SPI_SETFOREGROUNDLOCKTIMEOUT, 0, &oldTimeout, 0);
-
-		if (currentThread != activeThread)
-			AttachThreadInput(currentThread, activeThread, false);
-		if (windowThread != currentThread)
-			AttachThreadInput(windowThread, currentThread, false);
-	}
-#else 
 	void activateWindow()
 	{
 		if (SDL_GetWindowFlags(sdlWindow) & SDL_WINDOW_MINIMIZED)
@@ -453,7 +294,6 @@ namespace Renderer
 		
 		SDL_SetWindowInputFocus(sdlWindow);		
 	}
-#endif
 
 	void updateProjection()
 	{
@@ -1123,16 +963,6 @@ namespace Renderer
 		if (sdlWindow == nullptr || !Settings::getInstance()->getBool("Windowed"))
 			return;
 
-#if WIN32
-		SDL_SysWMinfo wmInfo;
-		SDL_VERSION(&wmInfo.version);
-		SDL_GetWindowWMInfo(sdlWindow, &wmInfo);
-		HWND hWnd = wmInfo.info.win.window;
-
-		DWORD windowThreadId = GetWindowThreadProcessId(hWnd, nullptr);
-		if (GetCurrentThreadId() != windowThreadId)
-			return;
-#endif
 
 		SDL_SetWindowResizable(sdlWindow, resizable ? SDL_bool::SDL_TRUE : SDL_bool::SDL_FALSE);
 	}

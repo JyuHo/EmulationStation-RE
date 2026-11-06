@@ -77,18 +77,10 @@ namespace Utils
 		void			koreanTextInput(const char* text, std::string& componentText, unsigned int& componentCursor);
 		// end Korean text input
 
-#if defined(_WIN32)
-		const std::string convertFromWideString(const std::wstring& wstring);
-		const std::wstring convertToWideString(const std::string& string);
-#endif
 	} // String::
 
 } // Utils::
 
-#if defined(_WIN32)
-#define WINSTRINGW(x) Utils::String::convertToWideString(x)
-#else
 #define WINSTRINGW(x) x
-#endif
 
 #endif // ES_CORE_UTILS_STRING_UTIL_H

@@ -1,31 +1,28 @@
 project("emulationstation")
 
-if(WIN32)
+option(INJECT_VERSION "Inject Version" OFF)
 
-	option(INJECT_VERSION "Inject Version" OFF)
+if(INJECT_VERSION)
 
-	if(INJECT_VERSION)
-	
-		# Main version number
-		set(VERSION_MAJOR 42)
-	
-		# Create version.h at configure/build time
-		string(TIMESTAMP BUILD_YEAR   "%Y")
-		string(TIMESTAMP BUILD_MONTH  "%m")
-		string(TIMESTAMP BUILD_DAY    "%d")
-		string(TIMESTAMP BUILD_HOUR   "%H")
-		string(TIMESTAMP BUILD_MINUTE "%M")
+	# Main version number
+	set(VERSION_MAJOR 42)
 
-		# Format into your desired scheme		
-		set(VERSION_DATE   "${BUILD_MONTH}${BUILD_DAY}") # e.g. 1004
-		set(VERSION_TIME   "${BUILD_HOUR}${BUILD_MINUTE}") # e.g. 2041
+	# Create version.h at configure/build time
+	string(TIMESTAMP BUILD_YEAR   "%Y")
+	string(TIMESTAMP BUILD_MONTH  "%m")
+	string(TIMESTAMP BUILD_DAY    "%d")
+	string(TIMESTAMP BUILD_HOUR   "%H")
+	string(TIMESTAMP BUILD_MINUTE "%M")
 
-		configure_file(
-			${CMAKE_CURRENT_SOURCE_DIR}/EmulationStation.h.in
-			${CMAKE_CURRENT_SOURCE_DIR}/src/EmulationStation.h
-			@ONLY
-		)
-	endif()
+	# Format into your desired scheme		
+	set(VERSION_DATE   "${BUILD_MONTH}${BUILD_DAY}") # e.g. 1004
+	set(VERSION_TIME   "${BUILD_HOUR}${BUILD_MINUTE}") # e.g. 2041
+
+	configure_file(
+		${CMAKE_CURRENT_SOURCE_DIR}/EmulationStation.h.in
+		${CMAKE_CURRENT_SOURCE_DIR}/src/EmulationStation.h
+		@ONLY
+	)
 endif()
 
 set(ES_HEADERS	
@@ -135,7 +132,6 @@ set(ES_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ApiSystem.h # batocera
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ZaparooSupport.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/LibretroRatio.h # batocera
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/Win32ApiSystem.h # batocera
 )
 
 set(ES_SOURCES
@@ -236,31 +232,8 @@ set(ES_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ApiSystem.cpp # batocera
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ZaparooSupport.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/LibretroRatio.cpp # batocera
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Win32ApiSystem.cpp # batocera
 )
 
-#-------------------------------------------------------------------------------
-# define OS specific sources and headers
-if(MSVC)
-    LIST(APPEND ES_SOURCES
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/EmulationStation.rc
-    )
-endif()
-
-# Keep Directory structure in Visual Studio
-if(MSVC)
-	file(
-		 GLOB_RECURSE source_list RELATIVE
-		 "${CMAKE_CURRENT_SOURCE_DIR}"
-		 *.cpp *.c
-		)
-	foreach(source IN LISTS source_list)
-		get_filename_component(source_path "${source}" PATH)
-		string(REPLACE "/" "\\" source_path_msvc "${source_path}")
-		string(REPLACE "src" "" source_path_final "${source_path_msvc}")
-		source_group("${source_path_final}" FILES "${source}")
-	endforeach()  	
-endif()
 
 #-------------------------------------------------------------------------------
 # define target
@@ -268,17 +241,6 @@ include_directories(${COMMON_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src)
 add_executable(emulationstation ${ES_SOURCES} ${ES_HEADERS})
 target_link_libraries(emulationstation ${COMMON_LIBRARIES} es-core)
 
-# special properties for Windows builds
-if(MSVC)
-    # Always compile with the "WINDOWS" subsystem to avoid console window flashing at startup
-    # when --debug is not set (see es-core/src/main.cpp for explanation).
-    # The console will still be shown if launched with --debug.
-    # Note that up to CMake 2.8.10 this feature is broken: http://public.kitware.com/Bug/view.php?id=12566
-    set_target_properties(emulationstation PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:WINDOWS")
-    set_target_properties(emulationstation PROPERTIES LINK_FLAGS_RELWITHDEBINFO "/SUBSYSTEM:WINDOWS")
-    set_target_properties(emulationstation PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS")
-    set_target_properties(emulationstation PROPERTIES LINK_FLAGS_MINSIZEREL "/SUBSYSTEM:WINDOWS")
-endif()
 
 
 #-------------------------------------------------------------------------------

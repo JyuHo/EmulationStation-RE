@@ -16,9 +16,7 @@
 #include <thread>
 #include <condition_variable>
 
-#if WIN32
-#include <Windows.h>
-#elif defined(__linux__)
+#if defined(__linux__)
 #include <unistd.h>
 #endif
 
@@ -160,12 +158,7 @@ private:
 
         if (e.level == LogError || mDebugToStderr) 
         {
-#if WIN32
-            OutputDebugStringA(e.msg.c_str());
-            OutputDebugStringA("\n");
-#else
             std::cerr << e.msg << '\n';
-#endif
         }
     }
 
@@ -208,14 +201,8 @@ private:
 
 static inline uint64_t getOsThreadId()
 {
-#if defined(_WIN32)
-    return static_cast<uint64_t>(GetCurrentThreadId());
-#elif defined(__linux__)
+#if defined(__linux__)
     return static_cast<uint64_t>(::gettid());
-#elif defined(__APPLE__)
-    uint64_t tid;
-    pthread_threadid_np(nullptr, &tid);
-    return tid;
 #else
     return static_cast<uint64_t>(::pthread_self());
 #endif
@@ -226,11 +213,7 @@ std::ostringstream& Log::stream()
     auto now = std::chrono::system_clock::now();
     auto tt = std::chrono::system_clock::to_time_t(now);
     struct tm tm_buf {};
-#if WIN32
-    localtime_s(&tm_buf, &tt);
-#else
     localtime_r(&tt, &tm_buf);
-#endif
     tl_stream << std::put_time(&tm_buf, "%F %T") << '\t';
 
     tl_stream << "[" << std::to_string(getOsThreadId()) << "]\t";
@@ -281,10 +264,8 @@ void Log::init()
     // signal(SIGSEGV, crashHandler); // It's already managed by main()
     signal(SIGABRT, crashHandler);
 
-#ifndef WIN32
     // Before the disabled-log return, else SDL takes SIGTERM and ES ignores it
     signal(SIGTERM, crashHandler);
-#endif
 
     auto base = Paths::getUserEmulationStationPath() + "/es_log";
     auto logPath = base + ".txt";

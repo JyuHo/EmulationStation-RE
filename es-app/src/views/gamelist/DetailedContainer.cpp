@@ -13,10 +13,6 @@
 #include <set>
 #include "BindingManager.h"
 
-#ifdef _RPI_
-#include "Settings.h"
-#include "components/VideoPlayerComponent.h"
-#endif
 #include "components/VideoVlcComponent.h"
 
 DetailedContainer::DetailedContainer(ISimpleGameListView* parent, GuiComponent* list, Window* window, DetailedContainerType viewType) :
@@ -305,11 +301,6 @@ void DetailedContainer::createVideo()
 
 	// video
 	// Create the correct type of video window
-#ifdef _RPI_
-	if (Settings::getInstance()->getBool("VideoOmxPlayer"))
-		mVideo = new VideoPlayerComponent(mWindow, "");
-	else
-#endif
 		mVideo = new VideoVlcComponent(mWindow);
 
 	// Default is IMAGE in Recalbox themes -> video view does not exist
@@ -1172,10 +1163,6 @@ void DetailedContainer::updateControls(FileData* file, bool isClearing, int move
 		}
 	}
 
-#ifdef _RPI_
-	if (Settings::getInstance()->getBool("ScreenSaverOmxPlayer"))
-		Utils::FileSystem::removeFile(getTitlePath());
-#endif
 }
 
 void DetailedContainer::handleStoryBoard(GuiComponent* comp, bool activate, int moveBy, bool recursive)

@@ -582,11 +582,7 @@ std::string FileData::getlaunchCommand(LaunchGameOptions& options, bool includeC
 	command = Utils::String::replace(command, "%SYSTEMNAME%", formatCommandLineArgument(system->getFullName()));
 
 	// Export Game info XML is requested
-#ifdef WIN32
-	std::string fileInfo = Utils::FileSystem::combine(Utils::FileSystem::getTempPath(), "game.xml");
-#else
 	std::string fileInfo = "/tmp/game.xml";
-#endif
 
 	if (command.find("%GAMEINFOXML%") != std::string::npos && saveToXml(gameToUpdate, fileInfo, true))
 		command = Utils::String::replace(command, "%GAMEINFOXML%", Utils::FileSystem::getEscapedPath(fileInfo));
@@ -621,20 +617,10 @@ std::string FileData::getlaunchCommand(LaunchGameOptions& options, bool includeC
 		if (!options.session.empty())
 			session = " -netplaysession " + options.session;
 
-#if WIN32
-		if (Utils::String::toLower(command).find("retroarch.exe") != std::string::npos)
-			command = Utils::String::replace(command, "%NETPLAY%", "--connect " + options.ip + " --port " + std::to_string(options.port) + " --nick " + SystemConf::getInstance()->get("global.netplay.nickname"));
-		else
-#endif
 			command = Utils::String::replace(command, "%NETPLAY%", "-netplaymode " + mode + " -netplayport " + std::to_string(options.port) + " -netplayip " + options.ip + session + pass);
 	}
 	else if (options.netPlayMode == SERVER)
 	{
-#if WIN32
-		if (Utils::String::toLower(command).find("retroarch.exe") != std::string::npos)
-			command = Utils::String::replace(command, "%NETPLAY%", "--host --port " + SystemConf::getInstance()->get("global.netplay.port") + " --nick " + SystemConf::getInstance()->get("global.netplay.nickname"));
-		else
-#endif
 			command = Utils::String::replace(command, "%NETPLAY%", "-netplaymode host");
 	}
 	else
@@ -679,11 +665,7 @@ std::string FileData::getMessageFromExitCode(int exitCode)
 	case 299:
 	case 250:
 		{
-	#if WIN32
-			std::string messageFile = Utils::FileSystem::combine(Utils::FileSystem::getTempPath(), "launch_error.log");
-	#else
 			std::string messageFile = "/tmp/launch_error.log";
-	#endif
 			if (Utils::FileSystem::exists(messageFile))
 			{
 				auto message = Utils::FileSystem::readAllText(messageFile);
@@ -1438,11 +1420,7 @@ void FolderData::createChildrenByFilenameMap(std::unordered_map<std::string, Fil
 
 const std::string FileData::getCore(bool resolveDefault)
 {
-#if WIN32 && !_DEBUG
-	std::string core = getMetadata(MetaDataId::Core);
-#else
 	std::string core = SystemConf::getInstance()->get(getConfigurationName() + ".core");	
-#endif
 
 	if (core == "auto")
 		core = "";
@@ -1488,11 +1466,7 @@ const std::string FileData::getCore(bool resolveDefault)
 
 const std::string FileData::getEmulator(bool resolveDefault)
 {
-#if WIN32 && !_DEBUG
-	std::string emulator = getMetadata(MetaDataId::Emulator);
-#else
 	std::string emulator = SystemConf::getInstance()->get(getConfigurationName() + ".emulator");
-#endif
 
 	if (emulator == "auto")
 		emulator = "";
@@ -1517,20 +1491,12 @@ const std::string FileData::getEmulator(bool resolveDefault)
 
 void FileData::setCore(const std::string value)
 {
-#if WIN32 && !_DEBUG
-	setMetadata(MetaDataId::Core, value == "auto" ? "" : value);
-#else
 	SystemConf::getInstance()->set(getConfigurationName() + ".core", value);
-#endif
 }
 
 void FileData::setEmulator(const std::string value)
 {
-#if WIN32 && !_DEBUG
-	setMetadata(MetaDataId::Emulator, value == "auto" ? "" : value);
-#else
 	SystemConf::getInstance()->set(getConfigurationName() + ".emulator", value);
-#endif
 }
 
 bool FileData::isNetplaySupported()

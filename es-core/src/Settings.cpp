@@ -34,11 +34,7 @@ IMPLEMENT_STATIC_BOOL_SETTING(ScrollLoadMedias, false)
 IMPLEMENT_STATIC_INT_SETTING(ScreenSaverTime, 5 * 60 * 1000)
 IMPLEMENT_STATIC_INT_SETTING(FpsLimit, 0)
 
-#if WIN32
-IMPLEMENT_STATIC_BOOL_SETTING(ShowNetworkIndicator, false)
-#else
 IMPLEMENT_STATIC_BOOL_SETTING(ShowNetworkIndicator, true)
-#endif
 
 void Settings::updateCachedSetting(const std::string& name)
 {
@@ -148,14 +144,8 @@ void Settings::setDefaults()
 	mStringMap["ShowTags"] = "";
 	mBoolMap["UseFileCache"] = true;
 
-#if WIN32
-	mBoolMap["HidJoysticks"] = true;
-	mBoolMap["ShowOnlyExit"] = true;
-	mBoolMap["FullscreenBorderless"] = true;
-#else
 	mBoolMap["ShowOnlyExit"] = false;
 	mBoolMap["FullscreenBorderless"] = false;
-#endif
 	mBoolMap["TTS"] = false;
 
 	mIntMap["MonitorID"] = -1;
@@ -287,12 +277,7 @@ void Settings::setDefaults()
 	// we don't get a warning if we encounter it on a different platform
 	mBoolMap["VideoOmxPlayer"] = false;
 
-	#if defined(_RPI_)
-		// we're defaulting to OMX Player for full screen video on the Pi
-		mBoolMap["ScreenSaverOmxPlayer"] = true;
-	#else
 		mBoolMap["ScreenSaverOmxPlayer"] = false;
-	#endif
 
 	mIntMap["ScreenSaverSwapVideoTimeout"] = 30000;
 
@@ -321,11 +306,7 @@ void Settings::setDefaults()
 	mBoolMap["WebServices"] = false;
 
 	// Audio out device for volume control
-	#ifdef _RPI_
-		mStringMap["AudioDevice"] = "PCM";
-	#else
 		mStringMap["AudioDevice"] = "Master";
-	#endif
 
 	mStringMap["AudioCard"] = "default";
 	mStringMap["UIMode"] = "Full";
@@ -397,23 +378,6 @@ void Settings::setDefaults()
 
 	mBoolMap["AllImagesAsync"] = true;
 
-#if WIN32
-	mBoolMap["updates.enabled"] = true;
-	mBoolMap["global.retroachievements"] = false;
-	mBoolMap["global.retroachievements.hardcore"] = false;
-	mBoolMap["global.retroachievements.leaderboards"] = false;
-	mBoolMap["global.retroachievements.verbose"] = false;
-	mBoolMap["global.retroachievements.screenshot"] = false;
-	mBoolMap["global.retroachievements.encore"] = false;
-	mBoolMap["global.retroachievements.richpresence"] = false;
-
-	mBoolMap["global.netplay_public_announce"] = true;
-	mBoolMap["global.netplay"] = false;
-
-	mBoolMap["kodi.enabled"] = false;
-	mBoolMap["kodi.atstartup"] = false;
-	mBoolMap["wifi.enabled"] = false;
-#endif
 
 	mFloatMap["GunMoveTolerence"] = 2.5;
 

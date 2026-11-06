@@ -2016,10 +2016,6 @@ namespace Renderer
 		const GLenum discardedAttachments[] = { GL_DEPTH, GL_STENCIL };
 		GLES30_CALL(glInvalidateFramebuffer(GL_FRAMEBUFFER, 2, discardedAttachments));
 
-#ifdef WIN32
-		GLES30_CALL(glFlush());
-		Sleep(0);
-#endif
 		SDL_GL_SwapWindow(getSDLWindow());
 		// Clearing stencil with color lets tiled GPUs start the frame without loading it.
 		GLES30_CALL(glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));

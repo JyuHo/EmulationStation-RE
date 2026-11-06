@@ -14,71 +14,9 @@ using namespace Utils::Platform;
 
 namespace Scripting
 {
-#if WIN32
-    static std::thread*                 mScriptQueueThread = nullptr;
-    static std::list<std::string>       mScriptQueue;
-    static std::mutex			        mScriptQueueLock;
-    static std::condition_variable		mScriptQueueEvent;
-    static bool                         mExitScriptQueue = false;
-
-    static void executeCommandsThread()
-    {
-        while (true)
-        {
-            // Wait for an event to say there is something in the queue
-            std::unique_lock<std::mutex> lock(mScriptQueueLock);
-            mScriptQueueEvent.wait(lock, []() { return mExitScriptQueue || !mScriptQueue.empty(); });
-
-            if (mExitScriptQueue)
-                break;
-
-            if (!mScriptQueue.empty())
-            {
-                auto command = mScriptQueue.front();
-                mScriptQueue.pop_front();
-
-                lock.unlock();
-                std::this_thread::yield();
-
-                ProcessStartInfo psi;
-                psi.command = command;
-                psi.waitForExit = false;
-                psi.showWindow = false;
-                psi.run();
-
-                LOG(LogDebug) << "  executing: " << command;
-
-                std::this_thread::yield();
-            }
-        }
-    }
-
-    static std::string _lastCommand;
-
-    static void pushCommand(const std::string& command)
-    {
-        std::unique_lock<std::mutex> lock(mScriptQueueLock);
-
-        if (command == _lastCommand && _lastCommand.find("-selected") != std::string::npos)
-            return;
-
-        _lastCommand = command;
-
-        if (mScriptQueueThread == nullptr)
-            mScriptQueueThread = new std::thread(&executeCommandsThread);
-
-        mScriptQueue.push_back(command);
-        mScriptQueueEvent.notify_one();
-    }
-#endif
 
     void exitScriptingEngine()
     {
-#if WIN32
-        std::unique_lock<std::mutex> lock(mScriptQueueLock);
-        mExitScriptQueue = true;
-        mScriptQueueEvent.notify_one();
-#endif
     }
 
     static std::set<std::string> _asyncEvents = { "game-start", "game-end", "game-selected", "system-selected", "screensaver-start", "screensaver-stop", "sleep", "wake" };
@@ -112,29 +50,6 @@ namespace Scripting
                 command += " " + data;
         }
 
-#if WIN32
-        if (Utils::FileSystem::getExtension(script) == ".ps1")
-            command = "powershell " + command;
-
-        std::string stem = Utils::FileSystem::getStem(script);       
-        if ((allowAsync && !Utils::String::endsWith(stem, "-wait")) || (eventName != "quit" && Utils::String::endsWith(stem, "-nowait")))
-        {            
-            LOG(LogDebug) << "  queuing: " << command;
-
-            // Start using a thread to avoid lags
-            pushCommand(command);
-        }
-        else
-        {
-            LOG(LogDebug) << "  executing: " << command;
-
-            ProcessStartInfo psi;
-            psi.command = command;
-            psi.waitForExit = true;
-            psi.showWindow = false;
-            psi.run();
-        }       
-#else            
         LOG(LogDebug) << "  executing: " << script;
 
         ProcessStartInfo psi;
@@ -145,7 +60,6 @@ namespace Scripting
         psi.stderrFilename = "es_script_stderr.log";
         psi.stdoutFilename = "es_script_stdout.log";
         psi.run();
-#endif
     }
 
     static std::set<std::string> _supportedExtensions = { ".exe", ".cmd", ".bat", ".ps1", ".sh", ".py" };
@@ -159,9 +73,7 @@ namespace Scripting
         {
             Paths::getUserEmulationStationPath() + "/scripts/" + eventName,
             Paths::getEmulationStationPath() + "/scripts/" + eventName,
-#ifndef WIN32
             "/var/run/emulationstation/scripts/" + eventName
-#endif
         };
 
         for (auto dir : VectorHelper::distinct(scriptDirList, [](auto x) { return x; }))
@@ -169,11 +81,6 @@ namespace Scripting
             auto scripts = Utils::FileSystem::getDirContent(dir);
             for (auto script : scripts)
             {
-#if WIN32
-                auto ext = Utils::String::toLower(Utils::FileSystem::getExtension(script));
-                if (_supportedExtensions.find(ext) == _supportedExtensions.cend())
-                    continue;
-#endif
                 executeScript(script, "", arg1, arg2, arg3, isAsyncEvent(eventName));
             }
         }
@@ -183,9 +90,7 @@ namespace Scripting
         {
             Paths::getUserEmulationStationPath() + "/scripts",
             Paths::getEmulationStationPath() + "/scripts",
-#ifndef WIN32
             "/var/run/emulationstation/scripts"
-#endif
         };
 
         for (auto dir : VectorHelper::distinct(paths, [](auto x) { return x; }))

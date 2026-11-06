@@ -363,10 +363,6 @@ void GuiCollectionSystemsOptions::initializeMenu()
 	addSwitch(_("SHOW EMPTY SYSTEMS"), "LoadEmptySystems", true, [&] { setVariable("reloadSystems", true); });
 	addSwitch(_("DON'T SHOW GROUPS WITH ONLY ONE SYSTEM"), "HideUniqueGroups", true, [&] { setVariable("reloadSystems", true); });
 		
-#if defined(WIN32) && !defined(_DEBUG)		
-	if (!ApiSystem::getInstance()->isScriptingSupported(ApiSystem::GAMESETTINGS))
-		addEntry(_("UPDATE GAMELISTS"), false, [this] { GuiMenu::updateGameLists(mWindow); }); // Game List Update
-#endif		
 	
 	addSaveFunc([this]
 	{

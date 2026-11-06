@@ -50,9 +50,6 @@ namespace Utils
 			std::string path;
 			bool hidden;
 			bool directory;
-#if WIN32
-			time_t lastWriteTime;
-#endif
 		};
 
 		typedef std::list<FileInfo> fileList;
@@ -79,9 +76,6 @@ namespace Utils
 		std::string getTempPath();
 		std::string getPdfTempPath();
 
-#ifdef WIN32
-		void		splitCommand(const std::string& cmd, std::string* executable, std::string* parameters);
-#endif
 		void		preloadFileSystemCache(const std::string& path, bool trySaveStates = true);
 
 		std::string getFileCrc32(const std::string& filename);

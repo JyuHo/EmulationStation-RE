@@ -10,9 +10,6 @@
 #include "utils/VectorEx.h"
 #include "SaveStateConfigFile.h"
 
-#if WIN32
-#include "Win32ApiSystem.h"
-#endif
 
 SaveState* SaveStateRepository::_empty = new SaveState(-99);
 
@@ -116,11 +113,7 @@ void SaveStateRepository::refresh()
 			state->racommands = rs->racommands;
 			state->hasAutosave = rs->autosave;
 
-#if WIN32
-			state->creationDate.setTime(file.lastWriteTime);
-#else
 			state->creationDate = Utils::FileSystem::getFileModificationDate(state->fileName);
-#endif
 			mStates[state->rom].push_back(state);
 		}
 	}

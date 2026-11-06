@@ -96,24 +96,6 @@ std::string ResourceManager::getResourcePath(const std::string& path) const
 		}
 	}
 
-#if WIN32
-	if (Utils::String::startsWith(path, ":/locale/") || Utils::String::startsWith(path, ":/es_features.locale/"))
-	{
-		std::string test = Utils::FileSystem::getCanonicalPath(Paths::getEmulationStationPath() + "/" + &path[2]);
-		if (Utils::FileSystem::exists(test))
-		{
-			_resourcePathCache.insert(path, test);
-			return test;
-		}
-
-		test = Utils::FileSystem::getCanonicalPath(Paths::getUserEmulationStationPath() + "/" + &path[2]);
-		if (Utils::FileSystem::exists(test))
-		{
-			_resourcePathCache.insert(path, test);
-			return test;
-		}
-	}
-#endif
 
 	LOG(LogDebug) << "Resource path not found: " << path;
 	_resourcePathCache.insert(path, path);

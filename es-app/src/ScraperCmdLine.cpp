@@ -7,8 +7,6 @@
 #include <signal.h>
 #if defined(__linux__)
 #include <unistd.h>
-#elif defined(WIN32)
-#include <Windows.h>
 #endif
 
 std::ostream& out = std::cout;

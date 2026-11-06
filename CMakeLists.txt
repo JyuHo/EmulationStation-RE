@@ -14,12 +14,9 @@ endforeach()
 if(OPENGL_OPTION_COUNT GREATER 1)
     message(FATAL_ERROR "GLES, GLES2, GLES3, and GL are mutually exclusive; enable only one graphics API")
 endif()
-option(RPI "Set to ON to enable the Raspberry PI video player (omxplayer)" ${RPI})
 option(CEC "CEC" ON)
-option(BCM "BCM host" OFF)
 
 option(BATOCERA "Set to ON to enable BATOCERA specific code" OFF)
-option(RETROBAT "Set to ON to enable RETROBAT specific code" OFF)
 
 option(ENABLE_FILEMANAGER "Set to ON to enable f1 shortcut for filesystem" OFF)
 option(DISABLE_KODI "Set to ON to disable kodi in menu" OFF)
@@ -27,73 +24,7 @@ option(ENABLE_PULSE "Set to ON to enable pulse audio (versus alsa)" OFF)
 option(ENABLE_TTS "Set to ON to enable text to speech" OFF)
 option(USE_SYSTEM_PUGIXML "Set to ON to use system-wide pugixml library" OFF)
 
-# Win32 default platform & directory detection
-if(WIN32)
-
-	set(CMAKE_CXX_STANDARD 17)
-	set(CMAKE_CXX_STANDARD_REQUIRED ON)
-	set(CMAKE_CXX_EXTENSIONS OFF) # désactive les extensions (MSVC++)
-
-	if (NOT CMAKE_GENERATOR_PLATFORM)
-		set(CMAKE_GENERATOR_PLATFORM Win32)	    
-	endif()
-	
-	MESSAGE("-- Destination platform : " ${CMAKE_GENERATOR_PLATFORM})
-
-	if(NOT VLC_VERSION)
-		set(VLC_VERSION 1.0.0)
-	endif()
-
-	if (IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../batocera-emulationstation-win32-dependencies)
-		set(CUSTOM_LIBDIR ${CMAKE_CURRENT_SOURCE_DIR}/../batocera-emulationstation-win32-dependencies)
-	elseif (IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/win32-libs) 
-		set(CUSTOM_LIBDIR ${CMAKE_CURRENT_SOURCE_DIR}/win32-libs)
-	else ()
-		MESSAGE("-- Downloading Windows libraries...")
-		
-		include(FetchContent)
-		
-		FetchContent_Declare(win32libs
-		  GIT_REPOSITORY "https://github.com/batocera-linux/batocera-emulationstation-win32-dependencies.git"
-		  GIT_TAG "origin/master"
-		  SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/win32-libs"
-		)
-
-		FetchContent_MakeAvailable(win32libs)
-		set(CUSTOM_LIBDIR ${CMAKE_CURRENT_SOURCE_DIR}/win32-libs)
-	endif()
-	
-	if(CUSTOM_LIBDIR)		
-		MESSAGE("-- Default libraries path set to : " ${CUSTOM_LIBDIR} )		
-	endif()
-endif()
-
 project(emulationstation-all)
-
-# Win32 custom directories assignation
-if(WIN32 AND CUSTOM_LIBDIR)
-	if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-		set(CUSTOM_PLATFORM "x64")
-	else()
-		set(CUSTOM_PLATFORM "x86")
-	endif()
-	
-	set(
-	  CMAKE_PREFIX_PATH
-	  ${CUSTOM_LIBDIR}/rapidjson
-	  ${CUSTOM_LIBDIR}/freetype
-	  ${CUSTOM_LIBDIR}/freetype/${CUSTOM_PLATFORM}
-	  ${CUSTOM_LIBDIR}/freeimage
-	  ${CUSTOM_LIBDIR}/freeimage/${CUSTOM_PLATFORM}
-	  ${CUSTOM_LIBDIR}/SDL2_mixer
-	  ${CUSTOM_LIBDIR}/SDL2_mixer/${CUSTOM_PLATFORM}
-	  ${CUSTOM_LIBDIR}/SDL2
-	  ${CUSTOM_LIBDIR}/SDL2/${CUSTOM_PLATFORM}
-	  ${CUSTOM_LIBDIR}/libvlc
-	  ${CUSTOM_LIBDIR}/libvlc/${CUSTOM_PLATFORM}
-	  ${CUSTOM_LIBDIR}/curl/${CUSTOM_PLATFORM}
-	)
-endif()
 
 #-------------------------------------------------------------------------------
 #add local find scripts to CMAKE path
@@ -105,11 +36,6 @@ LIST(APPEND CMAKE_MODULE_PATH
 if(BATOCERA)
   MESSAGE("Batocera build")
   add_definitions(-DBATOCERA)
-endif()
-
-if(RETROBAT)
-  MESSAGE("Retrobat build")
-  add_definitions(-DRETROBAT)
 endif()
 
 # disable kodi menu
@@ -126,10 +52,6 @@ if(ENABLE_FILEMANAGER)
   add_definitions(-D_ENABLE_FILEMANAGER_)
 endif()
 
-if(BCM)
-    set(BCMHOST found)
-endif()
-
 #-------------------------------------------------------------------------------
 #set up OpenGL system variable
 if(GLES)
@@ -140,35 +62,11 @@ elseif(GLES3)
     set(GLSystem "OpenGL ES 3.0" CACHE STRING "The OpenGL system to be used" FORCE)
 elseif(GL)
     set(GLSystem "Desktop OpenGL" CACHE STRING "The OpenGL system to be used" FORCE)
-#-------------------------------------------------------------------------------
-#check if we're running on Raspberry Pi
-elseif(EXISTS "${CMAKE_FIND_ROOT_PATH}/opt/vc/include/bcm_host.h")
-    MESSAGE("bcm_host.h found")
-    set(BCMHOST found)
-    set(GLSystem "Embedded OpenGL" CACHE STRING "The OpenGL system to be used")
-#-------------------------------------------------------------------------------
-#check if we're running on OSMC Vero4K
-elseif(EXISTS "${CMAKE_FIND_ROOT_PATH}/opt/vero3/lib/libMali.so")
-    MESSAGE("libMali.so found")
-    set(VERO4K found)
-    set(GLSystem "Embedded OpenGL" CACHE STRING "The OpenGL system to be used")
-#-------------------------------------------------------------------------------
-#check if we're running on olinuxino / odroid / etc
-elseif(EXISTS "${CMAKE_FIND_ROOT_PATH}/usr/lib/libMali.so" OR
-    EXISTS "${CMAKE_FIND_ROOT_PATH}/usr/lib/libmali.so" OR # batocera
-    EXISTS "${CMAKE_FIND_ROOT_PATH}/usr/lib/arm-linux-gnueabihf/libMali.so" OR
-    EXISTS "${CMAKE_FIND_ROOT_PATH}/usr/lib/aarch64-linux-gnu/libMali.so" OR
-    EXISTS "${CMAKE_FIND_ROOT_PATH}/usr/lib/arm-linux-gnueabihf/mali-egl/libmali.so" OR
-    EXISTS "${CMAKE_FIND_ROOT_PATH}/usr/lib/arm-linux-gnueabihf/libmali.so")
-    MESSAGE("libMali.so found")
-    set(GLSystem "Embedded OpenGL" CACHE STRING "The OpenGL system to be used")
 elseif(NOT GLSystem)
     set(_ES_DEFAULT_GLSYSTEM "Desktop OpenGL")
-    if(NOT WIN32 AND NOT APPLE)
-        find_package(OpenGLES2 QUIET)
-        if(OPENGLES2_FOUND OR OpenGLES2_FOUND)
-            set(_ES_DEFAULT_GLSYSTEM "OpenGL ES 2.0")
-        endif()
+    find_package(OpenGLES2 QUIET)
+    if(OPENGLES2_FOUND OR OpenGLES2_FOUND)
+        set(_ES_DEFAULT_GLSYSTEM "OpenGL ES 2.0")
     endif()
     set(GLSystem "${_ES_DEFAULT_GLSYSTEM}" CACHE STRING "The OpenGL system to be used" FORCE)
     unset(_ES_DEFAULT_GLSYSTEM)
@@ -218,40 +116,38 @@ else()
 	MESSAGE("-- FriBidi not found, falling back on the built-in right-to-left reordering")
 endif()
 
-if(NOT WIN32)
-	if(ENABLE_PULSE)
-	  MESSAGE("pulse audio enabled")
-	  find_package(PulseAudio REQUIRED)
-	  add_definitions(-D_ENABLE_PULSE_)
-	else()
-	  MESSAGE("pulse audio disabled")
-	endif()
+if(ENABLE_PULSE)
+  MESSAGE("pulse audio enabled")
+  find_package(PulseAudio REQUIRED)
+  add_definitions(-D_ENABLE_PULSE_)
+else()
+  MESSAGE("pulse audio disabled")
+endif()
 
-	find_package(udev)
-	if(UDEV_FOUND)
-	  MESSAGE("udev found. guns enabled")
-	  add_definitions(-DHAVE_UDEV)
-	else()
-	  MESSAGE("udev not found. guns will be disabled")
-	endif()
-	
-	if(ENABLE_TTS)
-	  MESSAGE("tts enabled")
-	  find_library(LIBESPEAK_LIBRARIES NAMES espeak REQUIRED)
-	  if("${LIBESPEAK_LIBRARIES}" STREQUAL "LIBESPEAK_LIBRARIES-NOTFOUND")
-		MESSAGE(FATAL_ERROR "espeak not found")
-	  endif()
-	  add_definitions(-D_ENABLE_TTS_)
-	else()
-	  MESSAGE("tts disabled")
-	endif()
+find_package(udev)
+if(UDEV_FOUND)
+  MESSAGE("udev found. guns enabled")
+  add_definitions(-DHAVE_UDEV)
+else()
+  MESSAGE("udev not found. guns will be disabled")
+endif()
 
-	if(CEC)
-	  MESSAGE("CEC enabled")
-	  find_package(libCEC)
-	else()
-	  MESSAGE("CEC disabled")
-	endif()
+if(ENABLE_TTS)
+  MESSAGE("tts enabled")
+  find_library(LIBESPEAK_LIBRARIES NAMES espeak REQUIRED)
+  if("${LIBESPEAK_LIBRARIES}" STREQUAL "LIBESPEAK_LIBRARIES-NOTFOUND")
+	MESSAGE(FATAL_ERROR "espeak not found")
+  endif()
+  add_definitions(-D_ENABLE_TTS_)
+else()
+  MESSAGE("tts disabled")
+endif()
+
+if(CEC)
+  MESSAGE("CEC enabled")
+  find_package(libCEC)
+else()
+  MESSAGE("CEC disabled")
 endif()
 
 #add ALSA for Linux
@@ -261,14 +157,6 @@ endif()
 
 #-------------------------------------------------------------------------------
 #set up compiler flags and excutable names
-if(DEFINED BCMHOST OR RPI)
-    add_definitions(-D_RPI_)
-endif()
-
-if(DEFINED VERO4K)
-    add_definitions(-D_VERO4K_)
-endif()
-
 if(CEC)
   if(DEFINED libCEC_FOUND)
     add_definitions(-DHAVE_LIBCEC)
@@ -296,15 +184,6 @@ if(DEFINED HFS_DEV_LOGIN)
 endif()
 
 #-------------------------------------------------------------------------------
-
-if(MSVC)
-    set(CMAKE_DEBUG_POSTFIX "d")
-    add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
-    add_definitions(-D_CRT_NONSTDC_NO_DEPRECATE)
-    add_definitions(-DNOMINMAX)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP") #multi-processor compilation
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MP") #multi-processor compilation
-endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX)
     #check for G++ 4.7+
@@ -377,51 +256,26 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     )
 endif()
 
-if(DEFINED BCMHOST)
+if(${GLSystem} MATCHES "Desktop OpenGL")
     LIST(APPEND COMMON_INCLUDE_DIRS
-        "${CMAKE_FIND_ROOT_PATH}/opt/vc/include"
-        "${CMAKE_FIND_ROOT_PATH}/opt/vc/include/interface/vcos"
-        "${CMAKE_FIND_ROOT_PATH}/opt/vc/include/interface/vmcs_host/linux"
-        "${CMAKE_FIND_ROOT_PATH}/opt/vc/include/interface/vcos/pthreads"
+        ${OPENGL_INCLUDE_DIR}
     )
-#add include directory for Vero4K
-elseif(DEFINED VERO4K)
+elseif(${GLSystem} MATCHES "OpenGL ES 3.0")
     LIST(APPEND COMMON_INCLUDE_DIRS
-        "${CMAKE_FIND_ROOT_PATH}/opt/vero3/include"
+        ${OPENGLES3_INCLUDE_DIR}
+    )
+elseif(${GLSystem} MATCHES "OpenGL ES 2.0")
+    LIST(APPEND COMMON_INCLUDE_DIRS
+        ${OPENGLES2_INCLUDE_DIR}
     )
 else()
-    if(${GLSystem} MATCHES "Desktop OpenGL")
-        LIST(APPEND COMMON_INCLUDE_DIRS
-            ${OPENGL_INCLUDE_DIR}
-        )
-    elseif(${GLSystem} MATCHES "OpenGL ES 3.0")
-        LIST(APPEND COMMON_INCLUDE_DIRS
-            ${OPENGLES3_INCLUDE_DIR}
-        )
-    elseif(${GLSystem} MATCHES "OpenGL ES 2.0")
-        LIST(APPEND COMMON_INCLUDE_DIRS
-            ${OPENGLES2_INCLUDE_DIR}
-        )
-    else()
-        LIST(APPEND COMMON_INCLUDE_DIRS
-            ${OPENGLES_INCLUDE_DIR}
-        )
-    endif()
+    LIST(APPEND COMMON_INCLUDE_DIRS
+        ${OPENGLES_INCLUDE_DIR}
+    )
 endif()
 
 #-------------------------------------------------------------------------------
 #define libraries and directories
-if(DEFINED BCMHOST)
-    link_directories(
-        # batocera / customisations
-        "${CMAKE_FIND_ROOT_PATH}/opt/vc/lib"
-    )
-elseif(DEFINED VERO4K)
-    link_directories(
-        "${CMAKE_FIND_ROOT_PATH}/opt/vero3/lib"
-    )
-endif()
-
 set(COMMON_LIBRARIES
     ${FREETYPE_LIBRARIES}
     ${FreeImage_LIBRARIES}
@@ -459,12 +313,6 @@ endif()
 #add libCEC_LIBRARIES
 if(CEC)
   if(DEFINED libCEC_FOUND)
-    if(DEFINED BCMHOST)
-      LIST(APPEND COMMON_LIBRARIES
-        vchiq_arm
-	vchostif
-	)
-    endif()
     LIST(APPEND COMMON_LIBRARIES
       dl
       ${libCEC_LIBRARIES}
@@ -479,73 +327,43 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     )
 endif()
 
-if(DEFINED BCMHOST)
+if(${GLSystem} MATCHES "Desktop OpenGL")
     LIST(APPEND COMMON_LIBRARIES
-        bcm_host
-        brcmEGL
-	)
-    if(${GLSystem} MATCHES "Embedded OpenGL")
-      LIST(APPEND COMMON_LIBRARIES ${OPENGLES_LIBRARIES})
-    elseif(${GLSystem} MATCHES "OpenGL ES 3.0")
-      LIST(APPEND COMMON_LIBRARIES ${OPENGLES3_LIBRARIES})
-    else()
-      LIST(APPEND COMMON_LIBRARIES ${OPENGLES2_LIBRARIES})
-    endif()
-elseif(DEFINED VERO4K)
-    LIST(APPEND COMMON_LIBRARIES EGL)
-    if(${GLSystem} MATCHES "OpenGL ES 3.0")
-        LIST(APPEND COMMON_LIBRARIES ${OPENGLES3_LIBRARIES})
-    elseif(${GLSystem} MATCHES "OpenGL ES 2.0")
-        LIST(APPEND COMMON_LIBRARIES ${OPENGLES2_LIBRARIES})
-    else()
-        LIST(APPEND COMMON_LIBRARIES ${OPENGLES_LIBRARIES})
-    endif()
+        ${OPENGL_LIBRARIES}
+    )
+elseif(${GLSystem} MATCHES "OpenGL ES 3.0")
+    LIST(APPEND COMMON_LIBRARIES
+        EGL
+        ${OPENGLES3_LIBRARIES}
+    )
+elseif(${GLSystem} MATCHES "OpenGL ES 2.0")
+    LIST(APPEND COMMON_LIBRARIES
+        EGL
+        ${OPENGLES2_LIBRARIES}
+    )
 else()
-    if(MSVC)
-        LIST(APPEND COMMON_LIBRARIES
-            winmm
-        )
-    endif()
-    if(${GLSystem} MATCHES "Desktop OpenGL")
-        LIST(APPEND COMMON_LIBRARIES
-            ${OPENGL_LIBRARIES}
-        )
-    elseif(${GLSystem} MATCHES "OpenGL ES 3.0")
-        LIST(APPEND COMMON_LIBRARIES
-            EGL
-            ${OPENGLES3_LIBRARIES}
-        )
-    elseif(${GLSystem} MATCHES "OpenGL ES 2.0")
-        LIST(APPEND COMMON_LIBRARIES
-            EGL
-            ${OPENGLES2_LIBRARIES}
-        )
-    else()
-        LIST(APPEND COMMON_LIBRARIES
-            EGL
-            ${OPENGLES_LIBRARIES}
-        )
-    endif()
+    LIST(APPEND COMMON_LIBRARIES
+        EGL
+        ${OPENGLES_LIBRARIES}
+    )
 endif()
 
-if(NOT WIN32)
-	# batocera / i18n
-	# i18n
-	find_program (MSGFMT_EXECUTABLE msgfmt)
-	find_program (MSGMERGE_EXECUTABLE msgmerge)
-	find_program (XGETTEXT_EXECUTABLE xgettext)
-	find_package(Intl)
+# batocera / i18n
+# i18n
+find_program (MSGFMT_EXECUTABLE msgfmt)
+find_program (MSGMERGE_EXECUTABLE msgmerge)
+find_program (XGETTEXT_EXECUTABLE xgettext)
+find_package(Intl)
 
-	if(MSGFMT_EXECUTABLE AND MSGMERGE_EXECUTABLE AND XGETTEXT_EXECUTABLE AND Intl_FOUND)
-	  message (STATUS "Native language support enabled.")
-	  add_definitions(-DHAVE_INTL)
-	else()
-	  message (STATUS "Native language support disabled.")
-	endif()
+if(MSGFMT_EXECUTABLE AND MSGMERGE_EXECUTABLE AND XGETTEXT_EXECUTABLE AND Intl_FOUND)
+  message (STATUS "Native language support enabled.")
+  add_definitions(-DHAVE_INTL)
+else()
+  message (STATUS "Native language support disabled.")
 endif()
 
 find_program (PYTHON3_EXECUTABLE python3)
-if(PYTHON3_EXECUTABLE AND NOT MSVC)
+if(PYTHON3_EXECUTABLE)
   add_custom_target (checkgamesdb ALL COMMENT "Checking guns and wheels games db.")
   add_custom_command (TARGET checkgamesdb COMMAND "${PYTHON3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/resources/checkWheelGunGamesResources.py")
 endif()
@@ -553,11 +371,7 @@ endif()
 #-------------------------------------------------------------------------------
 # set up build directories
 
-if(WIN32)		
-	set(dir ${CMAKE_CURRENT_SOURCE_DIR}/bin/${CMAKE_GENERATOR_PLATFORM})
-else()
-	set(dir ${CMAKE_CURRENT_SOURCE_DIR})
-endif()
+set(dir ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(EXECUTABLE_OUTPUT_PATH ${dir} CACHE PATH "Build directory" FORCE)
 set(LIBRARY_OUTPUT_PATH ${dir} CACHE PATH "Build directory" FORCE)

@@ -4,12 +4,7 @@
 #include <stdarg.h>
 #include <cstring>
 
-#if defined(_WIN32)
-#include <Windows.h>
-#include <ctype.h>
-#else
 #include <unistd.h>
-#endif
 
 #include "han.h"
 
@@ -1015,11 +1010,7 @@ namespace Utils
 
 		bool isPrintableChar(char c)
 		{			
-#if defined(_WIN32)
-			return isprint(c);
-#else
 			return std::isprint(c);
-#endif
 		}
 
 		bool isKorean(const unsigned int uni)
@@ -1301,27 +1292,6 @@ namespace Utils
 		}
 		// koreanTextInput
 
-#if defined(_WIN32)
-		const std::string convertFromWideString(const std::wstring& wstring)
-		{
-			int numBytes = WideCharToMultiByte(CP_UTF8, 0, wstring.c_str(), (int)wstring.length(), nullptr, 0, nullptr, nullptr);
-			
-			std::string string(numBytes, 0);			
-			WideCharToMultiByte(CP_UTF8, 0, wstring.c_str(), (int)wstring.length(), (char*)string.c_str(), numBytes, nullptr, nullptr);
-
-			return string;
-		}
-
-		const std::wstring convertToWideString(const std::string& string)
-		{
-			int numBytes = MultiByteToWideChar(CP_UTF8, 0, string.c_str(), (int)string.length(), nullptr, 0);
-
-			std::wstring wstring(numBytes, 0);			
-			MultiByteToWideChar(CP_UTF8, 0, string.c_str(), (int)string.length(), (WCHAR*)wstring.c_str(), numBytes);
-
-			return wstring;
-		}
-#endif
 	} // String::
 
 } // Utils::

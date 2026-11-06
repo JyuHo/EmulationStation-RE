@@ -1,8 +1,5 @@
 #include "HttpApi.h"
 
-#ifdef WIN32
-#include <Windows.h>
-#endif
 
 #include "utils/Platform.h"
 #include "ApiSystem.h"

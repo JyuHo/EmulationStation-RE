@@ -243,15 +243,9 @@ public:
 	// Ignores a drive from future format requests if used by other OS'
 	bool ignoreDevicePermanently(const std::string& deviceId);
 
-#if !WIN32
 	bool enableWifi(std::string ssid, std::string key, std::string country);
-#else
-	bool enableWifi(std::string ssid, std::string key);
-#endif
-#if !WIN32
 	bool configureWifi();
 	bool connectWifi(const std::string& ssid);
-#endif
     bool disableWifi();
 
 	virtual std::string getIpAddress();

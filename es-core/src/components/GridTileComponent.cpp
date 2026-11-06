@@ -8,9 +8,6 @@
 #include "animations/LambdaAnimation.h"
 #include "ImageIO.h"
 
-#ifdef _RPI_
-#include "components/VideoPlayerComponent.h"
-#endif
 #include "components/VideoVlcComponent.h"
 #include "utils/FileSystemUtil.h"
 

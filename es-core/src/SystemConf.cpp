@@ -109,13 +109,11 @@ bool SystemConf::saveSystemConf()
 
 	std::ifstream filein(mSystemConfFile); //File to read from
 
-#ifndef WIN32
 	if (!filein)
 	{
 		LOG(LogError) << "Unable to open for saving :  " << mSystemConfFile << "\n";
 		return false;
 	}
-#endif
 
 	/* Read all lines in a vector */
 	std::vector<std::string> fileLines;

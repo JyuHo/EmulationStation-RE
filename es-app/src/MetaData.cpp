@@ -38,14 +38,9 @@ void MetaDataList::initMetadata()
 		{ Tags,             "tags",        MD_STRING,              "",                 false,      _("Tags"),                 _("tags"),		true },
 		{ SortName,         "sortname",    MD_STRING,              "",                 false,      _("Sort name"),             _("enter game sort name"),	true },
 
-#if WIN32 && !_DEBUG
-		{ Emulator,         "emulator",    MD_LIST,				 "",                 false,       _("Emulator"),			 _("emulator"),					false },
-		{ Core,             "core",	      MD_LIST,				 "",                 false,       _("Core"),				 _("core"),						false },
-#else
 		// Windows & recalbox gamelist.xml compatiblity -> Set as statistic to hide it from metadata editor
 		{ Emulator,         "emulator",    MD_LIST,				 "",                 true,        _("Emulator"),			 _("emulator"),					false },
 		{ Core,             "core",	     MD_LIST,				 "",                 true,        _("Core"),				 _("core"),						false },
-#endif
 
 		{ Image,            "image",       MD_PATH,                "",                 false,      _("Image"),                _("enter path to image"),		 true },
 		{ Video,            "video",       MD_PATH,                "",                 false,      _("Video"),                _("enter path to video"),		 false },

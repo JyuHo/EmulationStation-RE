@@ -198,28 +198,12 @@ set(LIBRETRO_COMMON_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/libretro-common/src/libFLAC/include/FLAC/stream_decoder.h
 )
 
-# Keep Directory structure in Visual Studio
-if(MSVC)
-	file(
-		 GLOB_RECURSE source_list RELATIVE
-		 "${CMAKE_CURRENT_SOURCE_DIR}"
-		 *.cpp *.c
-		)
-	foreach(source IN LISTS source_list)
-		get_filename_component(source_path "${source}" PATH)
-		string(REPLACE "/" "\\" source_path_msvc "${source_path}")
-		string(REPLACE "src" "" source_path_final "${source_path_msvc}")
-		source_group("${source_path_final}" FILES "${source}")
-	endforeach()  	
-endif()
 
 
 add_definitions("-DRC_DISABLE_LUA")
 add_definitions("-D_7ZIP_ST -DHAVE_CDROM -DHAVE_CHD -DWANT_SUBCODE -DWANT_RAW_DATA_SECTOR -DHAVE_ZLIB -DHAVE_7ZIP -DHAVE_FLAC -DFLAC__NO_DLL -DFLAC__HAS_OGG=0")
 
-if(NOT DEFINED MSVC)
-	add_definitions("-DHAVE_LROUND")
-endif()
+add_definitions("-DHAVE_LROUND")
 
 include_directories(${COMMON_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/rcheevos/include)
 include_directories(${COMMON_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/libretro-common/include)

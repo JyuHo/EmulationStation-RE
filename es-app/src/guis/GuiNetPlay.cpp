@@ -25,17 +25,8 @@
 
 #include "animations/LambdaAnimation.h"
 
-#if WIN32
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <iostream>
-#include <iphlpapi.h>
-#pragma comment(lib, "Ws2_32.lib")  // Link with Winsock library
-#pragma comment(lib, "Iphlpapi.lib")
-#else
 #include <arpa/inet.h>
 #include <unistd.h>
-#endif
 
 #define WINDOW_WIDTH (float)Math::min(Renderer::getScreenHeight() * 1.125f, Renderer::getScreenWidth() * 0.90f)
 
@@ -45,96 +36,6 @@
 
 static std::map<std::string, std::string> coreList =
 {
-#if WIN32
-	{ "2048", "2048" },
-	{ "81", "81" },
-	{ "Atari800", "atari800" },
-	{ "blueMSX", "bluemsx" },
-	{ "Cannonball", "cannonball" },
-	{ "Caprice32", "cap32" },
-	{ "CrocoDS", "crocods" },
-	{ "Daphne", "daphne" },
-	{ "Dinothawr", "dinothawr" },
-	{ "DOSBox-SVN", "dosbox_svn" },
-	{ "EasyRPG Player", "easyrpg" },
-	{ "FB Alpha 2012 Neo Geo", "fbalpha2012_neogeo" },
-	{ "FB Alpha 2012", "fbalpha2012" },
-	{ "FB Alpha", "fbalpha" },
-	{ "FinalBurn Neo", "fbneo" },
-	{ "FCEUmm", "fceumm" },
-	{ "Flycast", "flycast" },
-	{ "FreeIntv", "freeintv" },
-	{ "Fuse", "fuse" },
-	{ "Gambatte", "gambatte" },
-	{ "Gearboy", "gearboy" },
-	{ "Gearsystem", "gearsystem" },
-	{ "Genesis Plus GX", "genesis_plus_gx" },
-	{ "Game Music Emu", "gme" },
-	{ "gpSP", "gpsp" },
-	{ "GW", "gw" },
-	{ "Handy", "handy" },
-	{ "Hatari", "hatari" },
-	{ "MAME 2003 (0.78)", "mame2003" },
-	{ "MAME 2003-Plus", "mame2003_plus" },
-	{ "MAME 2010 (0.139)", "mame2010" },
-	{ "MAME 2016 (0.174)", "mame2016" },
-	{ "Beetle Lynx", "mednafen_lynx" },
-	{ "Beetle NeoPop", "mednafen_ngp" },
-	{ "Beetle PCE Fast", "mednafen_pce_fast" },
-	{ "Beetle PC-FX", "mednafen_pcfx" },
-	{ "Beetle SuperGrafx", "mednafen_supergrafx" },
-	{ "Beetle VB", "mednafen_vb" },
-	{ "Beetle PSX", "mednafen_psx" },
-	{ "Beetle PSX HW", "mednafen_psx_hw" },	
-	{ "Beetle WonderSwan", "mednafen_wswan" },
-	{ "Mesen-S", "mesen-s" },
-	{ "mGBA", "mgba" },
-	{ "Mr.Boom", "mrboom" },
-	{ "Mupen64Plus-Next", "mupen64plus_next" },
-	{ "Neko Project II", "nekop2" },
-	{ "NeoCD", "neocd" },
-	{ "NestopiaCV", "nestopiaCV" },
-	{ "Nestopia", "nestopia" },
-	{ "Neko Project II", "np2kai" },
-	{ "NXEngine", "nxengine" },
-	{ "O2EM", "o2em" },
-	{ "Opera", "opera" },
-	{ "ParaLLEl N64", "parallel_n64" },
-	{ "PCSX-ReARMed", "pcsx_rearmed" },
-	{ "PicoDrive", "picodrive" },
-	{ "PokeMini", "pokemini" },
-	{ "PPSSPP", "ppsspp" },
-	{ "PrBoom", "prboom" },
-	{ "ProSystem", "prosystem" },
-	{ "PUAE", "puae" },
-	{ "PX68k", "px68k" },
-	{ "QUASI88", "quasi88" },
-	{ "QuickNES", "quicknes" },
-	{ "REminiscence", "reminiscence" },
-	{ "SameBoy", "sameboy" },
-	{ "ScummVM", "scummvm" },
-	{ "Snes9x 2002", "snes9x2002" },
-	{ "Snes9x 2005 Plus", "snes9x2005_plus" },
-	{ "Snes9x 2010", "snes9x2010" },
-	{ "Snes9x", "snes9x" },
-	{ "Stella", "stella" },
-	{ "TGB Dual", "tgbdual" },
-	{ "TyrQuake", "tyrquake" },
-	{ "UAE4ARM", "uae4arm" },
-	{ "uzem", "uzem" },
-	{ "VBA-M", "vbam" },
-	{ "VBA Next", "vba_next" },
-	{ "vecx", "vecx" },
-	{ "VICE", "vice_x128" },
-	{ "VICE", "vice_x64" },
-	{ "VICE", "vice_xplus4" },
-	{ "VICE", "vice_xvic" },
-	{ "Virtual Jaguar", "virtualjaguar" },
-	{ "x1", "x1" },
-	{ "XRick", "xrick" },
-	{ "YabaSanshiro", "yabasanshiro" },
-	{ "Yabause", "yabause" },
-#else
 	{ "Beetle NeoPop", "mednafen_ngp" },
 	{ "Beetle PCE Fast", "pce" },
 	{ "Beetle SuperGrafx", "mednafen_supergrafx" },
@@ -158,7 +59,6 @@ static std::map<std::string, std::string> coreList =
 	{ "Snes9x 2010", "snes9x_next" },
 	{ "TGB Dual", "tgbdual", },
 	{ "VICE x64", "vice" }
-#endif
 };
 
 GuiNetPlay::GuiNetPlay(Window* window)
@@ -242,12 +142,7 @@ GuiNetPlay::~GuiNetPlay()
 	if (mLanLobbySocket >= 0)
 	{
 
-#if WIN32
-		closesocket(mLanLobbySocket);
-		WSACleanup();
-#else
 		close(mLanLobbySocket);
-#endif
 
 		mLanLobbySocket = -1;
 	}
@@ -346,60 +241,6 @@ void GuiNetPlay::update(int deltaTime)
 	}
 }
 
-#if WIN32
-static std::vector<std::string> getBroadcastAddresses() 
-{
-	std::vector<std::string> ret;
-
-	PIP_ADAPTER_ADDRESSES pAddresses = nullptr, pCurrAddress = nullptr;
-	ULONG outBufLen = 15000;
-	DWORD dwRetVal;
-
-	pAddresses = (IP_ADAPTER_ADDRESSES*)malloc(outBufLen);
-	if (pAddresses == nullptr)
-		return ret;	
-
-	dwRetVal = GetAdaptersAddresses(AF_INET, GAA_FLAG_INCLUDE_PREFIX, nullptr, pAddresses, &outBufLen);
-	if (dwRetVal != NO_ERROR) 
-	{
-		free(pAddresses);
-		return ret;
-	}
-	
-	for (pCurrAddress = pAddresses; pCurrAddress != nullptr; pCurrAddress = pCurrAddress->Next) 
-	{
-		if (pCurrAddress->OperStatus == IfOperStatusUp && pCurrAddress->FirstUnicastAddress) 
-		{
-			sockaddr_in* sa = (sockaddr_in*)pCurrAddress->FirstUnicastAddress->Address.lpSockaddr;
-			sockaddr_in* mask = (sockaddr_in*)pCurrAddress->FirstUnicastAddress->OnLinkPrefixLength;
-
-			if (sa->sin_family != AF_INET)
-				continue;
-			
-			uint32_t ip = sa->sin_addr.s_addr;
-			uint32_t subnetMask = htonl(~((1 << (32 - pCurrAddress->FirstUnicastAddress->OnLinkPrefixLength)) - 1));
-			uint32_t broadcast = ip | ~subnetMask;
-
-			struct in_addr broadcastInAddr;
-			broadcastInAddr.s_addr = broadcast;
-				
-			std::string broadcastAddr = inet_ntoa(broadcastInAddr);
-			ret.push_back(broadcastAddr);							
-		}
-	}
-
-	if (ret.size() > 1)
-	{
-		// Probably : VirtualBox adapter
-		auto it = std::find(ret.cbegin(), ret.cend(), "192.168.56.255");
-		if (it != ret.cend())
-			ret.erase(it);
-	}
-	
-	free(pAddresses);
-	return ret;
-}
-#endif
 
 void GuiNetPlay::lanLobbyRequest()
 {
@@ -409,42 +250,6 @@ void GuiNetPlay::lanLobbyRequest()
 
 	if (mLanLobbySocket < 0)
 	{
-#if WIN32
-		WSADATA wsaData;
-		if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
-			return;
-
-		mLanLobbySocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-		if (mLanLobbySocket < 0)
-			return;
-
-		int broadcastEnable = 1;
-		setsockopt(mLanLobbySocket, SOL_SOCKET, SO_BROADCAST, (const char*)&broadcastEnable, sizeof(broadcastEnable));
-	
-		int on = 1;
-		setsockopt(mLanLobbySocket, SOL_SOCKET, SO_REUSEADDR, (const char*)&on, sizeof(on));
-
-		struct sockaddr_in bindAddr;
-		memset(&bindAddr, 0, sizeof(bindAddr));
-		bindAddr.sin_family = AF_INET;
-		bindAddr.sin_port = htons(0);
-		bindAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-
-		if (bind(mLanLobbySocket, (struct sockaddr*)&bindAddr, sizeof(bindAddr)) < 0) 
-		{
-			closesocket(mLanLobbySocket);
-			WSACleanup();
-			return;
-		}
-
-		u_long mode = 1;
-		if (ioctlsocket(mLanLobbySocket, FIONBIO, &mode) != 0) 
-		{		
-			closesocket(mLanLobbySocket);
-			WSACleanup();
-			return;
-		}
-#else 
 		mLanLobbySocket = socket(AF_INET, SOCK_DGRAM, 0);
 		if (mLanLobbySocket < 0)
 			return;
@@ -454,23 +259,10 @@ void GuiNetPlay::lanLobbyRequest()
 
 		int flags = fcntl(mLanLobbySocket, F_GETFL, 0);
 		fcntl(mLanLobbySocket, F_SETFL, flags | O_NONBLOCK);
-#endif
 	}
 
 	uint32_t query_magic = htonl(DISCOVERY_QUERY_MAGIC);
 
-#if WIN32
-	for (auto address : getBroadcastAddresses())
-	{
-		struct sockaddr_in broadcastAddr;
-		memset(&broadcastAddr, 0, sizeof(broadcastAddr));
-		broadcastAddr.sin_family = AF_INET;
-		broadcastAddr.sin_port = htons(port);		
-		broadcastAddr.sin_addr.s_addr = inet_addr(address.c_str());		
-
-		sendto(mLanLobbySocket, (const char*)&query_magic, sizeof(query_magic), 0, (struct sockaddr*)&broadcastAddr, sizeof(broadcastAddr));
-	}
-#else
 	struct sockaddr_in broadcastAddr;
 	memset(&broadcastAddr, 0, sizeof(broadcastAddr));
 	broadcastAddr.sin_family = AF_INET;
@@ -478,7 +270,6 @@ void GuiNetPlay::lanLobbyRequest()
 	broadcastAddr.sin_addr.s_addr = htonl(INADDR_BROADCAST);
 
 	sendto(mLanLobbySocket, &query_magic, sizeof(query_magic), 0, (struct sockaddr*)&broadcastAddr, sizeof(broadcastAddr));
-#endif	
 }
 
 bool GuiNetPlay::input(InputConfig* config, Input input)
@@ -937,11 +728,7 @@ bool GuiNetPlay::populateFromLan()
 
 	while (true)
 	{
-#if WIN32
-		int received = recvfrom(mLanLobbySocket, (char*)&response, sizeof(response), 0, (struct sockaddr*)&serverAddr, &addrLen);
-#else
 		ssize_t received = recvfrom(mLanLobbySocket, &response, sizeof(response), 0, (struct sockaddr*)&serverAddr, &addrLen);
-#endif
 		if (received < 0)
 			break;
 

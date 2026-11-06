@@ -2366,9 +2366,7 @@ std::map<std::string, ThemeSet> ThemeData::getThemeSets()
 		Paths::getUserThemesPath(),
 		Paths::getThemesPath(),
 		Paths::getUserEmulationStationPath() + "/themes"
-#if !WIN32
 		,"/etc/emulationstation/themes" // Backward compatibility with Retropie
-#endif
 	};
 
 	std::map<std::string, ThemeSet> sets;

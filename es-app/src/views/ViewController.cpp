@@ -473,10 +473,6 @@ bool ViewController::doLaunchGame(FileData* game, LaunchGameOptions options)
 
 bool ViewController::checkLaunchOptions(FileData* game, LaunchGameOptions options, Vector3f center, Vector2f targetSize)
 {
-#ifdef _RPI_
-	if (Settings::getInstance()->getBool("VideoOmxPlayer") && mCurrentView)
-		mCurrentView->onHide();
-#endif
 
 	if (!game->isExtensionCompatible())
 	{
@@ -611,10 +607,8 @@ void ViewController::launch(FileData* game, LaunchGameOptions options, Vector3f 
 		transition_style = "slide";
 
 	bool keepSplash = true;
-#ifndef _WIN32
 	// the slide ends zoomed on the game art, which stays on screen until the emulator covers it
 	keepSplash = (transition_style != "slide" && transition_style != "fast slide") || zoom <= 1.0f;
-#endif
 	if (!Settings::getInstance()->getBool("HideWindow") && keepSplash)
 		mWindow->setCustomSplashScreen(game->getImagePath(), game->getName(), game);
 
@@ -900,9 +894,7 @@ void ViewController::changeVolume(int increment)
 		newVal = 0;
 
 	VolumeControl::getInstance()->setVolume(newVal);
-#if !WIN32
 	SystemConf::getInstance()->set("audio.volume", std::to_string(VolumeControl::getInstance()->getVolume()));
-#endif
 }
 
 bool ViewController::input(InputConfig* config, Input input)
@@ -926,9 +918,6 @@ bool ViewController::input(InputConfig* config, Input input)
 		ResourceManager::getInstance()->reloadAll();
 
 		ViewController::get()->reloadAll(mWindow);
-#if WIN32
-		EsLocale::reset();
-#endif
 		mWindow->closeSplashScreen();
 		return true;
 	}

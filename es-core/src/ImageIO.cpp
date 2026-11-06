@@ -276,13 +276,8 @@ Vector2i ImageIO::adjustPictureSize(Vector2i imageSize, Vector2i maxSize, bool e
 	double xCoef = (double)iMaxX / (double)cxDIB;
 	double yCoef = (double)iMaxY / (double)cyDIB;
 
-#if WIN32
-	cyDIB = (int)((double)cyDIB * std::fmax(xCoef, yCoef));
-	cxDIB = (int)((double)cxDIB * std::fmax(xCoef, yCoef));
-#else
 	cyDIB = (int)((double)cyDIB * std::max(xCoef, yCoef));
 	cxDIB = (int)((double)cxDIB * std::max(xCoef, yCoef));
-#endif
 
 	if (cxDIB > iMaxX)
 	{
@@ -325,11 +320,7 @@ bool ImageIO::getMultiBitmapInformation(const std::string& path, int& totalFrame
 
 	FREE_IMAGE_FORMAT fileFormat;
 
-#if WIN32
-	fileFormat = FreeImage_GetFileTypeU(Utils::String::convertToWideString(path).c_str());
-#else
 	fileFormat = FreeImage_GetFileType(path.c_str());
-#endif
 
 	if (fileFormat != FIF_GIF && fileFormat != FIF_PNG)
 		return false;
@@ -345,11 +336,7 @@ bool ImageIO::getMultiBitmapInformation(const std::string& path, int& totalFrame
 	if (data == nullptr)
 		return false;
 
-#if WIN32
-	std::ifstream stream(Utils::String::convertToWideString(path), std::ios::binary);
-#else
 	std::ifstream stream(path, std::ios::binary);
-#endif
 
 	stream.read((char*)data, size);
 	stream.close();

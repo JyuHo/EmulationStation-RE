@@ -2,9 +2,6 @@
 #include <time.h>
 #include "LocaleES.h"
 
-#if WIN32
-#include <Windows.h>
-#endif
 
 #include <functional>
 #include <iterator>

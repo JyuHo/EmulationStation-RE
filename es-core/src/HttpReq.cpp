@@ -9,11 +9,7 @@
 #include <SDL.h>
 #include "Paths.h"
 
-#ifdef WIN32
-#include <time.h>
-#else
 #include <unistd.h>
-#endif
 
 #include <mutex>
 static std::mutex mMutex;
@@ -51,47 +47,6 @@ bool HttpReq::isUrl(const std::string& str)
 		(str.find("http://") != std::string::npos || str.find("https://") != std::string::npos || str.find("www.") != std::string::npos));
 }
 
-#ifdef WIN32
-static LONG _regGetDWORD(HKEY hKey, const std::string &strPath, const std::string &strValueName)
-{
-	HKEY hSubKey;
-	LONG nRet = ::RegOpenKeyEx(hKey, strPath.c_str(), 0L, KEY_QUERY_VALUE, &hSubKey);
-	if (nRet == ERROR_SUCCESS)
-	{
-		DWORD dwBufferSize(sizeof(DWORD));
-		DWORD nResult(0);
-
-		nRet = ::RegQueryValueExA(hSubKey, strValueName.c_str(), 0, NULL, reinterpret_cast<LPBYTE>(&nResult), &dwBufferSize);
-		::RegCloseKey(hSubKey);
-
-		if (nRet == ERROR_SUCCESS)
-			return nResult;
-	}
-
-	return 0;
-}
-
-static std::string _regGetString(HKEY hKey, const std::string &strPath, const std::string &strValueName)
-{
-	std::string ret;
-
-	HKEY hSubKey;
-	LONG nRet = ::RegOpenKeyEx(hKey, strPath.c_str(), 0L, KEY_QUERY_VALUE, &hSubKey);
-	if (nRet == ERROR_SUCCESS)
-	{
-		char szBuffer[1024];
-		DWORD dwBufferSize = sizeof(szBuffer);
-
-		nRet = ::RegQueryValueExA(hSubKey, strValueName.c_str(), 0, NULL, (LPBYTE)szBuffer, &dwBufferSize);
-		::RegCloseKey(hSubKey);
-
-		if (nRet == ERROR_SUCCESS)
-			ret = szBuffer;
-	}
-
-	return ret;
-}
-#endif
 
 static std::string getCookiesContainerPath(bool createDirectory = true)
 {	
@@ -152,7 +107,6 @@ void HttpReq::performRequest(const std::string& url, HttpReqOptions* options)
 		return;
 	}
 
-#ifndef WIN32
 	err = curl_easy_setopt(mHandle, CURLOPT_BUFFERSIZE, 102400L); // Batocera - 100kB instead of 16
 	if(err != CURLE_OK)
 	{
@@ -160,7 +114,6 @@ void HttpReq::performRequest(const std::string& url, HttpReqOptions* options)
 		onError(curl_easy_strerror(err));
 		return;
 	}
-#endif
 
 	if (options != nullptr && !options->dataToPost.empty())
 	{
@@ -210,15 +163,7 @@ void HttpReq::performRequest(const std::string& url, HttpReqOptions* options)
 	}
 
 	// set curl restrict redirect protocols
-#if WIN32
-	curl_version_info_data* version_info = curl_version_info(CURLVERSION_NOW);
-
-	unsigned int major, minor, patch;
-	if (version_info && sscanf(version_info->version, "%u.%u.%u", &major, &minor, &patch) == 3)
-		err = curl_easy_setopt(mHandle, CURLOPT_REDIR_PROTOCOLS_STR, "http,https");
-	else 
-		err = curl_easy_setopt(mHandle, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
-#elif CURL_AT_LEAST_VERSION(7,85,0)
+#if CURL_AT_LEAST_VERSION(7,85,0)
 	err = curl_easy_setopt(mHandle, CURLOPT_REDIR_PROTOCOLS_STR, "http,https");	
 #else
 	err = curl_easy_setopt(mHandle, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
@@ -273,33 +218,6 @@ void HttpReq::performRequest(const std::string& url, HttpReqOptions* options)
 	curl_easy_setopt(mHandle, CURLOPT_HEADERFUNCTION, &HttpReq::header_callback);
 	curl_easy_setopt(mHandle, CURLOPT_HEADERDATA, this);
 
-#ifdef WIN32
-	// Setup system proxy on Windows if required
-	if (_regGetDWORD(HKEY_CURRENT_USER, "Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings", "ProxyEnable"))
-	{
-		auto proxyServer = _regGetString(HKEY_CURRENT_USER, "Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings", "ProxyServer");
-		if (!proxyServer.empty())
-		{
-			std::string protocol = (url.find("https:/") == 0 ? "https=" : "http=");
-
-			size_t pxs = proxyServer.find(protocol);
-			if (pxs != std::string::npos)
-			{
-				size_t pxe = proxyServer.find(";", pxs);
-				if (pxe == std::string::npos)
-					proxyServer = proxyServer.substr(pxs + protocol.size());
-				else 
-					proxyServer = proxyServer.substr(pxs + protocol.size(), pxe - pxs - protocol.size());
-			}
-
-			if (!proxyServer.empty())
-			{
-				curl_easy_setopt(mHandle, CURLOPT_PROXY, proxyServer.c_str());
-				curl_easy_setopt(mHandle, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
-			}
-		}
-	}
-#endif
 	
 	std::unique_lock<std::mutex> lock(mMutex);
 
@@ -309,11 +227,7 @@ void HttpReq::performRequest(const std::string& url, HttpReqOptions* options)
 		
 		Utils::FileSystem::removeFile(mTempStreamPath);
 
-#if defined(_WIN32)
-		mFile = _wfopen(Utils::String::convertToWideString(mTempStreamPath).c_str(), L"wb");
-#else
 		mFile = fopen(mTempStreamPath.c_str(), "wb");		
-#endif
 
 		if (mFile == nullptr)
 		{
@@ -459,23 +373,6 @@ HttpReq::Status HttpReq::status()
 						if (!req->mFilePath.empty())
 						{
 							bool renamed = Utils::FileSystem::renameFile(req->mTempStreamPath.c_str(), req->mFilePath.c_str());
-#if WIN32
-							if (renamed)
-							{
-								auto wfn = Utils::String::convertToWideString(req->mFilePath);
-								HANDLE hFile = CreateFileW(wfn.c_str(), GENERIC_WRITE, FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
-								if (hFile != INVALID_HANDLE_VALUE)
-								{
-									SYSTEMTIME st;
-									GetSystemTime(&st);              // Gets the current system time
-									FILETIME ft;
-									SystemTimeToFileTime(&st, &ft);  // Converts the current system time to file time format
-
-									SetFileTime(hFile, &ft, &ft, &ft);
-									CloseHandle(hFile);
-								}
-							}
-#endif
 							if (!renamed)
 							{
 								// Strange behaviour on Windows : sometimes std::rename fails if it's done too early after closing stream

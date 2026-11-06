@@ -29,9 +29,6 @@
 #include "../es-app/src/ApiSystem.h"
 #include "utils/StringUtil.h"
 
-#if WIN32
-#include <SDL_syswm.h>
-#endif
 
 Window::Window() : mNormalizeNextUpdate(false), mFrameTimeElapsed(0), mFrameCountElapsed(0), mAverageDeltaTime(10),
   mAllowSleep(true), mSleeping(false), mTimeSinceLastInput(0), mScreenSaver(NULL), mRenderScreenSaver(false), mClockElapsed(0), mMouseCapture(nullptr), mMenuBackgroundShaderTextureCache(-1)
@@ -853,67 +850,6 @@ void Window::render()
 			}
 		}	
 
-#if WIN32
-		if (hasMousePointer)
-		{
-			if (mMouseCursorTexture == nullptr)
-				mMouseCursorTexture = TextureResource::get(":/cursor.png", false, true, true, false);
-
-			if (mMouseCursorTexture->bind())
-			{
-				for (auto gun : guns)
-				{
-					if (!gun->isMouse())
-						continue;
-
-					if (gun->isLastTickElapsed())
-						break;
-
-					SDL_SysWMinfo wmInfo;
-					SDL_VERSION(&wmInfo.version);
-					if (SDL_GetWindowWMInfo(Renderer::getSDLWindow(), &wmInfo))
-					{
-						HWND hWnd = wmInfo.info.win.window;
-
-						POINT cursorPos;
-						GetCursorPos(&cursorPos);
-
-						// Convert screen coordinates to client coordinates
-						ScreenToClient(hWnd, &cursorPos);
-
-						// Get the client rectangle of the window
-						RECT clientRect;
-						GetClientRect(hWnd, &clientRect);
-
-						// Check if the cursor is within the client area
-						if (!PtInRect(&clientRect, cursorPos))
-							continue;
-					}					
-
-					int pointerSize = (Renderer::isVerticalScreen() ? Renderer::getScreenWidth() : Renderer::getScreenHeight()) / 38;
-					
-					Vector2i sz = ImageIO::adjustPictureSize(mMouseCursorTexture->getSize(), Vector2i(pointerSize, pointerSize));
-
-					Vector2f topLeft = { gun->x(), gun->y() };
-					Vector2f bottomRight = { gun->x() + sz.x(), gun->y() + sz.y() };
-
-					auto aimColor = 0xFFFFFFFF;
-					
-					if (gun->isLButtonDown() || gun->isRButtonDown())
-						aimColor = 0xC0FAFAFF;
-
-					Renderer::Vertex vertices[4];
-					vertices[0] = { { topLeft.x() ,     topLeft.y() }, { 0.0f,          1.0f }, aimColor };
-					vertices[1] = { { topLeft.x() ,     bottomRight.y() }, { 0.0f,          0.0f }, aimColor };
-					vertices[2] = { { bottomRight.x(), topLeft.y() }, { 1.0f, 1.0f }, aimColor };
-					vertices[3] = { { bottomRight.x(), bottomRight.y() }, { 1.0f, 0.0f }, aimColor };
-
-					Renderer::drawTriangleStrips(&vertices[0], 4);
-					break;
-				}
-			}
-		}
-#endif
 
 		Renderer::setScreenMargin(margin.x(), margin.y());
 	}
@@ -962,10 +898,6 @@ void Window::renderSplashScreen(std::string text, float percent, float opacity)
 	mSplash->update(text, percent);
 	mSplash->render(opacity);
 
-#if WIN32
-	SDL_Event evt;
-	SDL_PollEvent(&evt);
-#endif
 }
 
 void Window::renderSplashScreen(float opacity, bool swapBuffers)
@@ -1395,10 +1327,6 @@ void Window::processMouseMove(int x, int y, bool touchScreen)
 {
 	if (!touchScreen && (mLastShowCursor != -2 || x != 0 || y != 0))
 	{
-#if WIN32
-		auto guns = InputManager::getInstance()->getGuns();
-		if (guns.size() == 0 || std::find_if(guns.cbegin(), guns.cend(), [](Gun* x) { return x->name() == "Wiimote Gun"; }) == guns.cend())
-#endif
 		SDL_ShowCursor(1);
 
 		mLastShowCursor = 0;

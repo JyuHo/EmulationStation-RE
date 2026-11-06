@@ -5,12 +5,7 @@
 #include "GuiLoading.h"
 #include "ImageIO.h"
 
-#ifdef WIN32
-#include <Windows.h>
-#include <direct.h>
-#else
 #include <unistd.h>
-#endif
 
 #include "utils/ZipFile.h"
 #include "components/HelpComponent.h"
@@ -697,10 +692,6 @@ void GuiImageViewer::showCbz(Window* window, const std::string imagePath)
 	imgViewer->loadCbz(imagePath);
 }
 
-#ifdef _RPI_
-#include "Settings.h"
-#include "components/VideoPlayerComponent.h"
-#endif
 #include "components/VideoVlcComponent.h"
 
 void GuiVideoViewer::playVideo(Window* window, const std::string videoPath)
@@ -716,11 +707,6 @@ GuiVideoViewer::GuiVideoViewer(Window* window, const std::string& path) : GuiCom
 	setPosition(0, 0);
 	setSize(Renderer::getScreenWidth(), Renderer::getScreenHeight());
 
-#ifdef _RPI_
-	if (Settings::getInstance()->getBool("VideoOmxPlayer"))
-		mVideo = new VideoPlayerComponent(mWindow, "");
-	else
-#endif
 	{
 		mVideo = new VideoVlcComponent(mWindow);
 

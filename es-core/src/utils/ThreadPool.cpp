@@ -1,10 +1,6 @@
 #include "ThreadPool.h"
 #include "utils/Platform.h"
 
-#if WIN32
-#include <Windows.h>
-#include "StringUtil.h"
-#endif
 
 #include <stdlib.h>
 #include <algorithm>
@@ -27,21 +23,6 @@ namespace Utils
 
 		auto doWork = [&](size_t id)
 		{
-#if WIN32
-			if (Utils::Platform::isWindows10())
-			{
-				if (!mPoolName.empty())
-				{
-					std::wstring name = Utils::String::convertToWideString("ThreadPool::thread(" + mPoolName + ")");
-					SetThreadDescription(GetCurrentThread(), name.c_str());
-				}
-				else
-					SetThreadDescription(GetCurrentThread(), L"ThreadPool::thread");
-			}
-
-			auto mask = (static_cast<DWORD_PTR>(1) << id);
-			SetThreadAffinityMask(GetCurrentThread(), mask);
-#endif
 
 			while (mRunning)
 			{

@@ -2,55 +2,7 @@
 #include "Log.h"
 #include "LocaleES.h"
 
-#if WIN32
-#include "SystemConf.h"
-#include <sapi.h>
-#include <sphelper.h>
-#include <thread>
-
-#pragma comment(lib, "sapi.lib")
-
-void TextToSpeech::SpeakThread()
-{
-	if (FAILED(::CoInitializeEx(NULL, COINITBASE_MULTITHREADED)))
-		return;
-
-	ISpVoice* pVoice = NULL;
-	HRESULT hr = CoCreateInstance(CLSID_SpVoice, NULL, CLSCTX_ALL, IID_ISpVoice, (void **)&pVoice);
-	if (!SUCCEEDED(hr))
-		return;
-
-	m_isAvailable = true;
-	
-	while (true)
-	{
-		std::unique_lock<std::mutex> lock(mMutex);
-		mEvent.wait(lock, [this]() { return mShouldTerminate || !mSpeechQueue.empty(); });
-
-		if (mShouldTerminate)
-			break;
-
-		SpeakItem* item = nullptr;
-
-		if (!mSpeechQueue.empty())
-		{
-			item = mSpeechQueue.front();
-			mSpeechQueue.pop_front();
-		}
-
-		lock.unlock();
-
-		if (item != nullptr)
-		{
-			pVoice->Speak(Utils::String::convertToWideString(item->text).c_str(), SPF_ASYNC | SPF_IS_XML | (item->expand ? 0 : SPF_PURGEBEFORESPEAK), NULL);
-			delete item;
-		}
-	}
-
-	pVoice->Pause();
-	pVoice->Release();
-}
-#elif defined(_ENABLE_TTS_)
+#if defined(_ENABLE_TTS_)
 #include <espeak/speak_lib.h>
 #endif
 
@@ -87,11 +39,7 @@ void TextToSpeech::init()
 	if (m_initialized)
 		return;
 
-#if WIN32
-	mShouldTerminate = false;
-	mSpeakThread = new std::thread(&TextToSpeech::SpeakThread, this);
-	m_initialized = true;
-#elif defined(_ENABLE_TTS_)	
+#if defined(_ENABLE_TTS_)	
 	m_isAvailable = espeak_Initialize(AUDIO_OUTPUT_PLAYBACK, 0, NULL, 0) != EE_INTERNAL_ERROR;
 	if (!m_isAvailable)
 		return;
@@ -117,25 +65,7 @@ void TextToSpeech::deinit()
 
 	m_enabled = false;
 
-#if WIN32
-
-	if (mSpeakThread != nullptr)
-	{
-		mShouldTerminate = true;
-
-		mEvent.notify_all();
-
-		mSpeakThread->join();
-		delete mSpeakThread;
-		mSpeakThread = nullptr;
-	}
-
-	for (auto item : mSpeechQueue)
-		delete item;
-
-	mSpeechQueue.clear();
-
-#elif defined(_ENABLE_TTS_)
+#if defined(_ENABLE_TTS_)
 	if (espeak_Terminate() != EE_OK) {
 		LOG(LogError) << "TTS::deinit() - Failed to terminate";
 	}
@@ -243,29 +173,7 @@ void TextToSpeech::say(const std::string text, bool expand, const std::string la
 	if (!m_isAvailable || !m_enabled || text.empty())
 		return;
 
-#if WIN32
-	std::string language = lang;
-	if (language.empty())
-		language = SystemConf::getInstance()->get("system.language");
-		
-	if (language.empty() || language == "en")
-		language = "en-US";
-
-	std::string full = "<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='" + language + "'>" + text + "</speak>";
-		
-	std::unique_lock<std::mutex> lock(mMutex);
-
-	if (!expand)
-		mSpeechQueue.clear();
-
-	SpeakItem* item = new SpeakItem();
-	item->text = full;
-	item->expand = expand;
-	mSpeechQueue.push_back(item);
-
-	mEvent.notify_one();
-
-#elif defined(_ENABLE_TTS_)
+#if defined(_ENABLE_TTS_)
 
 	if (expand == false && espeak_IsPlaying() == 1)
 		espeak_Cancel();
