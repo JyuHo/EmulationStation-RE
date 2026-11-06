@@ -106,9 +106,6 @@ set(CORE_HEADERS
 
 	# Renderers
 	${CMAKE_CURRENT_SOURCE_DIR}/src/renderers/Renderer.h
-	${CMAKE_CURRENT_SOURCE_DIR}/src/renderers/Renderer_GL21.h
-	${CMAKE_CURRENT_SOURCE_DIR}/src/renderers/Renderer_GLES10.h
-	${CMAKE_CURRENT_SOURCE_DIR}/src/renderers/GlExtensions.h	
 
 	# Resources
 	${CMAKE_CURRENT_SOURCE_DIR}/src/resources/Font.h
@@ -237,9 +234,6 @@ set(CORE_SOURCES
 
 	# Renderer
 	${CMAKE_CURRENT_SOURCE_DIR}/src/renderers/Renderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/renderers/Renderer_GL21.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/renderers/Renderer_GLES10.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/renderers/GlExtensions.cpp	
 	${CMAKE_CURRENT_SOURCE_DIR}/src/renderers/Shader.cpp	
 
 	# Resources
@@ -268,13 +262,8 @@ set(CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/watchers/NetworkStateWatcher.cpp
 )
 
-if(${GLSystem} MATCHES "OpenGL ES 3.0")
-	LIST(APPEND CORE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/src/renderers/Renderer_GLES30.h)
-	LIST(APPEND CORE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/renderers/Renderer_GLES30.cpp)
-else()
-	LIST(APPEND CORE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/src/renderers/Renderer_GLES20.h)
-	LIST(APPEND CORE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/renderers/Renderer_GLES20.cpp)
-endif()
+LIST(APPEND CORE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/src/renderers/Renderer_GL3.h)
+LIST(APPEND CORE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/renderers/Renderer_GL3.cpp)
 
 
 include_directories(${COMMON_INCLUDE_DIRS})

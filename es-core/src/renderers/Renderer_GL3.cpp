@@ -1,8 +1,7 @@
-#include "Renderer_GLES30.h"
+#include "Renderer_GL3.h"
 
-#ifdef RENDERER_GLES_30
 
-#include "Renderer_GLES30.h"
+#include "Renderer_GL3.h"
 #include "renderers/Renderer.h"
 #include "math/Transform4x4f.h"
 #include "utils/StringUtil.h"
@@ -22,15 +21,33 @@
 #include <stdexcept>
 
 #ifndef NDEBUG
-#define GLES30_CALL(Function) GL_CHECK_ERROR(Function)
+#define GL3_CALL(Function) GL_CHECK_ERROR(Function)
 #else
-#define GLES30_CALL(Function) (Function)
+#define GL3_CALL(Function) (Function)
 #endif
 
-#include "GlExtensions.h"
+#include "GlHeaders.h"
 #include "Shader.h"
 
 #include "resources/ResourceManager.h"
+
+#if defined(USE_GLES)
+#define GL_API_LABEL "OPENGL ES "
+#else
+#define GL_API_LABEL "OPENGL "
+#endif
+
+bool _GLCheckError(const char* _funcName)
+{
+	const GLenum errorCode = glGetError();
+	if (errorCode != GL_NO_ERROR)
+	{
+		LOG(LogError) << "GL error: " << _funcName << " failed with error code: " << errorCode;
+		return false;
+	}
+
+	return true;
+}
 
 namespace Renderer
 {
@@ -186,9 +203,13 @@ namespace Renderer
 		while (glGetError() != GL_NO_ERROR)
 			;
 
+#if defined(USE_GLES)
 		glCapabilities.debugOutput = glCapabilities.isAtLeast(3, 2) || hasExtension(extensions, "GL_KHR_debug");
+#else
+		glCapabilities.debugOutput = glCapabilities.isAtLeast(4, 3) || hasExtension(extensions, "GL_KHR_debug");
+#endif
 
-		LOG(LogInfo) << "GL ES context: " << glCapabilities.majorVersion << "." << glCapabilities.minorVersion;
+		LOG(LogInfo) << GL_API_LABEL "context: " << glCapabilities.majorVersion << "." << glCapabilities.minorVersion;
 		LOG(LogInfo) << " KHR_debug:    " << (glCapabilities.debugOutput ? "yes" : "no");
 	}
 
@@ -388,23 +409,10 @@ namespace Renderer
 
 	static void setupDefaultShaders()
 	{
-#if defined(USE_OPENGLES_30)
+#if defined(USE_GLES)
 		SHADER_VERSION_STRING = "#version 300 es\n";
-#elif defined(USE_OPENGLES_20)
-		SHADER_VERSION_STRING = "#version 100\n";
 #else
-		SHADER_VERSION_STRING = "#version 120\n";
-
-		std::string shaders = Utils::String::trim(glGetString(GL_SHADING_LANGUAGE_VERSION) ? (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION) : "");
-
-		auto sep = shaders.find_first_of(" -");
-		if (sep != std::string::npos)
-			shaders = shaders.substr(0, sep);
-
-		if (shaders.find("1.0") != std::string::npos)
-			SHADER_VERSION_STRING = "#version 100\n";
-		else if (shaders.find("1.1") != std::string::npos)
-			SHADER_VERSION_STRING = "#version 110\n";
+		SHADER_VERSION_STRING = "#version 330 core\n";
 #endif
 
 		LOG(LogInfo) << "GLSL version preprocessor :     " << SHADER_VERSION_STRING;
@@ -645,14 +653,14 @@ namespace Renderer
 			out[5] = base + 3;
 		}
 
-		GLES30_CALL(glGenBuffers(1, &quadIndexBuffer));
+		GL3_CALL(glGenBuffers(1, &quadIndexBuffer));
 		if (quadIndexBuffer == 0)
 		{
 			LOG(LogWarning) << "Unable to create the OpenGL ES quad index buffer; falling back to expanded quad batching";
 			return;
 		}
 
-		GLES30_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quadIndexBuffer));
+		GL3_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quadIndexBuffer));
 
 		while (glGetError() != GL_NO_ERROR)
 			;
@@ -660,19 +668,19 @@ namespace Renderer
 		if (glGetError() != GL_NO_ERROR)
 		{
 			LOG(LogWarning) << "Unable to upload the OpenGL ES quad index buffer; falling back to expanded quad batching";
-			GLES30_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-			GLES30_CALL(glDeleteBuffers(1, &quadIndexBuffer));
+			GL3_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+			GL3_CALL(glDeleteBuffers(1, &quadIndexBuffer));
 			quadIndexBuffer = 0;
 			return;
 		}
 
-		GLES30_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+		GL3_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 	}
 
 	static void setupVertexBuffer()
 	{
-		GLES30_CALL(glGenBuffers(1, &vertexBuffer));
-		GLES30_CALL(glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer));
+		GL3_CALL(glGenBuffers(1, &vertexBuffer));
+		GL3_CALL(glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer));
 
 		streamBufferGeneration = 1;
 		streamRingCapacity = 0;
@@ -692,7 +700,7 @@ namespace Renderer
 	static void setupPixelUploadBuffers()
 	{
 		GLuint buffers[3] = {};
-		GLES30_CALL(glGenBuffers(static_cast<GLsizei>(pixelUploadSlots.size()), buffers));
+		GL3_CALL(glGenBuffers(static_cast<GLsizei>(pixelUploadSlots.size()), buffers));
 		for (size_t i = 0; i < pixelUploadSlots.size(); ++i)
 		{
 			pixelUploadSlots[i].buffer = buffers[i];
@@ -709,7 +717,7 @@ namespace Renderer
 		{
 			if (slot.fence != nullptr)
 			{
-				GLES30_CALL(glDeleteSync(slot.fence));
+				GL3_CALL(glDeleteSync(slot.fence));
 				slot.fence = nullptr;
 			}
 			if (slot.buffer != 0)
@@ -717,7 +725,7 @@ namespace Renderer
 			slot = PixelUploadSlot();
 		}
 		if (count > 0)
-			GLES30_CALL(glDeleteBuffers(count, buffers));
+			GL3_CALL(glDeleteBuffers(count, buffers));
 	}
 
 	static bool uploadTextureWithPixelBuffer(const GLenum type, const unsigned int x, const unsigned int y,
@@ -737,7 +745,7 @@ namespace Renderer
 				const GLenum status = glClientWaitSync(slot.fence, 0, 0);
 				if (status == GL_ALREADY_SIGNALED || status == GL_CONDITION_SATISFIED)
 				{
-					GLES30_CALL(glDeleteSync(slot.fence));
+					GL3_CALL(glDeleteSync(slot.fence));
 					slot.fence = nullptr;
 				}
 				else if (status == GL_WAIT_FAILED)
@@ -745,7 +753,7 @@ namespace Renderer
 					LOG(LogWarning) << "OpenGL ES 3.0 pixel upload fence wait failed; orphaning the slot";
 					while (glGetError() != GL_NO_ERROR)
 						;
-					GLES30_CALL(glDeleteSync(slot.fence));
+					GL3_CALL(glDeleteSync(slot.fence));
 					slot.fence = nullptr;
 					slot.capacity = 0;
 				}
@@ -762,10 +770,10 @@ namespace Renderer
 		if (available == nullptr)
 			return false;
 
-		GLES30_CALL(glBindBuffer(GL_PIXEL_UNPACK_BUFFER, available->buffer));
+		GL3_CALL(glBindBuffer(GL_PIXEL_UNPACK_BUFFER, available->buffer));
 		if (available->capacity < dataSize)
 		{
-			GLES30_CALL(glBufferData(GL_PIXEL_UNPACK_BUFFER, dataSize, nullptr, GL_STREAM_DRAW));
+			GL3_CALL(glBufferData(GL_PIXEL_UNPACK_BUFFER, dataSize, nullptr, GL_STREAM_DRAW));
 			available->capacity = dataSize;
 		}
 
@@ -773,7 +781,7 @@ namespace Renderer
 			GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
 		if (mapped == nullptr)
 		{
-			GLES30_CALL(glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0));
+			GL3_CALL(glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0));
 			while (glGetError() != GL_NO_ERROR)
 				;
 			return false;
@@ -782,15 +790,15 @@ namespace Renderer
 		memcpy(mapped, data, dataSize);
 		if (glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER) != GL_TRUE)
 		{
-			GLES30_CALL(glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0));
+			GL3_CALL(glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0));
 			return false;
 		}
 
-		GLES30_CALL(glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, width, height, type, GL_UNSIGNED_BYTE, nullptr));
+		GL3_CALL(glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, width, height, type, GL_UNSIGNED_BYTE, nullptr));
 		available->fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 		if (available->fence == nullptr)
 			available->capacity = 0; // Force storage orphaning before this buffer is reused.
-		GLES30_CALL(glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0));
+		GL3_CALL(glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0));
 		++performanceCounters.pboUploads;
 		return true;
 	}
@@ -806,7 +814,7 @@ namespace Renderer
 
 	static void orphanStreamRing(const size_t capacity)
 	{
-		GLES30_CALL(glBufferData(GL_ARRAY_BUFFER, capacity * sizeof(GpuVertex), nullptr, GL_STREAM_DRAW));
+		GL3_CALL(glBufferData(GL_ARRAY_BUFFER, capacity * sizeof(GpuVertex), nullptr, GL_STREAM_DRAW));
 		streamRingCapacity = capacity;
 		streamRingHead = 0;
 		++streamBufferGeneration;
@@ -828,7 +836,7 @@ namespace Renderer
 		if (vertexCount > static_cast<size_t>(std::numeric_limits<GLsizei>::max()) / sizeof(GpuVertex))
 			return range;
 
-		GLES30_CALL(glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer));
+		GL3_CALL(glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer));
 
 		size_t first = (streamRingHead + 3) & ~static_cast<size_t>(3);
 		if (vertexCount > STREAM_RING_VERTICES)
@@ -870,7 +878,7 @@ namespace Renderer
 		{
 			packedScratch.resize(vertexCount);
 			fill(packedScratch.data());
-			GLES30_CALL(glBufferSubData(GL_ARRAY_BUFFER, offset, size, packedScratch.data()));
+			GL3_CALL(glBufferSubData(GL_ARRAY_BUFFER, offset, size, packedScratch.data()));
 		}
 
 		streamRingHead = first + vertexCount;
@@ -924,14 +932,14 @@ namespace Renderer
 	{
 		if (!stateCache.blendKnown || stateCache.blendEnabled != enabled)
 		{
-			GLES30_CALL(enabled ? glEnable(GL_BLEND) : glDisable(GL_BLEND));
+			GL3_CALL(enabled ? glEnable(GL_BLEND) : glDisable(GL_BLEND));
 			stateCache.blendKnown = true;
 			stateCache.blendEnabled = enabled;
 		}
 
 		if (enabled && (!stateCache.blendFactorsKnown || stateCache.blendSource != source || stateCache.blendDestination != destination))
 		{
-			GLES30_CALL(glBlendFunc(source, destination));
+			GL3_CALL(glBlendFunc(source, destination));
 			stateCache.blendFactorsKnown = true;
 			stateCache.blendSource = source;
 			stateCache.blendDestination = destination;
@@ -944,14 +952,14 @@ namespace Renderer
 			stateCache.scissorRect.x != rectangle.x || stateCache.scissorRect.y != rectangle.y ||
 			stateCache.scissorRect.w != rectangle.w || stateCache.scissorRect.h != rectangle.h))
 		{
-			GLES30_CALL(glScissor(rectangle.x, rectangle.y, rectangle.w, rectangle.h));
+			GL3_CALL(glScissor(rectangle.x, rectangle.y, rectangle.w, rectangle.h));
 			stateCache.scissorRect = rectangle;
 			stateCache.scissorRectKnown = true;
 		}
 
 		if (!stateCache.scissorKnown || stateCache.scissorEnabled != enabled)
 		{
-			GLES30_CALL(enabled ? glEnable(GL_SCISSOR_TEST) : glDisable(GL_SCISSOR_TEST));
+			GL3_CALL(enabled ? glEnable(GL_SCISSOR_TEST) : glDisable(GL_SCISSOR_TEST));
 			stateCache.scissorKnown = true;
 			stateCache.scissorEnabled = enabled;
 		}
@@ -963,7 +971,7 @@ namespace Renderer
 			stateCache.viewport.w == viewport.w && stateCache.viewport.h == viewport.h)
 			return;
 
-		GLES30_CALL(glViewport(viewport.x, viewport.y, viewport.w, viewport.h));
+		GL3_CALL(glViewport(viewport.x, viewport.y, viewport.w, viewport.h));
 		stateCache.viewport = viewport;
 		stateCache.viewportKnown = true;
 	}
@@ -987,7 +995,7 @@ namespace Renderer
 			return;
 
 		applyBlendFactors(source, destination);
-		GLES30_CALL(glDrawArrays(mode, range.first, range.vertexCount));
+		GL3_CALL(glDrawArrays(mode, range.first, range.vertexCount));
 	}
 
 	static void flushQuadBatch()
@@ -1018,7 +1026,7 @@ namespace Renderer
 			{
 				const size_t indexOffset = static_cast<size_t>(range.first / 4) * 6 * sizeof(GLushort);
 				applyBlendFactors(quadBatch.sourceBlend, quadBatch.destinationBlend);
-				GLES30_CALL(glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(quadCount * 6),
+				GL3_CALL(glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(quadCount * 6),
 					GL_UNSIGNED_SHORT, reinterpret_cast<const void*>(indexOffset)));
 				++performanceCounters.indexedFlushes;
 			}
@@ -1123,13 +1131,7 @@ namespace Renderer
 		switch(_type)
 		{
 			case Texture::RGBA:  { return GL_RGBA; } break;
-#if defined(USE_OPENGLES_30)
 			case Texture::ALPHA: { return GL_RED; } break;
-#elif defined(USE_OPENGLES_20)
-			case Texture::ALPHA: { return GL_ALPHA; } break;
-#else
-			case Texture::ALPHA: { return GL_LUMINANCE_ALPHA; } break;
-#endif
 			default:             { return GL_ZERO; }
 		}
 
@@ -1137,23 +1139,14 @@ namespace Renderer
 
 	static GLenum convertTextureInternalFormat(const Texture::Type _type)
 	{
-#if defined(USE_OPENGLES_30)
 		return _type == Texture::ALPHA ? GL_R8 : GL_RGBA8;
-#else
-		return convertTextureType(_type);
-#endif
 	}
 
 	static bool isAlphaTexture(const GLenum _type)
 	{
-#if defined(USE_OPENGLES_30)
 		return _type == GL_RED;
-#else
-		return _type == GL_ALPHA;
-#endif
 	}
 
-#if defined(USE_OPENGLES_30)
 	static bool isFramebufferComplete(const GLenum _target)
 	{
 		const GLenum status = glCheckFramebufferStatus(_target);
@@ -1163,7 +1156,6 @@ namespace Renderer
 		LOG(LogError) << "OpenGL ES 3.0 framebuffer is incomplete, status " << status;
 		return false;
 	}
-#endif
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -1219,12 +1211,12 @@ namespace Renderer
 	}
 
 //////////////////////////////////////////////////////////////////////////
-	GLES30Renderer::GLES30Renderer() : mFrameBuffer(-1)
+	GL3Renderer::GL3Renderer() : mFrameBuffer(-1)
 	{
 
 	}
 
-	unsigned int GLES30Renderer::getWindowFlags()
+	unsigned int GL3Renderer::getWindowFlags()
 	{
 		return SDL_WINDOW_OPENGL;
 
@@ -1232,23 +1224,17 @@ namespace Renderer
 
 //////////////////////////////////////////////////////////////////////////
 
-	void GLES30Renderer::setupWindow()
+	void GL3Renderer::setupWindow()
 	{
-#if OPENGL_EXTENSIONS
-		SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
-
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-#elif defined(USE_OPENGLES_30)
+#if defined(USE_GLES)
 		// createContext() walks back down the ladder if the driver refuses this.
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, ES_CONTEXT_LADDER[0].major);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, ES_CONTEXT_LADDER[0].minor);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
 #else
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 #endif
 
 		SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE,       8);
@@ -1263,25 +1249,23 @@ namespace Renderer
 	} // setupWindow
 
 //////////////////////////////////////////////////////////////////////////
-	std::string GLES30Renderer::getDriverName()
+	std::string GL3Renderer::getDriverName()
 	{
-#if OPENGL_EXTENSIONS
-		return "OPENGL 3.0 / GLSL";
-#elif defined(USE_OPENGLES_30)
+#if defined(USE_GLES)
 		return "OPENGL ES 3.0";
 #else
-		return "OPENGL ES 2.0";
+		return "OPENGL 3.3";
 #endif
 	}
 
-	std::vector<std::pair<std::string, std::string>> GLES30Renderer::getDriverInformation()
+	std::vector<std::pair<std::string, std::string>> GL3Renderer::getDriverInformation()
 	{
 		std::vector<std::pair<std::string, std::string>> info;
 
 		// The detected context, not getDriverName(), which is a fixed identifier used to
 		// persist the Renderer setting and cannot track the version actually created.
 		info.push_back(std::pair<std::string, std::string>("GRAPHICS API",
-			"OPENGL ES " + std::to_string(glCapabilities.majorVersion) + "." + std::to_string(glCapabilities.minorVersion)));
+			std::string(GL_API_LABEL) + std::to_string(glCapabilities.majorVersion) + "." + std::to_string(glCapabilities.minorVersion)));
 
 		const std::string vendor = glGetString(GL_VENDOR) ? (const char*)glGetString(GL_VENDOR) : "";
 		if (!vendor.empty())
@@ -1309,26 +1293,11 @@ namespace Renderer
 		return info;
 	}
 
-	void GLES30Renderer::createContext()
+	void GL3Renderer::createContext()
 	{
 		sdlContext = SDL_GL_CreateContext(getSDLWindow());
 
-#if OPENGL_EXTENSIONS
-		if (sdlContext == nullptr)
-		{
-			SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-			SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-
-			sdlContext = SDL_GL_CreateContext(getSDLWindow());
-			if (sdlContext == nullptr)
-			{
-				SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-				SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-
-				sdlContext = SDL_GL_CreateContext(getSDLWindow());
-			}
-		}
-#elif defined(USE_OPENGLES_30)
+#if defined(USE_GLES)
 		// setupWindow() asked for the top of the ladder; walk down until one is accepted.
 		for (int i = 1; i < ES_CONTEXT_LADDER_COUNT && sdlContext == nullptr; ++i)
 		{
@@ -1360,16 +1329,19 @@ namespace Renderer
 			throw std::runtime_error(error);
 		}
 
-#if defined(USE_OPENGLES_30)
 		int contextMajor = 0;
 		int contextMinor = 0;
 		int contextProfile = 0;
 		SDL_GL_GetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, &contextMajor);
 		SDL_GL_GetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, &contextMinor);
 		SDL_GL_GetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, &contextProfile);
+#if defined(USE_GLES)
 		if (contextMajor < 3 || contextProfile != SDL_GL_CONTEXT_PROFILE_ES)
+#else
+		if (contextMajor < 3 || (contextMajor == 3 && contextMinor < 3) || contextProfile != SDL_GL_CONTEXT_PROFILE_CORE)
+#endif
 		{
-			const std::string error = "Requested OpenGL ES 3.x but SDL created context " + std::to_string(contextMajor) + "." + std::to_string(contextMinor);
+			const std::string error = "Requested " + getDriverName() + " but SDL created context " + std::to_string(contextMajor) + "." + std::to_string(contextMinor);
 			LOG(LogError) << error;
 			SDL_GL_DestroyContext(sdlContext);
 			sdlContext = nullptr;
@@ -1377,14 +1349,12 @@ namespace Renderer
 		}
 
 		detectGLCapabilities();
-#endif
 
 		const std::string vendor   = glGetString(GL_VENDOR) ? (const char*)glGetString(GL_VENDOR) : "";
 		const std::string renderer = glGetString(GL_RENDERER) ? (const char*)glGetString(GL_RENDERER) : "";
 		const std::string version  = glGetString(GL_VERSION) ? (const char*)glGetString(GL_VERSION) : "";
 		const std::string shaders  = glGetString(GL_SHADING_LANGUAGE_VERSION) ? (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION) : "";
 		std::string extensions;
-#if defined(USE_OPENGLES_30)
 		GLint extensionCount = 0;
 		glGetIntegerv(GL_NUM_EXTENSIONS, &extensionCount);
 		for (GLint i = 0; i < extensionCount; ++i)
@@ -1397,9 +1367,6 @@ namespace Renderer
 				extensions += reinterpret_cast<const char*>(extension);
 			}
 		}
-#else
-		extensions = glGetString(GL_EXTENSIONS) ? (const char*)glGetString(GL_EXTENSIONS) : "";
-#endif
 
 		LOG(LogInfo) << "GL vendor:   " << vendor;
 		LOG(LogInfo) << "GL renderer: " << renderer;
@@ -1407,34 +1374,24 @@ namespace Renderer
 		LOG(LogInfo) << "GL shading:  " << shaders;
 		LOG(LogInfo) << "GL exts:     " << extensions;
 
-		LOG(LogInfo) << " ARB_texture_non_power_of_two: " << (extensions.find("ARB_texture_non_power_of_two") != std::string::npos ? "ok" : "MISSING");
-
-#if OPENGL_EXTENSIONS
-		initializeGlExtensions();
-#endif
-
 		setupDefaultShaders();
 		setupVertexBuffer();
 		setupPixelUploadBuffers();
 		resetStateCaches();
 
-		GLES30_CALL(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
-		GLES30_CALL(glClearStencil(0));
+		GL3_CALL(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
+		GL3_CALL(glClearStencil(0));
 
-#if OPENGL_EXTENSIONS
-		GLES30_CALL(glActiveTexture_(GL_TEXTURE0));
-#else
-		GLES30_CALL(glActiveTexture(GL_TEXTURE0));
-#endif
+		GL3_CALL(glActiveTexture(GL_TEXTURE0));
 
-		GLES30_CALL(glPixelStorei(GL_PACK_ALIGNMENT, 1));
-		GLES30_CALL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+		GL3_CALL(glPixelStorei(GL_PACK_ALIGNMENT, 1));
+		GL3_CALL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
 
 	} // createContext
 
 //////////////////////////////////////////////////////////////////////////
 
-	void GLES30Renderer::resetCache()
+	void GL3Renderer::resetCache()
 	{
 		flushQuadBatch();
 		useProgram(nullptr);
@@ -1477,18 +1434,18 @@ namespace Renderer
 
 		if (mShaderFrameBuffer2 != 0)
 		{
-			GLES30_CALL(glDeleteFramebuffers(1, &mShaderFrameBuffer2));
+			GL3_CALL(glDeleteFramebuffers(1, &mShaderFrameBuffer2));
 			mShaderFrameBuffer2 = 0;
 		}
 
 		if (mFrameBuffer != -1)
 		{
-			GLES30_CALL(glDeleteFramebuffers(1, &mFrameBuffer));
+			GL3_CALL(glDeleteFramebuffers(1, &mFrameBuffer));
 			mFrameBuffer = -1;
 		}
 	}
 
-	void GLES30Renderer::destroyContext()
+	void GL3Renderer::destroyContext()
 	{
 		flushQuadBatch();
 		LOG(LogInfo) << "GLES3 performance counters: queued quads=" << performanceCounters.submittedQuads
@@ -1511,13 +1468,13 @@ namespace Renderer
 
 		if (quadIndexBuffer != 0)
 		{
-			GLES30_CALL(glDeleteBuffers(1, &quadIndexBuffer));
+			GL3_CALL(glDeleteBuffers(1, &quadIndexBuffer));
 			quadIndexBuffer = 0;
 		}
 
 		if (vertexBuffer != 0)
 		{
-			GLES30_CALL(glDeleteBuffers(1, &vertexBuffer));
+			GL3_CALL(glDeleteBuffers(1, &vertexBuffer));
 			vertexBuffer = 0;
 			streamRingCapacity = 0;
 			streamRingHead = 0;
@@ -1536,7 +1493,7 @@ namespace Renderer
 				textureNames.push_back(texture.first);
 				delete texture.second;
 			}
-			GLES30_CALL(glDeleteTextures(static_cast<GLsizei>(textureNames.size()), textureNames.data()));
+			GL3_CALL(glDeleteTextures(static_cast<GLsizei>(textureNames.size()), textureNames.data()));
 			_textures.clear();
 		}
 		boundTexture = 0;
@@ -1549,17 +1506,17 @@ namespace Renderer
 
 //////////////////////////////////////////////////////////////////////////
 
-	unsigned int GLES30Renderer::createTexture(const Texture::Type _type, const bool _linear, const bool _repeat, const unsigned int _width, const unsigned int _height, void* _data)
+	unsigned int GL3Renderer::createTexture(const Texture::Type _type, const bool _linear, const bool _repeat, const unsigned int _width, const unsigned int _height, void* _data)
 	{
 		return createTextureInternal(_type, _linear, _repeat, _width, _height, _data, false);
 	}
 
-	unsigned int GLES30Renderer::createMipmappedTexture(const Texture::Type _type, const bool _linear, const bool _repeat, const unsigned int _width, const unsigned int _height, void* _data)
+	unsigned int GL3Renderer::createMipmappedTexture(const Texture::Type _type, const bool _linear, const bool _repeat, const unsigned int _width, const unsigned int _height, void* _data)
 	{
 		return createTextureInternal(_type, _linear, _repeat, _width, _height, _data, true);
 	}
 
-	unsigned int GLES30Renderer::createTextureInternal(const Texture::Type _type, const bool _linear, const bool _repeat,
+	unsigned int GL3Renderer::createTextureInternal(const Texture::Type _type, const bool _linear, const bool _repeat,
 		const unsigned int _width, const unsigned int _height, void* _data, const bool _mipmapped)
 	{
 		flushQuadBatch();
@@ -1584,7 +1541,7 @@ namespace Renderer
 		}
 
 		unsigned int texture = 0;
-		GLES30_CALL(glGenTextures(1, &texture));
+		GL3_CALL(glGenTextures(1, &texture));
 
 		if (texture == 0)
 		{
@@ -1595,15 +1552,15 @@ namespace Renderer
 		bindTexture(0);
 		bindTexture(texture);
 
-		GLES30_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, _repeat ? GL_REPEAT : GL_CLAMP_TO_EDGE));
-		GLES30_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, _repeat ? GL_REPEAT : GL_CLAMP_TO_EDGE));
-		GLES30_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, _mipmapped ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR));
-		GLES30_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, _linear ? GL_LINEAR : GL_NEAREST));
+		GL3_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, _repeat ? GL_REPEAT : GL_CLAMP_TO_EDGE));
+		GL3_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, _repeat ? GL_REPEAT : GL_CLAMP_TO_EDGE));
+		GL3_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, _mipmapped ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR));
+		GL3_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, _linear ? GL_LINEAR : GL_NEAREST));
 
 		while (glGetError() != GL_NO_ERROR)
 			;
 		glTexStorage2D(GL_TEXTURE_2D, levels, internalFormat, _width, _height);
-		GLES30_CALL(glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0));
+		GL3_CALL(glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0));
 
 		if (_type == Texture::ALPHA && _data == nullptr)
 		{
@@ -1621,7 +1578,7 @@ namespace Renderer
 		{
 			LOG(LogError) << "CreateTexture error: immutable texture allocation or upload failed";
 			bindTexture(0);
-			GLES30_CALL(glDeleteTextures(1, &texture));
+			GL3_CALL(glDeleteTextures(1, &texture));
 			return 0;
 		}
 
@@ -1653,7 +1610,7 @@ namespace Renderer
 
 //////////////////////////////////////////////////////////////////////////
 
-	void GLES30Renderer::destroyTexture(const unsigned int _texture)
+	void GL3Renderer::destroyTexture(const unsigned int _texture)
 	{
 		if (_texture == 0)
 			return;
@@ -1668,20 +1625,20 @@ namespace Renderer
 		flushQuadBatch();
 		if (boundTexture == _texture)
 		{
-			GLES30_CALL(glBindTexture(GL_TEXTURE_2D, 0));
+			GL3_CALL(glBindTexture(GL_TEXTURE_2D, 0));
 			boundTexture = 0;
 			boundTextureInfo = nullptr;
 		}
 
 		delete it->second;
 		_textures.erase(it);
-		GLES30_CALL(glDeleteTextures(1, &_texture));
+		GL3_CALL(glDeleteTextures(1, &_texture));
 
 	} // destroyTexture
 
 //////////////////////////////////////////////////////////////////////////
 
-	void GLES30Renderer::updateTexture(const unsigned int _texture, const Texture::Type _type, const unsigned int _x, const unsigned _y, const unsigned int _width, const unsigned int _height, void* _data)
+	void GL3Renderer::updateTexture(const unsigned int _texture, const Texture::Type _type, const unsigned int _x, const unsigned _y, const unsigned int _width, const unsigned int _height, void* _data)
 	{
 		const GLenum type = convertTextureType(_type);
 		auto it = _textures.find(_texture);
@@ -1725,19 +1682,19 @@ namespace Renderer
 		{
 			if (largeUploadCandidate)
 				++performanceCounters.pboFallbacks;
-			GLES30_CALL(glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0));
-			GLES30_CALL(glTexSubImage2D(GL_TEXTURE_2D, 0, _x, _y, _width, _height, type, GL_UNSIGNED_BYTE, _data));
+			GL3_CALL(glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0));
+			GL3_CALL(glTexSubImage2D(GL_TEXTURE_2D, 0, _x, _y, _width, _height, type, GL_UNSIGNED_BYTE, _data));
 		}
 
 		if (info->mipLevels > 1)
-			GLES30_CALL(glGenerateMipmap(GL_TEXTURE_2D));
+			GL3_CALL(glGenerateMipmap(GL_TEXTURE_2D));
 		bindTexture(0);
 
 	} // updateTexture
 
 //////////////////////////////////////////////////////////////////////////
 
-	void GLES30Renderer::bindTexture(const unsigned int _texture)
+	void GL3Renderer::bindTexture(const unsigned int _texture)
 	{
 		if (boundTexture == _texture)
 			return;
@@ -1747,13 +1704,13 @@ namespace Renderer
 
 		if(_texture == 0)
 		{
-			GLES30_CALL(glBindTexture(GL_TEXTURE_2D, 0));
+			GL3_CALL(glBindTexture(GL_TEXTURE_2D, 0));
 			boundTexture = 0;
 			boundTextureInfo = nullptr;
 		}
 		else
 		{
-			GLES30_CALL(glBindTexture(GL_TEXTURE_2D, _texture));
+			GL3_CALL(glBindTexture(GL_TEXTURE_2D, _texture));
 			boundTexture = _texture;
 
 			auto it = _textures.find(_texture);
@@ -1764,7 +1721,7 @@ namespace Renderer
 
 //////////////////////////////////////////////////////////////////////////
 
-	void GLES30Renderer::drawLines(const Vertex* _vertices, const unsigned int _numVertices, const Blend::Factor _srcBlendFactor, const Blend::Factor _dstBlendFactor)
+	void GL3Renderer::drawLines(const Vertex* _vertices, const unsigned int _numVertices, const Blend::Factor _srcBlendFactor, const Blend::Factor _dstBlendFactor)
 	{
 		flushQuadBatch();
 		const StreamRange range = uploadVertices(_vertices, _numVertices);
@@ -1774,7 +1731,7 @@ namespace Renderer
 	} // drawLines
 
 //////////////////////////////////////////////////////////////////////////
-	void GLES30Renderer::drawSolidRectangle(const float _x, const float _y, const float _w, const float _h, const unsigned int _fillColor, const unsigned int _borderColor, float borderWidth, float cornerRadius)
+	void GL3Renderer::drawSolidRectangle(const float _x, const float _y, const float _w, const float _h, const unsigned int _fillColor, const unsigned int _borderColor, float borderWidth, float cornerRadius)
 	{
 		if (cornerRadius == 0.0f)
 		{
@@ -1808,7 +1765,7 @@ namespace Renderer
 			auto outer = createRoundRect(_x, _y, _w, _h, cornerRadius, _borderColor);
 
 			setStencil(inner.data(), inner.size());
-			GLES30_CALL(glStencilFunc(GL_NOTEQUAL, 1, ~0));
+			GL3_CALL(glStencilFunc(GL_NOTEQUAL, 1, ~0));
 
 			const StreamRange outerRange = uploadVertices(outer.data(), outer.size());
 			drawStreamRange(GL_TRIANGLE_FAN, outerRange, Blend::SRC_ALPHA, Blend::ONE_MINUS_SRC_ALPHA);
@@ -1819,7 +1776,7 @@ namespace Renderer
 		setBlendState(false);
 	}
 
-	void GLES30Renderer::drawTriangleStrips(const Vertex* _vertices, const unsigned int _numVertices, const Blend::Factor _srcBlendFactor, const Blend::Factor _dstBlendFactor, bool verticesChanged)
+	void GL3Renderer::drawTriangleStrips(const Vertex* _vertices, const unsigned int _numVertices, const Blend::Factor _srcBlendFactor, const Blend::Factor _dstBlendFactor, bool verticesChanged)
 	{
 		if (_vertices == nullptr || _numVertices == 0)
 			return;
@@ -1937,7 +1894,7 @@ namespace Renderer
 
 //////////////////////////////////////////////////////////////////////////
 
-	void GLES30Renderer::setProjection(const Transform4x4f& _projection)
+	void GL3Renderer::setProjection(const Transform4x4f& _projection)
 	{
 		flushQuadBatch();
 		projectionMatrix = _projection;
@@ -1946,7 +1903,7 @@ namespace Renderer
 
 //////////////////////////////////////////////////////////////////////////
 
-	void GLES30Renderer::setMatrix(const Transform4x4f& _matrix)
+	void GL3Renderer::setMatrix(const Transform4x4f& _matrix)
 	{
 		// No flush: queued quads are already in world space.
 		worldViewMatrix = _matrix;
@@ -1961,7 +1918,7 @@ namespace Renderer
 
 //////////////////////////////////////////////////////////////////////////
 
-	void GLES30Renderer::setViewport(const Rect& _viewport)
+	void GL3Renderer::setViewport(const Rect& _viewport)
 	{
 		flushQuadBatch();
 		// glViewport starts at the bottom left of the window.
@@ -1971,7 +1928,7 @@ namespace Renderer
 
 //////////////////////////////////////////////////////////////////////////
 
-	void GLES30Renderer::setScissor(const Rect& _scissor)
+	void GL3Renderer::setScissor(const Rect& _scissor)
 	{
 		flushQuadBatch();
 		if ((_scissor.x == 0) && (_scissor.y == 0) && (_scissor.w == 0) && (_scissor.h == 0))
@@ -1986,7 +1943,7 @@ namespace Renderer
 
 //////////////////////////////////////////////////////////////////////////
 
-	void GLES30Renderer::setSwapInterval()
+	void GL3Renderer::setSwapInterval()
 	{
 		// vsync
 		if(Settings::getInstance()->getBool("VSync"))
@@ -2007,23 +1964,23 @@ namespace Renderer
 
 //////////////////////////////////////////////////////////////////////////
 
-	void GLES30Renderer::swapBuffers()
+	void GL3Renderer::swapBuffers()
 	{
 		flushQuadBatch();
 		useProgram(nullptr);
 
-		GLES30_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+		GL3_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 		const GLenum discardedAttachments[] = { GL_DEPTH, GL_STENCIL };
-		GLES30_CALL(glInvalidateFramebuffer(GL_FRAMEBUFFER, 2, discardedAttachments));
+		GL3_CALL(glInvalidateFramebuffer(GL_FRAMEBUFFER, 2, discardedAttachments));
 
 		SDL_GL_SwapWindow(getSDLWindow());
 		// Clearing stencil with color lets tiled GPUs start the frame without loading it.
-		GLES30_CALL(glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
+		GL3_CALL(glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
 	} // swapBuffers
 
 //////////////////////////////////////////////////////////////////////////
 
-	void GLES30Renderer::drawTriangleFan(const Vertex* _vertices, const unsigned int _numVertices, const Blend::Factor _srcBlendFactor, const Blend::Factor _dstBlendFactor)
+	void GL3Renderer::drawTriangleFan(const Vertex* _vertices, const unsigned int _numVertices, const Blend::Factor _srcBlendFactor, const Blend::Factor _dstBlendFactor)
 	{
 		flushQuadBatch();
 		const StreamRange range = uploadVertices(_vertices, _numVertices);
@@ -2051,7 +2008,7 @@ namespace Renderer
 		drawStreamRange(GL_TRIANGLE_FAN, range, _srcBlendFactor, _dstBlendFactor);
 	}
 
-	void GLES30Renderer::setStencil(const Vertex* _vertices, const unsigned int _numVertices)
+	void GL3Renderer::setStencil(const Vertex* _vertices, const unsigned int _numVertices)
 	{
 		flushQuadBatch();
 		const StreamRange range = uploadVertices(_vertices, _numVertices);
@@ -2060,31 +2017,31 @@ namespace Renderer
 
 		useProgram(&shaderProgramColorNoTexture);
 
-		GLES30_CALL(glEnable(GL_STENCIL_TEST));
-		GLES30_CALL(glClear(GL_STENCIL_BUFFER_BIT));
+		GL3_CALL(glEnable(GL_STENCIL_TEST));
+		GL3_CALL(glClear(GL_STENCIL_BUFFER_BIT));
 
-		GLES30_CALL(glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE));
+		GL3_CALL(glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE));
 
-		GLES30_CALL(glStencilFunc(GL_ALWAYS, 1, ~0));
-		GLES30_CALL(glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE));
+		GL3_CALL(glStencilFunc(GL_ALWAYS, 1, ~0));
+		GL3_CALL(glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE));
 
 		setBlendState(true, convertBlendFactor(Blend::SRC_ALPHA), convertBlendFactor(Blend::ONE_MINUS_SRC_ALPHA));
-		GLES30_CALL(glDrawArrays(GL_TRIANGLE_FAN, range.first, range.vertexCount));
+		GL3_CALL(glDrawArrays(GL_TRIANGLE_FAN, range.first, range.vertexCount));
 		setBlendState(false);
 
-		GLES30_CALL(glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE));
+		GL3_CALL(glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE));
 
-		GLES30_CALL(glStencilFunc(GL_EQUAL, 1, ~0));
-		GLES30_CALL(glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP));
+		GL3_CALL(glStencilFunc(GL_EQUAL, 1, ~0));
+		GL3_CALL(glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP));
 	}
 
-	void GLES30Renderer::disableStencil()
+	void GL3Renderer::disableStencil()
 	{
 		flushQuadBatch();
-		GLES30_CALL(glDisable(GL_STENCIL_TEST));
+		GL3_CALL(glDisable(GL_STENCIL_TEST));
 	}
 
-	size_t GLES30Renderer::getTotalMemUsage()
+	size_t GL3Renderer::getTotalMemUsage()
 	{
 		size_t total = 0;
 
@@ -2097,7 +2054,7 @@ namespace Renderer
 		return total;
 	}
 
-	bool GLES30Renderer::shaderSupportsCornerSize(const std::string& shader)
+	bool GL3Renderer::shaderSupportsCornerSize(const std::string& shader)
 	{
 		ShaderProgram* customShader = getShaderProgram(shader);
 		if (customShader == nullptr)
@@ -2106,14 +2063,9 @@ namespace Renderer
 		return customShader->supportsCornerRadius();
 	}
 
-	void GLES30Renderer::postProcessShader(const std::string& path, const float _x, const float _y, const float _w, const float _h, const std::map<std::string, std::string>& parameters, unsigned int* data)
+	void GL3Renderer::postProcessShader(const std::string& path, const float _x, const float _y, const float _w, const float _h, const std::map<std::string, std::string>& parameters, unsigned int* data)
 	{
 		flushQuadBatch();
-#if OPENGL_EXTENSIONS || defined(USE_OPENGLES_30)
-#if OPENGL_EXTENSIONS
-		if (glBlitFramebuffer == nullptr || glFramebufferTexture2D == nullptr)
-			return;
-#endif
 
 		if (getScreenRotate() != 0 && getScreenRotate() != 2)
 			return;
@@ -2123,7 +2075,7 @@ namespace Renderer
 			return;
 
 		if (mFrameBuffer == -1)
-			GLES30_CALL(glGenFramebuffers(1, &mFrameBuffer));
+			GL3_CALL(glGenFramebuffers(1, &mFrameBuffer));
 
 		if (mFrameBuffer == 0 || mFrameBuffer == static_cast<unsigned int>(-1))
 			return;
@@ -2208,7 +2160,7 @@ namespace Renderer
 		if (multiTarget)
 		{
 			if (mShaderFrameBuffer2 == 0)
-				GLES30_CALL(glGenFramebuffers(1, &mShaderFrameBuffer2));
+				GL3_CALL(glGenFramebuffers(1, &mShaderFrameBuffer2));
 
 			nTexture2 = returnsSecond
 				? createTexture(Renderer::Texture::RGBA, true, false, tw, th, nullptr)
@@ -2308,9 +2260,9 @@ namespace Renderer
 			{
 				bindTexture(nTextureID);
 
-				GLES30_CALL(glBindFramebuffer(GL_READ_FRAMEBUFFER, 0));
-				GLES30_CALL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mFrameBuffer));
-				GLES30_CALL(glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, nTextureID, 0));
+				GL3_CALL(glBindFramebuffer(GL_READ_FRAMEBUFFER, 0));
+				GL3_CALL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mFrameBuffer));
+				GL3_CALL(glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, nTextureID, 0));
 				if (!isFramebufferComplete(GL_DRAW_FRAMEBUFFER))
 				{
 					framebufferComplete = false;
@@ -2318,19 +2270,19 @@ namespace Renderer
 				}
 
 				const GLenum colorAttachment = GL_COLOR_ATTACHMENT0;
-				GLES30_CALL(glInvalidateFramebuffer(GL_DRAW_FRAMEBUFFER, 1, &colorAttachment));
+				GL3_CALL(glInvalidateFramebuffer(GL_DRAW_FRAMEBUFFER, 1, &colorAttachment));
 
 				if (getScreenRotate() == 2)
-					GLES30_CALL(glBlitFramebuffer(x, y, x + w, y + h, 0, 0, tw, th, GL_COLOR_BUFFER_BIT, GL_NEAREST));
+					GL3_CALL(glBlitFramebuffer(x, y, x + w, y + h, 0, 0, tw, th, GL_COLOR_BUFFER_BIT, GL_NEAREST));
 				else
-					GLES30_CALL(glBlitFramebuffer(x, height - y - h, x + w, height - y, 0, 0, tw, th, GL_COLOR_BUFFER_BIT, GL_NEAREST));
+					GL3_CALL(glBlitFramebuffer(x, height - y - h, x + w, height - y, 0, 0, tw, th, GL_COLOR_BUFFER_BIT, GL_NEAREST));
 
 				if (!multiTarget)
-					GLES30_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+					GL3_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 				else
 				{
-					GLES30_CALL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mShaderFrameBuffer2));
-					GLES30_CALL(glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, nTexture2, 0));
+					GL3_CALL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mShaderFrameBuffer2));
+					GL3_CALL(glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, nTexture2, 0));
 					if (!isFramebufferComplete(GL_DRAW_FRAMEBUFFER))
 					{
 						framebufferComplete = false;
@@ -2367,10 +2319,10 @@ namespace Renderer
 						break;
 					}
 
-					GLES30_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+					GL3_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 				}
 				else
-					GLES30_CALL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, i % 2 == 1 ? mFrameBuffer : mShaderFrameBuffer2));
+					GL3_CALL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, i % 2 == 1 ? mFrameBuffer : mShaderFrameBuffer2));
 			}
 
 			useProgram(customShader);
@@ -2386,12 +2338,12 @@ namespace Renderer
 			customShader->setCustomUniformsParameters(*passParameters);
 
 			setBlendState(false);
-			GLES30_CALL(glDrawArrays(GL_TRIANGLE_STRIP, postProcessRange.first, postProcessRange.vertexCount));
+			GL3_CALL(glDrawArrays(GL_TRIANGLE_STRIP, postProcessRange.first, postProcessRange.vertexCount));
 		}
 
 		if (!framebufferComplete)
 		{
-			GLES30_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+			GL3_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 			bindTexture(0);
 			releaseTargets(0);
 			useProgram(nullptr);
@@ -2405,11 +2357,11 @@ namespace Renderer
 		{
 			// Detach from both cached framebuffers so they do not keep the
 			// caller-owned texture's storage alive.
-			GLES30_CALL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mFrameBuffer));
-			GLES30_CALL(glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0));
-			GLES30_CALL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mShaderFrameBuffer2));
-			GLES30_CALL(glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0));
-			GLES30_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+			GL3_CALL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mFrameBuffer));
+			GL3_CALL(glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0));
+			GL3_CALL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mShaderFrameBuffer2));
+			GL3_CALL(glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0));
+			GL3_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 
 			*data = returnsFirst ? nTextureID : nTexture2;
 			releaseTargets(*data);
@@ -2422,9 +2374,7 @@ namespace Renderer
 		setMatrix(oldMatrix);
 		useProgram(oldProgram);
 		restoreRendererState();
-#endif
 	}
 
 } // Renderer::
 
-#endif // RENDERER_GLES_30

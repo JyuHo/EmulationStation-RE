@@ -8,7 +8,7 @@
 #include <set>
 #include <cstring>
 
-#if defined(USE_OPENGLES_30) && defined(NDEBUG)
+#if defined(NDEBUG)
 #define SHADER_GL_CALL(Function) (Function)
 #else
 #define SHADER_GL_CALL(Function) GL_CHECK_ERROR(Function)
@@ -92,21 +92,17 @@ namespace Renderer
 		mPositionAttribute(-1), mColorAttribute(-1), mTexCoordAttribute(-1), mvpUniform(-1),
 		mSaturation(-1), mTextureSize(-1), mOutputSize(-1), mOutputOffset(-1), mInputSize(-1),
 		mResolution(-1), mCornerRadius(-1), mFrameCount(-1), mFrameDirection(-1)
-#if defined(USE_OPENGLES_30)
 		, mSamplerUniform(-1), mSamplerInitialized(false), mVertexArray(0)
-#endif
 	{
 	}
 
 	void ShaderProgram::deleteProgram()
 	{
-#if defined(USE_OPENGLES_30)
 		if (mVertexArray != 0)
 		{
 			SHADER_GL_CALL(glDeleteVertexArrays(1, &mVertexArray));
 			mVertexArray = 0;
 		}
-#endif
 
 		if (mId >= 0)
 		{
@@ -149,7 +145,6 @@ namespace Renderer
 		if (vertex.compileStatus)
 			fragment = Shader::createShader(GL_FRAGMENT_SHADER, appendVersionAndType(shaderCode, "#define FRAGMENT", SHADER_VERSION_STRING));
 
-#if defined(USE_OPENGLES_30)
 		// Theme shaders written for GLES2 often omit #version. Prefer native GLSL ES
 		// 3.00, but retain compatibility with those shaders when they use legacy syntax.
 		if ((!vertex.compileStatus || !fragment.compileStatus) && shaderCode.find("#version") == std::string::npos)
@@ -162,7 +157,6 @@ namespace Renderer
 			if (vertex.compileStatus)
 				fragment = Shader::createShader(GL_FRAGMENT_SHADER, appendVersionAndType(shaderCode, "#define FRAGMENT", legacyVersion));
 		}
-#endif
 
 		if (!vertex.compileStatus)
 		{
@@ -250,9 +244,7 @@ namespace Renderer
 
 	void ShaderProgram::findAttribsAndUniforms()
 	{
-#if defined(USE_OPENGLES_30)
 		invalidateUniformCache();
-#endif
 
 		// Matrix
 		mvpUniform = glGetUniformLocation(mId, "MVPMatrix");
@@ -294,20 +286,12 @@ namespace Renderer
 		mSaturation = glGetUniformLocation(mId, "saturation");
 		mCornerRadius = glGetUniformLocation(mId, "es_cornerRadius");
 
-#if defined(USE_OPENGLES_30)
 		mSamplerUniform = glGetUniformLocation(mId, "u_tex");
 		mSamplerInitialized = false;
 		if (mSamplerUniform == -1)
 			mSamplerUniform = glGetUniformLocation(mId, "textureSampler");
 		if (mSamplerUniform == -1)
 			mSamplerUniform = glGetUniformLocation(mId, "Texture");
-#else
-		GLint texUniform = glGetUniformLocation(mId, "u_tex");
-		if (texUniform == -1)
-			texUniform = glGetUniformLocation(mId, "textureSampler");
-		if (texUniform == -1)
-			texUniform = glGetUniformLocation(mId, "Texture");
-#endif
 		
 		mFrameCount = glGetUniformLocation(mId, "FrameCount");
 		mFrameDirection = glGetUniformLocation(mId, "FrameDirection");
@@ -335,40 +319,27 @@ namespace Renderer
 			mCustomUniforms[uniformName] = info;
 		}
 
-#if !defined(USE_OPENGLES_30)
-		if (texUniform != -1)
-		{
-			SHADER_GL_CALL(glUseProgram(mId));
-			SHADER_GL_CALL(glUniform1i(texUniform, 0));
-		}
-#endif
 	}
 
 	// Skips redundant uniform writes on ES 3.0. Other backends keep the original
 	// unconditional behaviour.
-#if defined(USE_OPENGLES_30)
 	#define SHADER_UNIFORM_CACHED(field, expression)                 \
 		if (mUniformCache.field##Valid && mUniformCache.field == (expression)) \
 			return;                                                  \
 		mUniformCache.field = (expression);                          \
 		mUniformCache.field##Valid = true;
-#else
-	#define SHADER_UNIFORM_CACHED(field, expression) (void)0;
-#endif
 
 	void ShaderProgram::setMatrix(const Transform4x4f& mvpMatrix)
 	{
 		if (mvpUniform == -1 || mvpUniform == GL_INVALID_VALUE || mvpUniform == GL_INVALID_OPERATION)
 			return;
 
-#if defined(USE_OPENGLES_30)
 		const float* values = (const float*)&mvpMatrix;
 		if (mUniformCache.matrixValid && memcmp(mUniformCache.matrix, values, sizeof(mUniformCache.matrix)) == 0)
 			return;
 
 		memcpy(mUniformCache.matrix, values, sizeof(mUniformCache.matrix));
 		mUniformCache.matrixValid = true;
-#endif
 
 		SHADER_GL_CALL(glUniformMatrix4fv(mvpUniform, 1, GL_FALSE, (const float*)&mvpMatrix));
 	}
@@ -440,20 +411,14 @@ namespace Renderer
 
 	void ShaderProgram::setFrameCount(int frame)
 	{
-#if defined(USE_OPENGLES_30)
 		if (mUniformCache.frameCountValid && mUniformCache.frameCount == frame)
 			return;
 
 		mUniformCache.frameCount = frame;
 		mUniformCache.frameCountValid = true;
-#endif
 
 		if (mFrameDirection != -1)
-#if defined(USE_OPENGLES_30)
 			SHADER_GL_CALL(glUniform1i(mFrameDirection, 1));
-#else
-			SHADER_GL_CALL(glUniform1i(mFrameCount, 1));
-#endif
 
 		if (mFrameCount != -1)
 			SHADER_GL_CALL(glUniform1i(mFrameCount, frame));
@@ -467,13 +432,11 @@ namespace Renderer
 			if (parameters.find(item.first) != parameters.cend())
 				continue;
 
-#if defined(USE_OPENGLES_30)
 			if (item.second.state == UniformInfo::State::ZERO)
 				continue;
 
 			item.second.state = UniformInfo::State::ZERO;
 			item.second.value.clear();
-#endif
 
 			switch (item.second.type)
 			{
@@ -507,13 +470,11 @@ namespace Renderer
 		if (it == mCustomUniforms.cend())
 			return;
 
-#if defined(USE_OPENGLES_30)
 		if (it->second.state == UniformInfo::State::VALUE && it->second.value == value)
 			return;
 
 		it->second.state = UniformInfo::State::VALUE;
 		it->second.value = value;
-#endif
 
 		GLint location = it->second.location;
 
@@ -572,15 +533,10 @@ namespace Renderer
 		}
 	}
 
-#if defined(USE_OPENGLES_30)
 	void ShaderProgram::select(GLuint vertexBuffer, GLuint indexBuffer)
-#else
-	void ShaderProgram::select()
-#endif
 	{
 		SHADER_GL_CALL(glUseProgram(mId));
 
-#if defined(USE_OPENGLES_30)
 		if (mSamplerUniform != -1 && !mSamplerInitialized)
 		{
 			SHADER_GL_CALL(glUniform1i(mSamplerUniform, 0));
@@ -616,43 +572,11 @@ namespace Renderer
 		}
 		else
 			SHADER_GL_CALL(glBindVertexArray(mVertexArray));
-#else
-		if (mPositionAttribute != -1)
-		{
-			SHADER_GL_CALL(glVertexAttribPointer(mPositionAttribute, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, pos)));
-			SHADER_GL_CALL(glEnableVertexAttribArray(mPositionAttribute));
-		}
-
-		if (mColorAttribute != -1)
-		{
-			SHADER_GL_CALL(glVertexAttribPointer(mColorAttribute, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Vertex), (const void*)offsetof(Vertex, col)));
-			SHADER_GL_CALL(glEnableVertexAttribArray(mColorAttribute));
-		}
-
-		if (mTexCoordAttribute != -1)
-		{
-			SHADER_GL_CALL(glVertexAttribPointer(mTexCoordAttribute, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, tex)));
-			SHADER_GL_CALL(glEnableVertexAttribArray(mTexCoordAttribute));
-		}
-#endif
 	}
 
 	void ShaderProgram::unSelect()
 	{
-#if defined(USE_OPENGLES_30)
 		SHADER_GL_CALL(glBindVertexArray(0));
 		SHADER_GL_CALL(glUseProgram(0));
-#else
-		SHADER_GL_CALL(glUseProgram(0));
-
-		if (mPositionAttribute != -1)
-			SHADER_GL_CALL(glDisableVertexAttribArray(mPositionAttribute));
-
-		if (mColorAttribute != -1)
-			SHADER_GL_CALL(glDisableVertexAttribArray(mColorAttribute));
-
-		if (mTexCoordAttribute != -1)
-			SHADER_GL_CALL(glDisableVertexAttribArray(mTexCoordAttribute));
-#endif
 	}
 }
