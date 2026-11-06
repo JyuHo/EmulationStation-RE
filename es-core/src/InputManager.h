@@ -48,6 +48,9 @@ public:
 
 	std::vector<InputConfig*> getInputConfigs();
 
+	// Configured controllers by player (0-based), as they will be handed to the emulator
+	std::map<int, InputConfig*> getPlayersConfigs() { return computePlayersConfigs(); }
+
 	bool parseEvent(const SDL_Event& ev, Window* window);
 
 	void updateGuns(Window* window);

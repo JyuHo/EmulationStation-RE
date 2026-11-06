@@ -1,4 +1,5 @@
 #include "FileData.h"
+#include "GameLauncher.h"
 
 #include "utils/FileSystemUtil.h"
 #include "utils/StringUtil.h"
@@ -692,7 +693,35 @@ bool FileData::launchGame(Window* window, LaunchGameOptions options)
 	if (system == nullptr)
 		return false;
 
-	std::string command = getlaunchCommand(options);
+	if (options.saveStateInfo == nullptr && SaveStateRepository::isEnabled(this))
+	{
+		if (getCurrentGameSetting("autosave") == "1")
+			options.saveStateInfo = system->getSaveStateRepository()->getGameAutoSave(this);
+		else
+			options.saveStateInfo = SaveStateRepository::getEmptySaveState();
+	}
+
+	// es-launcher writes the emulator configuration itself when it has a generator for the
+	// emulator; otherwise the es_systems.cfg command runs as before
+	std::unique_ptr<es::launcher::Launch> launch = GameLauncher::create(this, options);
+
+	std::string command;
+	if (launch)
+	{
+		try
+		{
+			command = launch->prepare().toShellLine();
+		}
+		catch (const std::exception& e) // es::launcher::LaunchError carries a message for the player
+		{
+			LOG(LogError) << "es-launcher: " << launch->context().emulator << ": " << e.what();
+			window->pushGui(new GuiMsgBox(window, _("AN ERROR OCCURRED") + ":\r\n" + e.what(), _("OK"), nullptr, GuiMsgBoxIcon::ICON_ERROR));
+			return false;
+		}
+	}
+	else
+		command = getlaunchCommand(options);
+
 	if (command.empty())
 		return false;
 
@@ -722,6 +751,9 @@ bool FileData::launchGame(Window* window, LaunchGameOptions options)
 	process.window = hideWindow ? NULL : window;
 	
 	int exitCode = process.run();
+
+	if (launch)
+		launch->finish();
 	
 	// Resume watchers when returning to ES
 	WatchersManager::resume();

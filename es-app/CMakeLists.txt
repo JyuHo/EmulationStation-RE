@@ -28,6 +28,7 @@ endif()
 set(ES_HEADERS	
     ${CMAKE_CURRENT_SOURCE_DIR}/src/EmulationStation.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FileData.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/GameLauncher.h
 	${CMAKE_CURRENT_SOURCE_DIR}/src/FileTag.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FileSorts.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/MetaData.h
@@ -126,6 +127,7 @@ set(ES_HEADERS
 
 set(ES_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FileData.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/GameLauncher.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/FileTag.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FileSorts.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
@@ -222,7 +224,11 @@ set(ES_SOURCES
 # define target
 include_directories(${COMMON_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src)
 add_executable(emulationstation ${ES_SOURCES} ${ES_HEADERS})
-target_link_libraries(emulationstation ${COMMON_LIBRARIES} es-core)
+target_link_libraries(emulationstation ${COMMON_LIBRARIES} es-core es-launcher)
+
+# libes-launcher.so is installed in the lib folder of the same prefix; outside the default
+# library paths (/usr/local/lib on some systems) the executable still finds it
+set_target_properties(emulationstation PROPERTIES INSTALL_RPATH "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}")
 
 # Keep the executable at the top of the build folder, next to the compiled translations
 # (locale/) and a link to the resources, so that it runs from there without installing.

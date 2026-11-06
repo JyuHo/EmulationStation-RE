@@ -92,6 +92,7 @@ Paths::Paths()
 	mUserMusicPath = mDataPath + "/music";
 	mMusicPath = firstExistingDirectory(mSystemDataPaths, "music");
 	mKeyboardMappingsPath = mConfigPath + "/padtokey";
+	mBiosPath = mDataPath + "/bios";
 	mUserManualPath = mDataPath + "/notice.pdf";
 
 	loadCustomConfiguration(false); // Try to detect alternate paths ( Decorations, Shaders... ) without loading overrides
@@ -157,6 +158,7 @@ void Paths::loadCustomConfiguration(bool overridesOnly)
 		{ "log", &mLogPath },
 		{ "screenshots", &mScreenShotsPath },
 		{ "saves", &mSaveStatesPath },
+		{ "bios", &mBiosPath },
 		{ "system.music", &mMusicPath },
 		{ "music", &mUserMusicPath },
 		{ "system.themes", &mThemesPath },
