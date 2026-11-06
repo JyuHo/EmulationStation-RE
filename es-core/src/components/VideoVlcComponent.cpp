@@ -58,8 +58,8 @@ static void display(void* data, void* id)
 }
 
 VideoVlcComponent::VideoVlcComponent(Window* window) : VideoComponent(window), 
-	mMediaPlayer(nullptr), mMedia(nullptr),
-	mTopLeftCrop(0.0f, 0.0f), mBottomRightCrop(1.0f, 1.0f), mContext(nullptr)
+	mMedia(nullptr), mMediaPlayer(nullptr),
+	mContext(nullptr), mTopLeftCrop(0.0f, 0.0f), mBottomRightCrop(1.0f, 1.0f)
 {
 	mIsParsing = false;
 	mSaturation = 1.0f;

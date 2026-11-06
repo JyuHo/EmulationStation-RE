@@ -10,11 +10,11 @@
 #define AUTO_SCROLL_SPEED 150 // ms between scrolls
 
 TextComponent::TextComponent(Window* window) : GuiComponent(window), 
-	mFont(Font::get(FONT_SIZE_MEDIUM)), mUppercase(false), mColor(0x000000FF), mAutoCalcExtent(true, true),
-	mHorizontalAlignment(ALIGN_LEFT), mVerticalAlignment(ALIGN_CENTER), mLineSpacing(1.5f), mBgColor(0),
-	mRenderBackground(false), mGlowColor(0), mGlowSize(2), mGlowOffset(Vector2f(0,0)), mBindingDefaults(false), mAutoScrollDelay(AUTO_SCROLL_DELAY), mAutoScrollSpeed(AUTO_SCROLL_SPEED),
-	mReflection(0.0f, 0.0f), mReflectOnBorders(false), mAutoScroll(AutoScrollType::NONE), mTextLength(-1), mMultiline(MultiLineType::AUTO),
-	mHasBonusColor(false), mBonusColor(0)
+	mFont(Font::get(FONT_SIZE_MEDIUM)), mBindingDefaults(false), mAutoCalcExtent(true, true), mColor(0x000000FF),
+	mBgColor(0), mRenderBackground(false), mUppercase(false), mHorizontalAlignment(ALIGN_LEFT),
+	mVerticalAlignment(ALIGN_CENTER), mLineSpacing(1.5f), mGlowColor(0), mGlowSize(2), mGlowOffset(Vector2f(0,0)), mReflection(0.0f, 0.0f), mReflectOnBorders(false),
+	mTextLength(-1), mAutoScrollDelay(AUTO_SCROLL_DELAY), mAutoScrollSpeed(AUTO_SCROLL_SPEED), mBonusColor(0), mHasBonusColor(false),
+	mAutoScroll(AutoScrollType::NONE), mMultiline(MultiLineType::AUTO)
 {	
 	mMarqueeOffset = 0;
 	mMarqueeOffset2 = 0;
@@ -23,11 +23,11 @@ TextComponent::TextComponent(Window* window) : GuiComponent(window),
 
 TextComponent::TextComponent(Window* window, const std::string& text, const std::shared_ptr<Font>& font, unsigned int color, Alignment align,
 	Vector3f pos, Vector2f size, unsigned int bgcolor) : GuiComponent(window), 
-	mFont(NULL), mUppercase(false), mColor(0x000000FF), mAutoCalcExtent(true, true),
-	mHorizontalAlignment(align), mVerticalAlignment(ALIGN_CENTER), mLineSpacing(1.5f), mBgColor(0),
-	mRenderBackground(false), mGlowColor(0), mGlowSize(2), mGlowOffset(Vector2f(0, 0)), mBindingDefaults(false), mAutoScrollDelay(AUTO_SCROLL_DELAY), mAutoScrollSpeed(AUTO_SCROLL_SPEED),
-	mReflection(0.0f, 0.0f), mReflectOnBorders(false), mAutoScroll(AutoScrollType::NONE), mTextLength(-1), mMultiline(MultiLineType::AUTO),
-	mHasBonusColor(false), mBonusColor(0)
+	mFont(NULL), mBindingDefaults(false), mAutoCalcExtent(true, true), mColor(0x000000FF),
+	mBgColor(0), mRenderBackground(false), mUppercase(false), mHorizontalAlignment(align),
+	mVerticalAlignment(ALIGN_CENTER), mLineSpacing(1.5f), mGlowColor(0), mGlowSize(2), mGlowOffset(Vector2f(0, 0)), mReflection(0.0f, 0.0f), mReflectOnBorders(false),
+	mTextLength(-1), mAutoScrollDelay(AUTO_SCROLL_DELAY), mAutoScrollSpeed(AUTO_SCROLL_SPEED), mBonusColor(0), mHasBonusColor(false),
+	mAutoScroll(AutoScrollType::NONE), mMultiline(MultiLineType::AUTO)
 {
 	setFont(font);
 	setColor(color);

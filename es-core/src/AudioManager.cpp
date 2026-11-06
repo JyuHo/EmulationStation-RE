@@ -28,7 +28,7 @@
 AudioManager* AudioManager::sInstance = NULL;
 std::vector<std::shared_ptr<Sound>> AudioManager::sSoundVector;
 
-AudioManager::AudioManager() : mInitialized(false), mCurrentMusic(false), mMusicVolume(Audio::MAX_VOLUME), mVideoPlaying(false)
+AudioManager::AudioManager() : mCurrentMusic(false), mInitialized(false), mMusicVolume(Audio::MAX_VOLUME), mVideoPlaying(false)
 {
 	init();
 }

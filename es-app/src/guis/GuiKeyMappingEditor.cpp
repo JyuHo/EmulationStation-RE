@@ -68,7 +68,7 @@ void GuiKeyMappingEditor::initMappingNames()
 }
 
 GuiKeyMappingEditor::GuiKeyMappingEditor(Window* window, IKeyboardMapContainer* mapping, bool editable)
-	: GuiComponent(window), mGrid(window, Vector2i(1, 4)), mBackground(window, ":/frame.png")
+	: GuiComponent(window), mBackground(window, ":/frame.png"), mGrid(window, Vector2i(1, 4))
 {
 	initMappingNames();
 

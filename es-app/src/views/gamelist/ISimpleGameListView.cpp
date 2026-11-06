@@ -28,8 +28,8 @@
 #include "guis/GuiGameAchievements.h"
 
 ISimpleGameListView::ISimpleGameListView(Window* window, FolderData* root, bool temporary) : IGameListView(window, root),
-	mHeaderText(window), mHeaderImage(window), mBackground(window), mFolderPath(window), mOnExitPopup(nullptr), mLastParentFolderData(nullptr),
-	mYButton("y"), mXButton("x"), mOKButton("OK"), mSelectButton("select")
+	mLastParentFolderData(nullptr), mHeaderText(window), mHeaderImage(window), mBackground(window), mFolderPath(window), mOnExitPopup(nullptr),
+	mOKButton("OK"), mXButton("x"), mYButton("y"), mSelectButton("select")
 {
 	mExtraMode = ThemeData::ExtraImportType::ALL_EXTRAS;
 

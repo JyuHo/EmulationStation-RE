@@ -13,8 +13,8 @@
 static int slots = 6; // 5;
 
 GuiSaveState::GuiSaveState(Window* window, FileData* game, const std::function<void(SaveState* state)>& callback) :
-	GuiComponent(window), mGrid(nullptr), mBackground(window, ":/frame.png"),
-	mLayout(window, Vector2i(3, 5)), mTitle(nullptr)
+	GuiComponent(window), mGrid(nullptr), mTitle(nullptr),
+	mBackground(window, ":/frame.png"), mLayout(window, Vector2i(3, 5))
 {
 	mGame = game;
 	mRepository = game->getSourceFileData()->getSystem()->getSaveStateRepository();

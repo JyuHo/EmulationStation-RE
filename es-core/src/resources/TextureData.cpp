@@ -25,9 +25,9 @@
 IPdfHandler* TextureData::PdfHandler = nullptr;
 
 TextureData::TextureData(bool tile, bool linear) : 
-	mTile(tile), mLinear(linear), mTextureID(0), mDataRGBA(nullptr), mScalable(false), mDynamic(true), mReloadable(false),
-	mMipmapped(false),
-	mSize(Vector2i::Zero()), mPhysicalSize(Vector2f::Zero()), mMaxSize(MaxSizeInfo::Empty)
+	mTile(tile), mLinear(linear), mTextureID(0), mDataRGBA(nullptr), mReloadable(false), mDynamic(true), mMipmapped(false),
+	mMaxSize(MaxSizeInfo::Empty),
+	mSize(Vector2i::Zero()), mPhysicalSize(Vector2f::Zero()), mScalable(false)
 {
 	mIsExternalDataRGBA = false;
 	mRequired = false;

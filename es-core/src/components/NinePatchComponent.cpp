@@ -5,9 +5,9 @@
 #include "ThemeData.h"
 
 NinePatchComponent::NinePatchComponent(Window* window, const std::string& path, unsigned int edgeColor, unsigned int centerColor) : GuiComponent(window),
-	mCornerSize(16, 16),
-	mEdgeColor(edgeColor), mCenterColor(centerColor),
-	mVertices(NULL), mCustomShaderIsPostProcess(false), mCustomShaderIsCacheable(true), mPostProcessTextureId(-1)
+	mVertices(NULL),
+	mCornerSize(16, 16), mEdgeColor(edgeColor),
+	mCenterColor(centerColor), mCustomShaderIsPostProcess(false), mCustomShaderIsCacheable(true), mPostProcessTextureId(-1)
 {
 	mTextureLoaded = false;
 	mTimer = 0;

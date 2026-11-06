@@ -53,7 +53,7 @@ static std::mutex mJoysticksLock;
 InputManager* InputManager::mInstance = NULL;
 Delegate<IJoystickChangedEvent> InputManager::joystickChanged;
 
-InputManager::InputManager() : mKeyboardInputConfig(nullptr), mMouseButtonsInputConfig(nullptr), mCECInputConfig(nullptr), mGunInputConfig(nullptr), mGunManager(nullptr)
+InputManager::InputManager() : mGunManager(nullptr), mMouseButtonsInputConfig(nullptr), mKeyboardInputConfig(nullptr), mGunInputConfig(nullptr), mCECInputConfig(nullptr)
 {
 
 }

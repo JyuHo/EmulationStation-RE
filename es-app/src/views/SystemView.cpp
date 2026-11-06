@@ -30,8 +30,8 @@
 #include "components/CarouselComponent.h"
 
 SystemView::SystemView(Window* window) : GuiComponent(window),
-	mViewNeedsReload(true),
-	mSystemInfo(window, _("SYSTEM INFO"), Font::get(FONT_SIZE_SMALL), 0x33333300, ALIGN_CENTER), mYButton("y")
+	mSystemInfo(window, _("SYSTEM INFO"), Font::get(FONT_SIZE_SMALL), 0x33333300, ALIGN_CENTER),
+	mViewNeedsReload(true), mYButton("y")
 {
 	mExtraTransitionSpeed = 500.0f;
 	mExtraTransitionHorizontal = false;

@@ -16,7 +16,7 @@
 
 #define VIDEODELAY	100
 
-GridTileComponent::GridTileComponent(Window* window) : GuiComponent(window), mBackground(window), mLabel(window), mVideo(nullptr), mVideoPlaying(false), mHasItemTemplate(false)
+GridTileComponent::GridTileComponent(Window* window) : GuiComponent(window), mLabel(window), mBackground(window), mVideo(nullptr), mVideoPlaying(false), mHasItemTemplate(false)
 {
 	mHasStandardMarquee = false;
 	mSelectedZoomPercent = 1.0f;

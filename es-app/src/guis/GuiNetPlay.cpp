@@ -63,12 +63,12 @@ static std::map<std::string, std::string> coreList =
 
 GuiNetPlay::GuiNetPlay(Window* window)
 	: GuiComponent(window), 
-	mBusyAnim(window),
+	mLanLobbySocket(-1),
+	mLanLobbySocketTimeout(0),
 	mBackground(window, ":/frame.png"),
 	mGrid(window, Vector2i(1, 3)),
 	mList(nullptr),
-	mLanLobbySocket(-1),
-	mLanLobbySocketTimeout(0),
+	mBusyAnim(window),
 	mPopulateThread(nullptr),
 	mThreadFinished(false)
 {	
