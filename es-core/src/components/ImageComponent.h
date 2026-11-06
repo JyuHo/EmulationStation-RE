@@ -14,6 +14,7 @@ class MaxSizeInfo;
 class IPlaylist
 {
 public:
+	virtual ~IPlaylist() = default;
 	virtual std::string getNextItem() = 0;
 	virtual int getDelay() { return 10000; }
 	virtual bool getRotateOnShow() { return false; }

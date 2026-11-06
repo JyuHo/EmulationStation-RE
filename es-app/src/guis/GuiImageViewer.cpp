@@ -368,11 +368,11 @@ void GuiImageViewer::loadPdf(const std::string& imagePath)
 	}
 	
 	window->pushGui(new GuiLoading<std::vector<std::string>>(window, _("Loading..."),
-		[window, imagePath](auto gui)
+		[ imagePath](auto gui)
 		{		
 			return ApiSystem::getInstance()->extractPdfImages(imagePath, 1, INITIALPAGES);
 		},
-			[this, window, imagePath, pages](std::vector<std::string> fileList)
+			[this, window, imagePath](std::vector<std::string> fileList)
 		{
 			if (fileList.size() == 0)
 				return;
@@ -503,7 +503,7 @@ void GuiImageViewer::loadCbz(const std::string& imagePath)
 	}
 
 	window->pushGui(new GuiLoading<std::vector<std::string>>(window, _("Loading..."),
-		[window, imagePath, files](auto gui)
+		[ imagePath, files](auto gui)
 		{
 			std::vector<std::string> ret;
 
@@ -518,7 +518,7 @@ void GuiImageViewer::loadCbz(const std::string& imagePath)
 
 			return ret;
 		},
-		[this, window, imagePath, pages](std::vector<std::string> fileList)
+		[this, window, imagePath](std::vector<std::string> fileList)
 		{
 			if (fileList.size() == 0)
 				return;
@@ -567,7 +567,7 @@ bool GuiImageViewer::input(InputConfig* config, Input input)
 
 					Window* window = mWindow;
 					window->pushGui(new GuiLoading<std::string>(window, _("Loading..."),
-						[this, window, path, page](auto gui)
+						[this, path, page](auto gui)
 						{
 							auto files = ApiSystem::getInstance()->extractPdfImages(mPdf, page, 1, 300);
 							if (files.size() == 1)

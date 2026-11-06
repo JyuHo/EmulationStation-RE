@@ -231,7 +231,7 @@ void GuiSettings::addInputTextConfigRow(const std::string& title, const std::str
 	}; // ok callback (apply new value to ed)
 
 	bool localStoreInSettings = storeInSettings;
-	row.makeAcceptInputHandler([this, title, updateVal, localSettingsID, localStoreInSettings, customEditor, password]
+	row.makeAcceptInputHandler([this, title, updateVal, localSettingsID, localStoreInSettings, customEditor]
 	{
 		std::string data = localStoreInSettings ? Settings::getInstance()->getString(localSettingsID) : SystemConf::getInstance()->get(localSettingsID);
 
@@ -307,7 +307,7 @@ void GuiSettings::addInputTextRow(const std::string& title, const std::string& v
 
 	}; // ok callback (apply new value to ed)
 
-	row.makeAcceptInputHandler([this, title, updateVal, customEditor, value, password]
+	row.makeAcceptInputHandler([this, title, updateVal, customEditor, value]
 	{
 	  std::string data = value;
 		if (customEditor != nullptr)

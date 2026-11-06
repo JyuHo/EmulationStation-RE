@@ -212,7 +212,7 @@ void TextureDataManager::load(std::shared_ptr<TextureData> tex, bool block)
 		tex->load();	
 }
 
-TextureLoader::TextureLoader(TextureDataManager* mgr) : mExit(false), mManager(mgr)
+TextureLoader::TextureLoader(TextureDataManager* mgr) : mExit(false)
 {
 	int num_threads = std::thread::hardware_concurrency() / 2;
 	if (num_threads < 2)

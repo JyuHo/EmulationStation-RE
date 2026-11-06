@@ -1019,7 +1019,7 @@ void GuiComponent::animateTo(Vector2f from, Vector2f to, unsigned int  flags, in
 				setPosition(x, y);
 		};
 
-		setAnimation(new LambdaAnimation(fadeFunc, delay), 5, [this, fadeFunc, x2, y2, flags, scale, opacity]
+		setAnimation(new LambdaAnimation(fadeFunc, delay), 5, [this, x2, y2, flags, scale, opacity]
 		{			
 			if ((flags & AnimateFlags::SCALE) == AnimateFlags::SCALE)
 				setScale(scale);

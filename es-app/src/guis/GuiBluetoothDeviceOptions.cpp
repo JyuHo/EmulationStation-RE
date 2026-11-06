@@ -57,12 +57,12 @@ void GuiBluetoothDeviceOptions::onForgetDevice()
         _("YES"), [this, window]
         {             
             window->pushGui(new GuiLoading<bool>(window, _("PLEASE WAIT"),
-                [this, window](auto gui)
+                [this](auto gui)
                 {
                     mWaitingLoad = true;
                     return ApiSystem::getInstance()->removeBluetoothDevice(mId);
                 },
-                [this, window](bool ret)
+                [this](bool ret)
                 {
                     mWaitingLoad = false;
                     if (mOnComplete) mOnComplete();
@@ -82,12 +82,12 @@ void GuiBluetoothDeviceOptions::onConnectDevice()
         _("YES"), [this, window]
         {             
             window->pushGui(new GuiLoading<bool>(window, _("PLEASE WAIT"),
-                [this, window](auto gui)
+                [this](auto gui)
                 {
                     mWaitingLoad = true;
                     return ApiSystem::getInstance()->connectBluetoothDevice(mId);
                 },
-                [this, window](bool ret)
+                [this](bool ret)
                 {
                     mWaitingLoad = false;
                     if (mOnComplete) mOnComplete();
@@ -107,12 +107,12 @@ void GuiBluetoothDeviceOptions::onDisconnectDevice()
         _("YES"), [this, window]
         {             
             window->pushGui(new GuiLoading<bool>(window, _("PLEASE WAIT"),
-                [this, window](auto gui)
+                [this](auto gui)
                 {
                     mWaitingLoad = true;
                     return ApiSystem::getInstance()->disconnectBluetoothDevice(mId);
                 },
-                [this, window](bool ret)
+                [this](bool ret)
                 {
                     mWaitingLoad = false;
                     if (mOnComplete) mOnComplete();

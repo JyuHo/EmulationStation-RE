@@ -309,7 +309,6 @@ private:
 	ImageComponent* mCheevos;
 	ImageComponent* mImageOverlay;
 
-	bool mVideoPlaying;	
 	bool mHasStandardMarquee;
 	bool mHasItemTemplate;
 

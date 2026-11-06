@@ -1148,7 +1148,7 @@ void DetailedContainer::updateControls(FileData* file, bool isClearing, int move
 				comp->setOpacity((unsigned char)(Math::lerp(0.0f, 1.0f, t) * initialOpacity)); // 255
 			};
 			
-			comp->setAnimation(new LambdaAnimation(func, fadeOut && isDeactivating ? 500 : 250), 0, [this, comp, fadeOut, file]
+			comp->setAnimation(new LambdaAnimation(func, fadeOut && isDeactivating ? 500 : 250), 0, [this, comp, fadeOut]
 			{
 				if (fadeOut)
 				{

@@ -544,9 +544,8 @@ int main(int argc, char* argv[])
 		window.pushGui(new GuiMsgBox(&window, errorMsg, _("QUIT"), [] { Utils::Platform::quitES(); }));
 	}
 
-	SystemConf* systemConf = SystemConf::getInstance();
-
 #ifdef _ENABLE_KODI_
+	SystemConf* systemConf = SystemConf::getInstance();
 	if (systemConf->getBool("kodi.enabled", true) && systemConf->getBool("kodi.atstartup"))
 	{
 		if (splashScreen)

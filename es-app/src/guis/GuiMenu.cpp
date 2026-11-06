@@ -374,7 +374,7 @@ void GuiMenu::openMultiScreensSettings()
 	Window* window = mWindow;
 
 
-	s->onFinalize([s, window]
+	s->onFinalize([s]
 	{
 	  if (s->getVariable("exitreboot") && Settings::getInstance()->getBool("ExitOnRebootRequired"))
 	    {
@@ -455,7 +455,7 @@ void GuiMenu::openDeveloperSettings()
 	auto webAccess = std::make_shared<SwitchComponent>(mWindow);
 	webAccess->setState(Settings::getInstance()->getBool("PublicWebAccess"));
 	s->addWithDescription(_("ENABLE PUBLIC WEB API ACCESS"), Utils::String::format(_("Allow public web access API using %s").c_str(), std::string("http://" + hostName + ":1234").c_str()), webAccess);
-	s->addSaveFunc([webAccess, window, s]
+	s->addSaveFunc([webAccess, s]
 	{
 	  if (Settings::getInstance()->setBool("PublicWebAccess", webAccess->getState()))
 	  {
@@ -481,7 +481,7 @@ void GuiMenu::openDeveloperSettings()
 		logLevel->add(_(it->c_str()), *it, level == *it);
 
 	s->addWithLabel(_("LOG LEVEL"), logLevel);
-	s->addSaveFunc([this, logLevel]
+	s->addSaveFunc([ logLevel]
 	{
 		if (Settings::getInstance()->setString("LogLevel", logLevel->getSelected() == "default" ? "" : logLevel->getSelected()))
 		{
@@ -490,7 +490,7 @@ void GuiMenu::openDeveloperSettings()
 	});
 
 
-	s->addWithDescription(_("CLEAN GAMELISTS & REMOVE UNUSED MEDIA"), _("Remove unused entries, and clean references to missing medias."), nullptr, [this, s]
+	s->addWithDescription(_("CLEAN GAMELISTS & REMOVE UNUSED MEDIA"), _("Remove unused entries, and clean references to missing medias."), nullptr, [this]
 	{
 		mWindow->pushGui(new GuiMsgBox(mWindow, _("ARE YOU SURE?"), _("YES"), [&]
 		{
@@ -506,7 +506,7 @@ void GuiMenu::openDeveloperSettings()
 		}, _("NO"), nullptr));
 	});
 
-	s->addWithDescription(_("RESET GAMELISTS USAGE DATA"), _("Reset values of GameTime, PlayCount and LastPlayed metadata."), nullptr, [this, s]
+	s->addWithDescription(_("RESET GAMELISTS USAGE DATA"), _("Reset values of GameTime, PlayCount and LastPlayed metadata."), nullptr, [this]
 		{
 			mWindow->pushGui(new GuiMsgBox(mWindow, _("ARE YOU SURE?"), _("YES"), [&]
 				{
@@ -524,7 +524,7 @@ void GuiMenu::openDeveloperSettings()
 				}, _("NO"), nullptr));
 		});
 
-	s->addWithDescription(_("RESET FILE EXTENSIONS"), _("Reset customized file extensions filters to default."), nullptr, [this, s]
+	s->addWithDescription(_("RESET FILE EXTENSIONS"), _("Reset customized file extensions filters to default."), nullptr, [this]
 	//s->addEntry(_("RESET FILE EXTENSIONS"), false, [this, s]
 	{
 		for (auto system : SystemData::sSystemVector)
@@ -554,7 +554,7 @@ void GuiMenu::openDeveloperSettings()
 
 	s->addEntry(_("FIND ALL GAMES WITH NETPLAY/ACHIEVEMENTS"), false, [this] { ThreadedHasher::start(mWindow, ThreadedHasher::HASH_ALL, true); });
 
-	s->addEntry(_("CLEAR CACHES"), true, [this, s]
+	s->addEntry(_("CLEAR CACHES"), true, [this]
 		{
 			Utils::FileSystem::deleteDirectoryFiles(Utils::FileSystem::getTempPath());
 			Utils::FileSystem::deleteDirectoryFiles(Paths::getCachePath() + "/videothumbs");
@@ -600,7 +600,7 @@ void GuiMenu::openDeveloperSettings()
 	auto enable_filter = std::make_shared<SwitchComponent>(mWindow);
 	enable_filter->setState(!Settings::getInstance()->getBool("ForceDisableFilters"));
 	s->addWithDescription(_("ENABLE GAME FILTERING"), _("Whether to show or hide game filtering related settings in the view options."), enable_filter);
-	s->addSaveFunc([this, enable_filter]
+	s->addSaveFunc([ enable_filter]
 	{
 		Settings::getInstance()->setBool("ForceDisableFilters", !enable_filter->getState());
 	});
@@ -669,7 +669,7 @@ void GuiMenu::openDeveloperSettings()
 	auto invertJoy = std::make_shared<SwitchComponent>(mWindow);
 	invertJoy->setState(Settings::getInstance()->getBool("InvertButtons"));
 	s->addWithDescription(_("SWITCH CONFIRM & CANCEL BUTTONS IN EMULATIONSTATION"), _("Switches the South and East buttons' functionality"), invertJoy);
-	s->addSaveFunc([this, s, invertJoy]
+	s->addSaveFunc([ s, invertJoy]
 	{
 		if (Settings::getInstance()->setBool("InvertButtons", invertJoy->getState()))
 		{
@@ -681,7 +681,7 @@ void GuiMenu::openDeveloperSettings()
 	auto invertLongPress = std::make_shared<SwitchComponent>(mWindow);
 	invertLongPress->setState(Settings::getInstance()->getBool("GameOptionsAtNorth"));
 	s->addWithDescription(_("ACCESS GAME OPTIONS WITH NORTH BUTTON"), _("Switches to short-press North for Savestates & long-press South button for Game Options"), invertLongPress);
-	s->addSaveFunc([this, s, invertLongPress]
+	s->addSaveFunc([ s, invertLongPress]
 	{
 		if (Settings::getInstance()->setBool("GameOptionsAtNorth", invertLongPress->getState()))
 			s->setVariable("reloadAll", true);
@@ -690,7 +690,7 @@ void GuiMenu::openDeveloperSettings()
 	auto firstJoystickOnly = std::make_shared<SwitchComponent>(mWindow);
 	firstJoystickOnly->setState(Settings::getInstance()->getBool("FirstJoystickOnly"));
 	s->addWithLabel(_("CONTROL EMULATIONSTATION WITH FIRST JOYSTICK ONLY"), firstJoystickOnly);
-	s->addSaveFunc([this, firstJoystickOnly] { Settings::getInstance()->setBool("FirstJoystickOnly", firstJoystickOnly->getState()); });
+	s->addSaveFunc([ firstJoystickOnly] { Settings::getInstance()->setBool("FirstJoystickOnly", firstJoystickOnly->getState()); });
 
   // Keep default behavior, but make it configurable
   s->addSwitch(_("RIGHT ANALOG STICK CHANGES VOLUME"),
@@ -761,7 +761,7 @@ void GuiMenu::openDeveloperSettings()
 	s->addWithLabel(_("OPTIMIZE VIDEO VRAM USAGE"), optimizeVideo);
 	s->addSaveFunc([optimizeVideo] { Settings::getInstance()->setBool("OptimizeVideo", optimizeVideo->getState()); });
 
-	s->addSwitch(_("USE FILESYSTEM CACHE"), "UseFileCache", true, [s] { Utils::FileSystem::FileSystemCache::reset(); });
+	s->addSwitch(_("USE FILESYSTEM CACHE"), "UseFileCache", true, [] { Utils::FileSystem::FileSystemCache::reset(); });
 
 	s->onFinalize([s, window]
 	{
@@ -916,7 +916,7 @@ void GuiMenu::openSystemSettings()
 	language_choice->add("正體中文", 	     "zh_TW", language == "zh_TW");
 
 	s->addWithLabel(_("LANGUAGE (REGION)"), language_choice);
-	s->addSaveFunc([window, language_choice, language, s]
+	s->addSaveFunc([ language_choice, language, s]
 	{
 		if (language_choice->changed() && SystemConf::getInstance()->set("system.language", language_choice->getSelected()))
 		{
@@ -1045,7 +1045,7 @@ void GuiMenu::openSystemSettings()
 	auto power_saver = std::make_shared< OptionListComponent<std::string> >(mWindow, _("POWER SAVING MODE"), false);
 	power_saver->addRange({ { _("DISABLED"), "disabled" }, { _("DEFAULT"), "default" }, { _("ENHANCED"), "enhanced" }, { _("INSTANT"), "instant" }, }, Settings::PowerSaverMode());
 	s->addWithDescription(_("POWER SAVING MODE"), _("Reduces power consumption when idle (useful for handhelds)."), power_saver);
-	s->addSaveFunc([this, power_saver]
+	s->addSaveFunc([ power_saver]
 	{
 		if (Settings::PowerSaverMode() != "instant" && power_saver->getSelected() == "instant")
 			Settings::getInstance()->setBool("EnableSounds", false);
@@ -1188,7 +1188,7 @@ void GuiMenu::openSystemSettings()
 
 			s->addWithLabel(_("AUDIO OUTPUT"), optionsAudio);
 
-			s->addSaveFunc([this, optionsAudio, selectedAudio]
+			s->addSaveFunc([ optionsAudio, selectedAudio]
 			{
 				if (optionsAudio->changed())
 				{
@@ -1254,7 +1254,7 @@ void GuiMenu::openSystemSettings()
 
 			s->addWithDescription(_("AUDIO PROFILE"), _("Available options can change depending on current audio output."), optionsAudioProfile);
 
-			s->addSaveFunc([this, optionsAudioProfile, selectedAudioProfile]
+			s->addSaveFunc([ optionsAudioProfile, selectedAudioProfile]
 			{
 				if (optionsAudioProfile->changed()) {
 					SystemConf::getInstance()->set("audio.profile", optionsAudioProfile->getSelected());
@@ -1276,7 +1276,7 @@ void GuiMenu::openSystemSettings()
 
 		if (ApiSystem::getInstance()->isScriptingSupported(ApiSystem::BIOSINFORMATION))
 		{
-			s->addEntry(_("MISSING BIOS CHECK"), true, [this, s] { openMissingBiosSettings(); });
+			s->addEntry(_("MISSING BIOS CHECK"), true, [this] { openMissingBiosSettings(); });
 			s->addSwitch(_("CHECK BIOS FILES BEFORE RUNNING A GAME"), "CheckBiosesAtLaunch", true);
 		}
 	}
@@ -1887,7 +1887,7 @@ void GuiMenu::openGamesSettings()
 	s->addGroup(_("TOOLS"));
 
 	// Game List Update
-	s->addEntry(_("UPDATE GAMELISTS"), false, [this, window] { updateGameLists(window); });
+	s->addEntry(_("UPDATE GAMELISTS"), false, [ window] { updateGameLists(window); });
 
 	if (SystemConf::getInstance()->getBool("global.retroachievements") && !Settings::getInstance()->getBool("RetroachievementsMenuitem") && SystemConf::getInstance()->get("global.retroachievements.username") != "")
 	{
@@ -1916,7 +1916,7 @@ void GuiMenu::openGamesSettings()
 	if (ApiSystem::getInstance()->isScriptingSupported(ApiSystem::BIOSINFORMATION))
 	{
 		s->addGroup(_("BIOS SETTINGS"));
-		s->addEntry(_("MISSING BIOS CHECK"), true, [this, s] { openMissingBiosSettings(); });
+		s->addEntry(_("MISSING BIOS CHECK"), true, [this] { openMissingBiosSettings(); });
 
 		auto checkBiosesAtLaunch = std::make_shared<SwitchComponent>(mWindow);
 		checkBiosesAtLaunch->setState(Settings::getInstance()->getBool("CheckBiosesAtLaunch"));
@@ -1965,7 +1965,7 @@ void GuiMenu::openGamesSettings()
 	{
 		auto videoModeOptionList = createVideoResolutionModeOptionList(mWindow, "global");
 		s->addWithDescription(_("VIDEO MODE"), _("Sets the display's resolution. Does not affect the rendering resolution."), videoModeOptionList);
-		s->addSaveFunc([this, videoModeOptionList] { SystemConf::getInstance()->set("global.videomode", videoModeOptionList->getSelected()); });
+		s->addSaveFunc([ videoModeOptionList] { SystemConf::getInstance()->set("global.videomode", videoModeOptionList->getSelected()); });
 	}
 
 	// smoothing
@@ -2138,7 +2138,7 @@ void GuiMenu::openGamesSettings()
 	s->addGroup(_("SYSTEM SETTINGS"));
 
 	// Custom config for systems
-	s->addEntry(_("PER SYSTEM ADVANCED CONFIGURATION"), true, [this, s, window]
+	s->addEntry(_("PER SYSTEM ADVANCED CONFIGURATION"), true, [s, window]
 		{
 			s->save();
 			GuiSettings* configuration = new GuiSettings(window, _("PER SYSTEM ADVANCED CONFIGURATION").c_str());
@@ -2156,7 +2156,7 @@ void GuiMenu::openGamesSettings()
 				if (!system->hasFeatures() && !system->hasEmulatorSelection())
 					continue;
 
-				configuration->addEntry(system->getFullName(), true, [this, system, window] {
+				configuration->addEntry(system->getFullName(), true, [ system, window] {
 					popSystemConfigurationGui(window, system);
 					});
 			}
@@ -2238,7 +2238,7 @@ void GuiMenu::openSystemEmulatorSettings(SystemData* system)
 
 	s->addRow(row);
 
-	emul_choice->setSelectedChangedCallback([this, system, core_choice](std::string emulatorName)
+	emul_choice->setSelectedChangedCallback([ system, core_choice](std::string emulatorName)
 	{
 		std::string currentCore = system->getCore(false);
 		std::string defaultCore = system->getDefaultCore(emulatorName);
@@ -2880,7 +2880,7 @@ void GuiMenu::openThemeConfiguration(Window* mWindow, GuiComponent* s, std::shar
 	{
 		themeconfig->addGroup(_("TOOLS"));
 
-		themeconfig->addEntry(_("RESET CUSTOMIZATIONS"), false, [s, themeconfig, window]
+		themeconfig->addEntry(_("RESET CUSTOMIZATIONS"), false, [ themeconfig]
 		{
 			themeconfig->setVariable("resetTheme", true);
 			themeconfig->setVariable("reloadAll", true);
@@ -3047,7 +3047,7 @@ void GuiMenu::openUISettings()
 		//	theme_set->add(it->first, it->first, it == selectedSet);
 
 		s->addWithLabel(_("THEME SET"), theme_set);
-		s->addSaveFunc([s, theme_set, pthis, window, system]
+		s->addSaveFunc([s, theme_set]
 		{
 			std::string oldTheme = Settings::getInstance()->getString("ThemeSet");
 			if (oldTheme != theme_set->getSelected())
@@ -3117,7 +3117,7 @@ void GuiMenu::openUISettings()
 				gamelist_style->add(it->second, it->first, viewPreference == it->first);
 
 			s->addWithLabel(_("GAMELIST VIEW STYLE"), gamelist_style);
-			s->addSaveFunc([s, gamelist_style, window] {
+			s->addSaveFunc([s, gamelist_style] {
 				if (Settings::getInstance()->setString("GamelistViewStyle", gamelist_style->getSelected()))
 				{
 					s->setVariable("reloadAll", true);
@@ -3201,7 +3201,7 @@ void GuiMenu::openSoundSettings()
 		volume->setValue((float)VolumeControl::getInstance()->getVolume());
 		volume->setOnValueChanged([](const float &newVal) { VolumeControl::getInstance()->setVolume((int)Math::round(newVal)); });
 		s->addWithLabel(_("SYSTEM VOLUME"), volume);
-		s->addSaveFunc([this, volume]
+		s->addSaveFunc([ volume]
 		{
 			VolumeControl::getInstance()->setVolume((int)Math::round(volume->getValue()));
 			SystemConf::getInstance()->set("audio.volume", std::to_string((int)round(volume->getValue())));

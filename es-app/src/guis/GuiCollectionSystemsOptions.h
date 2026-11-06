@@ -27,7 +27,6 @@ private:
 	std::shared_ptr< OptionListComponent<std::string> > autoOptionList;
 	std::shared_ptr< OptionListComponent<std::string> > customOptionList;
 
-	SystemData* mSystem;
 };
 
 #endif // ES_APP_GUIS_GUI_COLLECTION_SYSTEM_OPTIONS_H

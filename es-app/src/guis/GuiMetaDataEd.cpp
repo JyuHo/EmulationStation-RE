@@ -117,7 +117,7 @@ GuiMetaDataEd::GuiMetaDataEd(Window* window, MetaDataList* md, const std::vector
 			emul_choice->setTag(iter->key);
 			mEditors.push_back(emul_choice);
 
-			emul_choice->setSelectedChangedCallback([this, system, core_choice, file](std::string emulatorName)
+			emul_choice->setSelectedChangedCallback([ system, core_choice, file](std::string emulatorName)
 			{
 				std::string currentCore = file->getCore(false);
 
@@ -621,7 +621,7 @@ void GuiMetaDataEd::close(bool closeAllWindows)
 		closeFunc = [this] { delete this; };
 	}else{
 		Window* window = mWindow;
-		closeFunc = [window, this] {
+		closeFunc = [window] {
 			while(window->peekGui() != ViewController::get())
 				delete window->peekGui();
 		};

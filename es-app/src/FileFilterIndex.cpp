@@ -749,7 +749,6 @@ int FileFilterIndex::showFile(FileData* game)
 				auto filters = simplify(mTextFilter);
 				auto words = simplify(name);
 
-				int totalWords = 0;
 				int commonWords = 0;
 				
 				for (int i = 0; i < (int)filters.size(); i++)
@@ -764,8 +763,6 @@ int FileFilterIndex::showFile(FileData* game)
 							break;
 						}
 					}
-
-					totalWords++;
 				}
 				
 				int continuousWords = 0;
