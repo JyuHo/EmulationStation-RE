@@ -50,12 +50,18 @@ There is a single renderer, built either for desktop OpenGL 3.3 core (`GL`) or
 for OpenGL ES 3.x (`GLES3`). When neither option is given, ARM builds pick
 `GLES3` and the others pick `GL`.
 
+Everything the build produces stays in the build folder, nothing is written to the
+source tree: `build/emulationstation`, `build/locale/<lang>/LC_MESSAGES/*.mo` and a
+`build/resources` link to the source resources. Translations are only compiled when
+gettext (`msgfmt`) is installed. To refresh the `.pot` template and the `.po` files
+after changing strings in the code, run `cmake --build build --target i18n-update`.
+
 Installing and running
 ======================
 
 `cmake --install build` puts the binary in `<prefix>/bin` and the resources in
-`<prefix>/share/emulationstation`. You can also run `./emulationstation` straight
-from the source tree; `emulationstation.sh` starts it again when you pick Restart
+`<prefix>/share/emulationstation`. You can also run `./build/emulationstation` straight
+from the build folder without installing; `emulationstation.sh` starts it again when you pick Restart
 in the Quit menu.
 
 Where files live

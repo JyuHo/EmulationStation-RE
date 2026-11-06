@@ -224,6 +224,13 @@ include_directories(${COMMON_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src)
 add_executable(emulationstation ${ES_SOURCES} ${ES_HEADERS})
 target_link_libraries(emulationstation ${COMMON_LIBRARIES} es-core)
 
+# Keep the executable at the top of the build folder, next to the compiled translations
+# (locale/) and a link to the resources, so that it runs from there without installing.
+set_target_properties(emulationstation PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+add_custom_command(TARGET emulationstation POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/resources ${CMAKE_BINARY_DIR}/resources
+    VERBATIM)
+
 
 
 #-------------------------------------------------------------------------------

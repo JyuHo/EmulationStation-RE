@@ -5,20 +5,14 @@
 
 #include <string>
 
+// Without libintl, gettext.h turns gettext/ngettext/pgettext into macros that return the msgid
 #ifdef HAVE_INTL
-
 #define ENABLE_NLS 1
+#else
+#define ENABLE_NLS 0
+#endif
 #include "gettext.h"
 #define _(A) std::string(gettext(A))
-
-#else
-
-#define _(A) std::string(A)
-
-const char* ngettext(const char* msgid, const char* msgid_plural, unsigned long int n);
-const char* pgettext(const char* context, const char* msgid);
-
-#endif
 
 #define _U(x) x
 
