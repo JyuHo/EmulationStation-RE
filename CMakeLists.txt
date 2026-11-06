@@ -313,6 +313,7 @@ endif()
 
 add_subdirectory("external")
 add_subdirectory("es-core")
+add_subdirectory("es-launcher")
 add_subdirectory("es-app")
 
 if(MSGFMT_EXECUTABLE AND Intl_FOUND)
