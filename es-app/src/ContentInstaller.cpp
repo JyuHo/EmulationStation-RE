@@ -1,4 +1,5 @@
 #include "ContentInstaller.h"
+#include "catalog/CatalogInstaller.h"
 #include "Window.h"
 #include "components/AsyncNotificationComponent.h"
 #include "utils/StringUtil.h"
@@ -230,6 +231,43 @@ void ContentInstaller::threadUpdate()
 			{
 				success = true;
 				mWindow->displayNotificationMessage(ICONINDEX + data.second + " : " + _("PACKAGE REMOVED SUCCESSFULLY"));
+			}
+			else
+			{
+				std::string error = _("AN ERROR OCCURRED") + std::string(": ") + updateStatus.first;
+				mWindow->displayNotificationMessage(ICONINDEX + error);
+			}
+		}
+
+		else if (data.first >= ContentType::CONTENT_EMULATOR_INSTALL && data.first <= ContentType::CONTENT_CORE_UNINSTALL)
+		{
+			auto progress = [this](const std::string info) { updateNotificationComponentContent(info); };
+
+			std::string done;
+			switch (data.first)
+			{
+			case ContentType::CONTENT_EMULATOR_INSTALL:
+				updateStatus = CatalogInstaller::installEmulator(data.second, progress);
+				done = _("EMULATOR INSTALLED SUCCESSFULLY");
+				break;
+			case ContentType::CONTENT_EMULATOR_UNINSTALL:
+				updateStatus = CatalogInstaller::uninstallEmulator(data.second, progress);
+				done = _("EMULATOR REMOVED SUCCESSFULLY");
+				break;
+			case ContentType::CONTENT_CORE_INSTALL:
+				updateStatus = CatalogInstaller::installCore(data.second, progress);
+				done = _("CORE INSTALLED SUCCESSFULLY");
+				break;
+			default:
+				updateStatus = CatalogInstaller::uninstallCore(data.second, progress);
+				done = _("CORE REMOVED SUCCESSFULLY");
+				break;
+			}
+
+			if (updateStatus.second == 0)
+			{
+				success = true;
+				mWindow->displayNotificationMessage(ICONINDEX + data.second + " : " + done);
 			}
 			else
 			{

@@ -40,6 +40,8 @@ set(ES_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/CollectionSystemManager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/NetworkThread.h
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ContentInstaller.h
+	${CMAKE_CURRENT_SOURCE_DIR}/src/catalog/CatalogInstaller.h
+	${CMAKE_CURRENT_SOURCE_DIR}/src/catalog/EmulatorCatalog.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/scrapers/ThreadedScraper.h
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ThreadedHasher.h
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ThreadedBluetooth.h
@@ -139,6 +141,8 @@ set(ES_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/CollectionSystemManager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/NetworkThread.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ContentInstaller.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/catalog/CatalogInstaller.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/catalog/EmulatorCatalog.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/scrapers/ThreadedScraper.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ThreadedHasher.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ThreadedBluetooth.cpp
@@ -230,6 +234,22 @@ set_target_properties(emulationstation PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMA
 add_custom_command(TARGET emulationstation POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/resources ${CMAKE_BINARY_DIR}/resources
     VERBATIM)
+
+#-------------------------------------------------------------------------------
+# unit tests: cmake -DES_TESTS=ON, then ctest
+
+option(ES_TESTS "Build the unit tests of es-app" OFF)
+if(ES_TESTS)
+    enable_testing()
+    add_executable(es-app-catalog-tests
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/catalog_tests.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/catalog/EmulatorCatalog.cpp
+        ${CMAKE_SOURCE_DIR}/es-core/src/utils/Sha256.cpp)
+    target_include_directories(es-app-catalog-tests PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/es-core/src ${RAPIDJSON_INCLUDE_DIRS})
+    target_compile_options(es-app-catalog-tests PRIVATE -Wall -Wextra)
+    add_test(NAME es-app-catalog-tests COMMAND es-app-catalog-tests)
+endif()
 
 
 
