@@ -185,7 +185,7 @@ SaveStateConfigFile::SaveStateConfigFile()
 {
 	mSaveStateConfigMode = false;
 
-	std::string path = Paths::getUserEmulationStationPath() + "/es_savestates.cfg";
+	std::string path = Paths::getConfigPath() + "/es_savestates.cfg";
 	if (!Utils::FileSystem::exists(path))
 		path = Paths::getEmulationStationPath() + "/es_savestates.cfg";
 	if (!Utils::FileSystem::exists(path))

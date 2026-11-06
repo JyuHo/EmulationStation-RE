@@ -185,9 +185,9 @@ Requires a [Nintendo GameBoy Advance Core](http://wiki.libretro.com/index.php?ti
 
 ## [Steam](http://store.steampowered.com)
 
-1. Create a folder at `~/.emulationstation/steam`
+1. Create a folder at `~/.local/share/emulationstation/steam`
   ```
-  mkdir -p ~/.emulationstation/steam
+  mkdir -p ~/.local/share/emulationstation/steam
   ```
 2. Add text files for each Steam game you would like to have available through
 EmulationStation where:
@@ -196,7 +196,7 @@ EmulationStation where:
     game's Steam store page)
 
   ```
-  cd ~/.emulationstation/steam
+  cd ~/.local/share/emulationstation/steam
   echo "250900" >> "The Binding of Isaac: Rebirth.txt"
   ```
 
@@ -204,7 +204,7 @@ EmulationStation where:
 <system>
   <name>steam</name>
   <fullname>Steam</fullname>
-  <path>~/.emulationstation/steam</path>
+  <path>~/.local/share/emulationstation/steam</path>
   <extension>.txt</extension>
   <command>steam steam://rungameid/$(tail %ROM%)</command>
   <platform>pc</platform>

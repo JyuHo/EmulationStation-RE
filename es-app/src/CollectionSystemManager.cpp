@@ -1517,7 +1517,7 @@ std::string getCustomCollectionConfigPath(const std::string& collectionName)
 
 std::string getCollectionsFolder()
 {
-	return Utils::FileSystem::getGenericPath(Paths::getUserEmulationStationPath() + "/collections");
+	return Utils::FileSystem::getGenericPath(Paths::getDataPath() + "/collections");
 }
 
 bool CollectionSystemManager::isCustomCollection(const std::string& collectionName)

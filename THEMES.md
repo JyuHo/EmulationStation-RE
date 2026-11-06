@@ -38,8 +38,8 @@ There are places where ES can load theme sets from:
 
 Windows :
 
-* `[HOME]/.emulationstation/themes/[CURRENT_THEME_SET]/[SYSTEM_THEME]/theme.xml`
-* `[HOME]/.emulationstation/themes/[CURRENT_THEME_SET]/theme.xml`
+* `[HOME]/.local/share/emulationstation/themes/[CURRENT_THEME_SET]/[SYSTEM_THEME]/theme.xml`
+* `[HOME]/.local/share/emulationstation/themes/[CURRENT_THEME_SET]/theme.xml`
 
 Linux :
 
@@ -1475,7 +1475,7 @@ This element is designed to set a list of properties to transform, given a timin
 Resource overrides
 ==================
 
-EmulationStation uses a few elements from its [resources](https://github.com/batocera-linux/batocera-emulationstation/tree/master/resources) folder (by default, `/etc/emulationstation/resources`) in order to draw on-screen elements. These include the little trophy/region/save file icons that appear next to a game's title and the "no boxart available" cartridge. If you would like to override these elements in your theme, simply include a `resources` folder in the root of your theme, and any files in there will take priority over files with the same filename in EmulationStation's resources folder.
+EmulationStation uses a few elements from its [resources](https://github.com/batocera-linux/batocera-emulationstation/tree/master/resources) folder (by default, `/usr/share/emulationstation/resources`) in order to draw on-screen elements. These include the little trophy/region/save file icons that appear next to a game's title and the "no boxart available" cartridge. If you would like to override these elements in your theme, simply include a `resources` folder in the root of your theme, and any files in there will take priority over files with the same filename in EmulationStation's resources folder.
 
 Example:
 ```

@@ -259,9 +259,6 @@ void AudioManager::playRandomMusic(bool continueIfPlaying)
         getMusicIn(Paths::getMusicPath(), musics);
 
     if (musics.empty())
-        getMusicIn(Paths::getUserEmulationStationPath() + "/music", musics);
-
-    if (musics.empty())
         return;
 retry:
 

@@ -57,15 +57,17 @@ std::vector<std::string> ResourceManager::getResourcePaths() const
 				_cachedPaths.push_back(roThemePath);
 		}
 
-		// check in homepath
-		_cachedPaths.push_back(Paths::getUserEmulationStationPath() + "/resources");
+		// user data dir
+		_cachedPaths.push_back(Paths::getDataPath() + "/resources");
 
-		// check in emulationStation path
+		// executable dir, for builds run from the source tree
 		_cachedPaths.push_back(Paths::getEmulationStationPath() + "/resources");
-
-		// check in Exe path
 		if (Paths::getEmulationStationPath() != Paths::getExePath())
 			_cachedPaths.push_back(Paths::getExePath() + "/resources");
+
+		// installed resources ($XDG_DATA_DIRS/emulationstation/resources)
+		for (const auto& dir : Paths::getSystemDataPaths())
+			_cachedPaths.push_back(dir + "/resources");
 
 		// check in cwd
 		auto cwd = Utils::FileSystem::getCWDPath() + "/resources";

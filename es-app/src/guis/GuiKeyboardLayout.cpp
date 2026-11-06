@@ -1,3 +1,4 @@
+#include "Paths.h"
 #include "GuiKeyboardLayout.h"
 #include "utils/FileSystemUtil.h"
 #include "utils/StringUtil.h"
@@ -61,8 +62,8 @@ GuiKeyboardLayout::GuiKeyboardLayout(Window* window, const std::function<void(co
 
 GuiKeyboardLayout::~GuiKeyboardLayout()
 {
-	Utils::FileSystem::removeFile("/tmp/kblayout-1.svg");
-	Utils::FileSystem::removeFile("/tmp/kblayout-2.svg");
+	Utils::FileSystem::removeFile(Paths::getRuntimePath() + "/kblayout-1.svg");
+	Utils::FileSystem::removeFile(Paths::getRuntimePath() + "/kblayout-2.svg");
 }
 
 bool GuiKeyboardLayout::isEnabled()
@@ -150,7 +151,7 @@ void GuiKeyboardLayout::selectKey(const std::string& keyName)
 	svg = Utils::String::replace(svg, ";stroke-width:5.14240026", "");
 	svg = Utils::String::replace(svg, "inkscape:connector-curvature=\"0\"", "");
 
-	auto newPath = "/tmp/kblayout" + std::string(mImageToggle ? "-1" : "-2") + ".svg";
+	auto newPath = Paths::getRuntimePath() + "/kblayout" + std::string(mImageToggle ? "-1" : "-2") + ".svg";
 
 	Utils::FileSystem::writeAllText(newPath, svg);
 	mKeyboard.setImage(newPath);	

@@ -557,10 +557,8 @@ void GuiMenu::openDeveloperSettings()
 
 	s->addEntry(_("CLEAR CACHES"), true, [this, s]
 		{
-			auto rootPath = Utils::FileSystem::getGenericPath(Paths::getUserEmulationStationPath());
-
-			Utils::FileSystem::deleteDirectoryFiles(rootPath + "/tmp/");
 			Utils::FileSystem::deleteDirectoryFiles(Utils::FileSystem::getTempPath());
+			Utils::FileSystem::deleteDirectoryFiles(Paths::getCachePath() + "/videothumbs");
 			Utils::FileSystem::deleteDirectoryFiles(Utils::FileSystem::getPdfTempPath());
 
 			ViewController::reloadAllGames(mWindow, false);
@@ -2983,7 +2981,7 @@ void GuiMenu::openThemeConfiguration(Window* mWindow, GuiComponent* s, std::shar
 			}
 
 			Settings::getInstance()->saveFile();
-			std::string path = Paths::getUserEmulationStationPath() + "/themesettings/" + Settings::getInstance()->getString("ThemeSet") + ".cfg";
+			std::string path = Paths::getConfigPath() + "/themesettings/" + Settings::getInstance()->getString("ThemeSet") + ".cfg";
 			if (Utils::FileSystem::exists(path))
 				Utils::FileSystem::removeFile(path);
 		}
@@ -4479,7 +4477,7 @@ void GuiMenu::saveSubsetSettings()
 			fileData += system->getName() + ".gridSize=" + gridSizeOverride + "\r";
 	}
 
-	std::string path = Paths::getUserEmulationStationPath() + "/themesettings";
+	std::string path = Paths::getConfigPath() + "/themesettings";
 	if (!Utils::FileSystem::exists(path))
 		Utils::FileSystem::createDirectory(path);
 
@@ -4498,7 +4496,7 @@ void GuiMenu::saveSubsetSettings()
 
 void GuiMenu::loadSubsetSettings(const std::string themeName)
 {
-	std::string path = Paths::getUserEmulationStationPath() + "/themesettings";
+	std::string path = Paths::getConfigPath() + "/themesettings";
 	if (!Utils::FileSystem::exists(path))
 		Utils::FileSystem::createDirectory(path);
 

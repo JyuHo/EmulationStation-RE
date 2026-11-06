@@ -104,7 +104,7 @@ std::string ApiSystem::getFreeSpaceUserInfo()
 
 std::string ApiSystem::getFreeSpaceSystemInfo()
 {
-	return getFreeSpaceInfo("/boot");
+	return getFreeSpaceInfo("/");
 }
 
 std::string ApiSystem::getFreeSpaceInfo(const std::string mountpoint)
@@ -692,13 +692,9 @@ bool ApiSystem::isThemeInstalled(const std::string& themeName, const std::string
 {
 	std::string themeUrl = Utils::FileSystem::getFileName(url);
 
-	std::vector<std::string> paths =
-	{
-		Paths::getUserThemesPath(),
-		Paths::getThemesPath(),
-		Paths::getUserEmulationStationPath() + "/themes"
-		,"/etc/emulationstation/themes" // Backward compatibility with Retropie
-	};
+	std::vector<std::string> paths = { Paths::getUserThemesPath(), Paths::getThemesPath() };
+	for (const auto& dir : Paths::getSystemDataPaths())
+		paths.push_back(dir + "/themes");
 
 	for (auto path : VectorHelper::distinct(paths, [](auto x) { return x; }))
 	{
@@ -773,7 +769,7 @@ std::pair<std::string, int> ApiSystem::installBatoceraTheme(std::string thname, 
 		if (installFolder.empty())
 			installFolder = Paths::getThemesPath();
 		if (installFolder.empty())
-			installFolder = Paths::getUserEmulationStationPath() + "/themes";
+			installFolder = Paths::getDataPath() + "/themes";
 
 		std::string themeFileName = Utils::FileSystem::getFileName(theme.url);
 		std::string extractionDirectory = installFolder + "/.tmp";
@@ -828,7 +824,7 @@ std::pair<std::string, int> ApiSystem::uninstallBatoceraTheme(std::string thname
 		if (installFolder.empty())
 			installFolder = Paths::getThemesPath();
 		if (installFolder.empty())
-			installFolder = Paths::getUserEmulationStationPath() + "/themes";
+			installFolder = Paths::getDataPath() + "/themes";
 
 		std::string themeFileName = Utils::FileSystem::getFileName(theme.url);
 
@@ -1766,18 +1762,18 @@ void ApiSystem::setReadyFlag(bool ready)
 {
 	if (!ready)
 	{
-		Utils::FileSystem::removeFile("/tmp/emulationstation.ready");
+		Utils::FileSystem::removeFile(Paths::getRuntimePath() + "/emulationstation.ready");
 		return;
 	}
 
-	FILE* fd = fopen("/tmp/emulationstation.ready", "w");
+	FILE* fd = fopen((Paths::getRuntimePath() + "/emulationstation.ready").c_str(), "w");
 	if (fd != NULL) 
 		fclose(fd);
 }
 
 bool ApiSystem::isReadyFlagSet()
 {
-	return Utils::FileSystem::exists("/tmp/emulationstation.ready");
+	return Utils::FileSystem::exists(Paths::getRuntimePath() + "/emulationstation.ready");
 }
 
 int ApiSystem::formatDisk(const std::string disk, const std::string format, const std::function<void(const std::string)>& func)

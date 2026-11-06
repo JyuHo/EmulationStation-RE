@@ -410,7 +410,7 @@ bool Settings::saveFile()
 
 	LOG(LogDebug) << "Settings::saveFile() : Saving Settings to file.";
 
-	const std::string path = Paths::getUserEmulationStationPath() + "/es_settings.cfg";
+	const std::string path = Paths::getConfigPath() + "/es_settings.cfg";
 
 	pugi::xml_document doc;
 
@@ -451,7 +451,7 @@ bool Settings::saveFile()
 
 void Settings::loadFile()
 {
-	const std::string path = Paths::getUserEmulationStationPath() + "/es_settings.cfg";
+	const std::string path = Paths::getConfigPath() + "/es_settings.cfg";
 	if(!Utils::FileSystem::exists(path))
 		return;
 

@@ -93,7 +93,9 @@ void CustomFeatures::importXmlElements(pugi::xml_node& from, const std::string& 
 
 void CustomFeatures::loadAdditionnalFeatures(pugi::xml_node& srcSystems)
 {
-	std::vector<std::string> rootPaths = { Paths::getUserEmulationStationPath(), Paths::getEmulationStationPath() };
+	std::vector<std::string> rootPaths = { Paths::getConfigPath(), Paths::getEmulationStationPath() };
+	rootPaths.insert(rootPaths.end(), Paths::getSystemConfigPaths().cbegin(), Paths::getSystemConfigPaths().cend());
+	rootPaths.insert(rootPaths.end(), Paths::getSystemDataPaths().cbegin(), Paths::getSystemDataPaths().cend());
 	for (auto rootPath : VectorHelper::distinct(rootPaths, [](auto x) { return x; }))
 	{
 		for (auto customPath : Utils::FileSystem::getDirContent(rootPath, false, false))
@@ -161,11 +163,8 @@ bool CustomFeatures::loadEsFeaturesFile()
 	GlobalFeatures.clear();
 	SharedFeatures.clear();
 
-	std::string path = Paths::getUserEmulationStationPath() + "/es_features.cfg";
-	if (!Utils::FileSystem::exists(path))
-		path = Paths::getEmulationStationPath() + "/es_features.cfg";
-
-	if (!Utils::FileSystem::exists(path))
+	std::string path = Paths::findSystemFile("es_features.cfg");
+	if (path.empty())
 		return false;
 
 	pugi::xml_document doc;

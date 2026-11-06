@@ -269,20 +269,11 @@ bool parseArgs(int argc, char* argv[])
 
 bool verifyHomeFolderExists()
 {
-	//make sure the config directory exists	
-	std::string configDir = Paths::getUserEmulationStationPath();
-	if(!Utils::FileSystem::exists(configDir))
-	{
-		std::cout << "Creating config directory \"" << configDir << "\"\n";
-		Utils::FileSystem::createDirectory(configDir);
-		if(!Utils::FileSystem::exists(configDir))
-		{
-			std::cerr << "Config directory could not be created!\n";
-			return false;
-		}
-	}
+	std::string legacyDir = Paths::getHomePath() + "/.emulationstation";
+	if (!Utils::FileSystem::exists(Paths::getConfigPath()) && Utils::FileSystem::isDirectory(legacyDir))
+		std::cerr << "Found " << legacyDir << ", which is no longer read. Move its content to " << Paths::getConfigPath() << " (settings) and " << Paths::getDataPath() << " (themes, music, gamelists, collections).\n";
 
-	return true;
+	return Paths::createUserDirectories();
 }
 
 // Returns true if everything is OK,
@@ -325,7 +316,7 @@ int setLocale(char * argv1)
 	if (Utils::FileSystem::exists("./locale/lang")) // for local builds
 		EsLocale::init("", "./locale/lang");	
 	else
-		EsLocale::init("", "/usr/share/locale");	
+		EsLocale::init("", ES_INSTALL_LOCALEDIR);	
 
 	setlocale(LC_TIME, "");
 

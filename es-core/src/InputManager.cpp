@@ -922,12 +922,12 @@ void InputManager::doOnFinish()
 
 std::string InputManager::getConfigPath()
 {
-	return Paths::getUserEmulationStationPath() + "/es_input.cfg";
+	return Paths::getConfigPath() + "/es_input.cfg";
 }
 
 std::string InputManager::getTemporaryConfigPath()
 {
-	return Paths::getUserEmulationStationPath() + "/es_last_input.cfg";
+	return Paths::getStatePath() + "/es_last_input.cfg";
 }
 
 bool InputManager::initialized() const
@@ -1131,7 +1131,7 @@ std::string InputManager::configureEmulators() {
   for (int player = 0; player < MAX_PLAYERS; player++)
     if (playerJoysticks[player] != NULL)
       playerJoysticks[player]->writeToXML(root);
-  doc.save_file("/tmp/es_input_players.cfg");
+  doc.save_file((Paths::getRuntimePath() + "/es_input_players.cfg").c_str());
 
   LOG(LogInfo) << "Configure emulators command : " << command.str().c_str();
   return command.str();

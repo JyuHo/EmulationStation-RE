@@ -50,7 +50,7 @@ bool HttpReq::isUrl(const std::string& str)
 
 static std::string getCookiesContainerPath(bool createDirectory = true)
 {	
-	std::string cookiesPath = Utils::FileSystem::getGenericPath(Paths::getUserEmulationStationPath() + std::string("/tmp"));
+	std::string cookiesPath = Utils::FileSystem::getGenericPath(Paths::getCachePath() + std::string("/tmp"));
 	if (createDirectory)
 		Utils::FileSystem::createDirectory(cookiesPath);
 

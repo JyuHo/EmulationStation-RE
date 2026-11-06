@@ -267,7 +267,7 @@ void Log::init()
     // Before the disabled-log return, else SDL takes SIGTERM and ES ignores it
     signal(SIGTERM, crashHandler);
 
-    auto base = Paths::getUserEmulationStationPath() + "/es_log";
+    auto base = Paths::getLogPath() + "/es_log";
     auto logPath = base + ".txt";
 
     if ((int)lvl < 0)

@@ -1,21 +1,15 @@
 #!/bin/sh
+# Runs EmulationStation again when it asks for a restart (Quit menu > Restart).
+# Reboot and power off are done by EmulationStation itself.
 
-esdir="$(dirname $0)"
+esdir="$(dirname "$0")"
+rundir="${XDG_RUNTIME_DIR:-/tmp}"
+case "$rundir" in /tmp) rundir="/tmp/emulationstation-$(id -u)" ;; *) rundir="$rundir/emulationstation" ;; esac
+
 while true; do
-    rm -f /tmp/es-restart /tmp/es-sysrestart /tmp/es-shutdown
+    rm -f "$rundir/restart.please"
     "$esdir/emulationstation" "$@"
     ret=$?
-    [ -f /tmp/es-restart ] && continue
-    if [ -f /tmp/es-sysrestart ]; then
-        rm -f /tmp/es-sysrestart
-        sudo reboot
-        break
-    fi
-    if [ -f /tmp/es-shutdown ]; then
-        rm -f /tmp/es-shutdown
-        sudo poweroff
-        break
-    fi
-    break
+    [ -f "$rundir/restart.please" ] || break
 done
 exit $ret

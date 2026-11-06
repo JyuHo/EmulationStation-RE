@@ -2250,7 +2250,7 @@ const std::shared_ptr<ThemeData>& ThemeData::getDefault()
 	{
 		theme = std::shared_ptr<ThemeData>(new ThemeData());
 
-		const std::string path = Paths::getUserEmulationStationPath() + "/es_theme_default.xml";
+		const std::string path = Paths::getConfigPath() + "/es_theme_default.xml";
 		if(Utils::FileSystem::exists(path))
 		{
 			try
@@ -2361,13 +2361,12 @@ std::vector<GuiComponent*> ThemeData::makeExtras(const std::shared_ptr<ThemeData
 
 std::map<std::string, ThemeSet> ThemeData::getThemeSets()
 {
-	std::vector<std::string> paths =
-	{ 
-		Paths::getUserThemesPath(),
-		Paths::getThemesPath(),
-		Paths::getUserEmulationStationPath() + "/themes"
-		,"/etc/emulationstation/themes" // Backward compatibility with Retropie
-	};
+	// Later paths win: system themes first, user themes last
+	std::vector<std::string> paths;
+	for (auto it = Paths::getSystemDataPaths().crbegin(); it != Paths::getSystemDataPaths().crend(); ++it)
+		paths.push_back(*it + "/themes");
+	paths.push_back(Paths::getThemesPath());
+	paths.push_back(Paths::getUserThemesPath());
 
 	std::map<std::string, ThemeSet> sets;
 

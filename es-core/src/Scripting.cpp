@@ -71,9 +71,9 @@ namespace Scripting
         // Process splitted paths scripts
         std::vector<std::string> scriptDirList =
         {
-            Paths::getUserEmulationStationPath() + "/scripts/" + eventName,
+            Paths::getConfigPath() + "/scripts/" + eventName,
             Paths::getEmulationStationPath() + "/scripts/" + eventName,
-            "/var/run/emulationstation/scripts/" + eventName
+            Paths::getRuntimePath() + "/scripts/" + eventName
         };
 
         for (auto dir : VectorHelper::distinct(scriptDirList, [](auto x) { return x; }))
@@ -88,9 +88,9 @@ namespace Scripting
         // Process single scripts. This type of scripts are called with the event name as 1st arg
         std::vector<std::string> paths =
         {
-            Paths::getUserEmulationStationPath() + "/scripts",
+            Paths::getConfigPath() + "/scripts",
             Paths::getEmulationStationPath() + "/scripts",
-            "/var/run/emulationstation/scripts"
+            Paths::getRuntimePath() + "/scripts"
         };
 
         for (auto dir : VectorHelper::distinct(paths, [](auto x) { return x; }))
