@@ -27,14 +27,14 @@ public:
 	void onOpacityChanged() override;
 	void onSizeChanged() override;
 	
-	virtual std::vector<HelpPrompt> getHelpPrompts() override;
-	virtual void setColor(unsigned int color);
+	std::vector<HelpPrompt> getHelpPrompts() override;
+	void setColor(unsigned int color) override;
 
 	inline void setOnValueChanged(const std::function<void(const float&)>& callback) { mValueChanged = callback; }
 
-	virtual bool hitTest(int x, int y, Transform4x4f& parentTransform, std::vector<GuiComponent*>* pResult = nullptr) override;
-	virtual bool onMouseClick(int button, bool pressed, int x, int y) override;
-	virtual void onMouseMove(int x, int y) override;
+	bool hitTest(int x, int y, Transform4x4f& parentTransform, std::vector<GuiComponent*>* pResult = nullptr) override;
+	bool onMouseClick(int button, bool pressed, int x, int y) override;
+	void onMouseMove(int x, int y) override;
 
 	// Public methods to handle AUTO state
 	void setAuto(bool autoMode);

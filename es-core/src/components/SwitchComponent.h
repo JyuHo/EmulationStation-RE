@@ -15,11 +15,11 @@ public:
 	bool input(InputConfig* config, Input input) override;
 	void render(const Transform4x4f& parentTrans) override;
 	void onSizeChanged() override;
-	void onOpacityChanged();
+	void onOpacityChanged() override;
 
 	bool getState() const;
 	void setState(bool state);
-	std::string getValue() const;
+	std::string getValue() const override;
 	void setValue(const std::string& statestring) override;
 	bool changed();
 
@@ -28,9 +28,9 @@ public:
 	bool getAutoState() const;
 	void setAutoState(bool bAuto);
 
-	virtual std::vector<HelpPrompt> getHelpPrompts() override;
+	std::vector<HelpPrompt> getHelpPrompts() override;
 
-	void setColor(unsigned int color);
+	void setColor(unsigned int color) override;
 
 	inline void setOnChangedCallback(const std::function<void()>& callback) {
 		mOnChangedCallback = callback;

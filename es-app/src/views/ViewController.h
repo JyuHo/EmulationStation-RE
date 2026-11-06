@@ -36,7 +36,7 @@ public:
 
 	static ViewController* get();
 
-	virtual ~ViewController();
+	~ViewController() override;
 
 	// Try to completely populate the GameListView map.
 	// Caches things so there's no pauses during transitions.
@@ -94,8 +94,8 @@ public:
 
 	inline const State& getState() const { return mState; }
 
-	virtual std::vector<HelpPrompt> getHelpPrompts() override;
-	virtual HelpStyle getHelpStyle() override;
+	std::vector<HelpPrompt> getHelpPrompts() override;
+	HelpStyle getHelpStyle() override;
 
 	std::shared_ptr<IGameListView> getGameListView(SystemData* system, bool loadIfnull = true, const std::function<void()>& createAsPopupAndSetExitFunction = nullptr);
 	std::shared_ptr<SystemView> getSystemListView();
@@ -103,9 +103,9 @@ public:
 
 	void onThemeChanged(const std::shared_ptr<ThemeData>& theme);
 
-	virtual void onShow() override;
-	virtual void onScreenSaverActivate();
-	virtual void onScreenSaverDeactivate();
+	void onShow() override;
+	void onScreenSaverActivate() override;
+	void onScreenSaverDeactivate() override;
 
 	SystemData* getSelectedSystem();
 	ViewMode getViewMode();
@@ -114,7 +114,7 @@ public:
 
 	void setActiveView(std::shared_ptr<GuiComponent> view);
 	
-	virtual bool hitTest(int x, int y, Transform4x4f& parentTransform, std::vector<GuiComponent*>* pResult = nullptr) override;
+	bool hitTest(int x, int y, Transform4x4f& parentTransform, std::vector<GuiComponent*>* pResult = nullptr) override;
 
 private:
 	ViewController(Window* window);

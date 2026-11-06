@@ -45,7 +45,7 @@ public:
 		setAnimation(new LambdaAnimation(fadeFunc, 250), 0, [this] { mBusyAnim.setOpacity(255); });
 	}
 	
-	~GuiLoading()
+	~GuiLoading() override
 	{
 		mRunning = false;
 		mHandle->join();

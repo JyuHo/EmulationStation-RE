@@ -9,7 +9,7 @@ class WebImageComponent : public ImageComponent
 {
 public:		
 	WebImageComponent(Window* window, double keepInCacheDuration = -1);
-	virtual ~WebImageComponent();
+	~WebImageComponent() override;
 
 	std::string getThemeTypeName() override { return "webimage"; }
 
@@ -21,7 +21,7 @@ public:
 	void setOnImageLoaded(const std::function<void()> onLoaded) { mOnLoaded = onLoaded; }
 
 protected:
-	virtual void resize() override;
+	void resize() override;
 
 private:
 	HttpReq*	mRequest = nullptr;

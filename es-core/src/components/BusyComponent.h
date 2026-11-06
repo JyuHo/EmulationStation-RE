@@ -14,7 +14,7 @@ class BusyComponent : public GuiComponent
 {
 public:
 	BusyComponent(Window* window, const std::string& text = "__default__");
-	~BusyComponent();
+	~BusyComponent() override;
   
 	void onSizeChanged() override;
 	void setText(std::string txt); 

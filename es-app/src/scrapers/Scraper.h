@@ -77,7 +77,7 @@ public:
 	ScraperRequest(std::vector<ScraperSearchResult>& resultsWrite) : mResults(resultsWrite) {};
 
 	// returns "true" once we're done
-	virtual void update() = 0;
+	void update() override = 0;
 	
 protected:
 	std::vector<ScraperSearchResult>& mResults;
@@ -88,11 +88,11 @@ class ScraperHttpRequest : public ScraperRequest
 {
 public:
 	ScraperHttpRequest(std::vector<ScraperSearchResult>& resultsWrite, const std::string& url, HttpReqOptions* options = nullptr);
-	~ScraperHttpRequest();
+	~ScraperHttpRequest() override;
 
 	std::string getDependencyResponse(const std::string& id) const;
 
-	virtual void update() override;
+	void update() override;
 	virtual bool retryOn249() { return true; }
 
 protected:
@@ -124,7 +124,7 @@ class ScraperSearchHandle : public AsyncHandle
 public:
 	ScraperSearchHandle();
 
-	virtual void update();
+	void update() override;
 	inline const std::vector<ScraperSearchResult>& getResults() const { assert(mStatus != ASYNC_IN_PROGRESS); return mResults; }
 
 protected:
@@ -140,11 +140,11 @@ class ImageDownloadHandle : public AsyncHandle
 {
 public:
 	ImageDownloadHandle(const std::string& url, const std::string& path, int maxWidth, int maxHeight);
-	~ImageDownloadHandle();
+	~ImageDownloadHandle() override;
 
 	void update() override;
 
-	virtual int getPercent();
+	int getPercent() override;
 	std::string getImageFileName() { return mSavePath; }
 
 private:
@@ -178,7 +178,7 @@ public:
 		return mSource;
 	}
 
-	int getPercent() {
+	int getPercent() override {
 		return mPercent;
 	}
 

@@ -127,7 +127,7 @@ public:
 		onCursorChanged(CURSOR_STOPPED);
 	}
 
-	virtual void onHide() override
+	void onHide() override
 	{
 		GuiComponent::onHide();
 

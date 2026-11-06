@@ -225,7 +225,7 @@ public:
 		mFinished = true;
 	}
 
-	virtual void update()
+	void update() override
 	{
 		if (!mFinished)
 			return;

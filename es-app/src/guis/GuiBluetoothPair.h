@@ -10,14 +10,14 @@ class GuiBluetoothPair : public MenuComponent
 {
 public:
 	GuiBluetoothPair(Window* window);
-	~GuiBluetoothPair();
+	~GuiBluetoothPair() override;
 
-	virtual bool input(InputConfig* config, Input input) override;
-	virtual std::vector<HelpPrompt> getHelpPrompts() override;
-	virtual void updateSize() override;
+	bool input(InputConfig* config, Input input) override;
+	std::vector<HelpPrompt> getHelpPrompts() override;
+	void updateSize() override;
 
-	virtual void render(const Transform4x4f &parentTrans) override;
-	virtual void update(int deltaTime) override;
+	void render(const Transform4x4f &parentTrans) override;
+	void update(int deltaTime) override;
 
 private:
 	std::thread* mThread;

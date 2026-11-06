@@ -62,7 +62,7 @@ public:
 		}
 	}
 
-	std::vector<HelpPrompt> getHelpPrompts()
+	std::vector<HelpPrompt> getHelpPrompts() override
 	{
 		std::vector<HelpPrompt> prompts;
 		prompts.push_back(HelpPrompt(BUTTON_BACK, _("BACK"), [&] { delete this; }));
@@ -73,7 +73,7 @@ public:
 		return prompts;
 	}
 
-	void update(int deltaTime)
+	void update(int deltaTime) override
 	{
 		ImageComponent::update(deltaTime);
 
@@ -106,7 +106,7 @@ public:
 		}
 	}
 
-	bool input(InputConfig* config, Input input)
+	bool input(InputConfig* config, Input input) override
 	{
 		if (input.value != 0)
 		{
@@ -187,7 +187,7 @@ public:
 		mLocked = state;
 	}
 
-	bool hitTest(int x, int y, Transform4x4f& parentTransform, std::vector<GuiComponent*>* pResult)
+	bool hitTest(int x, int y, Transform4x4f& parentTransform, std::vector<GuiComponent*>* pResult) override
 	{
 		if (pResult != nullptr)
 		{
@@ -201,7 +201,7 @@ public:
 		return true;
 	}
 
-	bool onMouseWheel(int delta)
+	bool onMouseWheel(int delta) override
 	{
 		auto scale = getScale();
 		float zoomSpeed = 0.1f;
@@ -214,7 +214,7 @@ public:
 		return true;
 	}
 
-	void onMouseMove(int x, int y)
+	void onMouseMove(int x, int y) override
 	{
 		if (mPressedPoint.x() != -1 && mPressedPoint.y() != -1 && mWindow->hasMouseCapture(this))
 		{
@@ -237,7 +237,7 @@ public:
 		}
 	}
 
-	bool onMouseClick(int button, bool pressed, int x, int y)
+	bool onMouseClick(int button, bool pressed, int x, int y) override
 	{
 		if (button == 1)
 		{

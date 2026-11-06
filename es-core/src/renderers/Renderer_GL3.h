@@ -50,11 +50,11 @@ namespace Renderer
 		void         setSwapInterval() override;
 		void         swapBuffers() override;
 
-		void		 postProcessShader(const std::string& path, const float _x, const float _y, const float _w, const float _h, const std::map<std::string, std::string>& parameters, unsigned int* data = nullptr);
+		void		 postProcessShader(const std::string& path, const float _x, const float _y, const float _w, const float _h, const std::map<std::string, std::string>& parameters, unsigned int* data = nullptr) override;
 
 		size_t		 getTotalMemUsage() override;
 
-		bool		 supportShaders() { return true; }
+		bool		 supportShaders() override { return true; }
 		bool		 shaderSupportsCornerSize(const std::string& shader) override;
 
 	private:

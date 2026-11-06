@@ -51,7 +51,7 @@ public:
 	bool selectStoryboard(const std::string& name = "") override;
 	void deselectStoryboard(bool restoreinitialProperties = true) override;
 	void startStoryboard() override;
-	bool storyBoardExists(const std::string& name = "", const std::string& propertyName = "");
+	bool storyBoardExists(const std::string& name = "", const std::string& propertyName = "") override;
 
 	void playDefaultActivationStoryboard(bool activation);
 
@@ -65,7 +65,7 @@ class CarouselComponent : public IList<CarouselComponentData, IBindable*>
 {
 public:
 	CarouselComponent(Window* window);
-	~CarouselComponent();
+	~CarouselComponent() override;
 
 	void setThemedContext(const std::string& logoName, const std::string& logoTextName, const std::string& elementName, const std::string& className, CarouselType type, CarouselImageSource source)
 	{
@@ -81,8 +81,8 @@ public:
 
 	std::string getThemeTypeName() override { return mThemeClass; }
 
-	virtual void onShow() override;
-	virtual void onHide() override;
+	void onShow() override;
+	void onHide() override;
 
 	bool input(InputConfig* config, Input input) override;
 	void update(int deltaTime) override;
@@ -94,14 +94,14 @@ public:
 	IBindable*	getActiveObject();
 
 	inline void setCursorChangedCallback(const std::function<void(CursorState state)>& func) { mCursorChangedCallback = func; }
-	void	applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element, unsigned int properties);
+	void	applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element, unsigned int properties) override;
 
 	int getLastCursor() { return mLastCursor; }
 	void resetLastCursor() { mLastCursor = -1; }
 
-	virtual bool onMouseClick(int button, bool pressed, int x, int y) override;
-	virtual void onMouseMove(int x, int y) override;
-	virtual bool onMouseWheel(int delta) override;
+	bool onMouseClick(int button, bool pressed, int x, int y) override;
+	void onMouseMove(int x, int y) override;
+	bool onMouseWheel(int delta) override;
 
 	std::string getDefaultTransition() { return mDefaultTransition; }
 	float getTransitionSpeed() { return mTransitionSpeed; }
@@ -116,9 +116,9 @@ private:
 
 	int		 moveCursorFast(bool forward = true);
 
-	virtual void onScreenSaverActivate() override;
-	virtual void onScreenSaverDeactivate() override;
-	virtual void topWindow(bool isTop) override;
+	void onScreenSaverActivate() override;
+	void onScreenSaverDeactivate() override;
+	void topWindow(bool isTop) override;
 
 	void getCarouselFromTheme(const ThemeData::ThemeElement* elem);
 

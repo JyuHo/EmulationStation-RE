@@ -34,7 +34,7 @@ class SystemView : public GuiComponent
 {
 public:
 	SystemView(Window* window);
-	~SystemView();
+	~SystemView() override;
 
 	void goToSystem(SystemData* system, bool animate);
 
@@ -44,27 +44,27 @@ public:
 	SystemData* getActiveSystem();
 
 	// GuiComponent overrides
-	virtual void onShow() override;
-	virtual void onHide() override;
-	virtual void onScreenSaverActivate() override;
-	virtual void onScreenSaverDeactivate() override;
-	virtual void topWindow(bool isTop) override;
+	void onShow() override;
+	void onHide() override;
+	void onScreenSaverActivate() override;
+	void onScreenSaverDeactivate() override;
+	void topWindow(bool isTop) override;
 
-	virtual bool input(InputConfig* config, Input input) override;
-	virtual void update(int deltaTime) override;
-	virtual void render(const Transform4x4f& parentTrans) override;
+	bool input(InputConfig* config, Input input) override;
+	void update(int deltaTime) override;
+	void render(const Transform4x4f& parentTrans) override;
 
 	// Help
 	std::vector<HelpPrompt> getHelpPrompts() override;
-	virtual HelpStyle getHelpStyle() override;
+	HelpStyle getHelpStyle() override;
 
 	// Mouse support
-	virtual bool hitTest(int x, int y, Transform4x4f& parentTransform, std::vector<GuiComponent*>* pResult = nullptr) override;
-	virtual void onMouseMove(int x, int y) override;
-	virtual bool onMouseWheel(int delta) override;
-	virtual bool onMouseClick(int button, bool pressed, int x, int y) override;
+	bool hitTest(int x, int y, Transform4x4f& parentTransform, std::vector<GuiComponent*>* pResult = nullptr) override;
+	void onMouseMove(int x, int y) override;
+	bool onMouseWheel(int delta) override;
+	bool onMouseClick(int button, bool pressed, int x, int y) override;
 
-	virtual bool onAction(const std::string& action) override;
+	bool onAction(const std::string& action) override;
 
 	int getCursorIndex();
 	std::vector<SystemData*> getObjects();

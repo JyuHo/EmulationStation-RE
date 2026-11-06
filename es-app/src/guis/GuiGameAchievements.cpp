@@ -91,7 +91,7 @@ public:
 		setSize(0, height);
 	}
 
-	virtual void setColor(unsigned int color)
+	void setColor(unsigned int color) override
 	{
 		mText->setColor(color);
 		mSubstring->setColor(color);

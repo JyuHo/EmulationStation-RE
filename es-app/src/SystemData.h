@@ -86,7 +86,7 @@ class SystemData : public IKeyboardMapContainer, public IBindable
 {
 public:
     SystemData(const SystemMetadata& type, SystemEnvironmentData* envData, std::vector<EmulatorData>* pEmulators, bool CollectionSystem = false, bool groupedSystem = false, bool withTheme = true, bool loadThemeOnlyIfElements = false);
-	~SystemData();
+	~SystemData() override;
 
 	static SystemData* getSystem(const std::string& name);
 	static SystemData* getFirstVisibleSystem();
@@ -214,8 +214,8 @@ public:
 	static SystemData* loadSystem(std::string systemName, bool fullMode = true);
 	static std::map<std::string, std::string> getKnownSystemNames();
 
-	bool hasKeyboardMapping();
-	KeyMappingFile getKeyboardMapping();
+	bool hasKeyboardMapping() override;
+	KeyMappingFile getKeyboardMapping() override;
 
 	bool shouldExtractHashesFromArchives();
 

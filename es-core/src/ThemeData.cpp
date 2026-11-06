@@ -1583,7 +1583,7 @@ void ThemeData::parseCustomViewBaseClass(const pugi::xml_node& root, ThemeView& 
 	for (auto& element : baseView.elements)
 	{
 		view.elements.erase(element.first);
-		view.elements.insert(std::move(std::pair<std::string, ThemeElement>(element.first, element.second)));
+		view.elements.insert(std::pair<std::string, ThemeElement>(element.first, element.second));
 
 		if (existingKeys.find(element.first) == existingKeys.cend())
 		{
@@ -2099,7 +2099,7 @@ void ThemeData::parseElement(const pugi::xml_node& root, const std::map<std::str
 				if (!overwrite && element.properties.find(name) != element.properties.cend())
 					continue;
 
-				element.children.emplace_back("itemTemplate", std::move(ThemeElement()));
+				element.children.emplace_back("itemTemplate", ThemeElement());
 				std::pair<std::string, ThemeElement>& item = element.children.back();
 				item.second.extra = 99;
 
@@ -2111,7 +2111,7 @@ void ThemeData::parseElement(const pugi::xml_node& root, const std::map<std::str
 			}
 			else if (name == "shader" || ((name == "menuShader" || name == "fadeShader") && std::string(root.name()) == "menuBackground"))
 			{
-				element.children.emplace_back(name, std::move(ThemeElement()));
+				element.children.emplace_back(name, ThemeElement());
 				std::pair<std::string, ThemeElement>& item = element.children.back();
 				item.second.extra = 1;
 
@@ -2146,7 +2146,7 @@ void ThemeData::parseElement(const pugi::xml_node& root, const std::map<std::str
 
 				const std::string elemKey = node.attribute("name") ? node.attribute("name").as_string() : name;
 
-				element.children.emplace_back(elemKey, std::move(ThemeElement()));
+				element.children.emplace_back(elemKey, ThemeElement());
 
 				std::pair<std::string, ThemeElement>& item = element.children.back();
 				item.second.extra = 1;

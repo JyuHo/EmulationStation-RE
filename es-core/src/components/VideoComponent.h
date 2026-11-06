@@ -37,7 +37,7 @@ class VideoComponent : public GuiComponent
 
 public:
 	VideoComponent(Window* window);
-	virtual ~VideoComponent();
+	~VideoComponent() override;
 
 	std::string getValue() const override 
 	{ 
@@ -62,11 +62,11 @@ public:
 
 	void setStartDelay(int delay) { mConfig.startDelay = delay; }
 
-	virtual void onShow() override;
-	virtual void onHide() override;
-	virtual void onScreenSaverActivate() override;
-	virtual void onScreenSaverDeactivate() override;
-	virtual void topWindow(bool isTop) override;
+	void onShow() override;
+	void onHide() override;
+	void onScreenSaverActivate() override;
+	void onScreenSaverDeactivate() override;
+	void topWindow(bool isTop) override;
 
 	void onOriginChanged() override;
 	void onSizeChanged() override;
@@ -77,11 +77,11 @@ public:
 	void render(const Transform4x4f& parentTrans) override;
 	void renderSnapshot(const Transform4x4f& parentTrans);
 
-	virtual void applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element, unsigned int properties) override;
+	void applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element, unsigned int properties) override;
 
-	virtual std::vector<HelpPrompt> getHelpPrompts() override;
+	std::vector<HelpPrompt> getHelpPrompts() override;
 
-	virtual void update(int deltaTime);
+	void update(int deltaTime) override;
 
 	// Resize the video to fit this size. If one axis is zero, scale that axis to maintain aspect ratio.
 	// If both are non-zero, potentially break the aspect ratio.  If both are zero, no resizing.
@@ -164,7 +164,7 @@ public:
 	ThemeData::ThemeElement::Property getProperty(const std::string name) override;
 	void setProperty(const std::string name, const ThemeData::ThemeElement::Property& value) override;
 
-	virtual void setClipRect(const Vector4f& vec);
+	void setClipRect(const Vector4f& vec) override;
 
 	Vector2f& getTargetSize() { return mTargetSize; }
 

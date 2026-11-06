@@ -14,11 +14,11 @@ class VideoGameListView : public BasicGameListView
 public:
 	VideoGameListView(Window* window, FolderData* root);
 
-	virtual void onShow() override;
+	void onShow() override;
 
-	virtual void onThemeChanged(const std::shared_ptr<ThemeData>& theme) override;
+	void onThemeChanged(const std::shared_ptr<ThemeData>& theme) override;
 
-	virtual const char* getName() const override
+	const char* getName() const override
 	{
 		if (!mCustomThemeName.empty())
 			return mCustomThemeName.c_str();
@@ -26,11 +26,11 @@ public:
 		return "video";
 	}
 
-	virtual void launch(FileData* game) override;
-	virtual Vector3f getLaunchTarget(Vector2f* size) override;
+	void launch(FileData* game) override;
+	Vector3f getLaunchTarget(Vector2f* size) override;
 
 protected:
-	virtual void update(int deltaTime) override;
+	void update(int deltaTime) override;
 
 private:	
 	void updateInfoPanel();

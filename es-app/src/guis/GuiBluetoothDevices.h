@@ -11,7 +11,7 @@ class GuiBluetoothDevices : public GuiComponent
 public:
 	GuiBluetoothDevices(Window* window);
 	bool input(InputConfig* config, Input input) override;
-	virtual std::vector<HelpPrompt> getHelpPrompts() override;
+	std::vector<HelpPrompt> getHelpPrompts() override;
 
 private:
 	bool	load();

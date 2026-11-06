@@ -70,7 +70,7 @@ class GuiNetPlay : public GuiComponent
 {
 public:
 	GuiNetPlay(Window* window);
-	~GuiNetPlay();
+	~GuiNetPlay() override;
 
 	void update(int deltaTime) override;
 	void render(const Transform4x4f &parentTrans) override;
@@ -79,7 +79,7 @@ public:
 	std::vector<HelpPrompt> getHelpPrompts() override;
 
 	bool hitTest(int x, int y, Transform4x4f& parentTransform, std::vector<GuiComponent*>* pResult = nullptr) override;
-	bool onMouseClick(int button, bool pressed, int x, int y);
+	bool onMouseClick(int button, bool pressed, int x, int y) override;
 
 private:
 	void startRequest();

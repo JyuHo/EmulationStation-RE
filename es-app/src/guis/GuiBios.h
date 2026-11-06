@@ -19,8 +19,8 @@ public:
 
 	bool input(InputConfig* config, Input input) override;
 
-	virtual std::vector<HelpPrompt> getHelpPrompts() override;
-	virtual void onSizeChanged() override;
+	std::vector<HelpPrompt> getHelpPrompts() override;
+	void onSizeChanged() override;
 
 protected:
 	GuiBios(Window* window, const std::vector<BiosSystem> bioses);

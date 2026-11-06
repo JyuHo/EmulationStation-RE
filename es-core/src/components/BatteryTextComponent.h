@@ -14,11 +14,11 @@ class BatteryTextComponent : public TextComponent, IWatcherNotify
 {
 public:
 	BatteryTextComponent(Window* window);
-	~BatteryTextComponent();
+	~BatteryTextComponent() override;
 
 	std::string getThemeTypeName() override { return "batteryText"; }
 
-	virtual void update(int deltaTime);
+	void update(int deltaTime) override;
 
 	void OnWatcherChanged(IWatcher* component) override;
 

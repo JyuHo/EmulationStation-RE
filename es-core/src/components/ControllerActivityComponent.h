@@ -22,7 +22,7 @@ public:
 	};
 
 	ControllerActivityComponent(Window* window);
-	~ControllerActivityComponent();
+	~ControllerActivityComponent() override;
 
 	std::string getThemeTypeName() override { return "controllerActivity"; }
 
@@ -36,7 +36,7 @@ public:
 	void render(const Transform4x4f& parentTrans) override;
 	bool input(InputConfig* config, Input input) override;
 
-	virtual void applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element, unsigned int properties) override;
+	void applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element, unsigned int properties) override;
 
 	void setSpacing(float spacing) { mSpacing = spacing; }
 	void setHorizontalAlignment(Alignment align) { mHorizontalAlignment = align; }

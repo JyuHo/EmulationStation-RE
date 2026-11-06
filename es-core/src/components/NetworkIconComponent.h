@@ -13,7 +13,7 @@ class NetworkIconComponent : public ImageComponent, IWatcherNotify
 {
 public:
 	NetworkIconComponent(Window* window);
-	~NetworkIconComponent();
+	~NetworkIconComponent() override;
 
 	std::string getThemeTypeName() override { return "networkIcon"; }
 

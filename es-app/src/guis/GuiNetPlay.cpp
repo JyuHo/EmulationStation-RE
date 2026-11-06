@@ -478,7 +478,7 @@ public:
 		return mEntry;
 	}
 
-	virtual void setColor(unsigned int color)
+	void setColor(unsigned int color) override
 	{
 		mText->setColor(color);
 		mSubstring->setColor(color);

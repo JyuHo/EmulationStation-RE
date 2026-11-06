@@ -25,7 +25,7 @@ public:
 	void setFormat(const std::string& format);
 	void setDisplayRelative(bool displayRelative);
 
-	virtual void applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element, unsigned int properties) override;
+	void applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element, unsigned int properties) override;
 
 protected:
 	void onTextChanged() override;

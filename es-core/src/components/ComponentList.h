@@ -83,7 +83,7 @@ public:
 	bool input(InputConfig* config, Input input) override;
 	void update(int deltaTime) override;
 	void render(const Transform4x4f& parentTrans) override;
-	virtual std::vector<HelpPrompt> getHelpPrompts() override;
+	std::vector<HelpPrompt> getHelpPrompts() override;
 
 	void onSizeChanged() override;
 	void onFocusGained() override;
@@ -104,17 +104,17 @@ public:
 
 	void saySelectedLine();
 
-	virtual bool onMouseClick(int button, bool pressed, int x, int y) override;
-	virtual void onMouseMove(int x, int y) override;
-	virtual bool onMouseWheel(int delta) override;
-	virtual bool hitTest(int x, int y, Transform4x4f& parentTransform, std::vector<GuiComponent*>* pResult = nullptr) override;
+	bool onMouseClick(int button, bool pressed, int x, int y) override;
+	void onMouseMove(int x, int y) override;
+	bool onMouseWheel(int delta) override;
+	bool hitTest(int x, int y, Transform4x4f& parentTransform, std::vector<GuiComponent*>* pResult = nullptr) override;
 
 	inline void setReadOnly(bool value) { mReadOnly = value; }
 
 protected:
 	void onCursorChanged(const CursorState& state) override;
 
-	virtual int onBeforeScroll(int cursor, int direction) override
+	int onBeforeScroll(int cursor, int direction) override
 	{ 
 		int looped = cursor;
 		while (cursor >= 0 && cursor < (int)mEntries.size() && !mEntries[cursor].data.selectable)

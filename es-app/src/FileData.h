@@ -77,7 +77,7 @@ class FileData : public IKeyboardMapContainer, public IBindable
 {
 public:
 	FileData(FileType type, const std::string& path, SystemData* system);
-	virtual ~FileData();
+	~FileData() override;
 
 	static FileData* GetRunningGame() { return mRunningGame; }
 
@@ -165,8 +165,8 @@ public:
 	std::string convertP2kFile();
 	bool hasP2kFile();
 
-	bool hasKeyboardMapping();
-	KeyMappingFile getKeyboardMapping();
+	bool hasKeyboardMapping() override;
+	KeyMappingFile getKeyboardMapping() override;
 	bool isFeatureSupported(EmulatorFeatures::Features feature);
 	bool isExtensionCompatible();
 
@@ -208,18 +208,18 @@ class CollectionFileData : public FileData
 {
 public:
 	CollectionFileData(FileData* file, SystemData* system);
-	~CollectionFileData();
-	const std::string& getName();	
-	FileData* getSourceFileData();
-	std::string getKey();
-	virtual const std::string getPath() const;
+	~CollectionFileData() override;
+	const std::string& getName() override;	
+	FileData* getSourceFileData() override;
+	std::string getKey() override;
+	const std::string getPath() const override;
 
-	virtual std::string getSystemName() const;
-	virtual SystemEnvironmentData* getSystemEnvData() const;
+	std::string getSystemName() const override;
+	SystemEnvironmentData* getSystemEnvData() const override;
 
-	virtual const MetaDataList& getMetadata() const { return mSourceFileData->getMetadata(); }
-	virtual MetaDataList& getMetadata() { return mSourceFileData->getMetadata(); }
-	virtual std::string& getDisplayName() { return mSourceFileData->getDisplayName(); }
+	const MetaDataList& getMetadata() const override { return mSourceFileData->getMetadata(); }
+	MetaDataList& getMetadata() override { return mSourceFileData->getMetadata(); }
+	std::string& getDisplayName() override { return mSourceFileData->getDisplayName(); }
 
 private:
 	// needs to be updated when metadata changes
@@ -233,7 +233,7 @@ class FolderData : public FileData
 
 public:
 	FolderData(const std::string& startpath, SystemData* system, bool ownsChildrens = true);
-	~FolderData();
+	~FolderData() override;
 
 	inline bool isVirtualStorage() { return !mOwnsChildrens; }
 	inline bool isVirtualFolderDisplay() { return mIsDisplayableAsVirtualFolder && !mOwnsChildrens; }

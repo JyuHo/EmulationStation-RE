@@ -116,16 +116,16 @@ public:
 	void resetLastCursor() { mLastCursor = -1; }
 	int getLastCursor() { return mLastCursor; }
 
-	virtual bool onMouseClick(int button, bool pressed, int x, int y) override;
-	virtual void onMouseMove(int x, int y) override;
-	virtual bool onMouseWheel(int delta) override;
-	virtual bool hitTest(int x, int y, Transform4x4f& parentTransform, std::vector<GuiComponent*>* pResult = nullptr) override;
+	bool onMouseClick(int button, bool pressed, int x, int y) override;
+	void onMouseMove(int x, int y) override;
+	bool onMouseWheel(int delta) override;
+	bool hitTest(int x, int y, Transform4x4f& parentTransform, std::vector<GuiComponent*>* pResult = nullptr) override;
 
 	Delegate<ILongMouseClickEvent> longMouseClick;
 
 protected:
-	virtual void onScroll(int /*amt*/) { if (!mScrollSound.empty()) Sound::get(mScrollSound)->play(); }
-	virtual void onCursorChanged(const CursorState& state);
+	void onScroll(int /*amt*/) override { if (!mScrollSound.empty()) Sound::get(mScrollSound)->play(); }
+	void onCursorChanged(const CursorState& state) override;
 
 private:
 	void  updateCameraOffset();

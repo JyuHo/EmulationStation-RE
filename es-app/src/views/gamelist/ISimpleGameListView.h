@@ -13,34 +13,34 @@ class ISimpleGameListView : public IGameListView
 {
 public:
 	ISimpleGameListView(Window* window, FolderData* root, bool temporary = false);
-	virtual ~ISimpleGameListView();
+	~ISimpleGameListView() override;
 
 	// Called when a new file is added, a file is removed, a file's metadata changes, or a file's children are sorted.
 	// NOTE: FILE_SORTED is only reported for the topmost FileData, where the sort started.
 	//       Since sorts are recursive, that FileData's children probably changed too.
-	virtual void onFileChanged(FileData* file, FileChangeType change);
+	void onFileChanged(FileData* file, FileChangeType change) override;
 	
 	// Called whenever the theme changes.
-	virtual void onThemeChanged(const std::shared_ptr<ThemeData>& theme);
+	void onThemeChanged(const std::shared_ptr<ThemeData>& theme) override;
 
-	virtual FileData* getCursor() = 0;
-	virtual void setCursor(FileData*) = 0;
+	FileData* getCursor() override = 0;
+	void setCursor(FileData*) override = 0;
 	virtual int getCursorIndex() =0; 
 	virtual void setCursorIndex(int index) =0; 
 
 	virtual void resetLastCursor() = 0;
 
-	virtual void update(int deltaTime) override;
-	virtual bool input(InputConfig* config, Input input) override;
-	virtual void launch(FileData* game) = 0;
+	void update(int deltaTime) override;
+	bool input(InputConfig* config, Input input) override;
+	void launch(FileData* game) override = 0;
 	
-	virtual std::vector<std::string> getEntriesLetters() override;
+	std::vector<std::string> getEntriesLetters() override;
 	// virtual std::vector<FileData*> getFileDataEntries() = 0;
 
 	void	moveToFolder(FolderData* folder);
 	FolderData*		getCurrentFolder();
 
-	virtual void repopulate() override;
+	void repopulate() override;
 
 	void setPopupContext(std::shared_ptr<IGameListView> pThis, std::shared_ptr<GuiComponent> parentView, const std::string label, const std::function<void()>& onExitTemporary);
 	void closePopupContext();
@@ -58,8 +58,8 @@ public:
 	void showSelectedGameSaveSnapshots();
 	void toggleFavoritesFilter();
 
-	virtual std::vector<HelpPrompt> getHelpPrompts() override;
-	virtual bool onAction(const std::string& action) override;
+	std::vector<HelpPrompt> getHelpPrompts() override;
+	bool onAction(const std::string& action) override;
 
 	const std::vector<GuiComponent*>& getThemeExtras() const { return mThemeExtras; }
 

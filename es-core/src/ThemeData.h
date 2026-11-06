@@ -61,7 +61,7 @@ class ThemeException : public std::exception
 public:
 	std::string msg;
 
-	virtual const char* what() const throw() { return msg.c_str(); }
+	const char* what() const throw() override { return msg.c_str(); }
 
 	template<typename T>
 	friend ThemeException& operator<<(ThemeException& e, T msg);

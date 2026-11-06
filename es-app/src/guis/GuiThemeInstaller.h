@@ -22,7 +22,7 @@ public:
 	bool isCurrentTheme() { return mIsCurrentTheme; }
 
 	BatoceraTheme& getEntry() { return mEntry; }
-	virtual void setColor(unsigned int color);
+	void setColor(unsigned int color) override;
 
 	void update(int deltaTime) override;
 
@@ -42,13 +42,13 @@ class GuiThemeInstaller : public GuiComponent, IContentInstalledNotify
 {
 public:
 	GuiThemeInstaller(Window* window);
-	~GuiThemeInstaller();
+	~GuiThemeInstaller() override;
 
 	bool input(InputConfig* config, Input input) override;
 	void update(int deltaTime) override;
 
-	virtual std::vector<HelpPrompt> getHelpPrompts() override;
-	virtual void onSizeChanged() override;
+	std::vector<HelpPrompt> getHelpPrompts() override;
+	void onSizeChanged() override;
 
 	void OnContentInstalled(int contentType, std::string contentName, bool success) override;
 

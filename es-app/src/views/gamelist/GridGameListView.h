@@ -16,19 +16,19 @@ class GridGameListView : public ISimpleGameListView, public ILongMouseClickEvent
 public:
 	GridGameListView(Window* window, FolderData* root, const std::shared_ptr<ThemeData>& theme, std::string customThemeName = "", Vector2f gridSize = Vector2f(0,0));
 
-	virtual void onThemeChanged(const std::shared_ptr<ThemeData>& theme) override;
+	void onThemeChanged(const std::shared_ptr<ThemeData>& theme) override;
 
-	virtual FileData* getCursor() override;
-	virtual void setCursor(FileData*) override;
-	virtual int getCursorIndex() override; 
-	virtual void setCursorIndex(int index) override; 
-	virtual void resetLastCursor() override;
-	virtual void moveToRandomGame() override;
-	virtual bool onMouseWheel(int delta) override;
+	FileData* getCursor() override;
+	void setCursor(FileData*) override;
+	int getCursorIndex() override; 
+	void setCursorIndex(int index) override; 
+	void resetLastCursor() override;
+	void moveToRandomGame() override;
+	bool onMouseWheel(int delta) override;
 
-	virtual bool input(InputConfig* config, Input input) override;
+	bool input(InputConfig* config, Input input) override;
 
-	virtual const char* getName() const override
+	const char* getName() const override
 	{
 		if (!mCustomThemeName.empty())
 			return mCustomThemeName.c_str();
@@ -36,22 +36,22 @@ public:
 		return "grid";
 	}
 
-	virtual void launch(FileData* game) override;
-	virtual Vector3f getLaunchTarget(Vector2f* size) override;
-	virtual void onFileChanged(FileData* file, FileChangeType change);
+	void launch(FileData* game) override;
+	Vector3f getLaunchTarget(Vector2f* size) override;
+	void onFileChanged(FileData* file, FileChangeType change) override;
 
-	virtual void setThemeName(std::string name);
-	virtual void onShow();
-	virtual std::vector<FileData*> getFileDataEntries() override;
-	virtual void update(int deltaTime) override;
+	void setThemeName(std::string name) override;
+	void onShow() override;
+	std::vector<FileData*> getFileDataEntries() override;
+	void update(int deltaTime) override;
 
-	virtual void onLongMouseClick(GuiComponent* component) override;
+	void onLongMouseClick(GuiComponent* component) override;
 
 protected:
-	virtual std::string getQuickSystemSelectRightButton() override;
-	virtual std::string getQuickSystemSelectLeftButton() override;
-	virtual void populateList(const std::vector<FileData*>& files) override;
-	virtual void remove(FileData* game) override;
+	std::string getQuickSystemSelectRightButton() override;
+	std::string getQuickSystemSelectLeftButton() override;
+	void populateList(const std::vector<FileData*>& files) override;
+	void remove(FileData* game) override;
 	virtual void addPlaceholder();
 
 	ImageGridComponent<FileData*> mGrid;

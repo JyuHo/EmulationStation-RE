@@ -16,7 +16,7 @@ public:
 	IGameListView(Window* window, FolderData* root) : GuiComponent(window), mRoot(root)
 		{ setSize((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight()); }
 
-	virtual ~IGameListView() {}
+	~IGameListView() override {}
 
 	// Called when a new file is added, a file is removed, a file's metadata changes, or a file's children are sorted.
 	// NOTE: FILE_SORTED is only reported for the topmost FileData, where the sort started.
@@ -38,7 +38,7 @@ public:
 	virtual void launch(FileData* game) = 0;
 	virtual Vector3f getLaunchTarget(Vector2f* size) { return Vector3f(Renderer::getScreenWidth() / 2.0f, Renderer::getScreenHeight() / 2.0f, 0); }
 
-	virtual HelpStyle getHelpStyle() override;
+	HelpStyle getHelpStyle() override;
 
 	void render(const Transform4x4f& parentTrans) override;
 	virtual void setThemeName(std::string name);

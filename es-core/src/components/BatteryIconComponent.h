@@ -14,7 +14,7 @@ class BatteryIconComponent : public ImageComponent, IWatcherNotify
 {
 public:
 	BatteryIconComponent(Window* window);
-	~BatteryIconComponent();
+	~BatteryIconComponent() override;
 
 	std::string getThemeTypeName() override { return "batteryIcon"; }
 

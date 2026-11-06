@@ -193,7 +193,7 @@ private:
 			addChild(&mMenu);
 		}
 
-		~OptionListPopup()
+		~OptionListPopup() override
 		{
 			if (*mParentAlive)
 				mParent->onPopupClosed();
@@ -266,7 +266,7 @@ public:
 		setSize(mLeftArrow.getSize().x() + mRightArrow.getSize().x(), theme->Text.font->getHeight());
 	}
 
-	~OptionListComponent()
+	~OptionListComponent() override
 	{
 		*mAlive = false;
 	}
@@ -295,7 +295,7 @@ public:
 		}).detach();
 	}
 
-	virtual void setColor(unsigned int color)
+	void setColor(unsigned int color) override
 	{
 		mText.setColor(color);
 		mLeftArrow.setColorShift(color);

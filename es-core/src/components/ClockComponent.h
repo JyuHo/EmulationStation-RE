@@ -15,7 +15,7 @@ public:
 
 	std::string getThemeTypeName() override { return "clock"; }
 
-	virtual void update(int deltaTime);
+	void update(int deltaTime) override;
 
 private:
 	int mClockElapsed;

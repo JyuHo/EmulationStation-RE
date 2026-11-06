@@ -23,7 +23,7 @@ class ImageComponent : public GuiComponent
 {
 public:
 	ImageComponent(Window* window, bool forceLoad = false, bool dynamic = true);
-	virtual ~ImageComponent();
+	~ImageComponent() override;
 
 	std::string getThemeTypeName() override { return "image"; }
 
@@ -73,7 +73,7 @@ public:
 	void setColorShift(unsigned int color);
 	void setColorShiftEnd(unsigned int color);
 	void setColorGradientHorizontal(bool horizontal);
-	virtual void setColor(unsigned int color) { setColorShift(color); }
+	void setColor(unsigned int color) override { setColorShift(color); }
 
 	void setFlipX(bool flip); // Mirror on the X axis.
 	void setFlipY(bool flip); // Mirror on the Y axis.
@@ -91,9 +91,9 @@ public:
 
 	void render(const Transform4x4f& parentTrans) override;
 
-	virtual void applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element, unsigned int properties) override;
+	void applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element, unsigned int properties) override;
 
-	virtual std::vector<HelpPrompt> getHelpPrompts() override;
+	std::vector<HelpPrompt> getHelpPrompts() override;
 
 	void setAllowFading(bool fade) { mAllowFading = fade; };
 	void setMirroring(Vector2f mirror) { mReflection = mirror; };

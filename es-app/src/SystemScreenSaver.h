@@ -15,7 +15,7 @@ class GameScreenSaverBase : public GuiComponent
 {
 public:
 	GameScreenSaverBase(Window* window);
-	~GameScreenSaverBase();
+	~GameScreenSaverBase() override;
 
 	virtual void setGame(FileData* mCurrentGame);
 
@@ -43,7 +43,7 @@ class ImageScreenSaver : public GameScreenSaverBase
 {
 public:
 	ImageScreenSaver(Window* window);
-	~ImageScreenSaver();
+	~ImageScreenSaver() override;
 
 	void setImage(const std::string path);
 	bool hasImage();
@@ -60,7 +60,7 @@ class VideoScreenSaver : public GameScreenSaverBase
 {
 public:
 	VideoScreenSaver(Window* window, SystemScreenSaver* systemScreenSaver);
-	~VideoScreenSaver();
+	~VideoScreenSaver() override;
 
 	void setVideo(const std::string path);
 	void render(const Transform4x4f& transform) override;
@@ -81,18 +81,18 @@ public:
 	SystemScreenSaver(Window* window);
 	virtual ~SystemScreenSaver();
 
-	virtual void startScreenSaver();
-	virtual void stopScreenSaver();
-	virtual void nextVideo();
-	virtual void renderScreenSaver();
-	virtual bool allowSleep();
-	virtual void update(int deltaTime);
-	virtual bool isScreenSaverActive();
+	void startScreenSaver() override;
+	void stopScreenSaver() override;
+	void nextVideo() override;
+	void renderScreenSaver() override;
+	bool allowSleep() override;
+	void update(int deltaTime) override;
+	bool isScreenSaverActive() override;
 	int getNextUpdateTimeout();
 
-	virtual FileData* getCurrentGame();
-	virtual void launchGame();
-	inline virtual void resetCounts() { mGamesWithVideosLoaded = false; mGamesWithImagesLoaded = false; mGamesWithImages.clear(); mGamesWithVideos.clear(); };
+	FileData* getCurrentGame() override;
+	void launchGame() override;
+	inline void resetCounts() override { mGamesWithVideosLoaded = false; mGamesWithImagesLoaded = false; mGamesWithImages.clear(); mGamesWithVideos.clear(); };
 
 private:
 	unsigned long countGameListNodes(bool video = false);

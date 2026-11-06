@@ -12,19 +12,19 @@ public:
 	CarouselGameListView(Window* window, FolderData* root);
 
 	// Called when a FileData* is added, has its metadata changed, or is removed
-	virtual void onFileChanged(FileData* file, FileChangeType change);
+	void onFileChanged(FileData* file, FileChangeType change) override;
 
-	virtual void onThemeChanged(const std::shared_ptr<ThemeData>& theme);
+	void onThemeChanged(const std::shared_ptr<ThemeData>& theme) override;
 
-	virtual FileData* getCursor() override;
-	virtual void setCursor(FileData* file) override;
-	virtual int getCursorIndex() override; 
-	virtual void setCursorIndex(int index) override; 
-	virtual void resetLastCursor() override;
-	virtual bool onMouseWheel(int delta) override;
-	virtual void onShow();
+	FileData* getCursor() override;
+	void setCursor(FileData* file) override;
+	int getCursorIndex() override; 
+	void setCursorIndex(int index) override; 
+	void resetLastCursor() override;
+	bool onMouseWheel(int delta) override;
+	void onShow() override;
 
-	virtual const char* getName() const override
+	const char* getName() const override
 	{
 		if (!mCustomThemeName.empty())
 			return mCustomThemeName.c_str();
@@ -32,16 +32,16 @@ public:
 		return "gamecarousel";
 	}
 
-	virtual void launch(FileData* game) override;
-	virtual Vector3f getLaunchTarget(Vector2f* size) override;
-	virtual std::vector<FileData*> getFileDataEntries() override;
-	virtual void update(int deltaTime) override;
+	void launch(FileData* game) override;
+	Vector3f getLaunchTarget(Vector2f* size) override;
+	std::vector<FileData*> getFileDataEntries() override;
+	void update(int deltaTime) override;
 
 protected:
-	virtual std::string getQuickSystemSelectRightButton() override;
-	virtual std::string getQuickSystemSelectLeftButton() override;
-	virtual void populateList(const std::vector<FileData*>& files) override;
-	virtual void remove(FileData* game) override;
+	std::string getQuickSystemSelectRightButton() override;
+	std::string getQuickSystemSelectLeftButton() override;
+	void populateList(const std::vector<FileData*>& files) override;
+	void remove(FileData* game) override;
 	virtual void addPlaceholder();
 
 	void updateInfoPanel();

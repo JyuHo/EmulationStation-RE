@@ -87,7 +87,7 @@ public:
 	std::string getThemeTypeName() override { return "imagegrid"; }
 
 	void add(const std::string& name, const std::string& imagePath, const T& obj);
-	virtual void clear();
+	void clear() override;
 
 	void setImage(const std::string& imagePath, const T& obj);
 	std::string getImage(const T& obj);
@@ -95,20 +95,20 @@ public:
 	bool input(InputConfig* config, Input input) override;
 	void update(int deltaTime) override;
 	void render(const Transform4x4f& parentTrans) override;
-	virtual void applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element, unsigned int properties) override;
+	void applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element, unsigned int properties) override;
 
 	void onSizeChanged() override;
 	inline void setCursorChangedCallback(const std::function<void(CursorState state)>& func) { mCursorChangedCallback = func; }
 
 	void setThemeName(std::string name) { mName = name; };
 
-	virtual void topWindow(bool isTop);
-	virtual void onShow();
-	virtual void onHide();
-	virtual void onScreenSaverActivate();
-	virtual void onScreenSaverDeactivate();
+	void topWindow(bool isTop) override;
+	void onShow() override;
+	void onHide() override;
+	void onScreenSaverActivate() override;
+	void onScreenSaverDeactivate() override;
 
-	virtual void setOpacity(unsigned char opacity);
+	void setOpacity(unsigned char opacity) override;
 
 	ImageSource		getImageSource() { return mImageSource; };
 
@@ -119,10 +119,10 @@ public:
 	void resetLastCursor() { mLastCursor = -1; mLastCursorState = CursorState::CURSOR_STOPPED; }
 	int getLastCursor() { return mLastCursor; }
 
-	virtual bool onMouseClick(int button, bool pressed, int x, int y) override;
-	virtual void onMouseMove(int x, int y) override;
-	virtual bool onMouseWheel(int delta) override;
-	virtual bool hitTest(int x, int y, Transform4x4f& parentTransform, std::vector<GuiComponent*>* pResult = nullptr) override;
+	bool onMouseClick(int button, bool pressed, int x, int y) override;
+	void onMouseMove(int x, int y) override;
+	bool onMouseWheel(int delta) override;
+	bool hitTest(int x, int y, Transform4x4f& parentTransform, std::vector<GuiComponent*>* pResult = nullptr) override;
 
 	Vector3f getCameraOffset() 
 	{ 
@@ -137,8 +137,8 @@ public:
 	void		preloadTiles();
 
 protected:
-	virtual void onCursorChanged(const CursorState& state) override;
-	virtual void onScroll(int /*amt*/) { if (!mScrollSound.empty()) Sound::get(mScrollSound)->play(); }
+	void onCursorChanged(const CursorState& state) override;
+	void onScroll(int /*amt*/) override { if (!mScrollSound.empty()) Sound::get(mScrollSound)->play(); }
 
 private:
 	void		resetGrid();
