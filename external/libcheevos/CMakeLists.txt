@@ -2,7 +2,6 @@ project("libcheevos")
 
 set(CHEEVOS_HEADERS
 	${CMAKE_CURRENT_SOURCE_DIR}/cheevos.h
-	${CMAKE_CURRENT_SOURCE_DIR}/rcheevos/include/rcheevos.h
 	${CMAKE_CURRENT_SOURCE_DIR}/rcheevos/include/rc_api_info.h
 	${CMAKE_CURRENT_SOURCE_DIR}/rcheevos/include/rc_api_request.h
 	${CMAKE_CURRENT_SOURCE_DIR}/rcheevos/include/rc_api_runtime.h
@@ -59,7 +58,6 @@ set(LIBRETRO_COMMON_HEADERS
 	${CMAKE_CURRENT_SOURCE_DIR}/libretro-common/include/retro_common_api.h	
 	${CMAKE_CURRENT_SOURCE_DIR}/libretro-common/include/retro_environment.h		
 	${CMAKE_CURRENT_SOURCE_DIR}/libretro-common/include/retro_inline.h	
-	${CMAKE_CURRENT_SOURCE_DIR}/libretro-common/include/retro_assert.h	
 	${CMAKE_CURRENT_SOURCE_DIR}/libretro-common/include/retro_math.h	
 	${CMAKE_CURRENT_SOURCE_DIR}/libretro-common/include/retro_timers.h	
 	${CMAKE_CURRENT_SOURCE_DIR}/libretro-common/include/retro_dirent.h	
@@ -71,7 +69,6 @@ set(LIBRETRO_COMMON_HEADERS
 	${CMAKE_CURRENT_SOURCE_DIR}/libretro-common/include/formats/m3u_file.h
 	${CMAKE_CURRENT_SOURCE_DIR}/libretro-common/include/streams/chd_stream.h	
 	${CMAKE_CURRENT_SOURCE_DIR}/libretro-common/include/streams/file_stream.h
-	${CMAKE_CURRENT_SOURCE_DIR}/libretro-common/include/streams/file_stream_transforms.h
 	${CMAKE_CURRENT_SOURCE_DIR}/libretro-common/include/streams/interface_stream.h
 	${CMAKE_CURRENT_SOURCE_DIR}/libretro-common/include/streams/memory_stream.h
 	${CMAKE_CURRENT_SOURCE_DIR}/libretro-common/include/streams/rzip_stream.h
@@ -190,10 +187,8 @@ set(LIBRETRO_COMMON_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/libretro-common/src/libFLAC/stream_decoder.c	
 
 	${CMAKE_CURRENT_SOURCE_DIR}/libretro-common/src/libFLAC/include/FLAC/assert.h	
-	${CMAKE_CURRENT_SOURCE_DIR}/libretro-common/src/libFLAC/include/FLAC/callback.h	
 	${CMAKE_CURRENT_SOURCE_DIR}/libretro-common/src/libFLAC/include/FLAC/export.h
 	${CMAKE_CURRENT_SOURCE_DIR}/libretro-common/src/libFLAC/include/FLAC/format.h	
-	${CMAKE_CURRENT_SOURCE_DIR}/libretro-common/src/libFLAC/include/FLAC/metadata.h
 	${CMAKE_CURRENT_SOURCE_DIR}/libretro-common/src/libFLAC/include/FLAC/ordinals.h
 	${CMAKE_CURRENT_SOURCE_DIR}/libretro-common/src/libFLAC/include/FLAC/stream_decoder.h
 )
