@@ -32,6 +32,10 @@ namespace es::launcher
 
 		bool isSet(std::string_view key) const { return get(key).has_value(); }
 
+		// Every key starting with prefix, without the prefix, resolved like get(): lets the player
+		// pass raw emulator options ("retroarch.video_driver" -> "video_driver").
+		Layer withPrefix(std::string_view prefix) const;
+
 		const Layer& global() const { return mGlobal; }
 		const Layer& system() const { return mSystem; }
 		const Layer& game() const { return mGame; }

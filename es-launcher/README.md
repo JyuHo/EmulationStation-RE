@@ -62,6 +62,29 @@ catch (const es::launcher::LaunchError& e)
 | `LaunchError` | Thrown when the game cannot start; carries the exit code ES already translates (200 to 205, 250) |
 | `Launch` | One launch from `prepare()` to `finish()` |
 
+Generators
+----------
+
+| Emulator name (`es_systems.cfg`) | Generator | Notes |
+| --- | --- | --- |
+| `libretro`, `retroarch` | RetroArch | Core profiles for gambatte, mgba, melondsds, mesen, fceumm, snes9x, mupen64plus-next and flycast; any other core runs with the generic settings |
+
+Any other emulator keeps the `es_systems.cfg` command. Setting `eslauncher=0` in the ES
+configuration (`global.eslauncher`, `<system>.eslauncher` or for one game) also keeps it.
+
+### RetroArch
+
+* Configuration: `$XDG_CONFIG_HOME/emulationstation/emulators/retroarch/retroarch.cfg` and
+  `retroarch-core-options.cfg`. They are separate from `~/.config/retroarch`. ES rewrites the
+  keys it manages at each launch and leaves the others as the player set them in the RetroArch menu.
+* `<system>.cfg` and `<system>/<rom file name>.cfg` in the same folder are appended when they exist.
+* Options `retroarch.<key>` and `retroarchcore.<key>` of the ES configuration are copied as they are.
+* Cores are looked up in `$ES_LIBRETRO_CORES_DIR`, `~/.config/retroarch/cores`, then
+  `/usr/lib/libretro` (Arch) and `/usr/lib/<arch>-linux-gnu/libretro` (Debian, Armbian).
+* Saves and save states go to `<saves>/<system>/`, the BIOS folder is RetroArch's system folder.
+* Hotkeys: hold the hotkey button of player 1, then Start quits, B opens the menu, Y/X save and load
+  a state, Up/Down change the slot, Left rewinds, Right fast-forwards, A resets.
+
 Writing a generator
 -------------------
 

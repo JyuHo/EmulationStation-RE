@@ -2,8 +2,10 @@
 // This file is part of es-launcher, the game launcher of EmulationStation-RE.
 // Copyright (c) 2026 The EmulationStation-RE contributors.
 
+#include "Check.h"
 #include "es-launcher/Launcher.h"
 
+#include <algorithm>
 #include <cstdio>
 #include <functional>
 #include <string>
@@ -13,19 +15,6 @@ using namespace es::launcher;
 
 namespace
 {
-	int failures = 0;
-
-	void check(bool condition, const char* expression, const char* file, int line)
-	{
-		if (!condition)
-		{
-			std::fprintf(stderr, "%s:%d: CHECK(%s) failed\n", file, line, expression);
-			++failures;
-		}
-	}
-
-	#define CHECK(x) check((x), #x, __FILE__, __LINE__)
-
 	int cleanups = 0;
 
 	class FakeGenerator : public Generator
@@ -96,7 +85,10 @@ static void testRegistry()
 	CHECK(registry.create("nope") == nullptr);
 
 	auto names = registry.names();
-	CHECK((names == std::vector<std::string>{ "empty", "fake" }));
+	CHECK(std::ranges::is_sorted(names));
+	CHECK(std::ranges::find(names, "fake") != names.end());
+	CHECK(registry.contains("libretro"));
+	CHECK(registry.contains("retroarch"));
 }
 
 static void testLaunch()
@@ -171,17 +163,28 @@ static void testController()
 	CHECK(pad.find("b") == nullptr);
 }
 
-int main()
+static void testSettingsPrefix()
+{
+	Settings s({ { "retroarch.video_driver", "gl" }, { "retroarch.menu_driver", "ozone" }, { "ratio", "4/3" } },
+	           { { "retroarch.video_driver", "vulkan" }, { "retroarch.audio_driver", "auto" } },
+	           { { "retroarch.menu_driver", "" }, { "retroarch.fps_show", "true" } });
+
+	auto raw = s.withPrefix("retroarch.");
+	CHECK(raw.size() == 3);
+	CHECK(raw.at("video_driver") == "vulkan");   // system over global
+	CHECK(raw.at("menu_driver") == "ozone");     // empty game value falls through
+	CHECK(raw.at("fps_show") == "true");
+	CHECK(!raw.contains("audio_driver"));        // "auto" is not set
+}
+
+void tests::runLauncherTests()
 {
 	testShellQuote();
 	testShellLine();
 	testSettings();
+	testSettingsPrefix();
 	testRegistry();
 	testLaunch();
 	testLaunchErrors();
 	testController();
-
-	if (failures == 0)
-		std::puts("es-launcher: all tests passed");
-	return failures == 0 ? 0 : 1;
 }

@@ -34,6 +34,28 @@ namespace es::launcher
 		return std::nullopt;
 	}
 
+	Settings::Layer Settings::withPrefix(std::string_view prefix) const
+	{
+		Layer result;
+
+		// lowest priority first, so that the game overrides the system, which overrides the global
+		for (const Layer* layer : { &mGlobal, &mSystem, &mGame })
+		{
+			for (auto it = layer->lower_bound(prefix); it != layer->end() && it->first.starts_with(prefix); ++it)
+			{
+				std::string key = it->first.substr(prefix.size());
+				if (key.empty())
+					continue;
+
+				// like get(): "auto" or empty falls through to the lower layer
+				if (!it->second.empty() && it->second != "auto")
+					result[key] = it->second;
+			}
+		}
+
+		return result;
+	}
+
 	std::string Settings::getString(std::string_view key, std::string_view fallback) const
 	{
 		auto value = get(key);
