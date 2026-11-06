@@ -66,6 +66,7 @@ public:
 class IBindable
 {
 public:
+	virtual ~IBindable() = default;
 	virtual BindableProperty getProperty(const std::string& name) = 0;
 	virtual std::string getBindableTypeName() = 0;
 	virtual IBindable* getBindableParent() { return nullptr; };

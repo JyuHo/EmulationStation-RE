@@ -165,7 +165,6 @@ void GuiSaveState::onSizeChanged()
 
 		const float height = Math::round(help.font->getLetterHeight() * 1.25f);
 
-		float helpBottom = help.position.y() + (height * mOrigin.y());
 		float helpBottomSpace = 0; // Renderer::getScreenHeight() - helpBottom;
 
 		float helpTop = help.position.y() - (height * mOrigin.y()); // +height / 2;

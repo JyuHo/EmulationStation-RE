@@ -202,17 +202,6 @@ void GuiKeyMappingEditor::centerWindow()
 	setPosition((Renderer::getScreenWidth() - getSize().x()) / 2, (Renderer::getScreenHeight() - getSize().y()) / 2);
 }
 
-static bool sortPackagesByGroup(PacmanPackage& sys1, PacmanPackage& sys2)
-{
-	std::string name1 = Utils::String::toUpper(sys1.group);
-	std::string name2 = Utils::String::toUpper(sys2.group);
-
-	if (name1 == name2)
-		return Utils::String::compareIgnoreCase(sys1.description, sys2.description) < 0;		
-
-	return name1.compare(name2) < 0;
-}
-
 void GuiKeyMappingEditor::loadList(bool restoreIndex)
 {
 	int idx = !restoreIndex ? -1 : mList->getCursorIndex();

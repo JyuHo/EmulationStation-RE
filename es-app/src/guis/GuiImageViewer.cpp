@@ -358,7 +358,7 @@ void GuiImageViewer::loadPdf(const std::string& imagePath)
 					if (!g_isGuiImageViewerRunning)
 						return;
 
-					for (int f = 0; f < fl.size(); f++)
+					for (int f = 0; f < (int)fl.size(); f++)
 						mGrid.setImage(fl[f], std::to_string(i + 1 + f));					
 				});
 			});
@@ -377,7 +377,7 @@ void GuiImageViewer::loadPdf(const std::string& imagePath)
 			if (fileList.size() == 0)
 				return;
 		
-			for (int i = 0; i < fileList.size(); i++)
+			for (int i = 0; i < (int)fileList.size(); i++)
 				mGrid.setImage(fileList[i], std::to_string(i + 1));			
 
 			window->pushGui(this);
@@ -416,7 +416,7 @@ void GuiImageViewer::loadImages(std::vector<std::string>& images)
 
 	mWindow->postToUiThread([images, window, this]
 	{
-		for (int i = 0; i < images.size(); i++)
+		for (int i = 0; i < (int)images.size(); i++)
 			mGrid.add("", images[i], std::to_string(i + 1));
 
 		window->pushGui(this);

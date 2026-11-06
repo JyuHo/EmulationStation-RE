@@ -224,7 +224,6 @@ bool TextureData::initImageFromMemory(const unsigned char* fileData, size_t leng
 	if (OPTIMIZEVRAM && !mMaxSize.empty() && mMaxSize.x() < maxSize.x() && mMaxSize.y() < maxSize.y())
 		maxSize = mMaxSize;
 		
-	auto oldSize = mSize;
 
 	size_t width, height;
 	Vector2i size;
@@ -345,7 +344,7 @@ bool TextureData::loadFromVideo()
 
 		const char** vlcArgs = new const char*[cmdline.size()];
 
-		for (int i = 0; i < cmdline.size(); i++)
+		for (int i = 0; i < (int)cmdline.size(); i++)
 			vlcArgs[i] = cmdline[i].c_str();
 
 
@@ -385,7 +384,7 @@ bool TextureData::loadFromVideo()
 			n--;
 		}
 
-		int result = libvlc_video_take_snapshot(vlcMediaPlayer, 0, localFile.c_str(), 0, 0);
+		libvlc_video_take_snapshot(vlcMediaPlayer, 0, localFile.c_str(), 0, 0);
 
 		libvlc_media_player_stop(vlcMediaPlayer);
 		libvlc_media_player_release(vlcMediaPlayer);

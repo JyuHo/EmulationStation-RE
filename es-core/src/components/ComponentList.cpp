@@ -248,7 +248,7 @@ void ComponentList::saySelectedLine()
 
 	int n = 0;
 
-	if (!(mCursor >= 0 && mCursor < mEntries.size())) 
+	if (!(mCursor >= 0 && mCursor < (int)mEntries.size())) 
 		return;
 
 	mOldCursor = mCursor;
@@ -296,7 +296,7 @@ void ComponentList::updateCameraOffset()
 {
 	// move the camera to scroll
 	const float totalHeight = getTotalRowHeight();
-	if(totalHeight > mSize.y() && mCursor < mEntries.size())
+	if(totalHeight > mSize.y() && mCursor < (int)mEntries.size())
 	{
 		float target = mSelectorBarOffset + getRowHeight(mEntries.at(mCursor).data)/2 - (mSize.y() / 2);
 
@@ -358,7 +358,7 @@ void ComponentList::render(const Transform4x4f& parentTrans)
 
 		if (y - mCameraOffset + rowHeight >= 0)
 		{
-			if (!mReadOnly && mFocused && entry.data.selectable && i == mCursor)
+			if (!mReadOnly && mFocused && entry.data.selectable && (int)i == mCursor)
 			{
 				Renderer::setMatrix(trans);
 
@@ -366,20 +366,20 @@ void ComponentList::render(const Transform4x4f& parentTrans)
 				{
 					Renderer::setMatrix(trans);
 					Renderer::drawRect(0.0f, mSelectorBarOffset, mSize.x(), rowHeight,
-						selectorColor & 0xFFFFFF00 | (unsigned char)((selectorColor & 0xFF) * opacity),
-						selectorGradientColor & 0xFFFFFF00 | (unsigned char)((selectorGradientColor & 0xFF) * opacity),
+						(selectorColor & 0xFFFFFF00) | (unsigned char)((selectorColor & 0xFF) * opacity),
+						(selectorGradientColor & 0xFFFFFF00) | (unsigned char)((selectorGradientColor & 0xFF) * opacity),
 						selectorGradientHorz);
 				}
 			}
 
-			if (!mReadOnly && i == mHotRow)
+			if (!mReadOnly && (int)i == mHotRow)
 			{
 				Renderer::setMatrix(trans);
 
 				float hotOpacity = 0.1f;
 				Renderer::drawRect(0.0f, y, mSize.x(), rowHeight,
-					selectorColor & 0xFFFFFF00 | (unsigned char)((selectorColor & 0xFF) * opacity * hotOpacity),
-					selectorGradientColor & 0xFFFFFF00 | (unsigned char)((selectorGradientColor & 0xFF) * opacity * hotOpacity),
+					(selectorColor & 0xFFFFFF00) | (unsigned char)((selectorColor & 0xFF) * opacity * hotOpacity),
+					(selectorGradientColor & 0xFFFFFF00) | (unsigned char)((selectorGradientColor & 0xFF) * opacity * hotOpacity),
 					selectorGradientHorz);
 
 			//	Renderer::drawRect(0.0f, y, mSize.x(), rowHeight, 0x00000010, 0x00000010);
@@ -387,14 +387,14 @@ void ComponentList::render(const Transform4x4f& parentTrans)
 
 			for (auto& element : entry.data.elements)
 			{				
-				if (!mReadOnly && Settings::DebugMouse() && i == mHotRow)
+				if (!mReadOnly && Settings::DebugMouse() && (int)i == mHotRow)
 					element.component->setColor(0xFFFF00FF);
 				else 
 				if (entry.data.group)
 					element.component->setColor(menuTheme->Group.color);
 				else
 				{
-					if (!mReadOnly && entry.data.selectable && mFocused && i == mCursor)
+					if (!mReadOnly && entry.data.selectable && mFocused && (int)i == mCursor)
 						element.component->setColor(selectedColor);
 					else
 						element.component->setColor(textColor);
@@ -431,9 +431,9 @@ void ComponentList::render(const Transform4x4f& parentTrans)
 				if (y - mCameraOffset + height >= 0)
 				{
 					if (prevIsGroup && menuTheme->Group.separatorColor != separatorColor)
-						Renderer::drawRect(0.0f, y - 2.0f, mSize.x(), 1.0f, menuTheme->Group.separatorColor & 0xFFFFFF00 | (unsigned char)((menuTheme->Group.separatorColor & 0xFF) * opacity));
+						Renderer::drawRect(0.0f, y - 2.0f, mSize.x(), 1.0f, (menuTheme->Group.separatorColor & 0xFFFFFF00) | (unsigned char)((menuTheme->Group.separatorColor & 0xFF) * opacity));
 					else if (separatorColor != 0)
-						Renderer::drawRect(0.0f, y, mSize.x(), 1.0f, separatorColor & 0xFFFFFF00 | (unsigned char)((separatorColor & 0xFF) * opacity));
+						Renderer::drawRect(0.0f, y, mSize.x(), 1.0f, (separatorColor & 0xFFFFFF00) | (unsigned char)((separatorColor & 0xFF) * opacity));
 				}
 
 				y += height; // getRowHeight(mEntries.at(i).data);
@@ -444,7 +444,7 @@ void ComponentList::render(const Transform4x4f& parentTrans)
 			prevIsGroup = mEntries[i].data.group;
 		}
 
-		Renderer::drawRect(0.0f, y, mSize.x(), 1.0f, separatorColor & 0xFFFFFF00 | (unsigned char)((separatorColor & 0xFF) * opacity));
+		Renderer::drawRect(0.0f, y, mSize.x(), 1.0f, (separatorColor & 0xFFFFFF00) | (unsigned char)((separatorColor & 0xFF) * opacity));
 	}
 
 	Renderer::popClipRect();
@@ -575,7 +575,7 @@ bool ComponentList::moveCursor(int amt)
 
 std::string ComponentList::getSelectedUserData()
 {
-	if (mCursor >= 0 && mCursor < mEntries.size())
+	if (mCursor >= 0 && mCursor < (int)mEntries.size())
 		return mEntries[mCursor].object;
 
 	return "";
@@ -626,7 +626,7 @@ bool ComponentList::hitTest(int x, int y, Transform4x4f& parentTransform, std::v
 
 	trans.translate(0, -mCameraOffset);
 
-	for (int i = 0; i < getChildCount(); i++)
+	for (int i = 0; i < (int)getChildCount(); i++)
 		ret |= getChild(i)->hitTest(x, y, trans, pResult);
 
 	return ret;
@@ -706,13 +706,13 @@ bool ComponentList::onMouseWheel(int delta)
 	if (newCursor < 0)
 		newCursor = 0;
 
-	if (newCursor >= mEntries.size())
+	if (newCursor >= (int)mEntries.size())
 		newCursor = mEntries.size() - 1;
 
-	while (newCursor >= 0 && newCursor < mEntries.size() && !mEntries[newCursor].data.selectable)
+	while (newCursor >= 0 && newCursor < (int)mEntries.size() && !mEntries[newCursor].data.selectable)
 		newCursor += delta > 0 ? -1 : 1;
 
-	if (newCursor >= 0 && newCursor < mEntries.size() && newCursor != mCursor)
+	if (newCursor >= 0 && newCursor < (int)mEntries.size() && newCursor != mCursor)
 	{
 		mCursor = newCursor;
 		onCursorChanged(CURSOR_STOPPED);

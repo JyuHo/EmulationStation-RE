@@ -117,10 +117,10 @@ protected:
 	virtual int onBeforeScroll(int cursor, int direction) override
 	{ 
 		int looped = cursor;
-		while (cursor >= 0 && cursor < mEntries.size() && !mEntries[cursor].data.selectable)
+		while (cursor >= 0 && cursor < (int)mEntries.size() && !mEntries[cursor].data.selectable)
 		{
 			cursor += direction;
-			if (cursor == looped || cursor < 0 || cursor >= mEntries.size())
+			if (cursor == looped || cursor < 0 || cursor >= (int)mEntries.size())
 				return mCursor;
 		}
 		

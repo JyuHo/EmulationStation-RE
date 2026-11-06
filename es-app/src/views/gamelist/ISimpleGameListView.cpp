@@ -394,7 +394,6 @@ void ISimpleGameListView::launchSelectedGame()
 		return;
 
 	FileData* cursor = getCursor();
-	FolderData* folder = NULL;
 
 	if (mCursorStack.size() && (cursor->getType() == PLACEHOLDER || cursor->getType() == FOLDER) && cursor->getPath() == "..")
 	{
@@ -477,7 +476,7 @@ void ISimpleGameListView::moveToRandomGame()
 		return;
 
 	int target = Randomizer::random(total); // (int)Math::round((std::rand() / (float)RAND_MAX) * (total - 1));
-	if (target >= 0 && target < total)
+	if (target >= 0 && target < (int)total)
 		setCursor(list.at(target));
 }
 
@@ -558,7 +557,7 @@ void ISimpleGameListView::moveToLetterByOffset(int offset)
 		int index = std::distance(letters.begin(), it) + offset;
 		if (index < 0)
 			index = letters.size() - 1;
-		else if (index >= letters.size())
+		else if (index >= (int)letters.size())
 			index = 0;
 
 		moveToLetter(letters.at(index));
@@ -731,7 +730,6 @@ void ISimpleGameListView::updateThemeExtrasBindings()
 	if (file == nullptr)
 		return;
 
-	auto system = file->getSystem();
 
 	for (auto extra : mThemeExtras)
 		BindingManager::updateBindings(extra, file);

@@ -381,7 +381,7 @@ void VideoVlcComponent::updateColors()
 	if (hasStoryBoard() && currentStoryBoardHasProperty("opacity") && isStoryBoardRunning())
 		opacity = (getOpacity() / 255.0f);
 
-	unsigned int color = Renderer::convertColor(mColorShift & 0xFFFFFF00 | (unsigned char)((mColorShift & 0xFF) * opacity));
+	unsigned int color = Renderer::convertColor((mColorShift & 0xFFFFFF00) | (unsigned char)((mColorShift & 0xFF) * opacity));
 
 	mVertices[0].col = color;
 	mVertices[1].col = color;
@@ -542,7 +542,6 @@ void VideoVlcComponent::render(const Transform4x4f& parentTrans)
 
 		beginCustomClipRect();
 
-		Vector2f targetSizePos = (mTargetSize - mSize) * mOrigin * -1;
 		
 		// Render it
 		mVertices->saturation = mSaturation;
@@ -601,7 +600,7 @@ void VideoVlcComponent::init()
 
 	const char* *theArgs = new const char*[cmdline.size()];
 
-	for (int i = 0 ; i < cmdline.size() ; i++)
+	for (int i = 0 ; i < (int)cmdline.size() ; i++)
 		theArgs[i] = cmdline[i].c_str();
 
 
@@ -718,7 +717,7 @@ void VideoVlcComponent::onMediaParsed()
 
 		// If video is bigger than display, ask VLC for a smaller image
 		auto sz = ImageIO::adjustPictureSize(Vector2i(mVideoWidth, mVideoHeight), Vector2i(maxSize.x(), maxSize.y()), mTargetIsMin);
-		if (sz.x() < mVideoWidth || sz.y() < mVideoHeight)
+		if (sz.x() < (int)mVideoWidth || sz.y() < (int)mVideoHeight)
 		{
 			mVideoWidth = sz.x();
 			mVideoHeight = sz.y();

@@ -212,7 +212,6 @@ void ControllerActivityComponent::render(const Transform4x4f& parentTrans)
 	{	
 		auto& playerJoysticks = InputManager::getInstance()->lastKnownPlayersDeviceIndexes();
 
-		int padCount = 0;
 
 		for (int player = 0; player < MAX_PLAYERS; player++)
 		{
@@ -257,7 +256,7 @@ void ControllerActivityComponent::render(const Transform4x4f& parentTrans)
 		}
 
 		auto guns = InputManager::getInstance()->getGuns();
-		for (int idx = 0; idx < guns.size(); idx++)
+		for (int idx = 0; idx < (int)guns.size(); idx++)
 			if (!guns[idx]->isMouse())
 				itemsWidth += szW + mSpacing;
 	}
@@ -339,7 +338,7 @@ void ControllerActivityComponent::render(const Transform4x4f& parentTrans)
 		}
 
 		auto guns = InputManager::getInstance()->getGuns();
-		for (int idx = 0; idx < guns.size(); idx++)
+		for (int idx = 0; idx < (int)guns.size(); idx++)
 		{
 			Gun* gun = guns[idx];
 			if (gun->isMouse())

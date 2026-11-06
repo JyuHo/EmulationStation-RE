@@ -329,7 +329,6 @@ void DetailedContainer::initMDLabels()
 	const float colSize = (mSize.x() * 0.48f) / colCount;
 	const float rowPadding = 0.01f * mSize.y();
 
-	int i = 0;	
 	for (unsigned int i = 0; i < components.size(); i++)
 	{
 		if (components[i].labelid.empty() || components[i].label == nullptr)
@@ -609,7 +608,7 @@ void DetailedContainer::createFolderGrid(Vector2f targetSize, std::vector<std::s
 	{
 		for (int y = 0; y < gridSize.y(); y++)
 		{
-			if (idx >= thumbs.size())
+			if (idx >= (int)thumbs.size())
 				break;
 
 			auto image = std::make_shared<ImageComponent>(mWindow);
@@ -634,7 +633,7 @@ void DetailedContainer::updateFolderViewAmbiantProperties()
 		{
 			auto opacity = parent->getOpacity();
 
-			for (int i = 0; i < mFolderView->getChildCount(); i++)
+			for (int i = 0; i < (int)mFolderView->getChildCount(); i++)
 				mFolderView->setOpacity(opacity);
 		}
 	}

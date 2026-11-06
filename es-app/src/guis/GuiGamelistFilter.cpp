@@ -236,7 +236,7 @@ void GuiGamelistFilter::applyFilters()
 
 		std::vector<SystemData*> sys = mSystemFilter->getSelectedObjects();
 
-		if (!mSystemFilter->hasSelection() || mSystemFilter->size() == sys.size())
+		if (!mSystemFilter->hasSelection() || mSystemFilter->size() == (int)sys.size())
 			collectionFilter->resetSystemFilter();
 		else
 		{

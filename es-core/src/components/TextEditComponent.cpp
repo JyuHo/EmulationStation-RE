@@ -286,7 +286,7 @@ void TextEditComponent::onTextChanged()
 	std::string wrappedText = (isMultiline() ? mFont->wrapText(mText, getTextAreaSize().x()) : mText);
 	mTextCache = std::unique_ptr<TextCache>(mFont->buildTextCache(wrappedText, 0, 0, (ThemeData::getMenuTheme()->Text.color & 0xFFFFFF00) | getOpacity()));
 	
-	if(mCursor > (int)mText.length())
+	if(mCursor > mText.length())
 		mCursor = (unsigned int)mText.length();
 }
 

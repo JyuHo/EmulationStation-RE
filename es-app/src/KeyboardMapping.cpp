@@ -344,7 +344,7 @@ void KeyMappingFile::save(const std::string& fileName)
 		writer.Key(("actions_player" + std::to_string(idx)).c_str());
 		writer.StartArray();
 
-		for (int m = 0 ; m < player.mappings.size() ; m++)		
+		for (int m = 0 ; m < (int)player.mappings.size() ; m++)		
 		{
 			auto mapping = player.mappings[m];
 
@@ -588,7 +588,7 @@ bool KeyMappingFile::updateMapping(int player, const std::string& trigger, const
 	if (trigger.empty())
 		return false;
 
-	while (player >= players.size())
+	while (player >= (int)players.size())
 		players.push_back(PlayerMapping());
 
 	PlayerMapping& pm = players[player];
@@ -635,7 +635,7 @@ bool KeyMappingFile::updateMapping(int player, const std::string& trigger, const
 
 std::string KeyMappingFile::getMouseMapping(int player)
 {
-	if (player >= players.size())
+	if (player >= (int)players.size())
 		return "";
 
 	PlayerMapping& pm = players[player];
@@ -648,7 +648,7 @@ std::string KeyMappingFile::getMouseMapping(int player)
 
 void KeyMappingFile::clearAnalogJoysticksMappings(int player, const std::string& trigger)
 {
-	if (player >= players.size())
+	if (player >= (int)players.size())
 		return;
 
 	PlayerMapping& pm = players[player];
@@ -685,7 +685,7 @@ void KeyMappingFile::clearAnalogJoysticksMappings(int player, const std::string&
 
 bool KeyMappingFile::setMouseMapping(int player, const std::string& trigger)
 {
-	while (player >= players.size())
+	while (player >= (int)players.size())
 		players.push_back(PlayerMapping());
 
 	PlayerMapping& pm = players[player];
@@ -728,7 +728,7 @@ bool KeyMappingFile::removeMapping(int player, const std::string& trigger)
 	if (trigger.empty())
 		return false;
 
-	if (player >= players.size())
+	if (player >= (int)players.size())
 		return false;
 
 	PlayerMapping& pm = players[player];
@@ -751,7 +751,7 @@ KeyMappingFile::KeyMapping KeyMappingFile::getKeyMapping(int player, const std::
 	if (trigger.empty())
 		return empty;
 
-	if (player >= players.size())
+	if (player >= (int)players.size())
 		return empty;
 
 	PlayerMapping& pm = players[player];
@@ -765,7 +765,7 @@ KeyMappingFile::KeyMapping KeyMappingFile::getKeyMapping(int player, const std::
 
 std::vector<KeyMappingFile::KeyMapping> KeyMappingFile::getPlayerMappings(int player)
 {
-	if (player >= players.size())
+	if (player >= (int)players.size())
 		return std::vector<KeyMappingFile::KeyMapping>();
 
 	PlayerMapping& pm = players[player];
@@ -778,7 +778,7 @@ std::string KeyMappingFile::getMappingDescription(int player, const std::string&
 	if (trigger.empty())
 		return "";
 
-	if (player >= players.size())
+	if (player >= (int)players.size())
 		return "";
 
 	PlayerMapping& pm = players[player];
@@ -795,7 +795,7 @@ bool KeyMappingFile::updateMappingDescription(int player, const std::string& tri
 	if (trigger.empty())
 		return false;
 
-	if (player >= players.size())
+	if (player >= (int)players.size())
 		return false;
 
 	PlayerMapping& pm = players[player];

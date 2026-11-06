@@ -218,7 +218,7 @@ TextureLoader::TextureLoader(TextureDataManager* mgr) : mExit(false), mManager(m
 	if (num_threads < 2)
 		num_threads = 2;
 
-	for (size_t i = 0; i < num_threads; i++)
+	for (int i = 0; i < num_threads; i++)
 		mThreads.push_back(std::thread(&TextureLoader::threadProc, this));
 }
 

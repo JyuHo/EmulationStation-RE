@@ -149,7 +149,7 @@ void TextComponent::render(const Transform4x4f& parentTrans)
 	{
 		Renderer::setMatrix(trans);
 
-		auto bgColor = mBgColor & 0xFFFFFF00 | (unsigned char)((mBgColor & 0xFF) * (getOpacity() / 255.0));
+		auto bgColor = (mBgColor & 0xFFFFFF00) | (unsigned char)((mBgColor & 0xFF) * (getOpacity() / 255.0));
 		Renderer::drawRect(0.0f, 0.0f, mSize.x(), mSize.y(), bgColor, bgColor);
 	}
 
@@ -225,6 +225,8 @@ void TextComponent::render(const Transform4x4f& parentTrans)
 	case ALIGN_CENTER:
 		yOff = (getSize().y() - textSize.y()) / 2.0f;
 		break;
+	default:
+		break;
 	}
 
 	Vector3f off(mPadding.x(), mPadding.y() + yOff, 0);
@@ -263,6 +265,8 @@ void TextComponent::render(const Transform4x4f& parentTrans)
 			break;
 		case ALIGN_RIGHT:
 			Renderer::drawRect(mSize.x() - mTextCache->metrics.size.x(), 0.0f, mTextCache->metrics.size.x(), mTextCache->metrics.size.y(), 0x00000033, 0x00000033);
+			break;
+		default:
 			break;
 		}
 	}
@@ -369,7 +373,7 @@ void TextComponent::buildTextCache()
 		addAbbrev = newline != std::string::npos;
 	}
 
-	auto color = mColor & 0xFFFFFF00 | (unsigned char)((mColor & 0xFF) * (getOpacity() / 255.0));
+	auto color = (mColor & 0xFFFFFF00) | (unsigned char)((mColor & 0xFF) * (getOpacity() / 255.0));
 
 
 	Vector2f size = f->sizeText(text);
@@ -543,9 +547,9 @@ void TextComponent::onColorChanged()
 		return;
 
 	if (mHasBonusColor)
-		mTextCache->setColors(mColor & 0xFFFFFF00 | (unsigned char)((mColor & 0xFF) * (getOpacity() / 255.0)), mBonusColor);
+		mTextCache->setColors((mColor & 0xFFFFFF00) | (unsigned char)((mColor & 0xFF) * (getOpacity() / 255.0)), mBonusColor);
 	else
-		mTextCache->setColor(mColor & 0xFFFFFF00 | (unsigned char)((mColor & 0xFF) * (getOpacity() / 255.0)));
+		mTextCache->setColor((mColor & 0xFFFFFF00) | (unsigned char)((mColor & 0xFF) * (getOpacity() / 255.0)));
 }
 
 void TextComponent::setHorizontalAlignment(Alignment align)
@@ -802,8 +806,6 @@ ThemeData::ThemeElement::Property TextComponent::getProperty(const std::string n
 
 void TextComponent::setProperty(const std::string name, const ThemeData::ThemeElement::Property& value)
 {
-	Vector2f scale = getParent() ? getParent()->getSize() : Vector2f((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
-	
 	if (value.type == ThemeData::ThemeElement::Property::PropertyType::Float && name == "fontSize")
 		setFont("", value.f * (float)Math::min(Renderer::getScreenHeight(), Renderer::getScreenWidth()));
 	if (value.type == ThemeData::ThemeElement::Property::PropertyType::String && name == "fontPath")
@@ -811,11 +813,11 @@ void TextComponent::setProperty(const std::string name, const ThemeData::ThemeEl
 	else if (value.type == ThemeData::ThemeElement::Property::PropertyType::String && name == "multiLine")
 	{
 		if (value.s == "true")
-			setAutoScroll(MultiLineType::MULTILINE);
+			setMultiLine(MultiLineType::MULTILINE);
 		else if (value.s == "false")
-			setAutoScroll(MultiLineType::SINGLELINE);
+			setMultiLine(MultiLineType::SINGLELINE);
 		else
-			setAutoScroll(MultiLineType::AUTO);
+			setMultiLine(MultiLineType::AUTO);
 	}
 	else if (value.type == ThemeData::ThemeElement::Property::PropertyType::String && name == "autoScroll")
 	{

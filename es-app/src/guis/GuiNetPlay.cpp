@@ -121,7 +121,6 @@ GuiNetPlay::GuiNetPlay(Window* window)
 		return false;
 	});
 
-	float width = (float)Math::min((int)Renderer::getScreenHeight(), (int)(Renderer::getScreenWidth() * 0.90f));
 
 	// Position & Size
 	if (Renderer::ScreenSettings::fullScreenMenus())
@@ -442,7 +441,6 @@ public:
 		float rowHeight = mText->getSize().y() * 1.1f + mSubstring->getSize().y() + mDetails->getSize().y();
 		float imageColWidth = rowHeight * 1.15f;
 
-		float sw = (float)Math::min((int)Renderer::getScreenHeight(), (int)(Renderer::getScreenWidth() * 0.90f));
 		
 		mImage->setOrigin(0.5f, 0.5f);
 		mImage->setMaxSize(imageColWidth, rowHeight);
@@ -821,7 +819,6 @@ void GuiNetPlay::launchGame(LobbyAppEntry entry)
 	
 	auto theme = ThemeData::getMenuTheme();
 	std::shared_ptr<Font> font = theme->Text.font;
-	unsigned int color = theme->Text.color;
 
 	GuiSettings* msgBox = new GuiSettings(mWindow, _("CONNECT TO NETPLAY"));
 	msgBox->setSubTitle(entry.game_name);

@@ -586,7 +586,6 @@ void Window::renderSindenBorders()
 
 		const unsigned int outerBorderColor = 0x000000FF;
 		unsigned int innerBorderColor = 0xFFFFFFFF;
-		unsigned int externalBorderColor = 0x000000CC;
 
 		auto bordersColor = SystemConf::getInstance()->get("controllers.guns.borderscolor");
 		if (bordersColor == "red")   innerBorderColor = 0xFF0000FF;
@@ -632,10 +631,10 @@ void Window::renderMenuBackgroundShader()
 	const Renderer::ShaderInfo& info = menuBackground.shader;
 	if (!info.path.empty())
 	{
-		if (mMenuBackgroundShaderTextureCache == -1)
+		if (mMenuBackgroundShaderTextureCache == (unsigned int)-1)
 			Renderer::postProcessShader(info.path, 0, 0, Renderer::getScreenWidth(), Renderer::getScreenHeight(), info.parameters, &mMenuBackgroundShaderTextureCache);
 
-		if (mMenuBackgroundShaderTextureCache != -1)
+		if (mMenuBackgroundShaderTextureCache != (unsigned int)-1)
 		{
 			Renderer::bindTexture(mMenuBackgroundShaderTextureCache);
 			Renderer::setMatrix(Transform4x4f::Identity());
@@ -659,7 +658,7 @@ void Window::renderMenuBackgroundShader()
 
 void Window::resetMenuBackgroundShader()
 {
-	if (mMenuBackgroundShaderTextureCache != -1)
+	if (mMenuBackgroundShaderTextureCache != (unsigned int)-1)
 	{
 		Renderer::destroyTexture(mMenuBackgroundShaderTextureCache);
 		mMenuBackgroundShaderTextureCache = -1;
@@ -681,7 +680,7 @@ void Window::render()
 		auto menuBackground = ThemeData::getMenuTheme()->Background;
 
 		// Don't render bottom if we have a MenuBackgroundShaderTextureCache
-		if (mMenuBackgroundShaderTextureCache == -1)
+		if (mMenuBackgroundShaderTextureCache == (unsigned int)-1)
 			bottom->render(transform);
 
 		if (bottom != top)
@@ -807,7 +806,6 @@ void Window::render()
 		auto margin = Renderer::setScreenMargin(0, 0);
 		Renderer::setMatrix(Transform4x4f::Identity());
 
-		bool hasMousePointer = false;
 
 		if (mGunAimTexture == nullptr)
 			mGunAimTexture = TextureResource::get(":/gun.png", false, false, true, false);
@@ -818,7 +816,6 @@ void Window::render()
 			{
 				if (gun->isMouse())
 				{
-					hasMousePointer = true;
 					continue;
 				}
 

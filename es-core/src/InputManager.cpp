@@ -429,10 +429,9 @@ bool InputManager::parseEvent(const SDL_Event& ev, Window* window)
 		return true;
 
 	case SDL_EVENT_MOUSE_MOTION:
-	  if (!Utils::Platform::isBuildroot() || ev.motion.which == SDL_TOUCH_MOUSEID)
-		if (!getGunManager()->isReplacingMouse())
+		if ((!Utils::Platform::isBuildroot() || ev.motion.which == SDL_TOUCH_MOUSEID) && !getGunManager()->isReplacingMouse())
 			window->processMouseMove(ev.motion.x, ev.motion.y, ev.motion.which == SDL_TOUCH_MOUSEID);
-	  
+
 		return true;
 
 	case SDL_EVENT_MOUSE_WHEEL:
@@ -483,7 +482,7 @@ bool InputManager::parseEvent(const SDL_Event& ev, Window* window)
 				return false;
 			}
 			
-			auto it = std::find_if(mInputConfigs.cbegin(), mInputConfigs.cend(), [id](const std::pair<SDL_JoystickID, InputConfig*>& t) { return t.second != nullptr && t.second->getDeviceId() == id; });
+			auto it = std::find_if(mInputConfigs.cbegin(), mInputConfigs.cend(), [id](const std::pair<SDL_JoystickID, InputConfig*>& t) { return t.second != nullptr && t.second->getDeviceId() == (int)id; });
 			if (it == mInputConfigs.cend())
 			{
 				const char* addedName = SDL_GetJoystickNameForID(id);
@@ -569,7 +568,7 @@ bool InputManager::tryLoadInputConfig(std::string path, InputConfig* config, boo
 		{
 			// Remove CRC-16 encoding from SDL2 2.26+ guids
 			std::string guid = config->getDeviceGUIDString();
-			for (int i = 4; i < 8 && i < guid.length(); i++)
+			for (int i = 4; i < 8 && i < (int)guid.length(); i++)
 				guid[i] = '0';
 
 			if (guid != config->getDeviceGUIDString())

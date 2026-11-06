@@ -568,7 +568,7 @@ int main(int argc, char* argv[])
 	InputManager::getInstance()->init();
 	SDL_StopTextInput(Renderer::getSDLWindow());
 
-	NetworkThread* nthread = new NetworkThread(&window);
+	new NetworkThread(&window); // runs until exit
 	HttpServerThread httpServer(&window);
 
 	// tts

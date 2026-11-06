@@ -20914,7 +20914,7 @@ static std::unordered_map<int, const char*> s_mapPinyin;
 static char s_tblpinyin[256][2] = {0};
 static struct __haninit {
 	__haninit() {
-		for (int i=0; i<sizeof(s_unicode_pinyin)/sizeof(s_unicode_pinyin[0]); ++i) {
+		for (size_t i=0; i<sizeof(s_unicode_pinyin)/sizeof(s_unicode_pinyin[0]); ++i) {
 			s_mapPinyin[ s_unicode_pinyin[i].code ] = s_unicode_pinyin[i].ptr;
 		}
 		for (int i=0; i<256; ++i) s_tblpinyin[i][0] = i;

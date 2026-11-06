@@ -536,7 +536,7 @@ bool GuiComponent::finishAnimation(unsigned char slot)
 	auto it = mAnimationMap.find(slot);
 	if (it != mAnimationMap.cend() && it->second != nullptr)
 	{
-		const bool done = mAnimationMap[slot]->update(mAnimationMap[slot]->getAnimation()->getDuration() - mAnimationMap[slot]->getTime());
+		mAnimationMap[slot]->update(mAnimationMap[slot]->getAnimation()->getDuration() - mAnimationMap[slot]->getTime());
 
 		auto anim = it->second;
 		mAnimationMap.erase(it);
@@ -1226,6 +1226,8 @@ void GuiComponent::setProperty(const std::string name, const ThemeData::ThemeEle
 		}
 
 		break;
+	default:
+		break;
 	}
 	
 	mTransformDirty = true;
@@ -1358,7 +1360,7 @@ bool GuiComponent::hitTest(int x, int y, Transform4x4f& parentTransform, std::ve
 		mIsMouseOver = false;
 	}
 
-	for (int i = 0; i < getChildCount(); i++)
+	for (int i = 0; i < (int)getChildCount(); i++)
 		ret |= getChild(i)->hitTest(x, y, trans, pResult);
 
 	return ret;

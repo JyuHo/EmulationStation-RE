@@ -499,12 +499,11 @@ namespace Utils
 			char fp[4096];
 
 			int pos = 0;
-			int ofs = 0;
 
 			bool pointset = false;
 			bool twopointset = false;
 
-			for (int i = 0; i < path.size(); i++)
+			for (int i = 0; i < (int)path.size(); i++)
 			{
 				char c = path[i];
 
@@ -978,7 +977,7 @@ namespace Utils
 
 					std::string result;
 
-					for (int i = 0; i < list.size() - count; i++)
+					for (int i = 0; i < (int)list.size() - count; i++)
 					{
 						if (result.empty())
 							result = list.at(i);
@@ -987,7 +986,7 @@ namespace Utils
 					}
 
 					std::vector<std::string> fn(f.begin(), f.end());
-					for (int i = count; i < fn.size(); i++)
+					for (int i = count; i < (int)fn.size(); i++)
 					{
 						if (result.empty())
 							result = fn.at(i);
@@ -1163,7 +1162,7 @@ namespace Utils
 				return false;
 			}
 
-			while (size = fread(buf, 1, 512, source))
+			while ((size = fread(buf, 1, 512, source)))
 				fwrite(buf, 1, size, dest);
 
 			fclose(dest);
@@ -1202,7 +1201,7 @@ namespace Utils
 			int div = 0;
 			unsigned long rem = 0;
 
-			while (size >= 1024 && div < (sizeof SIZES / sizeof *SIZES))
+			while (size >= 1024 && div < (int)(sizeof SIZES / sizeof *SIZES))
 			{
 				rem = (size % 1024);
 				div++;
@@ -1223,7 +1222,7 @@ namespace Utils
 			int div = 0;
 			unsigned long rem = 0;
 
-			while (size >= 1024 && div < (sizeof SIZES / sizeof *SIZES))
+			while (size >= 1024 && div < (int)(sizeof SIZES / sizeof *SIZES))
 			{
 				rem = (size % 1024);
 				div++;
@@ -1320,7 +1319,7 @@ namespace Utils
 					MD5 md5;
 
 					size_t size;
-					while (size = fread(buffer, 1, CRCBUFFERSIZE, file))
+					while ((size = fread(buffer, 1, CRCBUFFERSIZE, file)))
 						md5.update(buffer, size);
 
 					md5.finalize();

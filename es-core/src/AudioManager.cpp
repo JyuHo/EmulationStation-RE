@@ -187,7 +187,7 @@ void AudioManager::addLastPlayed(const std::string& newSong, int totalMusic)
 		return;
 	}
 	
-	while (mLastPlayed.size() > historySize)
+	while ((int)mLastPlayed.size() > historySize)
 		mLastPlayed.pop_back();
 
 	mLastPlayed.push_front(newSong);
@@ -596,7 +596,7 @@ void AudioManager::playSong(const std::string& song)
 		{
 			std::string songTitle(info.title, 30);
 			songTitle = " - " + songTitle.substr(0, 30);
-			if (info.artist != NULL) 
+			if (info.artist[0] != 0)
 			{
 				std::string songArtist(info.artist, 30);
 				songTitle += " - " + songArtist.substr(0, 30);

@@ -101,13 +101,13 @@ namespace Utils
 			uint32_t i;
 
 			int buflen = 1;
-			for (i = 0; i < len; i++)
+			for (i = 0; i < (uint32_t)len; i++)
 				buflen += unicode_to_utf8_len(cp437_to_unicode[cp437buf[i]]);
 
 			unsigned char* utf8buf = new unsigned char[buflen];
 
 			int offset = 0;
-			for (i = 0; i < len; i++)
+			for (i = 0; i < (uint32_t)len; i++)
 				offset += unicode_to_utf8(cp437_to_unicode[cp437buf[i]], utf8buf + offset);
 
 			utf8buf[buflen - 1] = 0;			
@@ -256,12 +256,6 @@ namespace Utils
 			return mz_zip_reader_extract_file_to_file(mZipArchive, getInternalFilename(member).c_str(), (pathIsFullPath ? path : fullPath).c_str(), 0);
 		}
 
-		struct OpaqueWrapper
-		{
-			zip_callback callback;
-			void* opaque;
-		};
-
 		std::string ZipFile::getInternalFilename(const std::string& fileName)
 		{
 			if (!mUtfTableBuilt && !fileName.empty())
@@ -281,16 +275,6 @@ namespace Utils
 			
 			try
 			{
-				OpaqueWrapper w;
-				w.opaque = pOpaque;
-				w.callback = pCallback;
-
-				mz_file_write_func func = [](void *pOpaque, uint64_t file_ofs, const void *pBuf, size_t n)
-				{
-					OpaqueWrapper* wrapper = (OpaqueWrapper*)pOpaque;
-					return wrapper->callback(wrapper->opaque, file_ofs, pBuf, n);
-				};
-
 				return mz_zip_reader_extract_file_to_callback(mZipArchive, getInternalFilename(name).c_str(), pCallback, pOpaque, 0);
 			}
 			catch (...)

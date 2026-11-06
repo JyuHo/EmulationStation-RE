@@ -284,7 +284,7 @@ void ImageGridComponent<T>::preloadTiles()
 
 	Vector2f tileDistance = mTileSize + mMargin;
 
-	for (int i = 0; i < mEntries.size(); i++)
+	for (int i = 0; i < (int)mEntries.size(); i++)
 	{
 		typename IList<ImageGridData, T>::Entry& entry = mEntries[i];
 		if (entry.data.tile != nullptr)
@@ -316,7 +316,7 @@ void ImageGridComponent<T>::ensureVisibleTileExist()
 	if (startIndex < 0)
 		startIndex = 0;
 
-	if (endIndex > mEntries.size() - 1)
+	if (endIndex > (int)mEntries.size() - 1)
 		endIndex = mEntries.size() - 1;
 
 	int totalCols = Math::max(0, mEntries.size() - 1) / dimOpposite;
@@ -351,7 +351,7 @@ void ImageGridComponent<T>::ensureVisibleTileExist()
 					i -= max;
 			}
 
-			if (i < 0 || i >= mEntries.size())
+			if (i < 0 || i >= (int)mEntries.size())
 				continue;
 		}
 
@@ -397,7 +397,7 @@ void ImageGridComponent<T>::ensureVisibleTileExist()
 					entry.data.tile->onShow();
 			}
 
-			if (mScrollLoop && i < startIndex || i > endIndex)
+			if ((mScrollLoop && i < startIndex) || i > endIndex)
 			{
 				auto tile = createTile(idx, dimOpposite, tileDistance, startPosition);
 				loadTile(tile, entry);
@@ -733,8 +733,6 @@ void ImageGridComponent<T>::render(const Transform4x4f& parentTrans)
 
 	Renderer::pushClipRect(pos, size);
 
-	float dimScrollable = isVertical() ? mGridDimension.y() - 2 * EXTRAITEMS : mGridDimension.x() - 2 * EXTRAITEMS;
-	float dimOpposite = Math::max(1, isVertical() ? mGridDimension.x() : mGridDimension.y());
 	
 	tileTrans.translate(isVertical() ? 0 : -mCameraOffset, isVertical() ? -mCameraOffset : 0);
 
@@ -1069,14 +1067,13 @@ void ImageGridComponent<T>::onCursorChanged(const CursorState& state)
 	if (mScrollLoop)
 	{
 		int diff = direction ? mCursor - mLastCursor : mLastCursor - mCursor;
-		if (mScrollLoop && diff == mEntries.size() - 1)
+		if (mScrollLoop && diff == (int)mEntries.size() - 1)
 		{
 			direction = !direction;
 			isScrollLooping = true;
 		}
 	}
 
-	int oldStart = mStartPosition;
 
 	float dimScrollable = isVertical() ? mGridDimension.y() - 2 * EXTRAITEMS : mGridDimension.x() - 2 * EXTRAITEMS;
 	float dimOpposite = Math::max(1, isVertical() ? mGridDimension.x() : mGridDimension.y());
@@ -1091,18 +1088,16 @@ void ImageGridComponent<T>::onCursorChanged(const CursorState& state)
 
 	int lastScroll = std::max(0, (int)(lastCol + 1 - dimScrollable));
 
-	float startPos = 0;
-	float endPos = 1;
 
 	Vector3f oldPos = Vector3f::Zero();
 
-	if (mLastCursor >= 0 && mLastCursor < mEntries.size() && mEntries[mLastCursor].data.tile != nullptr)
+	if (mLastCursor >= 0 && mLastCursor < (int)mEntries.size() && mEntries[mLastCursor].data.tile != nullptr)
 	{
 		if (ALLOWANIMATIONS && mAnimateSelection)
 			oldPos = mEntries[mLastCursor].data.tile->getBackgroundPosition();
 	}
 
-	if (mCursor >= 0 && mCursor < mEntries.size() && mEntries[mCursor].data.tile != nullptr)
+	if (mCursor >= 0 && mCursor < (int)mEntries.size() && mEntries[mCursor].data.tile != nullptr)
 	{
 		if (!mEntries[mCursor].data.tile->isSelected())
 		{
@@ -1122,15 +1117,18 @@ void ImageGridComponent<T>::onCursorChanged(const CursorState& state)
 				mEntries[mCursor].data.tile->setSelected(true, true, oldPos == Vector3f::Zero() ? nullptr : &oldPos, true);
 
 			auto selected = mEntries[mCursor].data.tile;
-			auto old = mLastCursor >= 0 && mLastCursor < mEntries.size() ? mEntries[mLastCursor].data.tile : nullptr;
+			auto old = mLastCursor >= 0 && mLastCursor < (int)mEntries.size() ? mEntries[mLastCursor].data.tile : nullptr;
 
 			for (auto tile : mVisibleTiles)
 				if (tile != selected && tile != old)
 					if (tile->hasItemTemplate())
 						tile->setSelected(false);
 		}
-		else if (mLastCursor = -9999)
+		else
+		{
+			mLastCursor = -9999;
 			mEntries[mCursor].data.tile->startVideo();
+		}
 	}
 
 	int firstVisibleCol = mStartPosition / dimOpposite;
@@ -1152,7 +1150,7 @@ void ImageGridComponent<T>::onCursorChanged(const CursorState& state)
 			mStartPosition = 0;
 		else if ((col - centralCol) > lastScroll && mCenterSelection == CenterSelection::PARTIAL && !mScrollLoop)
 			mStartPosition = lastScroll * dimOpposite;
-		else if (maxCentralCol != centralCol && col == firstVisibleCol + maxCentralCol || col == firstVisibleCol + centralCol)
+		else if ((maxCentralCol != centralCol && col == firstVisibleCol + maxCentralCol) || col == firstVisibleCol + centralCol)
 		{
 			if (col == firstVisibleCol + maxCentralCol)
 				mStartPosition = (col - maxCentralCol) * dimOpposite;
@@ -1390,7 +1388,7 @@ void ImageGridComponent<T>::resetGrid()
 			mStartPosition = 0;
 		else if ((col - centralCol) > lastScroll && mCenterSelection == CenterSelection::PARTIAL && !mScrollLoop)
 			mStartPosition = lastScroll * dimOpposite;
-		else if (maxCentralCol != centralCol && col == firstVisibleCol + maxCentralCol || col == firstVisibleCol + centralCol)
+		else if ((maxCentralCol != centralCol && col == firstVisibleCol + maxCentralCol) || col == firstVisibleCol + centralCol)
 		{
 			if (col == firstVisibleCol + maxCentralCol)
 				mStartPosition = (col - maxCentralCol) * dimOpposite;
@@ -1533,7 +1531,7 @@ bool ImageGridComponent<T>::onMouseClick(int button, bool pressed, int x, int y)
 				{
 					mCursor = cursor;
 
-					if (mCursor >= 0 && mCursor < mEntries.size() && mEntries[mCursor].data.tile != nullptr)
+					if (mCursor >= 0 && mCursor < (int)mEntries.size() && mEntries[mCursor].data.tile != nullptr)
 					{
 						auto selectedTile = getSelectedTile();
 						while (selectedTile != nullptr)
@@ -1577,7 +1575,7 @@ bool ImageGridComponent<T>::onMouseClick(int button, bool pressed, int x, int y)
 				float tileDist = isVertical() ? (mTileSize + mMargin).y() : (mTileSize + mMargin).x();
 				int newCursor = ((mCameraOffset + tileDist * dimScrollable / 2.0f)  * dimOpposite) / tileDist;
 
-				if (mCursor != newCursor && newCursor >= 0 && newCursor < mEntries.size())
+				if (mCursor != newCursor && newCursor >= 0 && newCursor < (int)mEntries.size())
 				{
 					mCursor = newCursor;
 					onCursorChanged(CURSOR_STOPPED);
@@ -1654,10 +1652,10 @@ void ImageGridComponent<T>::onMouseMove(int x, int y)
 
 			int newCursor = ((mCameraOffset + tileDist * dimScrollable / 2.0f)  * dimOpposite) / tileDist;
 
-			if (mCursor != newCursor && newCursor >= 0 && newCursor < mEntries.size())
+			if (mCursor != newCursor && newCursor >= 0 && newCursor < (int)mEntries.size())
 			{
 				mCursor = newCursor;
-				if (mCursor >= 0 && mCursor < mEntries.size() && mEntries[mCursor].data.tile != nullptr)
+				if (mCursor >= 0 && mCursor < (int)mEntries.size() && mEntries[mCursor].data.tile != nullptr)
 				{
 					auto selectedTile = getSelectedTile();
 					while (selectedTile != nullptr)

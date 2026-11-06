@@ -299,7 +299,7 @@ void ViewController::goToGameList(SystemData* system, bool forceImmediate)
 
 					for (auto gameList : mGameListViews)
 					{
-						for (int idx = 0; idx < ids.size(); idx++)
+						for (int idx = 0; idx < (int)ids.size(); idx++)
 						{
 							if (gameList.first == ids[idx].second)
 							{
@@ -1152,7 +1152,7 @@ SystemData* ViewController::getSelectedSystem()
 	if (mState.viewing == SYSTEM_SELECT)
 	{
 		int idx = mSystemListView->getCursorIndex();
-		if (idx >= 0 && idx < mSystemListView->getObjects().size())
+		if (idx >= 0 && idx < (int)mSystemListView->getObjects().size())
 			return mSystemListView->getObjects()[mSystemListView->getCursorIndex()];
 	}
 
@@ -1464,7 +1464,7 @@ bool ViewController::hitTest(int x, int y, Transform4x4f& parentTransform, std::
 
 //	Skip ViewController rect
 
-	for (int i = 0; i < getChildCount(); i++)
+	for (int i = 0; i < (int)getChildCount(); i++)
 	{
 		auto child = getChild(i);
 		if (mCurrentView == nullptr || child != mCurrentView.get())

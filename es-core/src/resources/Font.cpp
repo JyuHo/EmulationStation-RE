@@ -492,16 +492,16 @@ void Font::renderTextCacheEx(TextCache* cache, const Transform4x4f& parentTrans,
 
 			renderSingleGlow(cache, glowTrans, x, y);
 
-			for (int i = 0; i < 2 * mGlowSize; i++)
+			for (int i = 0; i < (int)(2 * mGlowSize); i++)
 				renderSingleGlow(cache, glowTrans, ++x, y, false);
 
-			for (int i = 0; i < 2 * mGlowSize; i++)
+			for (int i = 0; i < (int)(2 * mGlowSize); i++)
 				renderSingleGlow(cache, glowTrans, x, ++y, false);
 
-			for (int i = 0; i < 2 * mGlowSize; i++)
+			for (int i = 0; i < (int)(2 * mGlowSize); i++)
 				renderSingleGlow(cache, glowTrans, --x, y, false);
 
-			for (int i = 0; i < 2 * mGlowSize; i++)
+			for (int i = 0; i < (int)(2 * mGlowSize); i++)
 				renderSingleGlow(cache, glowTrans, x, --y, false);
 		}
 
@@ -530,7 +530,7 @@ void Font::renderTextCache(TextCache* cache, bool verticesChanged)
 		if (vertex.textureIdPtr == nullptr)
 			continue;
 		
-		if (tex != *vertex.textureIdPtr)
+		if (tex != (int)*vertex.textureIdPtr)
 		{
 			tex = *vertex.textureIdPtr;
 			Renderer::bindTexture(tex);			
@@ -582,11 +582,11 @@ void Font::renderGradientTextCache(TextCache* cache, unsigned int colorTop, unsi
 
 		float maxY = -1;
 
-		for (int i = 0; i < it->verts.size(); i += 6)
+		for (int i = 0; i < (int)it->verts.size(); i += 6)
 			if (maxY == -1 || maxY < it->verts[i + 2].pos.y())
 				maxY = it->verts[i + 2].pos.y();
 
-		for (int i = 0; i < it->verts.size(); i += 6)
+		for (int i = 0; i < (int)it->verts.size(); i += 6)
 		{
 			float topOffset = it->verts[i + 1].pos.y();
 			float bottomOffset = it->verts[i + 2].pos.y();
@@ -940,7 +940,6 @@ TextCache* Font::buildTextCache(const std::string& _text, Vector2f offset, unsig
 				continue;
 
 			tabIndex = 0;
-			int curTab = 0;
 			int xpos = x;
 
 			size_t pos = 0;
@@ -964,7 +963,6 @@ TextCache* Font::buildTextCache(const std::string& _text, Vector2f offset, unsig
 					else
 						tabStops[tabIndex] = xpos;
 
-					curTab = xpos;
 					tabIndex++;
 				}
 

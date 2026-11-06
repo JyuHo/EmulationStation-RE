@@ -444,6 +444,8 @@ std::string FileFilterIndex::getIndexableKey(FileData* game, FilterIndexType typ
 
 		return game->isVerticalArcadeGame() ? "TRUE" : "FALSE";		
 	}
+	default:
+		break;
 	}
 
 	if (key.empty() || (type == RATINGS_FILTER && key == "0 STARS"))
@@ -579,7 +581,7 @@ float jw_distance(std::string s1, std::string s2, bool caseSensitive = true) {
 	int s1Matches[65000] = {};
 	int s2Matches[65000] = {};
 
-	for (int i = 0; i < s1.length(); i++) {
+	for (int i = 0; i < (int)s1.length(); i++) {
 
 		// Low Value;
 		if (i >= range) {
@@ -590,7 +592,7 @@ float jw_distance(std::string s1, std::string s2, bool caseSensitive = true) {
 		}
 
 		// High Value;
-		if (i + range <= (s2.length() - 1)) {
+		if (i + range <= (int)s2.length() - 1) {
 			high = i + range;
 		}
 		else {
@@ -613,10 +615,10 @@ float jw_distance(std::string s1, std::string s2, bool caseSensitive = true) {
 	}
 
 	// Count the transpositions.
-	for (int i = 0; i < s1.length(); i++) {
+	for (int i = 0; i < (int)s1.length(); i++) {
 		if (s1Matches[i] == 1) {
 			int j;
-			for (j = k; j < s2.length(); j++) {
+			for (j = k; j < (int)s2.length(); j++) {
 				if (s2Matches[j] == 1) {
 					k = j + 1;
 					break;
@@ -750,7 +752,7 @@ int FileFilterIndex::showFile(FileData* game)
 				int totalWords = 0;
 				int commonWords = 0;
 				
-				for (int i = 0; i < filters.size(); i++)
+				for (int i = 0; i < (int)filters.size(); i++)
 				{
 					auto filter = filters[i];
 
@@ -771,11 +773,11 @@ int FileFilterIndex::showFile(FileData* game)
 				int wordsAtStart = 0;
 				bool countStart = true;
 
-				for (int j = 0 ; j < words.size(); j++)
+				for (int j = 0 ; j < (int)words.size(); j++)
 				{
 					auto word = words[j];
 
-					for (int i = 0; i < filters.size(); i++)
+					for (int i = 0; i < (int)filters.size(); i++)
 					{
 						auto filter = filters[i];
 
@@ -793,7 +795,7 @@ int FileFilterIndex::showFile(FileData* game)
 
 							j++;
 
-							if (j < words.size())
+							if (j < (int)words.size())
 								word = words[j];
 							else
 								break;

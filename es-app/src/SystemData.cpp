@@ -462,6 +462,8 @@ void SystemData::indexAllGameFilters(const FolderData* folder)
 		{
 			case GAME:   { mFilterIndex->addToIndex(*it); } break;
 			case FOLDER: { indexAllGameFilters((FolderData*)*it); } break;
+			default:
+				break;
 		}
 	}
 }
@@ -994,7 +996,7 @@ bool SystemData::loadConfig(Window* window)
 			pThreadPool->wait([window, &processedSystem, systemCount, &systemsNames]
 			{
 				int px = processedSystem - 1;
-				if (px >= 0 && px < systemsNames.size())
+				if (px >= 0 && px < (int)systemsNames.size())
 					window->renderSplashScreen(systemsNames.at(px), (float)px / (float)(systemCount + 2));
 			}, 50);
 		}
@@ -1989,8 +1991,7 @@ bool SystemData::hasEmulatorSelection()
 	for (auto& emulator : mEmulators)
 	{
 		ec++;
-		for (auto& core : emulator.cores)
-			cc++;
+		cc += (int)emulator.cores.size();
 	}
 
 	return ec > 1 || cc > 1;

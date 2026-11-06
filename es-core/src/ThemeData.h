@@ -259,8 +259,8 @@ public:
 
 			union
 			{
+				double       f = 0.0; // widest member first, so every constructor leaves the union initialized
 				unsigned int i;
-				double       f;
 				bool         b;
 			};
 

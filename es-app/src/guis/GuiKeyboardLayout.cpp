@@ -34,9 +34,9 @@ GuiKeyboardLayout::GuiKeyboardLayout(Window* window, const std::function<void(co
 			sel = *mActiveKeys.begin();
 	}
 
-	for (int y = 0; y < kbLayout.size(); y++)
+	for (int y = 0; y < (int)kbLayout.size(); y++)
 	{
-		for (int x = 0; x < kbLayout[y].size(); x++)
+		for (int x = 0; x < (int)kbLayout[y].size(); x++)
 		{
 			if (kbLayout[y][x] == sel)
 			{
@@ -222,28 +222,28 @@ bool GuiKeyboardLayout::input(InputConfig* config, Input input)
 	}
 	else if (config->isMappedLike("right", input) && input.value != 0)
 	{
-		if (x + 1 >= kbLayout[mY].size())
+		if (x + 1 >= (int)kbLayout[mY].size())
 			x = 0;
 		else
 			x++;
 
-		while (x + 1 < kbLayout[mY].size() && (kbLayout[y][x] == "" || kbLayout[y][x] == current))
+		while (x + 1 < (int)kbLayout[mY].size() && (kbLayout[y][x] == "" || kbLayout[y][x] == current))
 			x++;
 
-		if (x + 1 == kbLayout[mY].size() && (kbLayout[y][x] == "" || kbLayout[y][x] == current))
+		if (x + 1 == (int)kbLayout[mY].size() && (kbLayout[y][x] == "" || kbLayout[y][x] == current))
 			x = 0;
 	}
 	else if (config->isMappedLike("down", input) && input.value != 0)
 	{
 		y++;
 
-		while (y < kbLayout.size() && (kbLayout[y][x] == current || kbLayout[y][x] == ""))
+		while (y < (int)kbLayout.size() && (kbLayout[y][x] == current || kbLayout[y][x] == ""))
 			y++;
 
-		if (y >= kbLayout.size())
+		if (y >= (int)kbLayout.size())
 			y = 0;
 		
-		if (x >= kbLayout[y].size())
+		if (x >= (int)kbLayout[y].size())
 			x = kbLayout[y].size() - 1;
 
 		while (x > 0 && kbLayout[y][x] == "")
@@ -259,7 +259,7 @@ bool GuiKeyboardLayout::input(InputConfig* config, Input input)
 		if (y < 0)
 			y = kbLayout.size() - 1;
 
-		if (x >= kbLayout[y].size())
+		if (x >= (int)kbLayout[y].size())
 			x = kbLayout[y].size() - 1;
 
 		while (x > 0 && kbLayout[y][x] == "")

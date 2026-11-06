@@ -129,7 +129,7 @@ void ComponentTab::updateCameraOffset()
 {
 	const float totalWidth = mSize.x();
 
-	if (mCursor >= 0 && mCursor < mEntries.size())
+	if (mCursor >= 0 && mCursor < (int)mEntries.size())
 	{
 		int right = mSelectorBarOffset + getTabWidth(mEntries.at(mCursor).data);
 		if (right > totalWidth)
@@ -148,11 +148,9 @@ void ComponentTab::render(const Transform4x4f& parentTrans)
 
 	auto menuTheme = ThemeData::getMenuTheme();
 	unsigned int selectorColor = menuTheme->Text.selectorColor;
-	unsigned int selectorGradientColor = menuTheme->Text.selectorGradientColor;
 	unsigned int selectedColor = menuTheme->Title.color;
 	unsigned int bgColor = menuTheme->Background.color;
 	unsigned int separatorColor = menuTheme->Text.separatorColor;
-	unsigned int textColor = menuTheme->Text.color;
 	bool selectorGradientHorz = menuTheme->Text.selectorGradientType;
 
 	Transform4x4f trans = parentTrans * getTransform();
@@ -179,7 +177,7 @@ void ComponentTab::render(const Transform4x4f& parentTrans)
 
 		float tabWidth = getTabWidth(entry.data);
 
-		if (i == mHotTab)
+		if ((int)i == mHotTab)
 		{
 			Renderer::setMatrix(trans);
 			Renderer::drawRect(x, 0.0f, tabWidth, mSize.y(), 0x00000010, 0x00000010);
@@ -395,7 +393,7 @@ bool ComponentTab::hitTest(int x, int y, Transform4x4f& parentTransform, std::ve
 
 	trans.translate(-mCameraOffset, 0);
 
-	for (int i = 0; i < getChildCount(); i++)
+	for (int i = 0; i < (int)getChildCount(); i++)
 		ret |= getChild(i)->hitTest(x, y, trans, pResult);
 
 	return ret;

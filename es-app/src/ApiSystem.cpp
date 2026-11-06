@@ -942,7 +942,7 @@ std::string ApiSystem::getCRC32(std::string fileName, bool fromZipContents)
 		auto lines = executeEnumerationScript(cmd);
 		for (std::string all : lines)
 		{
-			int idx = all.find("CRC = ");
+			size_t idx = all.find("CRC = ");
 			if (idx != std::string::npos)
 				return all.substr(idx + 6);
 			else if (all.find(fn) == (all.size() - fn.size()) && all.length() > 8 && all[9] == ' ')
@@ -1725,6 +1725,8 @@ bool ApiSystem::isScriptingSupported(ScriptId script)
 		break;
 	case ApiSystem::NFC:
 		executables.push_back("batocera-nfc");
+		break;
+	default:
 		break;
 	}
 
@@ -2524,7 +2526,7 @@ void ApiSystem::saveKeyboardtopads(Keyboardtopad ktp, const std::vector<Keyboard
   int nhotkeys = 0;
   bool stopjoy = false;
 
-  for(int d=0; d<ktp_devices.size(); d++) {
+  for(int d=0; d<(int)ktp_devices.size(); d++) {
     bool enabled = (ktp_devices[d].name != "" || ktp_devices[d].type != "joystick") && ktp_devices[d].keys.size() > 0;
 
     // don't continue on joysticks if one is disabled

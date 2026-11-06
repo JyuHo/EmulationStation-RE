@@ -99,7 +99,7 @@ void MetaDataList::initMetadata()
 	mMetaDataDecls = std::vector<MetaDataDecl>(gameDecls, gameDecls + sizeof(gameDecls) / sizeof(gameDecls[0]));
 	
 	mMetaDataIndexes.clear();
-	for (int i = 0 ; i < mMetaDataDecls.size() ; i++)
+	for (int i = 0 ; i < (int)mMetaDataDecls.size() ; i++)
 		mMetaDataIndexes[mMetaDataDecls[i].id] = i;
 
 	int maxID = mMetaDataDecls.size() + 1;

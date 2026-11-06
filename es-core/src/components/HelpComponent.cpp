@@ -209,7 +209,7 @@ void HelpComponent::setOpacity(unsigned char opacity)
     if (mGrid == nullptr)
         return;
 
-    for (auto i = 0; i < mGrid->getChildCount(); i++)
+    for (auto i = 0; i < (int)mGrid->getChildCount(); i++)
         mGrid->getChild(i)->setOpacity(opacity);
 }
 
@@ -248,7 +248,7 @@ void HelpComponent::render(const Transform4x4f& parentTrans)
 			}
 		}
 
-		for (auto i = 0; i < mGrid->getChildCount(); i++)
+		for (auto i = 0; i < (int)mGrid->getChildCount(); i++)
 		{
 			auto child = mGrid->getChild(i);
 
@@ -318,7 +318,7 @@ bool HelpComponent::hitTest(int x, int y, Transform4x4f& parentTransform, std::v
 
 bool HelpComponent::onMouseClick(int button, bool pressed, int x, int y)
 {
-	if (button == 1 && pressed && mHotItem >= 0 && mHotItem < mPrompts.size())
+	if (button == 1 && pressed && mHotItem >= 0 && mHotItem < (int)mPrompts.size())
 	{
 		auto action = mPrompts[mHotItem].action;
 		if (action != nullptr)

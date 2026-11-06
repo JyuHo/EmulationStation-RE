@@ -127,7 +127,6 @@ void GuiBios::loadList()
 	
 	auto theme = ThemeData::getMenuTheme();
 
-	int idx = mList->getCursorIndex();
 	mList->clear();
 
 	if (mBios.size() == 0)

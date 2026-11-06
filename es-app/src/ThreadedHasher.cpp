@@ -61,7 +61,7 @@ ThreadedHasher::ThreadedHasher(Window* window, HasherType type, std::queue<FileD
 		num_threads = 1;
 
 	mThreadCount = num_threads;
-	for (size_t i = 0; i < num_threads; i++)
+	for (int i = 0; i < num_threads; i++)
 		mThreads.push_back(new std::thread(&ThreadedHasher::run, this));
 }
 

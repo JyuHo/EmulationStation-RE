@@ -247,7 +247,7 @@ void Paths::loadCustomConfiguration(bool overridesOnly)
 		{
 			while (std::getline(systemConf, line))
 			{
-				int idx = line.find("=");
+				size_t idx = line.find("=");
 				if (idx == std::string::npos || line.find("#") == 0 || line.find(";") == 0)
 					continue;
 

@@ -6,7 +6,10 @@
 #include <exception>
 #include <atomic>
 
-#define LOG(level) if(!Log::enabled() || level > Log::getReportingLevel()) ; else Log(level).stream()
+// Expression form, so that LOG() inside an unbraced if/else stays unambiguous.
+// '&' binds weaker than '<<', so the whole message is streamed before LogVoidify discards it.
+struct LogVoidify { void operator&(std::ostream&) {} };
+#define LOG(level) (!Log::enabled() || (level) > Log::getReportingLevel()) ? (void)0 : LogVoidify() & Log(level).stream()
 
 #define TRYCATCH(m, x) { try { x; } \
 catch (const std::exception& e) { LOG(LogError) << m << " Exception " << e.what(); Log::flush(); throw e; } \

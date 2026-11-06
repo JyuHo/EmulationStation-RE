@@ -102,7 +102,7 @@ void SystemView::reloadTheme(SystemData* system)
 	getViewElements(theme);
 
 	int idx = -1;
-	for (int i = 0; i < mEntries.size(); i++)
+	for (int i = 0; i < (int)mEntries.size(); i++)
 	{
 		if (mEntries[i].object == system)
 		{
@@ -284,7 +284,7 @@ int SystemView::moveCursorFast(bool forward)
 	int mCursor = mCarousel.getCursorIndex();
 	int cursor = mCursor;
 
-	if (SystemData::IsManufacturerSupported && Settings::getInstance()->getString("SortSystems") == "manufacturer" && cursor >= 0 && cursor < mEntries.size())
+	if (SystemData::IsManufacturerSupported && Settings::getInstance()->getString("SortSystems") == "manufacturer" && cursor >= 0 && cursor < (int)mEntries.size())
 	{
 		std::string man = mEntries[cursor].object->getSystemMetadata().manufacturer;
 
@@ -306,7 +306,7 @@ int SystemView::moveCursorFast(bool forward)
 		}
 	}
 	else if (SystemData::IsManufacturerSupported && (Settings::getInstance()->getString("SortSystems") == "hardware"
-			|| Settings::getInstance()->getString("SortSystems") == "hardware-year") && cursor >= 0 && cursor < mEntries.size())
+			|| Settings::getInstance()->getString("SortSystems") == "hardware-year") && cursor >= 0 && cursor < (int)mEntries.size())
 	{
 		std::string hwt = mEntries[mCursor].object->getSystemMetadata().hardwareType;
 
@@ -561,7 +561,7 @@ void SystemView::showNavigationBar(const std::string& title, const std::function
 	std::string sel = selector(getSelected());
 
 	std::string man = "*-*";
-	for (int i = 0; i < SystemData::sSystemVector.size(); i++)
+	for (int i = 0; i < (int)SystemData::sSystemVector.size(); i++)
 	{
 		auto system = SystemData::sSystemVector[i];
 		if (!system->isVisible())
@@ -631,7 +631,7 @@ void SystemView::update(int deltaTime)
 void SystemView::updateExtraTextBinding()
 {
 	int mCursor = mCarousel.getCursorIndex();
-	if (mCursor < 0 || mCursor >= mEntries.size())
+	if (mCursor < 0 || mCursor >= (int)mEntries.size())
 		return;
 
 	auto system = getSelected();
@@ -831,7 +831,7 @@ void SystemView::onCursorChanged(const CursorState& state)
 
 	if (!mLockExtraChanges)
 	{
-		for (int i = 0; i < mEntries.size(); i++)
+		for (int i = 0; i < (int)mEntries.size(); i++)
 			if (i != oldCursor && i != mCursor)
 				activateExtras(i, false);
 
@@ -848,7 +848,7 @@ void SystemView::onCursorChanged(const CursorState& state)
 
 				int currentCursor = mCarousel.getCursorIndex();
 
-				for (int i = 0; i < mEntries.size(); i++)
+				for (int i = 0; i < (int)mEntries.size(); i++)
 					if (i != currentCursor)
 						activateExtras(i, false);
 			}
@@ -1149,7 +1149,6 @@ void SystemView::renderExtras(const Transform4x4f& trans, float lower, float upp
 	int min = (int)mExtrasCamOffset;
 	int max = (int)(mExtrasCamOffset + 0.99999f);
 
-	int extrasCenter = (int)mExtrasCamOffset;
 
 	Renderer::pushClipRect(Vector2i::Zero(), Vector2i((int)mSize.x(), (int)mSize.y()));
 
@@ -1158,11 +1157,11 @@ void SystemView::renderExtras(const Transform4x4f& trans, float lower, float upp
 	std::unordered_set<std::string> allValues;
 	std::unordered_set<std::string> values;
 
-	if (mExtrasFadeOpacity && mExtrasFadeOldCursor >= 0 && mExtrasFadeOldCursor < mEntries.size() && mExtrasFadeOldCursor != mCursor)
+	if (mExtrasFadeOpacity && mExtrasFadeOldCursor >= 0 && mExtrasFadeOldCursor < (int)mEntries.size() && mExtrasFadeOldCursor != mCursor)
 	{
 		// ExtrasFadeOpacity : Collect images paths & text values		
 		// paths & values must have only the elements that are not common 
-		if (mCursor >= 0 && mCursor < mEntries.size())
+		if (mCursor >= 0 && mCursor < (int)mEntries.size())
 		{
 			for (GuiComponent* extra : mEntries.at(mCursor).backgroundExtras)
 			{
@@ -1300,16 +1299,16 @@ void SystemView::renderExtras(const Transform4x4f& trans, float lower, float upp
 
 					if (mExtraTransitionHorizontal)
 					{
-						if ((mExtrasFadeOldCursor < mCursor && !(mExtrasFadeOldCursor == 0 && mCursor == mEntries.size() - 1)) ||
-							(mCursor == 0 && mExtrasFadeOldCursor == mEntries.size() - 1))
+						if ((mExtrasFadeOldCursor < mCursor && !(mExtrasFadeOldCursor == 0 && mCursor == (int)mEntries.size() - 1)) ||
+							(mCursor == 0 && mExtrasFadeOldCursor == (int)mEntries.size() - 1))
 							xt.translate(Vector3f((mExtrasFadeMove / mvs) * mSize.x(), 0, 0));
 						else
 							xt.translate(Vector3f(-(mExtrasFadeMove / mvs) * mSize.x(), 0, 0));
 					}
 					else
 					{
-						if ((mExtrasFadeOldCursor < mCursor && !(mExtrasFadeOldCursor == 0 && mCursor == mEntries.size() - 1)) ||
-							(mCursor == 0 && mExtrasFadeOldCursor == mEntries.size() - 1))
+						if ((mExtrasFadeOldCursor < mCursor && !(mExtrasFadeOldCursor == 0 && mCursor == (int)mEntries.size() - 1)) ||
+							(mCursor == 0 && mExtrasFadeOldCursor == (int)mEntries.size() - 1))
 							xt.translate(Vector3f(0, (mExtrasFadeMove / mvs) * mSize.y(), 0));
 						else
 							xt.translate(Vector3f(0, -(mExtrasFadeMove / mvs) * mSize.y(), 0));
@@ -1494,7 +1493,7 @@ void SystemView::updateExtras(const std::function<void(GuiComponent*)>& func)
 
 void SystemView::activateExtras(int cursor, bool activate)
 {
-	if (cursor < 0 || cursor >= mEntries.size())
+	if (cursor < 0 || cursor >= (int)mEntries.size())
 		return;
 
 
@@ -1524,7 +1523,7 @@ void SystemView::activateExtras(int cursor, bool activate)
 SystemData* SystemView::getActiveSystem()
 {
 	int mCursor = mCarousel.getCursorIndex();
-	if (mCursor < 0 || mCursor >= mEntries.size())
+	if (mCursor < 0 || mCursor >= (int)mEntries.size())
 		return nullptr;
 
 	return mEntries[mCursor].object;
@@ -1535,7 +1534,7 @@ bool SystemView::hitTest(int x, int y, Transform4x4f& parentTransform, std::vect
 	bool ret = GuiComponent::hitTest(x, y, parentTransform, pResult);
 
 	int mCursor = mCarousel.getCursorIndex();
-	if (mCursor < 0 || mCursor >= mEntries.size())
+	if (mCursor < 0 || mCursor >= (int)mEntries.size())
 		return ret;
 
 	Transform4x4f trans = getTransform() * parentTransform;

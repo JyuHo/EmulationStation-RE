@@ -78,7 +78,7 @@ bool SystemConf::loadSystemConf()
 		while (std::getline(systemConf, line)) 
 		{
 
-			int idx = line.find("=");
+			size_t idx = line.find("=");
 			if (idx == std::string::npos || line.find("#") == 0 || line.find(";") == 0)
 				continue;
 
@@ -148,7 +148,7 @@ bool SystemConf::saveSystemConf()
 			if (fc != key0 && currentLine[1] != key0)
 				continue;
 
-			int idx = currentLine.find(key);
+			size_t idx = currentLine.find(key);
 			if (idx == std::string::npos)
 				continue;
 
@@ -188,7 +188,7 @@ bool SystemConf::saveSystemConf()
 		LOG(LogError) << "Unable to open for saving :  " << mSystemConfFileTmp << "\n";
 		return false;
 	}
-	for (int i = 0; i < fileLines.size(); i++) 
+	for (int i = 0; i < (int)fileLines.size(); i++) 
 	{
 		if (fileLines[i] != removeID)
 			fileout << fileLines[i] << "\n";

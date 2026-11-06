@@ -175,7 +175,7 @@ namespace Utils
 				if (len != 7 && len != 9)
 					return false;
 
-				for (int i = 1; i < len; ++i)
+				for (size_t i = 1; i < len; ++i)
 					if (!isxdigit(str[i]))
 						return false;
 
@@ -186,7 +186,7 @@ namespace Utils
 			if (len != 6 && len != 8)
 				return false;
 
-			for (int i = 0; i < len; ++i)
+			for (size_t i = 0; i < len; ++i)
 				if (!isxdigit(str[i]))
 					return false;
 			

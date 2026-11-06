@@ -23,7 +23,6 @@ GridGameListView::GridGameListView(Window* window, FolderData* root, const std::
 
 	setTag("grid");
 
-	const float padding = 0.01f;
 
 	mGrid.longMouseClick += this;
 
@@ -319,7 +318,7 @@ void GridGameListView::moveToRandomGame()
 		return;
 
 	int target = Randomizer::random(total);
-	if (target >= 0 && target < total)
+	if (target >= 0 && target < (int)total)
 	{
 		resetLastCursor();
 		setCursor(list.at(target));
