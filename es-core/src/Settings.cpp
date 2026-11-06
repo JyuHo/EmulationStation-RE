@@ -132,6 +132,7 @@ void Settings::setDefaults()
 	mBoolMap["IgnoreLeadingArticles"] = Settings::_IgnoreLeadingArticles;
 	mBoolMap["ShowFoldersFirst"] = Settings::_ShowFoldersFirst;
 	mBoolMap["DrawFramerate"] = false;
+	mBoolMap["RenderOnDemand"] = true; // skip frames identical to the one on screen
 	mBoolMap["ScrollLoadMedias"] = false;	
 	mBoolMap["ShowExit"] = true;
 	mBoolMap["ExitOnRebootRequired"] = false;

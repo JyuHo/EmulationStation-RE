@@ -252,6 +252,15 @@ namespace Renderer
 
 	int         getCurrentFrame();
 
+	// Render on demand: run the frame once between beginFrameProbe() and endFrameProbe()
+	// without touching the GPU. endFrameProbe() tells whether it differs from the frame on
+	// screen; render it for real only then, and call markFramePresented() after the swap.
+	void        beginFrameProbe();
+	bool        endFrameProbe();
+	void        markFramePresented();
+	// Force the next frame to be drawn (window exposed, resized...).
+	void        invalidateFrame();
+
 } // Renderer::
 
 #endif // ES_CORE_RENDERER_RENDERER_H

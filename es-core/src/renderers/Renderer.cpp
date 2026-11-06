@@ -11,6 +11,8 @@
 #include "utils/StringUtil.h"
 
 #include <SDL3/SDL.h>
+#include <atomic>
+#include <cstdint>
 #include <stack>
 
 
@@ -36,6 +38,102 @@ namespace Renderer
 	static int              currentFrame = 0;
 
 	int  getCurrentFrame() { return currentFrame; }
+
+//////////////////////////////////////////////////////////////////////////
+// Render on demand
+//
+// While probing, the drawing entry points below do not reach the GPU: they only fold
+// their arguments into a fingerprint of the frame. When the fingerprint matches the last
+// presented frame, the screen already shows it and the frame is skipped.
+// Anything the fingerprint cannot see (texture contents, framebuffer post-processing,
+// shaders that animate on their own, another code path presenting a frame) makes the
+// frame dirty instead.
+
+	static bool              probing            = false;
+	static bool              probeDirty         = false;
+	static uint64_t          probeHash          = 0;
+	static uint64_t          presentedHash      = 0;
+	static int               presentedFrame     = -1;
+	static std::atomic<bool> frameInvalidated   { true };
+
+	static constexpr uint64_t HASH_SEED  = 0xcbf29ce484222325ull;
+	static constexpr uint64_t HASH_PRIME = 0x100000001b3ull;
+
+	enum class ProbeOp : uint32_t { BindTexture = 1, Lines, Strips, Fan, Rectangle, Projection, Matrix, Viewport, Scissor, Stencil, NoStencil };
+
+	static inline void hashWord(uint64_t value)
+	{
+		probeHash = (probeHash ^ value) * HASH_PRIME;
+	}
+
+	static inline void hashFloat(float value)
+	{
+		uint32_t bits;
+		std::memcpy(&bits, &value, sizeof(bits));
+		hashWord(bits);
+	}
+
+	static inline void hashOp(ProbeOp op, uint64_t arg0 = 0, uint64_t arg1 = 0)
+	{
+		hashWord(static_cast<uint64_t>(op));
+		hashWord(arg0);
+		hashWord(arg1);
+	}
+
+	static void hashVertices(const Vertex* vertices, const unsigned int count)
+	{
+		hashWord(count);
+		if (vertices == nullptr)
+			return;
+
+		for (unsigned int i = 0; i < count; ++i)
+		{
+			const Vertex& v = vertices[i];
+			hashFloat(v.pos.x()); hashFloat(v.pos.y());
+			hashFloat(v.tex.x()); hashFloat(v.tex.y());
+			hashWord(v.col);
+			hashFloat(v.saturation);
+			hashFloat(v.cornerRadius);
+
+			// A custom shader gets the frame counter as a uniform: it can change every frame.
+			if (v.customShader != nullptr && !v.customShader->path.empty())
+				probeDirty = true;
+		}
+	}
+
+	static void hashMatrix(const Transform4x4f& matrix)
+	{
+		const float* m = reinterpret_cast<const float*>(&matrix);
+		for (int i = 0; i < 16; ++i)
+			hashFloat(m[i]);
+	}
+
+	void invalidateFrame()
+	{
+		frameInvalidated = true;
+	}
+
+	void beginFrameProbe()
+	{
+		probing = true;
+		probeHash = HASH_SEED;
+		// A frame presented outside the main loop (splash screen...) replaced what we know is on screen.
+		probeDirty = frameInvalidated.exchange(false) || currentFrame != presentedFrame;
+	}
+
+	bool endFrameProbe()
+	{
+		probing = false;
+		// Textures uploaded while probing (a new video frame...) only show up here
+		const bool dirty = frameInvalidated.exchange(false) || probeDirty || probeHash != presentedHash;
+		presentedHash = probeHash;
+		return dirty;
+	}
+
+	void markFramePresented()
+	{
+		presentedFrame = currentFrame;
+	}
 
 	static Rect screenToviewport(const Rect& rect)
 	{
@@ -790,46 +888,85 @@ namespace Renderer
 
 	unsigned int createTexture(const Texture::Type _type, const bool _linear, const bool _repeat, const unsigned int _width, const unsigned int _height, void* _data)
 	{
+		frameInvalidated = true;
 		return Instance()->createTexture(_type, _linear, _repeat, _width, _height, _data);
 	}
 
 	unsigned int createMipmappedTexture(const Texture::Type _type, const bool _linear, const bool _repeat, const unsigned int _width, const unsigned int _height, void* _data)
 	{
+		frameInvalidated = true;
 		return Instance()->createMipmappedTexture(_type, _linear, _repeat, _width, _height, _data);
 	}
 
 	void  destroyTexture(const unsigned int _texture)
 	{
+		frameInvalidated = true;
 		Instance()->destroyTexture(_texture);
 	}
 
 	void updateTexture(const unsigned int _texture, const Texture::Type _type, const unsigned int _x, const unsigned _y, const unsigned int _width, const unsigned int _height, void* _data)
 	{
+		frameInvalidated = true;
 		Instance()->updateTexture(_texture, _type, _x, _y, _width, _height, _data);
 	}
 
 	void bindTexture(const unsigned int _texture)
 	{
+		if (probing)
+		{
+			hashOp(ProbeOp::BindTexture, _texture);
+			return;
+		}
+
 		Instance()->bindTexture(_texture);
 	}
 
 	void drawLines(const Vertex* _vertices, const unsigned int _numVertices, const Blend::Factor _srcBlendFactor, const Blend::Factor _dstBlendFactor)
 	{
+		if (probing)
+		{
+			hashOp(ProbeOp::Lines, _srcBlendFactor, _dstBlendFactor);
+			hashVertices(_vertices, _numVertices);
+			return;
+		}
+
 		Instance()->drawLines(_vertices, _numVertices, _srcBlendFactor, _dstBlendFactor);
 	}
 
 	void drawTriangleStrips(const Vertex* _vertices, const unsigned int _numVertices, const Blend::Factor _srcBlendFactor, const Blend::Factor _dstBlendFactor, bool verticesChanged)
 	{
+		if (probing)
+		{
+			hashOp(ProbeOp::Strips, _srcBlendFactor, _dstBlendFactor);
+			hashVertices(_vertices, _numVertices);
+			return;
+		}
+
 		Instance()->drawTriangleStrips(_vertices, _numVertices, _srcBlendFactor, _dstBlendFactor, verticesChanged);
 	}
 
 	void drawSolidRectangle(const float _x, const float _y, const float _w, const float _h, const unsigned int _fillColor, const unsigned int _borderColor, float borderWidth, float cornerRadius)
 	{
+		if (probing)
+		{
+			hashOp(ProbeOp::Rectangle, _fillColor, _borderColor);
+			hashFloat(_x); hashFloat(_y); hashFloat(_w); hashFloat(_h);
+			hashFloat(borderWidth); hashFloat(cornerRadius);
+			return;
+		}
+
 		Instance()->drawSolidRectangle(_x, _y, _w, _h, _fillColor, _borderColor, borderWidth, cornerRadius);
 	}
 
 	void drawTriangleFan(const Vertex* _vertices, const unsigned int _numVertices, const Blend::Factor _srcBlendFactor, const Blend::Factor _dstBlendFactor)
 	{
+		if (probing)
+		{
+			hashOp(ProbeOp::Fan, _srcBlendFactor, _dstBlendFactor);
+			hashVertices(_vertices, _numVertices);
+			return;
+		}
+
 		Instance()->drawTriangleFan(_vertices, _numVertices, _srcBlendFactor, _dstBlendFactor);
 	}
 
@@ -845,16 +982,36 @@ namespace Renderer
 
 	void setProjection(const Transform4x4f& _projection)
 	{
+		if (probing)
+		{
+			hashOp(ProbeOp::Projection);
+			hashMatrix(_projection);
+			return;
+		}
+
 		Instance()->setProjection(_projection);
 	}
 
 	void setMatrix(const Transform4x4f& _matrix)
 	{
+		if (probing)
+		{
+			hashOp(ProbeOp::Matrix);
+			hashMatrix(_matrix);
+			return;
+		}
+
 		Instance()->setMatrix(_matrix);
 	}
 
 	void blurBehind(const float _x, const float _y, const float _w, const float _h, const float blurSize)
 	{
+		if (probing)
+		{
+			probeDirty = true;
+			return;
+		}
+
 		std::map<std::string, std::string> map;
 		map["blur"] = std::to_string(blurSize);
 		Instance()->postProcessShader(":/shaders/blur.glsl", _x, _y, _w, _h, map);		
@@ -862,6 +1019,12 @@ namespace Renderer
 
 	void postProcessShader(const std::string& path, const float _x, const float _y, const float _w, const float _h, const std::map<std::string, std::string>& parameters, unsigned int* data)
 	{
+		if (probing)
+		{
+			probeDirty = true;
+			return;
+		}
+
 		Instance()->postProcessShader(path, _x, _y, _w, _h, parameters, data);
 	}
 
@@ -873,21 +1036,46 @@ namespace Renderer
 	void setViewport(const Rect& _viewport)
 	{
 		viewPort = _viewport;
+		if (probing)
+		{
+			hashOp(ProbeOp::Viewport, (uint64_t(uint32_t(_viewport.x)) << 32) | uint32_t(_viewport.y), (uint64_t(uint32_t(_viewport.w)) << 32) | uint32_t(_viewport.h));
+			return;
+		}
+
 		Instance()->setViewport(_viewport);
 	}
 
 	void setScissor(const Rect& _scissor)
 	{
+		if (probing)
+		{
+			hashOp(ProbeOp::Scissor, (uint64_t(uint32_t(_scissor.x)) << 32) | uint32_t(_scissor.y), (uint64_t(uint32_t(_scissor.w)) << 32) | uint32_t(_scissor.h));
+			return;
+		}
+
 		Instance()->setScissor(_scissor);
 	}
 
 	void setStencil(const Vertex* _vertices, const unsigned int _numVertices)
 	{
+		if (probing)
+		{
+			hashOp(ProbeOp::Stencil);
+			hashVertices(_vertices, _numVertices);
+			return;
+		}
+
 		Instance()->setStencil(_vertices, _numVertices);
 	}
 
 	void disableStencil()
 	{
+		if (probing)
+		{
+			hashOp(ProbeOp::NoStencil);
+			return;
+		}
+
 		Instance()->disableStencil();
 	}
 
