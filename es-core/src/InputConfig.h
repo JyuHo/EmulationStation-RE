@@ -135,6 +135,7 @@ public:
 	// Returns true if there is an Input mapped to this name, false otherwise.
 	// Writes Input mapped to this name to result if true.
 	bool getInputByName(const std::string& name, Input* result);
+	const std::map<std::string, Input>& getInputs() const { return mNameMap; }
 
 	void loadFromXML(pugi::xml_node& root);
 	void writeToXML(pugi::xml_node& parent);

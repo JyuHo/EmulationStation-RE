@@ -45,6 +45,9 @@ public:
 	// Screenshots
 	static std::string& getScreenShotPath() { return getInstance()->mScreenShotsPath; } 
 																		
+	// BIOS files for the emulators
+	static std::string& getBiosPath() { return getInstance()->mBiosPath; }
+
 	// Savestates
 	static std::string& getSavesPath() { return getInstance()->mSaveStatesPath; } 
 																   
@@ -135,6 +138,7 @@ private:
 	std::string mEmulationStationPath;
 
 	std::string mTimeZonesPath;
+	std::string mBiosPath;
 	std::string mRetroachivementSounds;
 	std::string mUserRetroachivementSounds;
 
