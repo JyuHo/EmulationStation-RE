@@ -21,20 +21,35 @@ endif()
 
 option(ES_LAUNCHER_TESTS "Build the es-launcher tests" ${ES_LAUNCHER_STANDALONE})
 
-add_library(es-launcher SHARED
+# The sources are compiled once, into an object library that both the shared library and the
+# tests use, so that the tests can reach the internal classes the library does not export.
+add_library(es-launcher-objects OBJECT
     src/Command.cpp
     src/Generator.cpp
     src/LaunchContext.cpp
     src/Launcher.cpp
     src/Settings.cpp
+    src/util/Files.cpp
+    src/retroarch/ConfigFile.cpp
+    src/retroarch/Cores.cpp
+    src/retroarch/RetroArchGenerator.cpp
 )
 
-target_include_directories(es-launcher PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_compile_definitions(es-launcher PRIVATE ES_LAUNCHER_BUILDING)
-target_compile_options(es-launcher PRIVATE -Wall -Wextra)
-set_target_properties(es-launcher PROPERTIES
+target_include_directories(es-launcher-objects
+    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
+    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+target_compile_definitions(es-launcher-objects PRIVATE ES_LAUNCHER_BUILDING)
+target_compile_options(es-launcher-objects PRIVATE -Wall -Wextra)
+set_target_properties(es-launcher-objects PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
     CXX_VISIBILITY_PRESET hidden
     VISIBILITY_INLINES_HIDDEN ON
+)
+
+add_library(es-launcher SHARED $<TARGET_OBJECTS:es-launcher-objects>)
+target_include_directories(es-launcher PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+set_target_properties(es-launcher PROPERTIES
     VERSION 0.1.0
     SOVERSION 0
 )
@@ -43,8 +58,20 @@ install(TARGETS es-launcher LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 if(ES_LAUNCHER_TESTS)
     enable_testing()
-    add_executable(es-launcher-tests tests/launcher_tests.cpp)
-    target_link_libraries(es-launcher-tests PRIVATE es-launcher)
+
+    # the generators register themselves from static initializers: link every object file,
+    # even those no test function refers to
+    add_executable(es-launcher-tests
+        tests/launcher_tests.cpp
+        tests/retroarch_tests.cpp
+        tests/main.cpp
+        $<TARGET_OBJECTS:es-launcher-objects>
+    )
+    target_include_directories(es-launcher-tests PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests
+    )
     target_compile_options(es-launcher-tests PRIVATE -Wall -Wextra)
     add_test(NAME es-launcher-tests COMMAND es-launcher-tests)
 endif()

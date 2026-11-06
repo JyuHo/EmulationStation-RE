@@ -171,6 +171,17 @@ namespace GameLauncher
 
 		SystemData* system = game->getSystem();
 
+		// "eslauncher=0" (globally, per system or per game) keeps the es_systems.cfg command
+		auto conf = SystemConf::getInstance();
+		for (const std::string& prefix : { game->getConfigurationName(), system->getName(), std::string("global") })
+		{
+			std::string value = conf->get(prefix + ".eslauncher");
+			if (value == "0")
+				return nullptr;
+			if (value == "1")
+				break;
+		}
+
 		launcher::LaunchContext ctx;
 		ctx.game.rom = game->getPath();
 		ctx.game.name = game->getName();
