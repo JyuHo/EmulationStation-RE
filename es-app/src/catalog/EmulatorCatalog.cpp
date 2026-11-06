@@ -5,6 +5,7 @@
 #include <rapidjson/stringbuffer.h>
 
 #include <algorithm>
+#include <cctype>
 #include <sys/utsname.h>
 
 namespace catalog
@@ -297,7 +298,12 @@ namespace catalog
 			}
 		}
 
-		auto byName = [](const auto& a, const auto& b) { return a.name < b.name; };
+		// Case-insensitive, so that melonDS and xemu do not end up after every capitalized name
+		auto byName = [](const auto& a, const auto& b)
+		{
+			return std::lexicographical_compare(a.name.begin(), a.name.end(), b.name.begin(), b.name.end(),
+				[](unsigned char x, unsigned char y) { return std::tolower(x) < std::tolower(y); });
+		};
 		std::stable_sort(catalog.emulators.begin(), catalog.emulators.end(), byName);
 		std::stable_sort(catalog.cores.begin(), catalog.cores.end(), byName);
 

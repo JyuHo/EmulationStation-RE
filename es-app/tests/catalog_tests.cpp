@@ -110,6 +110,7 @@ namespace
 
 		auto arm = parseCatalog(CATALOG, "aarch64", URL);
 		CHECK(arm->emulators.size() == 2);
+		CHECK(arm->emulators[0].id == "dolphin"); // before melonDS, whatever the case
 		CHECK(arm->findEmulator("melonds")->builds[0].exec == "\\.AppImage$");
 		CHECK(arm->findEmulator("melonds")->logo == "https://raw.githubusercontent.com/JyuHo/es-re-catalog/main/logos/melonds.png");
 		CHECK(arm->findEmulator("dolphin")->logo == "https://example.org/dolphin.png");
