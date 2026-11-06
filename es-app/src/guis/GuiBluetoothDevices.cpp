@@ -102,15 +102,14 @@ void GuiBluetoothDevices::onRemoveAll()
 	if (mWaitingLoad)
 		return;
 
-	Window* window = mWindow;
 
 	mWindow->pushGui(new GuiLoading<bool>(mWindow, _("PLEASE WAIT"),
-		[this, window](auto gui)
+		[this](auto gui)
 		{
 			mWaitingLoad = true;
 			return ApiSystem::getInstance()->forgetBluetoothControllers();
 		},
-		[this, window](bool ret)
+		[this](bool ret)
 		{
 			mWaitingLoad = false;
 			mWindow->pushGui(new GuiMsgBox(mWindow, _("BLUETOOTH DEVICES HAVE BEEN DELETED."), _("OK")));
@@ -141,12 +140,12 @@ void GuiBluetoothDevices::onRemoveDevice(const std::string& id, const std::strin
 		_("YES"), [this, window, macAddress]
 		{ 			
 			window->pushGui(new GuiLoading<bool>(window, _("PLEASE WAIT"),
-				[this, window, macAddress](auto gui)
+				[this, macAddress](auto gui)
 				{
 					mWaitingLoad = true;
 					return ApiSystem::getInstance()->removeBluetoothDevice(macAddress);
 				},
-				[this, window](bool ret)
+				[this](bool ret)
 				{
 					mWaitingLoad = false;
 					load();

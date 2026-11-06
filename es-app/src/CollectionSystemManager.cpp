@@ -1243,7 +1243,7 @@ void CollectionSystemManager::addEnabledCollectionsToDisplayedSystems(std::map<s
 				if (collection->decl.isCustom)
 					pool.queueWorkItem([this, collection, pMap] { populateCustomCollection(collection, pMap); });
 				else
-					pool.queueWorkItem([this, collection, pMap] { populateAutoCollection(collection); });
+					pool.queueWorkItem([this, collection] { populateAutoCollection(collection); });
 			}
 
 			pool.wait();

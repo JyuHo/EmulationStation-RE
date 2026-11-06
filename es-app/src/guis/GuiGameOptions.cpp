@@ -30,7 +30,7 @@
 #include "SystemConf.h"
 
 GuiGameOptions::GuiGameOptions(Window* window, FileData* game) : GuiComponent(window),
-	mMenu(window, game->getName()), mReloadAll(false)
+	mMenu(window, game->getName())
 {
 	mHasAdvancedGameOptions = false;
 
@@ -92,7 +92,7 @@ GuiGameOptions::GuiGameOptions(Window* window, FileData* game) : GuiComponent(wi
 
 		if (hasVideo)
 		{
-			mMenu.addEntry(_("VIEW FULLSCREEN VIDEO"), false, [window, game, this]
+			mMenu.addEntry(_("VIEW FULLSCREEN VIDEO"), false, [ game, this]
 			{
 				auto imagePath = game->getMetadata(MetaDataId::Video);
 				GuiVideoViewer::playVideo(mWindow, imagePath);
@@ -102,7 +102,7 @@ GuiGameOptions::GuiGameOptions(Window* window, FileData* game) : GuiComponent(wi
 
 		if (hasAlternateMedias)
 		{
-			mMenu.addEntry(_("VIEW GAME MEDIA"), false, [window, game, this]
+			mMenu.addEntry(_("VIEW GAME MEDIA"), false, [ game, this]
 			{
 				auto imageList = game->getSourceFileData()->getFileMedias();
 				GuiImageViewer::showImages(mWindow, imageList);
@@ -147,9 +147,9 @@ GuiGameOptions::GuiGameOptions(Window* window, FileData* game) : GuiComponent(wi
 
 		if (SaveStateRepository::isEnabled(game))
 		{
-			mMenu.addEntry(_("SAVESTATES"), false, [window, game, this]
+			mMenu.addEntry(_("SAVESTATES"), false, [ game, this]
 			{
-				mWindow->pushGui(new GuiSaveState(mWindow, game, [this, game](SaveState* state)
+				mWindow->pushGui(new GuiSaveState(mWindow, game, [ game](SaveState* state)
 				{
 					LaunchGameOptions options;
 					options.saveStateInfo = state;
@@ -161,7 +161,7 @@ GuiGameOptions::GuiGameOptions(Window* window, FileData* game) : GuiComponent(wi
 		}
 		else
 		{
-			mMenu.addEntry(isImageViewer ? _("OPEN") : _("LAUNCH"), false, [window, game, this]
+			mMenu.addEntry(isImageViewer ? _("OPEN") : _("LAUNCH"), false, [ game, this]
 			{
 				ViewController::get()->launch(game);
 				this->close();
@@ -256,7 +256,7 @@ GuiGameOptions::GuiGameOptions(Window* window, FileData* game) : GuiComponent(wi
 				[this, game, hasZaparoo]
 				{
 					mWindow->pushGui(new GuiLoading<bool>(mWindow, _("PLACE A TAG ON THE WRITER..."),
-					[this, game, hasZaparoo](auto gui)
+					[ game, hasZaparoo](auto gui)
 					{
 					  if(hasZaparoo) {
 					    return Zaparoo::writeZaparooCard(game->getFullPath());
@@ -309,7 +309,6 @@ GuiGameOptions::GuiGameOptions(Window* window, FileData* game) : GuiComponent(wi
 				mMenu.addEntry(_("ADD TO CUSTOM COLLECTION..."), false, [this, game]
 				{
 					auto pThis = this;
-					Window* window = mWindow;
 
 					GuiSettings* msgBox = new GuiSettings(mWindow, _("ADD TO CUSTOM COLLECTION..."));
 					msgBox->setTag("popup");
@@ -323,7 +322,7 @@ GuiGameOptions::GuiGameOptions(Window* window, FileData* game) : GuiComponent(wi
 						if (CollectionSystemManager::get()->inInCustomCollection(game, collectionName))
 							continue;
 
-						msgBox->addEntry(Utils::String::toUpper(collectionName), false, [pThis, window, msgBox, collectionName, game]
+						msgBox->addEntry(Utils::String::toUpper(collectionName), false, [pThis, msgBox, collectionName, game]
 						{
 							auto parent = pThis;
 							CollectionSystemManager::get()->toggleGameInCollection(game, collectionName);

@@ -197,7 +197,7 @@ void GuiCollectionSystemsOptions::initializeMenu()
 		auto s = new GuiSettings(mWindow, label);
 
 		s->addGroup(_("CREATE CUSTOM COLLECTION"));
-		s->addEntry(_("ENTER NAME"), true, [this, window, finalCreateCollection]
+		s->addEntry(_("ENTER NAME"), true, [ window, finalCreateCollection]
 			{
 				if (Settings::getInstance()->getBool("UseOSK"))
 					window->pushGui(new GuiTextEditPopupKeyboard(window, _("New Collection Name"), "", finalCreateCollection, false));
@@ -223,8 +223,8 @@ void GuiCollectionSystemsOptions::initializeMenu()
 		mWindow->pushGui(s);
 	};
 
-	addEntry(_("CREATE NEW EDITABLE COLLECTION").c_str(), true, [this, createCustomCollection] { createCustomCollection(_("CREATE NEW EDITABLE COLLECTION"), false); });	
-	addEntry(_("CREATE NEW DYNAMIC COLLECTION").c_str(), true, [this, createCustomCollection] { createCustomCollection(_("CREATE NEW DYNAMIC COLLECTION"), true); });
+	addEntry(_("CREATE NEW EDITABLE COLLECTION").c_str(), true, [ createCustomCollection] { createCustomCollection(_("CREATE NEW EDITABLE COLLECTION"), false); });	
+	addEntry(_("CREATE NEW DYNAMIC COLLECTION").c_str(), true, [ createCustomCollection] { createCustomCollection(_("CREATE NEW DYNAMIC COLLECTION"), true); });
 
 	addGroup(_("OPTIONS"));
 

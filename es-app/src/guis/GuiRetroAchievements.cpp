@@ -23,7 +23,7 @@
 void GuiRetroAchievements::show(Window* window)
 {
 	window->pushGui(new GuiLoading<RetroAchievementInfo>(window, _("PLEASE WAIT"), 
-		[window](auto gui)
+		[](auto gui)
 		{
 			auto summary = RetroAchievements::getUserSummary();
 			return RetroAchievements::toRetroAchivementInfo(summary);

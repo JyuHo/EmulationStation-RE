@@ -215,7 +215,7 @@ void GuiKeyboardtopads::loadPlayerPage(int n, const std::string& device_path)
 
 void GuiKeyboardtopads::declareEvKey(Window* window, const std::string& device_path, const std::function<void(std::string)>& func)
 {
-	window->pushGui(new GuiLoading<std::string>(window, _("PRESS A KEY OR WAIT 4 SECONDS TO CLEAR"), [this, window, device_path, func](auto gui)
+	window->pushGui(new GuiLoading<std::string>(window, _("PRESS A KEY OR WAIT 4 SECONDS TO CLEAR"), [this, device_path, func](auto gui)
 	{
 		m_need_save = true;
 		return ApiSystem::getInstance()->detectEvKey(device_path);

@@ -202,7 +202,7 @@ GuiControllersSettings::GuiControllersSettings(Window* wnd, int autoSel) : GuiSe
 		addWithLabel(label, inputOptionList);
 	}
 
-	addSaveFunc([this, options, window]
+	addSaveFunc([ options]
 	{
 		bool changed = false;
 
@@ -481,7 +481,7 @@ void GuiControllersSettings::initializeGlobalHotkeys(Window* window, GuiSettings
 
 void GuiControllersSettings::declareGlobalHotkey(Window* window, GuiSettings* s)
 {
-	window->pushGui(new GuiLoading<int>(window, _("YOU'VE 4 SECONDS TO PRESS EXACTLY 2 TIMES THE GLOBAL HOTKEY"), [this, window](auto gui)
+	window->pushGui(new GuiLoading<int>(window, _("YOU'VE 4 SECONDS TO PRESS EXACTLY 2 TIMES THE GLOBAL HOTKEY"), [](auto gui)
 		{
 			std::vector<GlobalHotkey> res = ApiSystem::getInstance()->detectGlobalHotkeys();
 			if (res.size() == 1)

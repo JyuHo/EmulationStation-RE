@@ -106,6 +106,7 @@ public:
 	inline void setSelectorColorEnd(unsigned int color) { mSelectorColorEnd = color; }
 	inline void setSelectorColorGradientHorizontal(bool horizontal) { mSelectorColorGradientHorizontal = horizontal; }
 	inline void setSelectedColor(unsigned int color) { mSelectedColor = color; }
+	using GuiComponent::setColor;
 	inline void setColor(unsigned int id, unsigned int color) { mColors[id] = color; }
 	inline void setLineSpacing(float lineSpacing) { mLineSpacing = lineSpacing; }
 	inline void setBonusTextColor(unsigned int color) { mBonusColor = color; mHasBonusColor = true; }

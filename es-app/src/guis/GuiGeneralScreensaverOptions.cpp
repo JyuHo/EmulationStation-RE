@@ -105,7 +105,7 @@ void GuiGeneralScreensaverOptions::addVideoScreensaverOptions(int selectItem)
 		ss_info->add(_(it->c_str()), *it, Settings::getInstance()->getString("ScreenSaverGameInfo") == *it);
 
 	addWithLabel(_("SHOW GAME INFO"), ss_info);
-	addSaveFunc([ss_info, this] { Settings::getInstance()->setString("ScreenSaverGameInfo", ss_info->getSelected()); });
+	addSaveFunc([ss_info] { Settings::getInstance()->setString("ScreenSaverGameInfo", ss_info->getSelected()); });
 
 	// SHOW DATE TIME
 	{

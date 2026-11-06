@@ -159,6 +159,7 @@ namespace Renderer
 
 	const GLCapabilities& getGLCapabilities() { return glCapabilities; }
 
+#ifdef USE_GLES
 	struct ESContextVersion
 	{
 		int major;
@@ -168,6 +169,7 @@ namespace Renderer
 	// Highest first.
 	static const ESContextVersion ES_CONTEXT_LADDER[] = { { 3, 2 }, { 3, 1 }, { 3, 0 } };
 	static const int ES_CONTEXT_LADDER_COUNT = sizeof(ES_CONTEXT_LADDER) / sizeof(ES_CONTEXT_LADDER[0]);
+#endif
 
 	static bool hasExtension(const std::set<std::string>& extensions, const char* name)
 	{

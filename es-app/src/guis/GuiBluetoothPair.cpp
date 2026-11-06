@@ -128,7 +128,7 @@ void GuiBluetoothPair::onPairDevice(const std::string& macAddress)
 
 	Window* window = mWindow;
 
-	window->pushGui(new GuiLoading<bool>(window, _("PLEASE WAIT"), [this, window, macAddress](auto gui)
+	window->pushGui(new GuiLoading<bool>(window, _("PLEASE WAIT"), [ macAddress](auto gui)
 	{
 		return ApiSystem::getInstance()->pairBluetoothDevice(macAddress);
 	}, [this](bool ret)

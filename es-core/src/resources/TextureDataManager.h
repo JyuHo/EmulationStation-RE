@@ -47,7 +47,6 @@ private:
 	std::condition_variable		mEvent;
 	std::atomic<bool>			mExit;
 
-	TextureDataManager*			mManager;
 };
 
 

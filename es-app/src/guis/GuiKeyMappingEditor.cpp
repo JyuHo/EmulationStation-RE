@@ -495,7 +495,7 @@ void GuiKeyMappingEditor::deleteMapping()
 	mWindow->pushGui(new GuiMsgBox(mWindow,
 		_("ARE YOU SURE?"),
 		_("YES"), [this] { mMapping.deleteFile(); delete this; },
-		_("NO"), [this] { }
+		_("NO"), [] { }
 	));
 }
 

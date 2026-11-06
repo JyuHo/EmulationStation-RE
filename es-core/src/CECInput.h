@@ -31,7 +31,9 @@ private:
 
 	static CECInput*  sInstance;
 
-	CEC::ICECAdapter* mlibCEC;
+#ifdef HAVE_LIBCEC
+	CEC::ICECAdapter* mlibCEC = nullptr;
+#endif
 
 }; // CECInput
 

@@ -223,14 +223,13 @@ void GuiThemeInstaller::loadList()
 
 void GuiThemeInstaller::loadThemesAsync()
 {
-	Window* window = mWindow;
 
 	mWindow->pushGui(new GuiLoading<std::vector<BatoceraTheme>>(mWindow, _("PLEASE WAIT"),
-		[this, window](auto gui)
+		[](auto gui)
 		{
 			return ApiSystem::getInstance()->getBatoceraThemesList();		
 		},
-		[this, window](std::vector<BatoceraTheme> themes)
+		[this](std::vector<BatoceraTheme> themes)
 		{
 			mThemes = themes;
 			loadList();

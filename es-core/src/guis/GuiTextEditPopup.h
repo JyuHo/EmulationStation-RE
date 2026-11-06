@@ -27,7 +27,6 @@ private:
 	std::shared_ptr<TextEditComponent> mText;
 	std::shared_ptr<ComponentGrid> mButtonGrid;
 
-	bool mMultiLine;
 };
 
 #endif // ES_CORE_GUIS_GUI_TEXT_EDIT_POPUP_H

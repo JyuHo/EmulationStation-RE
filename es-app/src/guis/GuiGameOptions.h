@@ -46,7 +46,6 @@ private:
 
 
 	std::vector<std::function<void()>> mSaveFuncs;
-	bool mReloadAll;	
 };
 
 #endif // ES_APP_GUIS_GUI_GAME_OPTIONS_H

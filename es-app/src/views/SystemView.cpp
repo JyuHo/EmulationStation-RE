@@ -338,7 +338,7 @@ void SystemView::showQuickSearch()
 	SystemData* all = SystemData::getSystem("all");
 	if (all != nullptr)
 	{
-		auto updateVal = [this, all](const std::string& newVal)
+		auto updateVal = [ all](const std::string& newVal)
 		{
 			auto index = all->getIndex(true);
 
@@ -575,7 +575,7 @@ void SystemView::showNavigationBar(const std::string& title, const std::function
 				if (sy->isVisible() && selector(sy) == mf)
 					names.push_back(sy->getFullName());
 
-			gs->getMenu().addWithDescription(mf, Utils::String::join(names, ", "), nullptr, [this, mCursor, gs, system, idx]
+			gs->getMenu().addWithDescription(mf, Utils::String::join(names, ", "), nullptr, [this, mCursor, gs, idx]
 				{
 					mCarousel.moveSelectionBy(idx - mCursor);
 					mCarousel.moveSelectionBy(0);
@@ -838,7 +838,7 @@ void SystemView::onCursorChanged(const CursorState& state)
 		activateExtras(mCursor);
 	}
 
-	setAnimation(anim, 0, [this, mCursor, lockExtraChanges]
+	setAnimation(anim, 0, [this, lockExtraChanges]
 		{
 			if (!lockExtraChanges)
 			{
@@ -1451,7 +1451,7 @@ void SystemView::onHide()
 
 	mCarousel.onHide();
 
-	updateExtras([this](GuiComponent* p) { p->onHide(); });
+	updateExtras([](GuiComponent* p) { p->onHide(); });
 
 	for (auto sb : mStaticBackgrounds)
 		sb->onHide();
@@ -1460,7 +1460,7 @@ void SystemView::onHide()
 void SystemView::onScreenSaverActivate()
 {
 	mScreensaverActive = true;
-	updateExtras([this](GuiComponent* p) { p->onScreenSaverActivate(); });
+	updateExtras([](GuiComponent* p) { p->onScreenSaverActivate(); });
 
 	for (auto sb : mStaticBackgrounds)
 		sb->onScreenSaverActivate();
@@ -1469,7 +1469,7 @@ void SystemView::onScreenSaverActivate()
 void SystemView::onScreenSaverDeactivate()
 {
 	mScreensaverActive = false;
-	updateExtras([this](GuiComponent* p) { p->onScreenSaverDeactivate(); });
+	updateExtras([](GuiComponent* p) { p->onScreenSaverDeactivate(); });
 
 	for (auto sb : mStaticBackgrounds)
 		sb->onScreenSaverDeactivate();
@@ -1478,7 +1478,7 @@ void SystemView::onScreenSaverDeactivate()
 void SystemView::topWindow(bool isTop)
 {
 	mDisable = !isTop;
-	updateExtras([this, isTop](GuiComponent* p) { p->topWindow(isTop); });
+	updateExtras([ isTop](GuiComponent* p) { p->topWindow(isTop); });
 
 	for (auto sb : mStaticBackgrounds)
 		sb->topWindow(isTop);

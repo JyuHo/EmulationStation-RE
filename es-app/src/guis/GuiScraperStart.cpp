@@ -107,12 +107,12 @@ void GuiScraperStart::loadScrapPage()
 
 	mDateFilters = std::make_shared< OptionListComponent<FilterFunc> >(mWindow, _("IGNORE RECENTLY SCRAPED GAMES"), false);
 	mDateFilters->add(_("NO"), [](FileData*) -> bool { return true; }, idx == 0);
-	mDateFilters->add(_("LAST DAY"), [this, scraperName, isOlderThan](FileData* g) -> bool { return isOlderThan(scraperName, g, 1); }, idx == 1);
-	mDateFilters->add(_("LAST WEEK"), [this, scraperName, isOlderThan](FileData* g) -> bool { return isOlderThan(scraperName, g, 7); }, idx == 2);
-	mDateFilters->add(_("LAST 15 DAYS"), [this, scraperName, isOlderThan](FileData* g) -> bool { return isOlderThan(scraperName, g, 15); }, idx == 3);
-	mDateFilters->add(_("LAST MONTH"), [this, scraperName, isOlderThan](FileData* g) -> bool { return isOlderThan(scraperName, g, 31); }, idx == 4);
-	mDateFilters->add(_("LAST 3 MONTHS"), [this, scraperName, isOlderThan](FileData* g) -> bool { return isOlderThan(scraperName, g, 90); }, idx == 5);
-	mDateFilters->add(_("LAST YEAR"), [this, scraperName, isOlderThan](FileData* g) -> bool { return isOlderThan(scraperName, g, 365); }, idx == 6);
+	mDateFilters->add(_("LAST DAY"), [ scraperName, isOlderThan](FileData* g) -> bool { return isOlderThan(scraperName, g, 1); }, idx == 1);
+	mDateFilters->add(_("LAST WEEK"), [ scraperName, isOlderThan](FileData* g) -> bool { return isOlderThan(scraperName, g, 7); }, idx == 2);
+	mDateFilters->add(_("LAST 15 DAYS"), [ scraperName, isOlderThan](FileData* g) -> bool { return isOlderThan(scraperName, g, 15); }, idx == 3);
+	mDateFilters->add(_("LAST MONTH"), [ scraperName, isOlderThan](FileData* g) -> bool { return isOlderThan(scraperName, g, 31); }, idx == 4);
+	mDateFilters->add(_("LAST 3 MONTHS"), [ scraperName, isOlderThan](FileData* g) -> bool { return isOlderThan(scraperName, g, 90); }, idx == 5);
+	mDateFilters->add(_("LAST YEAR"), [ scraperName, isOlderThan](FileData* g) -> bool { return isOlderThan(scraperName, g, 365); }, idx == 6);
 	addWithLabel(_("IGNORE RECENTLY SCRAPED GAMES"), mDateFilters);
 
 	addSaveFunc([this]
@@ -152,7 +152,7 @@ void GuiScraperStart::loadScrapPage()
 	mMenu.clearButtons();
 	mMenu.addButton(_("SCRAPE NOW"), _("START"), std::bind(&GuiScraperStart::pressedStart, this));
 
-	scraper_list->setSelectedChangedCallback([this, scraperName, scraper_list](std::string value) { Settings::getInstance()->setString("Scraper", value); });
+	scraper_list->setSelectedChangedCallback([ scraperName, scraper_list](std::string value) { Settings::getInstance()->setString("Scraper", value); });
 }
 
 void GuiScraperStart::loadSettingsPage() 
@@ -226,7 +226,7 @@ void GuiScraperStart::loadSettingsPage()
 		addWithLabel(_("BOX SOURCE"), thumbSource);
 		addSaveFunc([thumbSource] { Settings::getInstance()->setString("ScrapperThumbSrc", thumbSource->getSelected()); });
 
-		imageSource->setSelectedChangedCallback([this, scrap, thumbSource](std::string value)
+		imageSource->setSelectedChangedCallback([ scrap, thumbSource](std::string value)
 			{
 				if (scrap->isMediaSupported(Scraper::ScraperMediaSource::Box2d))
 				{
@@ -337,7 +337,7 @@ void GuiScraperStart::loadSettingsPage()
 		scraper_list->add(engine, engine, std::find(excludedScrapers.cbegin(), excludedScrapers.cend(), engine) == excludedScrapers.cend());
 
 	addWithLabel(_("INCLUDED SCRAPERS"), scraper_list);
-	addSaveFunc([this, scraper_list]
+	addSaveFunc([ scraper_list]
 		{
 			Utils::String::stringVector scraperNames = scraper_list->getSelectedObjects();
 
@@ -384,11 +384,10 @@ void GuiScraperStart::start()
 {
 	if (ThreadedScraper::isRunning())
 	{
-		Window* window = mWindow;
 
 		mWindow->pushGui(new GuiMsgBox(mWindow,
 			_("SCRAPING IS RUNNING. DO YOU WANT TO STOP IT?"),
-			_("YES"), [this, window] { ThreadedScraper::stop(); },
+			_("YES"), [] { ThreadedScraper::stop(); },
 			_("NO"), nullptr));
 
 		return;

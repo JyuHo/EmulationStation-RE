@@ -62,7 +62,7 @@ void CECInput::deinit()
 
 } // deinit
 
-CECInput::CECInput() : mlibCEC(nullptr)
+CECInput::CECInput()
 {
 
 #ifdef HAVE_LIBCEC

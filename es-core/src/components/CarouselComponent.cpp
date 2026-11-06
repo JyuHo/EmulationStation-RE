@@ -285,7 +285,7 @@ void CarouselComponent::onCursorChanged(const CursorState& state)
 
 	if (transition_style == "fade" || transition_style == "fade & slide")
 	{
-		anim = new LambdaAnimation([this, startPos, endPos, posMax, move_carousel, oldCursor, transition_style](float t)
+		anim = new LambdaAnimation([this, startPos, endPos, posMax, move_carousel, transition_style](float t)
 		{
 			float f = Math::lerp(startPos, endPos, Math::easeOutQuint(t));
 

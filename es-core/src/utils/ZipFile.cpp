@@ -113,7 +113,7 @@ namespace Utils
 			utf8buf[buflen - 1] = 0;			
 
 			std::string ret = (char*)utf8buf;
-			delete utf8buf;
+			delete[] utf8buf;
 
 			return ret;
 		}
