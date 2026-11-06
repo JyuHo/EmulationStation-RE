@@ -332,12 +332,7 @@ void Settings::setDefaults()
 
 	mBoolMap["ShowFilenames"] = false;
 
-#if defined(RK3128)
-	// no compositor, so the emulator needs the display ES would keep
-	mBoolMap["HideWindow"] = true;
-#else
 	mBoolMap["HideWindow"] = false;
-#endif
 
 	mBoolMap["HideWindowFullReinit"] = false;
 
@@ -358,9 +353,6 @@ void Settings::setDefaults()
 	mStringMap["INPUT P7NAME"] = "DEFAULT";
 	mStringMap["INPUT P8NAME"] = "DEFAULT";
 
-#ifdef BATOCERA
-	mStringMap["HOTKEY_CONTROLCENTER"] = "a";
-#endif
 
 	// Audio settings
 	mBoolMap["audio.bgmusic"] = Settings::_BackgroundMusic;

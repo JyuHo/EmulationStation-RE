@@ -307,7 +307,6 @@ void InputManager::rebuildAllJoysticks(bool deinit)
 
 		if (!loadInputConfig(mInputConfigs[joyId]))
 		{
-#if !BATOCERA
 			std::string mappingString;
 			
 			// The gamecontrollerdb.txt files are loaded into SDL itself (see rebuildAllJoysticks,
@@ -331,7 +330,6 @@ void InputManager::rebuildAllJoysticks(bool deinit)
 				LOG(LogInfo) << "Creating joystick from SDL Game Controller mapping " << deviceName << " (GUID: " << guid << ", instance ID: " << joyId << ", device index: " << idx << ", device path : " << devicePath << ").";
 			}
 			else
-#endif
 				LOG(LogInfo) << "Added unconfigured joystick " << deviceName << " (GUID: " << guid << ", instance ID: " << joyId << ", device index: " << idx << ", device path : " << devicePath << ").";
 		}
 		else

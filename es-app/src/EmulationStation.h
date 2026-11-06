@@ -16,11 +16,7 @@
 
 #ifndef SCREENSCRAPER_SOFTNAME
 
-#if BATOCERA
-#define SCREENSCRAPER_SOFTNAME			"Batocera-Emulationstation"
-#else
 #define SCREENSCRAPER_SOFTNAME			"Emulationstation"
-#endif
 
 #endif
 

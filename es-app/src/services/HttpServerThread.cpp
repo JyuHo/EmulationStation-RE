@@ -19,7 +19,6 @@
 
 #include "ThreadedHasher.h"
 #include "scrapers/ThreadedScraper.h"
-#include "guis/GuiUpdate.h"
 #include "ContentInstaller.h"
 #include "InputManager.h"
 
@@ -219,15 +218,6 @@ void HttpServerThread::run()
 		if (!isAllowed(req, res))
 			return;
 
-#if BATOCERA
-		// http://127.0.0.1/quit?confirm=switchscreen
-		if (req.has_param("confirm") && req.get_param_value("confirm") == "switchscreen") 
-		{
-			Window* win = mWindow;
-			mWindow->postToUiThread([win]() { win->pushGui(new GuiMsgBox(win, _("DO YOU WANT TO SWITCH THE SCREEN ?"), _("YES"), [] { Utils::Platform::quitES(); }, _("NO"), nullptr)); });
-			return;
-		}
-#endif
 
 		// http://127.0.0.1/quit?confirm=menu
 		if (req.has_param("confirm") && req.get_param_value("confirm") == "menu")
@@ -295,8 +285,7 @@ void HttpServerThread::run()
 			HttpApi::getRunnningGameInfo().empty() && 
 			!ThreadedScraper::isRunning() && 
 			!ContentInstaller::isRunning() &&
-			!ThreadedHasher::isRunning() && 
-			GuiUpdate::state != GuiUpdateState::UPDATER_RUNNING;
+			!ThreadedHasher::isRunning();
 
 		if (idle)
 		{
