@@ -2,7 +2,7 @@
 #include "Log.h"
 #include "utils/Platform.h"
 #include "Window.h"
-#include <SDL.h>
+#include <SDL3/SDL.h>
 #include <iostream>
 #include <assert.h>
 #include <algorithm>

@@ -1,4 +1,5 @@
 #include "components/TextEditComponent.h"
+#include "renderers/Renderer.h"
 
 #include "resources/Font.h"
 #include "utils/StringUtil.h"
@@ -99,7 +100,7 @@ bool TextEditComponent::hasAnyKeyPressed()
 	bool anyKeyPressed = false;
 
 	int numKeys;
-	const Uint8* keys = SDL_GetKeyboardState(&numKeys);
+	const bool* keys = SDL_GetKeyboardState(&numKeys);
 	for (int i = 0; i < numKeys && !anyKeyPressed; i++)
 		anyKeyPressed |= keys[i];
 
@@ -119,7 +120,7 @@ void TextEditComponent::startEditing()
 	else
 	{
 		mDeferTextInputStart = false;
-		SDL_StartTextInput();
+		SDL_StartTextInput(Renderer::getSDLWindow());
 	}
 
 	mEditing = true;
@@ -131,7 +132,7 @@ void TextEditComponent::stopEditing()
 	if (!mEditing)
 		return;
 
-	SDL_StopTextInput();
+	SDL_StopTextInput(Renderer::getSDLWindow());
 	mEditing = false;
 	mDeferTextInputStart = false;
 	updateHelpPrompts();
@@ -238,7 +239,7 @@ void TextEditComponent::update(int deltaTime)
 	{
 		if (!hasAnyKeyPressed())
 		{
-			SDL_StartTextInput();
+			SDL_StartTextInput(Renderer::getSDLWindow());
 			mDeferTextInputStart = false;
 		}
 	}

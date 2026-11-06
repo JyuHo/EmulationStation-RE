@@ -5,7 +5,7 @@
 #include "LocaleES.h"
 #include "Log.h"
 #include <chrono>
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 #include "watchers/BatteryLevelWatcher.h"
 #include "watchers/NetworkStateWatcher.h"

@@ -1,6 +1,6 @@
 #include "Platform.h"
 
-#include <SDL_events.h>
+#include <SDL3/SDL_events.h>
 
 #include <sys/types.h>
 #include <unistd.h>
@@ -124,7 +124,7 @@ namespace Utils
 			}
 
 			SDL_Event* quit = new SDL_Event();
-			quit->type = SDL_QUIT;
+			quit->type = SDL_EVENT_QUIT;
 			SDL_PushEvent(quit);
 			return 0;
 		}

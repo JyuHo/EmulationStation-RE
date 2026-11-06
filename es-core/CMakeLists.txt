@@ -3,6 +3,7 @@ project("core")
 set(CORE_HEADERS	
 	${CMAKE_CURRENT_SOURCE_DIR}/src/AsyncHandle.h
 	${CMAKE_CURRENT_SOURCE_DIR}/src/AudioManager.h
+	${CMAKE_CURRENT_SOURCE_DIR}/src/audio/AudioMixer.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FavoriteMusicManager.h
 	${CMAKE_CURRENT_SOURCE_DIR}/src/BindingManager.h
 	${CMAKE_CURRENT_SOURCE_DIR}/src/CECInput.h
@@ -140,6 +141,7 @@ set(CORE_HEADERS
 
 set(CORE_SOURCES	
 	${CMAKE_CURRENT_SOURCE_DIR}/src/AudioManager.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/audio/AudioMixer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FavoriteMusicManager.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/BindingManager.cpp	
 	${CMAKE_CURRENT_SOURCE_DIR}/src/CECInput.cpp

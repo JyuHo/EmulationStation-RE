@@ -4,7 +4,7 @@
 #include "Log.h"
 #include "Settings.h"
 #include "Sound.h"
-#include <SDL.h>
+#include <SDL3/SDL.h>
 #include "utils/FileSystemUtil.h"
 #include "utils/StringUtil.h"
 #include "utils/Randomizer.h"
@@ -28,7 +28,7 @@
 AudioManager* AudioManager::sInstance = NULL;
 std::vector<std::shared_ptr<Sound>> AudioManager::sSoundVector;
 
-AudioManager::AudioManager() : mInitialized(false), mCurrentMusic(nullptr), mMusicVolume(MIX_MAX_VOLUME), mVideoPlaying(false)
+AudioManager::AudioManager() : mInitialized(false), mCurrentMusic(false), mMusicVolume(Audio::MAX_VOLUME), mVideoPlaying(false)
 {
 	init();
 }
@@ -65,20 +65,20 @@ void AudioManager::init()
 	std::deque<std::string> mLastPlayed;
 
 #ifdef __linux__
-	SDL_SetHint(SDL_HINT_AUDIODRIVER, "pipewire,alsa");
+	SDL_SetHint(SDL_HINT_AUDIO_DRIVER, "pipewire,pulseaudio,alsa");
 #endif
 
-	if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0)
+	if (!SDL_InitSubSystem(SDL_INIT_AUDIO))
 	{
 		LOG(LogError) << "Error initializing SDL audio!\n" << SDL_GetError();
 		return;
 	}
 
 	// Open the audio device and pause
-	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096) < 0)
+	if (!Audio::Mixer::getInstance().open())
 	{
 		mMusicVolume = 0;
-		LOG(LogError) << "MUSIC Error - Unable to open SDLMixer audio: " << SDL_GetError() << std::endl;
+		LOG(LogError) << "MUSIC Error - Unable to open the audio mixer: " << SDL_GetError();
 	}
 	else
 	{
@@ -90,7 +90,7 @@ void AudioManager::init()
 			sSoundVector[i]->init();
 
 		mMusicVolume = getMaxMusicVolume();
-		Mix_VolumeMusic(mMusicVolume);
+		Audio::Mixer::getInstance().setMusicVolume((int)mMusicVolume);
 	}
 }
 
@@ -112,11 +112,8 @@ void AudioManager::deinit()
 	for (unsigned int i = 0; i < sSoundVector.size(); i++)
 		sSoundVector[i]->deinit();
 
-	Mix_HookMusicFinished(nullptr);
-	Mix_HaltMusic();
-
 	//completely tear down SDL audio. else SDL hogs audio resources and emulators might fail to start...
-	Mix_CloseAudio();
+	Audio::Mixer::getInstance().close();
 	SDL_QuitSubSystem(SDL_INIT_AUDIO);
 
 	LOG(LogInfo) << "SDL AUDIO Deinitialized";
@@ -234,7 +231,7 @@ void AudioManager::playRandomMusic(bool continueIfPlaying)
             int randomIndex = Randomizer::random(favorites.size());
             std::string chosenSongPath = favorites[randomIndex].first;
 
-            if (mCurrentMusic != nullptr && continueIfPlaying)
+            if (mCurrentMusic && continueIfPlaying)
                 return;
 
             LOG(LogInfo) << "Playing favorite music: " << favorites[randomIndex].second
@@ -247,7 +244,7 @@ void AudioManager::playRandomMusic(bool continueIfPlaying)
         }
     }
 
-	if (mCurrentMusic != nullptr && continueIfPlaying)
+	if (mCurrentMusic && continueIfPlaying)
 		return;
 
     std::vector<std::string> musics;
@@ -282,7 +279,7 @@ retry:
 	std::string path = musics[randomIndex];
     playMusic(path);
 
-	if (mInitialized && mCurrentMusic == nullptr && Settings::BackgroundMusic() && musics.size() > 1)
+	if (mInitialized && !mCurrentMusic && Settings::BackgroundMusic() && musics.size() > 1)
 	{
 		musics.erase(std::remove(musics.begin(), musics.end(), path), musics.end());		
 		goto retry;
@@ -413,21 +410,11 @@ void AudioManager::playMusic(const std::string& path)
 		return;
 
 	// load a new music
-	mCurrentMusic = Mix_LoadMUS(path.c_str());
-	if (mCurrentMusic == NULL)
-	{
-		LOG(LogError) << Mix_GetError() << " for " << path;
+	if (!Audio::Mixer::getInstance().playMusic(path, 1000))
 		return;
-	}
 
-	if (Mix_FadeInMusic(mCurrentMusic, 1, 1000) == -1)
-	{
-		stopMusic();
-		return;
-	}
-
+	mCurrentMusic = true;
 	mCurrentMusicPath = path;
-	Mix_HookMusicFinished(AudioManager::musicEnd_callback);
 }
 
 void AudioManager::musicEnd_callback()
@@ -443,22 +430,16 @@ void AudioManager::musicEnd_callback()
 
 void AudioManager::stopMusic(bool fadeOut)
 {
-	if (mCurrentMusic == NULL)
+	if (!mCurrentMusic)
 		return;
 
-	Mix_HookMusicFinished(nullptr);
-
 	if (fadeOut)
-	{
-		// Fade-out is nicer !
-		while (!Mix_FadeOutMusic(500) && Mix_PlayingMusic())
-			SDL_Delay(100);
-	}
+		Audio::Mixer::getInstance().fadeOutMusic(500); // Fade-out is nicer !
+	else
+		Audio::Mixer::getInstance().stopMusic();
 
-	Mix_HaltMusic();
-	Mix_FreeMusic(mCurrentMusic);
 	mCurrentMusicPath = "";
-	mCurrentMusic = NULL;
+	mCurrentMusic = false;
 }
 
 std::string AudioManager::getCurrentSongPath() const
@@ -697,10 +678,10 @@ void AudioManager::setVideoPlaying(bool state)
 int AudioManager::getMaxMusicVolume()
 {
 	int linearVolume = Settings::getInstance()->getInt("MusicVolume");
-	double logarithmicVolume = (linearVolume == 0) ? 0 : std::pow(10.0, (linearVolume - 100) / 40.0) * MIX_MAX_VOLUME;
+	double logarithmicVolume = (linearVolume == 0) ? 0 : std::pow(10.0, (linearVolume - 100) / 40.0) * Audio::MAX_VOLUME;
 	int ret = static_cast<int>(logarithmicVolume);
-	if (ret > MIX_MAX_VOLUME)
-		return MIX_MAX_VOLUME;
+	if (ret > Audio::MAX_VOLUME)
+		return Audio::MAX_VOLUME;
 
 	if (ret < 0)
 		return 0;
@@ -710,7 +691,20 @@ int AudioManager::getMaxMusicVolume()
 
 void AudioManager::update(int deltaTime)
 {
-	if (sInstance == nullptr || !sInstance->mInitialized || !Settings::BackgroundMusic())
+	if (sInstance == nullptr || !sInstance->mInitialized)
+		return;
+
+	// The mixer only flags the end of a song : chain the next one here, on the main thread
+	if (Audio::Mixer::getInstance().takeMusicFinished())
+	{
+		sInstance->mCurrentMusic = false;
+		sInstance->mCurrentMusicPath = "";
+
+		if (Settings::BackgroundMusic())
+			musicEnd_callback();
+	}
+
+	if (!Settings::BackgroundMusic())
 		return;
 
 	float deltaVol = deltaTime / 8.0f;
@@ -731,7 +725,7 @@ void AudioManager::update(int deltaTime)
 				sInstance->mMusicVolume = minVol;
 		}
 
-		Mix_VolumeMusic((int)sInstance->mMusicVolume);
+		Audio::Mixer::getInstance().setMusicVolume((int)sInstance->mMusicVolume);
 	}
 	else if (!sInstance->mVideoPlaying && sInstance->mMusicVolume != maxVol)
 	{
@@ -744,6 +738,6 @@ void AudioManager::update(int deltaTime)
 		else
 			sInstance->mMusicVolume = maxVol;
 
-		Mix_VolumeMusic((int)sInstance->mMusicVolume);
+		Audio::Mixer::getInstance().setMusicVolume((int)sInstance->mMusicVolume);
 	}
 }

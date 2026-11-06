@@ -2,7 +2,7 @@
 #ifndef ES_CORE_SOUND_H
 #define ES_CORE_SOUND_H
 
-#include "SDL_mixer.h"
+#include "audio/AudioMixer.h"
 #include <map>
 #include <memory>
 #include <string>
@@ -12,7 +12,7 @@ class ThemeData;
 class Sound
 {
 	std::string mPath;
-	Mix_Chunk* mSampleData;
+	Audio::SamplePtr mSampleData;
 	int mPlayingChannel;
 
 public:

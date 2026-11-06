@@ -14,7 +14,7 @@
 #include "SystemConf.h"
 #include "LocaleES.h"
 #include "AudioManager.h"
-#include <SDL_events.h>
+#include <SDL3/SDL_events.h>
 #include "ThemeData.h"
 #include <mutex>
 #include "components/AsyncNotificationComponent.h"
@@ -256,22 +256,22 @@ void Window::input(InputConfig* config, Input input)
 	if (cancelScreenSaver())
 		return;
 
-	if (config->getDeviceId() == DEVICE_KEYBOARD && input.value && input.id == SDLK_g && SDL_GetModState() & KMOD_LCTRL) // && Settings::getInstance()->getBool("Debug"))
+	if (config->getDeviceId() == DEVICE_KEYBOARD && input.value && input.id == SDLK_G && SDL_GetModState() & SDL_KMOD_LCTRL) // && Settings::getInstance()->getBool("Debug"))
 	{
 		// toggle debug grid with Ctrl-G
 		Settings::setDebugGrid(!Settings::DebugGrid());
 	}
-	else if (config->getDeviceId() == DEVICE_KEYBOARD && input.value && input.id == SDLK_t && SDL_GetModState() & KMOD_LCTRL) // && Settings::getInstance()->getBool("Debug"))
+	else if (config->getDeviceId() == DEVICE_KEYBOARD && input.value && input.id == SDLK_T && SDL_GetModState() & SDL_KMOD_LCTRL) // && Settings::getInstance()->getBool("Debug"))
 	{
 		// toggle TextComponent debug view with Ctrl-T
 		Settings::setDebugText(!Settings::DebugText());
 	}
-	else if (config->getDeviceId() == DEVICE_KEYBOARD && input.value && input.id == SDLK_i && SDL_GetModState() & KMOD_LCTRL) // && Settings::getInstance()->getBool("Debug"))
+	else if (config->getDeviceId() == DEVICE_KEYBOARD && input.value && input.id == SDLK_I && SDL_GetModState() & SDL_KMOD_LCTRL) // && Settings::getInstance()->getBool("Debug"))
 	{
 		// toggle TextComponent debug view with Ctrl-I
 		Settings::setDebugImage(!Settings::DebugImage());
 	}
-	else if (config->getDeviceId() == DEVICE_KEYBOARD && input.value && input.id == SDLK_m && SDL_GetModState() & KMOD_LCTRL) // && Settings::getInstance()->getBool("Debug"))
+	else if (config->getDeviceId() == DEVICE_KEYBOARD && input.value && input.id == SDLK_M && SDL_GetModState() & SDL_KMOD_LCTRL) // && Settings::getInstance()->getBool("Debug"))
 	{
 		// toggle TextComponent debug view with Ctrl-I
 		Settings::setDebugMouse(!Settings::DebugMouse());
@@ -436,7 +436,7 @@ void Window::update(int deltaTime)
 		mLastShowCursor += deltaTime;
 		if (mLastShowCursor > 5000)
 		{
-			SDL_ShowCursor(0);
+			SDL_HideCursor();
 			mLastShowCursor = -1;
 		}
 	}
@@ -1327,7 +1327,7 @@ void Window::processMouseMove(int x, int y, bool touchScreen)
 {
 	if (!touchScreen && (mLastShowCursor != -2 || x != 0 || y != 0))
 	{
-		SDL_ShowCursor(1);
+		SDL_ShowCursor();
 
 		mLastShowCursor = 0;
 	}

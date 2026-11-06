@@ -95,10 +95,7 @@ else()
 endif()
 find_package(Freetype REQUIRED)
 find_package(FreeImage REQUIRED)
-# batocera / background musics
-find_package(SDL2MIXER REQUIRED)
-# batocera / customisations
-find_package(SDL2 REQUIRED)
+find_package(SDL3 3.2.0 REQUIRED CONFIG COMPONENTS SDL3)
 find_package(CURL REQUIRED)
 find_package(VLC REQUIRED)
 find_package(RapidJSON REQUIRED)
@@ -210,10 +207,6 @@ set(COMMON_INCLUDE_DIRS
     ${FREETYPE_INCLUDE_DIRS}
     ${FreeImage_INCLUDE_DIRS}
     ${FRIBIDI_INCLUDE_DIRS}
-    # batocera / background musics
-    ${SDLMIXER_INCLUDE_DIR}
-    # batocera / customisations    
-    ${SDL2_INCLUDE_DIR}
     ${CURL_INCLUDE_DIR}
     ${VLC_INCLUDE_DIR}
     ${RAPIDJSON_INCLUDE_DIRS}
@@ -272,10 +265,8 @@ set(COMMON_LIBRARIES
     ${FREETYPE_LIBRARIES}
     ${FreeImage_LIBRARIES}
     ${FRIBIDI_LIBRARIES}
-    ${SDL2_LIBRARY}
-    # batocera / background musics
-    ${SDLMIXER_LIBRARY}
-    # batocera / customisations    
+    SDL3::SDL3
+    audiodecoders
     ${CURL_LIBRARIES}
     ${VLC_LIBRARIES}
     pugixml
