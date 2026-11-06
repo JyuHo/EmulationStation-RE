@@ -28,7 +28,7 @@ public:
 	void onSizeChanged() override;
 	const std::string getText() { return mText; }
 	void setText(const std::string& text);
-	void setColor(unsigned int color);
+	void setColor(unsigned int color) override;
 	void setHorizontalAlignment(Alignment align);
 	void setVerticalAlignment(Alignment align);
 	void setLineSpacing(float spacing);
@@ -46,7 +46,7 @@ public:
 
 	inline std::shared_ptr<Font> getFont() const { return mFont; }
 
-	virtual void applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element, unsigned int properties) override;
+	void applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element, unsigned int properties) override;
 
 	void setGlowColor(unsigned int color) { mGlowColor = color; };
 	void setGlowSize(unsigned int size) { mGlowSize = size; };
@@ -70,7 +70,7 @@ public:
 	ThemeData::ThemeElement::Property getProperty(const std::string name) override;
 	void setProperty(const std::string name, const ThemeData::ThemeElement::Property& value) override;
 
-	virtual void onShow() override;
+	void onShow() override;
 
 	enum MultiLineType : unsigned int
 	{

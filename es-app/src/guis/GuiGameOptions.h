@@ -14,18 +14,18 @@ class GuiGameOptions : public GuiComponent
 {
 public:
 	GuiGameOptions(Window* window, FileData* game);
-	virtual ~GuiGameOptions();
+	~GuiGameOptions() override;
 
-	virtual bool input(InputConfig* config, Input input) override;
-	virtual std::vector<HelpPrompt> getHelpPrompts() override;
-	virtual HelpStyle getHelpStyle() override;
+	bool input(InputConfig* config, Input input) override;
+	std::vector<HelpPrompt> getHelpPrompts() override;
+	HelpStyle getHelpStyle() override;
 
 	static std::vector<std::string> gridSizes;
 
 	void close();
 
-	virtual bool hitTest(int x, int y, Transform4x4f& parentTransform, std::vector<GuiComponent*>* pResult = nullptr) override;
-	virtual bool onMouseClick(int button, bool pressed, int x, int y);
+	bool hitTest(int x, int y, Transform4x4f& parentTransform, std::vector<GuiComponent*>* pResult = nullptr) override;
+	bool onMouseClick(int button, bool pressed, int x, int y) override;
 
 private:
 	static void deleteGame(FileData* file);

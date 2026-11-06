@@ -45,7 +45,7 @@ public:
 		setAnimation(new LambdaAnimation(fadeFunc, 250), 0, [this] { mBusyAnim.setOpacity(255); });
 	}
 	
-	~GuiLoading()
+	~GuiLoading() override
 	{
 		mRunning = false;
 		mHandle->join();
@@ -93,7 +93,6 @@ public:
 		{
 			if (mFunc2)
 			{
-				Window* window = mWindow;
 				auto func = mFunc2;
 				auto ret = result;
 

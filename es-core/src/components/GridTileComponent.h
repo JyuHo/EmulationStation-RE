@@ -200,13 +200,13 @@ class GridTileComponent : public GuiComponent
 {
 public:
 	GridTileComponent(Window* window);
-	~GridTileComponent();
+	~GridTileComponent() override;
 
 	std::string getThemeTypeName() override { return "gridtile"; }
 
 	void render(const Transform4x4f& parentTrans) override;
 
-	virtual void applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element, unsigned int properties);
+	void applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element, unsigned int properties) override;
 
 	// Made this a static function because the ImageGridComponent need to know the default tile max size
 	// to calculate the grid dimension before it instantiate the GridTileComponents
@@ -237,11 +237,11 @@ public:
 
 	Vector3f getBackgroundPosition();
 
-	virtual void onShow();
-	virtual void onHide();
-	virtual void update(int deltaTime);
-	virtual void onScreenSaverActivate();
-	virtual void onScreenSaverDeactivate();
+	void onShow() override;
+	void onHide() override;
+	void update(int deltaTime) override;
+	void onScreenSaverActivate() override;
+	void onScreenSaverDeactivate() override;
 
 	bool isMinSizeTile();
 	bool hasMarquee();

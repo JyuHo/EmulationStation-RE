@@ -219,9 +219,9 @@ std::weak_ptr<VolumeControl> VolumeControl::sInstance;
 
 
 VolumeControl::VolumeControl()
-	: internalVolume(0)
+	: mixerIndex(0)
 #if defined(__linux__)
-	, mixerIndex(0), mixerHandle(nullptr), mixerElem(nullptr), mixerSelemId(nullptr)
+	, mixerHandle(nullptr), mixerElem(nullptr), mixerSelemId(nullptr), internalVolume(0)
 #endif
 {
 	init();

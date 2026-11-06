@@ -25,7 +25,7 @@ class GuiKeyMappingEditorEntry : public ComponentGrid
 {
 public:
 	GuiKeyMappingEditorEntry(Window* window, MappingInfo& trigger, KeyMappingFile::KeyMapping& target);
-	virtual void setColor(unsigned int color);
+	void setColor(unsigned int color) override;
 
 private:
 	std::shared_ptr<ImageComponent>  mImage;
@@ -48,8 +48,8 @@ public:
 	void deleteMapping();
 	void close();
 
-	virtual std::vector<HelpPrompt> getHelpPrompts() override;
-	virtual void onSizeChanged() override;
+	std::vector<HelpPrompt> getHelpPrompts() override;
+	void onSizeChanged() override;
 
 private:
 	void initMappingNames();

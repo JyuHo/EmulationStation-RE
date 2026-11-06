@@ -49,7 +49,7 @@ std::string Scraper::getScraperName(Scraper* scraper)
 
 int Scraper::getScraperIndex(const std::string& name)
 {
-	for (int i = 0 ; i < scrapers.size() ; i++)
+	for (int i = 0 ; i < (int)scrapers.size() ; i++)
 		if (name == scrapers[i].first)
 			return i;
 
@@ -58,7 +58,7 @@ int Scraper::getScraperIndex(const std::string& name)
 
 std::string Scraper::getScraperNameFromIndex(int index)
 {
-	if (index >= 0 && index < scrapers.size())
+	if (index >= 0 && index < (int)scrapers.size())
 		return scrapers[index].first;
 
 	return std::string();
@@ -429,6 +429,8 @@ MDResolveHandle::MDResolveHandle(const ScraperSearchResult& result, const Scrape
 		case MetaDataId::Map: suffix = "map"; resize = false; break;
 		case MetaDataId::Cartridge: suffix = "cartridge"; break;
 		case MetaDataId::Bezel: suffix = "bezel"; resize = false; break;
+		default:
+			break;
 		}
 
 		auto ext = url.second.format;
@@ -782,6 +784,8 @@ std::string Scraper::getSaveAsPath(FileData* game, const MetaDataId metadataId, 
 	case MetaDataId::Map: suffix = "map"; break;
 	case MetaDataId::Cartridge: suffix = "cartridge"; break;
 	case MetaDataId::Bezel: suffix = "bezel"; break;
+	default:
+		break;
 	}
 
 	auto system = game->getSourceFileData()->getSystem();

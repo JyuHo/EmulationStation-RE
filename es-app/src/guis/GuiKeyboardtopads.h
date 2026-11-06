@@ -10,7 +10,7 @@ class GuiKeyboardtopads : public GuiSettings
 {
 public:
 	GuiKeyboardtopads(Window* window, Keyboardtopad ktp);
-	virtual std::vector<HelpPrompt> getHelpPrompts() override;
+	std::vector<HelpPrompt> getHelpPrompts() override;
 
 private:	
 	void loadActivePage(const std::string& device_path);

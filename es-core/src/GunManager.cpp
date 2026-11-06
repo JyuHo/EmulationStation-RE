@@ -131,7 +131,7 @@ public:
 	void add(float x, float y)
 	{
 		mBuffer.push_back({ x, y });
-		if (mBuffer.size() > mWindowSize)
+		if ((int)mBuffer.size() > mWindowSize)
 			mBuffer.pop_front();
 	}
 

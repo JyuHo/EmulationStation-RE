@@ -15,9 +15,9 @@
 #define BLINKTIME	1000
 
 TextEditComponent::TextEditComponent(Window* window) : GuiComponent(window),
-	mBox(window, ":/textinput_ninepatch.png"), mFocused(false), 
-	mScrollOffset(0.0f, 0.0f), mCursor(0), mEditing(false), mFont(Font::get(FONT_SIZE_MEDIUM, FONT_PATH_LIGHT)), 
-	mCursorRepeatDir(0)
+	mFocused(false), mEditing(false), 
+	mCursor(0), mCursorRepeatDir(0), mScrollOffset(0.0f, 0.0f), mBox(window, ":/textinput_ninepatch.png"), 
+	mFont(Font::get(FONT_SIZE_MEDIUM, FONT_PATH_LIGHT))
 {
 	mBlinkTime = 0;
 	mDeferTextInputStart = false;
@@ -286,7 +286,7 @@ void TextEditComponent::onTextChanged()
 	std::string wrappedText = (isMultiline() ? mFont->wrapText(mText, getTextAreaSize().x()) : mText);
 	mTextCache = std::unique_ptr<TextCache>(mFont->buildTextCache(wrappedText, 0, 0, (ThemeData::getMenuTheme()->Text.color & 0xFFFFFF00) | getOpacity()));
 	
-	if(mCursor > (int)mText.length())
+	if(mCursor > mText.length())
 		mCursor = (unsigned int)mText.length();
 }
 

@@ -65,12 +65,12 @@ std::string M3uPlaylist::getNextItem()
 		if (idx == mPreviousIndex)
 			idx = mUniformDistribution(mMt19937);
 	}
-	else if (idx >= mPaths.size())
+	else if (idx >= (int)mPaths.size())
 		idx = 0;
 
 	mPreviousIndex = idx;
 
-	if (idx >= 0 && idx < mPaths.size())
+	if (idx >= 0 && idx < (int)mPaths.size())
 		return mPaths[idx];
 
 	return "";

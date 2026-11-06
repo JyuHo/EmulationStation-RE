@@ -17,10 +17,10 @@ public:
 	GuiGamelistFilter(Window* window, SystemData* system);
 	GuiGamelistFilter(Window* window, FileFilterIndex* filterIndex);
 
-	~GuiGamelistFilter();
+	~GuiGamelistFilter() override;
 	bool input(InputConfig* config, Input input) override;
 
-	virtual std::vector<HelpPrompt> getHelpPrompts() override;
+	std::vector<HelpPrompt> getHelpPrompts() override;
 
 	inline void onFinalize(const std::function<void()>& func) { mOnFinalizeFunc = func; };
 

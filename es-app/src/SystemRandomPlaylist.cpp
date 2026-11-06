@@ -84,24 +84,24 @@ std::string SystemRandomPlaylist::getNextItem()
 	if (mPaths.size() > 0)
 	{
 		int idx = mUniformDistribution(mMt19937);
-		if (idx >= 0 && idx < mPaths.size() && Utils::FileSystem::exists(mPaths[idx]))
+		if (idx >= 0 && idx < (int)mPaths.size() && Utils::FileSystem::exists(mPaths[idx]))
 			return mPaths[idx];
 
 		// File not found ? Try the next file...
 		int stopidx = idx;
 
 		idx++;
-		if (idx >= mPaths.size())
+		if (idx >= (int)mPaths.size())
 			idx = 0;
 
-		while (idx != stopidx && idx < mPaths.size() && !Utils::FileSystem::exists(mPaths[idx]))
+		while (idx != stopidx && idx < (int)mPaths.size() && !Utils::FileSystem::exists(mPaths[idx]))
 		{
 			idx++;
-			if (idx >= mPaths.size())
+			if (idx >= (int)mPaths.size())
 				idx = 0;
 		}
 
-		if (idx >= 0 && idx < mPaths.size() && Utils::FileSystem::exists(mPaths[idx]))
+		if (idx >= 0 && idx < (int)mPaths.size() && Utils::FileSystem::exists(mPaths[idx]))
 			return mPaths[idx];
 	}
 

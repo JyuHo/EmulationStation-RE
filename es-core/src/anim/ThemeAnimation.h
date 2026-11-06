@@ -7,6 +7,8 @@
 class ThemeAnimation
 {
 public:
+	virtual ~ThemeAnimation() = default;
+
 	enum EasingMode
 	{
 		Linear,

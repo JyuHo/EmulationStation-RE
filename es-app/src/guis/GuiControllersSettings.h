@@ -27,7 +27,7 @@ public:
 	static void openControllersSettings(Window* wnd, int autoSel = 0);
 	
 	GuiControllersSettings(Window* wnd, int autosel = 0);
-	~GuiControllersSettings();
+	~GuiControllersSettings() override;
 
 private:
 	void openControllersSpecificSettings_sindengun();

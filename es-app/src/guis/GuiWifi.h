@@ -11,7 +11,7 @@ class GuiWifi : public GuiComponent
 public:
 	GuiWifi(Window* window, const std::string title, std::string data, const std::function<void(std::string)>& onsave);
 	bool input(InputConfig* config, Input input) override;
-	virtual std::vector<HelpPrompt> getHelpPrompts() override;
+	std::vector<HelpPrompt> getHelpPrompts() override;
 
 private:
 	void	load(std::vector<std::string> ssids);

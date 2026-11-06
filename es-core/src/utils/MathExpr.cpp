@@ -344,8 +344,6 @@ namespace Utils
 		int parenth = 0;
 		int varcode = 0;
 
-		bool foundVar = false;
-		bool exitOnCloseP = false;
 
 		while (start > 0 && isspace(input[start])) start--;
 
@@ -400,7 +398,7 @@ namespace Utils
 
 		int nameStart = 0;
 
-		for (int i = 0; i < expression.size(); i++) 
+		for (int i = 0; i < (int)expression.size(); i++) 
 		{
 			char currentChar = expression[i];
 
@@ -438,7 +436,7 @@ namespace Utils
 
 				int parenth = 0;
 				int argStart = i + 1;
-				for (int a = i + 1; a < expression.size(); a++)
+				for (int a = i + 1; a < (int)expression.size(); a++)
 				{
 					currentChar = expression[a];
 
@@ -506,7 +504,7 @@ namespace Utils
 		for (auto method : extractMethods(evalxp))
 		{			
 			// Evaluate arguments
-			for (int arg = 0; arg < method.arguments.size(); arg++)
+			for (int arg = 0; arg < (int)method.arguments.size(); arg++)
 			{				
 				const MathExpr::Value& val = evaluate(method.arguments[arg].c_str(), vars);
 				if (val.type == STRING)

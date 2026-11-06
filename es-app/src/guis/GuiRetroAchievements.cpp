@@ -234,7 +234,7 @@ public:
 		setSize(0, height);
 	}
 
-	virtual void onFocusGained() 
+	void onFocusGained() override 
 	{ 
 		if (mSelected)
 			return;
@@ -243,7 +243,7 @@ public:
 		mItemTemplate->playDefaultActivationStoryboard(mSelected);
 	}
 
-	virtual void	onFocusLost() 
+	void	onFocusLost() override 
 	{ 
 		if (!mSelected)
 			return;
@@ -252,7 +252,7 @@ public:
 		mItemTemplate->playDefaultActivationStoryboard(mSelected);
 	}
 
-	virtual void setColor(unsigned int color)
+	void setColor(unsigned int color) override
 	{
 		mSubstring->setColor(color);
 		mProgress->setColor(color);
@@ -330,7 +330,6 @@ GuiRetroAchievements::GuiRetroAchievements(Window* window, RetroAchievementInfo 
 
 void GuiRetroAchievements::centerWindow()
 {
-	float width = (float)Math::min((int)Renderer::getScreenHeight(), (int)(Renderer::getScreenWidth() * 0.90f));
 
 	if (Renderer::ScreenSettings::fullScreenMenus())
 		mMenu.setSize(Renderer::getScreenWidth(), Renderer::getScreenHeight());

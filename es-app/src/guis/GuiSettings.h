@@ -19,7 +19,7 @@ public:
 		bool tabbedUI = false);
 	GuiSettings(Window* window, const std::string& title, bool tabbedUI);
 
-	virtual ~GuiSettings(); // just calls save();
+	~GuiSettings() override; // just calls save();
 
 	void save();
 	void close();
@@ -118,7 +118,7 @@ public:
 
 	bool checkNetwork();
 
-	virtual bool onMouseClick(int button, bool pressed, int x, int y);
+	bool onMouseClick(int button, bool pressed, int x, int y) override;
 	
 	// Tabs
 	void addTab(const std::string label, const std::string value = "", bool setCursorHere = false) { mMenu.addTab(label, value, setCursorHere); }

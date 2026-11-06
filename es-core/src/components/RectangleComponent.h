@@ -14,7 +14,7 @@ class RectangleComponent : public GuiComponent
 {
 public:
 	RectangleComponent(Window* window);
-	~RectangleComponent();
+	~RectangleComponent() override;
 
 	std::string getThemeTypeName() override { return "rectangle"; }
 

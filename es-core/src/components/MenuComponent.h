@@ -57,7 +57,7 @@ public:
 	inline int size() const { return mList->size(); }
 	std::string getSelected() { return mList->getSelected(); }
 
-	virtual std::vector<HelpPrompt> getHelpPrompts() override;
+	std::vector<HelpPrompt> getHelpPrompts() override;
 
 	void onShow() override;
 

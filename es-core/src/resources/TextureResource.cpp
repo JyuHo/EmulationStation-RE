@@ -182,7 +182,7 @@ void TextureResource::initFromPixels(unsigned char* dataRGBA, size_t width, size
 	mTextureData->releaseVRAM();
 
 	// FCA optimisation, if streamed image size is already the same, don't free/reallocate memory (which is slow), just copy bytes
-	if (mTextureData->getDataRGBA() != nullptr && getSize().x() == width && getSize().y() == height)
+	if (mTextureData->getDataRGBA() != nullptr && getSize().x() == (int)width && getSize().y() == (int)height)
 	{
 		memcpy(mTextureData->getDataRGBA(), dataRGBA, width * height * 4);
 		return;

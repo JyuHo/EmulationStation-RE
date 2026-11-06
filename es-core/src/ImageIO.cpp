@@ -96,7 +96,7 @@ unsigned char* ImageIO::loadFromMemoryRGBA32(const unsigned char * data, const s
 						if (sz.x() > Renderer::getScreenWidth() || sz.y() > Renderer::getScreenHeight())
 							sz = adjustPictureSize(sz, Vector2i(Renderer::getScreenWidth(), Renderer::getScreenHeight()), false);
 						
-						if (sz.x() != width || sz.y() != height)
+						if (sz.x() != (int)width || sz.y() != (int)height)
 						{
 							LOG(LogDebug) << "ImageIO : rescaling image from " << std::string(std::to_string(width) + "x" + std::to_string(height)).c_str() << " to " << std::string(std::to_string(sz.x()) + "x" + std::to_string(sz.y())).c_str();
 

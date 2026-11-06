@@ -36,7 +36,7 @@ std::vector<std::string> GuiGamelistOptions::gridSizes {
 };
 
 GuiGamelistOptions::GuiGamelistOptions(Window* window, IGameListView* gamelist, SystemData* system, bool showGridFeatures) : GuiComponent(window),
-	mSystem(system), mMenu(window, _("VIEW OPTIONS")), fromPlaceholder(false), mFiltersChanged(false), mReloadAll(false), mGamelist(nullptr)
+	mMenu(window, _("VIEW OPTIONS")), mSystem(system), fromPlaceholder(false), mFiltersChanged(false), mReloadAll(false), mGamelist(nullptr)
 {
 	auto idx = system->getIndex(false);
 
@@ -153,7 +153,7 @@ GuiGamelistOptions::GuiGamelistOptions(Window* window, IGameListView* gamelist, 
 		for (unsigned int i = 0; i < FileSorts::getSortTypes().size(); i++)
 		{
 			const FileSorts::SortType& sort = FileSorts::getSortTypes().at(i);
-			mListSort->add(sort.icon + sort.description, sort.id, sort.id == currentSortId); // TODO - actually make the sort type persistent
+			mListSort->add(sort.icon + sort.description, sort.id, sort.id == (int)currentSortId); // TODO - actually make the sort type persistent
 		}
 
 		mMenu.addWithLabel(_("SORT GAMES BY"), mListSort);	

@@ -14,8 +14,8 @@ public:
 	void onSizeChanged() override;
 
 	bool input(InputConfig* config, Input input) override;
-	void update(int deltaTime);
-	virtual std::vector<HelpPrompt> getHelpPrompts() override;
+	void update(int deltaTime) override;
+	std::vector<HelpPrompt> getHelpPrompts() override;
 
 private:
 	void BuildButtonGrid(bool allowEdit);

@@ -127,7 +127,7 @@ public:
 		onCursorChanged(CURSOR_STOPPED);
 	}
 
-	virtual void onHide() override
+	void onHide() override
 	{
 		GuiComponent::onHide();
 
@@ -254,9 +254,9 @@ protected:
 
 		mEntries.erase(it);
 
-		if (mEntries.size() > 0 && (index <= mCursor || mCursor >= mEntries.size()))
+		if (mEntries.size() > 0 && (index <= mCursor || mCursor >= (int)mEntries.size()))
 		{
-			if (index < mCursor || mCursor >= mEntries.size())
+			if (index < mCursor || mCursor >= (int)mEntries.size())
 				mCursor--;
 
 			onCursorChanged(CURSOR_STOPPED);

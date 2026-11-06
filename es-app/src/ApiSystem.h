@@ -270,8 +270,8 @@ public:
 
 	virtual bool unzipFile(const std::string fileName, const std::string destFolder = "", const std::function<bool(const std::string)>& shouldExtract = nullptr);
 
-	virtual int getPdfPageCount(const std::string& fileName);
-	virtual std::vector<std::string> extractPdfImages(const std::string& fileName, int pageIndex = -1, int pageCount = 1, int quality = 0);
+	int getPdfPageCount(const std::string& fileName) override;
+	std::vector<std::string> extractPdfImages(const std::string& fileName, int pageIndex = -1, int pageCount = 1, int quality = 0) override;
 
 	virtual std::string getRunningArchitecture();
 	virtual std::string getRunningBoard();
@@ -328,8 +328,8 @@ public:
 	virtual void replugControllers_wiimotes();
 	virtual void replugControllers_steamdeckguns();
 
-	virtual bool isPlaneMode();
-	virtual bool isReadPlaneModeSupported();
+	bool isPlaneMode() override;
+	bool isReadPlaneModeSupported() override;
 
 
   	virtual std::vector<Hotkey> getJoysticksHotkeys();

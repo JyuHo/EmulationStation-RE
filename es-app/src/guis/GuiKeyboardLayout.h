@@ -8,7 +8,7 @@ class GuiKeyboardLayout : public GuiComponent
 {
 public:
 	GuiKeyboardLayout(Window* window, const std::function<void(const std::set<std::string>&)>& okCallback = nullptr, std::set<std::string>* activeKeys = nullptr);
-	~GuiKeyboardLayout();
+	~GuiKeyboardLayout() override;
 
 	static bool isEnabled();
 

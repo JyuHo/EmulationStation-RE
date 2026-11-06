@@ -14,7 +14,7 @@ class GuiCollectionSystemsOptions : public GuiSettings
 {
 public:
 	GuiCollectionSystemsOptions(Window* window);
-	~GuiCollectionSystemsOptions();	
+	~GuiCollectionSystemsOptions() override;	
 
 private:
 	void initializeMenu();	

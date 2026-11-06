@@ -31,15 +31,15 @@
 SystemScreenSaver::SystemScreenSaver(Window* window) :
 	mVideoScreensaver(NULL),
 	mImageScreensaver(NULL),
-	mWindow(window),
 	mGamesWithVideosLoaded(false),
 	mGamesWithImagesLoaded(false),
+	mWindow(window),
 	mState(STATE_INACTIVE),
 	mOpacity(0.0f),
 	mTimer(0),
-	mSystemName(""),
-	mGameName(""),
 	mCurrentGame(NULL),
+	mGameName(""),
+	mSystemName(""),
 	mLoadingNext(false)
 {
 
@@ -227,7 +227,6 @@ void SystemScreenSaver::startScreenSaver()
 void SystemScreenSaver::stopScreenSaver()
 {
 	bool isExitingScreenSaver = !mLoadingNext;
-	bool isVideoScreenSaver = (mVideoScreensaver != nullptr);
 
 	if (mLoadingNext)
 		mFadingImageScreensaver = mImageScreensaver;
@@ -682,7 +681,7 @@ void GameScreenSaverBase::setGame(FileData* game)
 
 			if (bezel != "default" && Utils::String::startsWith(bezel, "default"))
 			{
-				for (int i = 0; i < sets.size(); i++)
+				for (int i = 0; i < (int)sets.size(); i++)
 				{
 					if (sets[i].name == bezel && Utils::FileSystem::exists(sets[i].path + "/systems") && !sets[i].imageUrl.empty())
 					{
@@ -695,7 +694,7 @@ void GameScreenSaverBase::setGame(FileData* game)
 
 			if (!found)
 			{
-				for (int i = 0; i < sets.size(); i++)
+				for (int i = 0; i < (int)sets.size(); i++)
 				{
 					if (sets[i].name == "default")
 					{
@@ -708,7 +707,7 @@ void GameScreenSaverBase::setGame(FileData* game)
 
 			if (!found)
 			{
-				for (int i = 0; i < sets.size(); i++)
+				for (int i = 0; i < (int)sets.size(); i++)
 				{
 					if (sets[i].name == "default_unglazed")
 					{
@@ -720,7 +719,7 @@ void GameScreenSaverBase::setGame(FileData* game)
 			}
 		}
 
-		if (setId >= 0 && setId < sets.size() && Utils::FileSystem::exists(sets[setId].imageUrl))
+		if (setId >= 0 && setId < (int)sets.size() && Utils::FileSystem::exists(sets[setId].imageUrl))
 		{
 			std::string infoFile = Utils::String::replace(sets[setId].imageUrl, ".png", ".info");
 			if (Utils::FileSystem::exists(infoFile))

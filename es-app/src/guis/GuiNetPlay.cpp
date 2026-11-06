@@ -63,12 +63,12 @@ static std::map<std::string, std::string> coreList =
 
 GuiNetPlay::GuiNetPlay(Window* window)
 	: GuiComponent(window), 
-	mBusyAnim(window),
+	mLanLobbySocket(-1),
+	mLanLobbySocketTimeout(0),
 	mBackground(window, ":/frame.png"),
 	mGrid(window, Vector2i(1, 3)),
 	mList(nullptr),
-	mLanLobbySocket(-1),
-	mLanLobbySocketTimeout(0),
+	mBusyAnim(window),
 	mPopulateThread(nullptr),
 	mThreadFinished(false)
 {	
@@ -121,7 +121,6 @@ GuiNetPlay::GuiNetPlay(Window* window)
 		return false;
 	});
 
-	float width = (float)Math::min((int)Renderer::getScreenHeight(), (int)(Renderer::getScreenWidth() * 0.90f));
 
 	// Position & Size
 	if (Renderer::ScreenSettings::fullScreenMenus())
@@ -442,7 +441,6 @@ public:
 		float rowHeight = mText->getSize().y() * 1.1f + mSubstring->getSize().y() + mDetails->getSize().y();
 		float imageColWidth = rowHeight * 1.15f;
 
-		float sw = (float)Math::min((int)Renderer::getScreenHeight(), (int)(Renderer::getScreenWidth() * 0.90f));
 		
 		mImage->setOrigin(0.5f, 0.5f);
 		mImage->setMaxSize(imageColWidth, rowHeight);
@@ -480,7 +478,7 @@ public:
 		return mEntry;
 	}
 
-	virtual void setColor(unsigned int color)
+	void setColor(unsigned int color) override
 	{
 		mText->setColor(color);
 		mSubstring->setColor(color);
@@ -821,7 +819,6 @@ void GuiNetPlay::launchGame(LobbyAppEntry entry)
 	
 	auto theme = ThemeData::getMenuTheme();
 	std::shared_ptr<Font> font = theme->Text.font;
-	unsigned int color = theme->Text.color;
 
 	GuiSettings* msgBox = new GuiSettings(mWindow, _("CONNECT TO NETPLAY"));
 	msgBox->setSubTitle(entry.game_name);

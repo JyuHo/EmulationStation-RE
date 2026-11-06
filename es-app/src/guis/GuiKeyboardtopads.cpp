@@ -95,7 +95,7 @@ void GuiKeyboardtopads::loadActivePage(const std::string& device_path)
 
 KeyboardtopadDevice* GuiKeyboardtopads::getJoystickDevice(int n) 
 {
-	unsigned int x = 0;
+	int x = 0;
 
 	for (unsigned int i = 0; i < m_devices.size(); i++) 
 	{
@@ -167,7 +167,7 @@ void GuiKeyboardtopads::loadPlayerPage(int n, const std::string& device_path)
 
 	addInputTextRow(_("JOYSTICK NAME"), device->name, false, nullptr, [this, device](std::string new_value) { this->m_need_save = true; device->name = new_value; });
 
-	for (int i = 0; i < GUI_INPUT_CONFIG_LIST.size(); i++)
+	for (int i = 0; i < (int)GUI_INPUT_CONFIG_LIST.size(); i++)
 	{
 		ComponentListRow row;
 
@@ -200,7 +200,7 @@ void GuiKeyboardtopads::loadPlayerPage(int n, const std::string& device_path)
 	{
 		bool found = false;
 
-		for (int x = 0; x < GUI_INPUT_CONFIG_LIST.size(); x++)
+		for (int x = 0; x < (int)GUI_INPUT_CONFIG_LIST.size(); x++)
 			if (GUI_INPUT_CONFIG_LIST[x].code == device->keys[i].value)
 				found = true;
 
@@ -306,7 +306,7 @@ void GuiKeyboardtopads::setDeviceValue(KeyboardtopadDevice* ktp, std::string key
 	if (!key.empty()) 
 	{
 		// warn and clear if already used somewhere else
-		for (auto d = 0; d < m_devices.size(); d++) 
+		for (auto d = 0; d < (int)m_devices.size(); d++) 
 		{
 			std::vector<int> to_erase;
 			for (unsigned int k = 0; k < m_devices[d].keys.size(); k++) 

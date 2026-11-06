@@ -14,15 +14,15 @@ class GuiGamelistOptions : public GuiComponent
 {
 public:
 	GuiGamelistOptions(Window* window, IGameListView* gamelist, SystemData* system, bool showGridFeatures = false);
-	virtual ~GuiGamelistOptions();
+	~GuiGamelistOptions() override;
 
-	virtual bool input(InputConfig* config, Input input) override;
-	virtual std::vector<HelpPrompt> getHelpPrompts() override;
-	virtual HelpStyle getHelpStyle() override;
+	bool input(InputConfig* config, Input input) override;
+	std::vector<HelpPrompt> getHelpPrompts() override;
+	HelpStyle getHelpStyle() override;
 
 	static std::vector<std::string> gridSizes;
 
-	virtual bool onMouseClick(int button, bool pressed, int x, int y);
+	bool onMouseClick(int button, bool pressed, int x, int y) override;
 
 private:
 	inline void addSaveFunc(const std::function<void()>& func) { mSaveFuncs.push_back(func); };

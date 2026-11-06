@@ -9,3 +9,7 @@ endif()
 add_subdirectory("id3v2lib" EXCLUDE_FROM_ALL)
 add_subdirectory("libcheevos")
 add_subdirectory("audio_decoders")
+
+# Vendored code: its warnings are not ours to fix
+target_compile_options(id3v2lib PRIVATE -w)
+target_compile_options(libcheevos PRIVATE -w)

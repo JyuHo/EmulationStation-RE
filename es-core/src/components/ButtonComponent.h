@@ -32,15 +32,15 @@ public:
 	void setColorShift(unsigned int color) { mModdedColor = color; mNewColor = true; updateImage(); }
 	void removeColorShift() { mNewColor = false; updateImage(); }
 
-	virtual std::vector<HelpPrompt> getHelpPrompts() override;
+	std::vector<HelpPrompt> getHelpPrompts() override;
 
 	void setRenderNonFocusedBackground(bool value) { mRenderNonFocusedBackground = value; }
 
-	void onPaddingChanged();
+	void onPaddingChanged() override;
 
 	bool hasFocus() { return mFocused; }
 
-	virtual bool onMouseClick(int button, bool pressed, int x, int y) override;
+	bool onMouseClick(int button, bool pressed, int x, int y) override;
 
 private:
 	std::shared_ptr<Font> mFont;

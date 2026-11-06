@@ -345,7 +345,6 @@ class ExitKidModeMsgBox : public GuiSettings
 
 	bool input(InputConfig* config, Input input) override
 	{
-		Window* window = mWindow;
 		if (UIModeController::getInstance()->listen(config, input))
 		{
 			// window->pushGui(new GuiMsgBox(window, _("THE USER INTERFACE MODE IS NOW UNLOCKED"), _("OK")));
@@ -821,7 +820,8 @@ static std::vector<std::pair<std::string, std::string>> getScriptOutput(const st
 	std::vector<std::pair<std::string, std::string>> results;
 	std::array<char, 128> buffer;
 	std::string result;
-	std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(command.c_str(), "r"), pclose);
+	auto closePipe = [](FILE* f) { pclose(f); };
+	std::unique_ptr<FILE, decltype(closePipe)> pipe(popen(command.c_str(), "r"), closePipe);
 	if (!pipe) return results;
 
 	while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
@@ -2347,7 +2347,7 @@ void GuiMenu::openThemeConfiguration(Window* mWindow, GuiComponent* s, std::shar
 	// gamelist_style
 	std::shared_ptr<OptionListComponent<std::string>> gamelist_style = nullptr;
 
-	if (systemTheme.empty() || showGridFeatures && system != NULL && theme->hasView("grid"))
+	if (systemTheme.empty() || (showGridFeatures && system != NULL && theme->hasView("grid")))
 		themeconfig->addGroup(_("GAMELIST STYLE"));
 
 	if (systemTheme.empty())
@@ -4360,7 +4360,6 @@ std::vector<DecorationSetInfo> GuiMenu::getDecorationsSets(SystemData* system)
 	if (system == nullptr)
 		return sets;
 
-	static const size_t pathCount = 3;
 
 	std::vector<std::string> paths =
 	{
@@ -4510,7 +4509,7 @@ void GuiMenu::loadSubsetSettings(const std::string themeName)
 	{
 		while (std::getline(systemConf, line, '\r'))
 		{
-			int idx = line.find("=");
+			size_t idx = line.find("=");
 			if (idx == std::string::npos || line.find("#") == 0 || line.find(";") == 0)
 				continue;
 

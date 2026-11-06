@@ -17,10 +17,10 @@ public:
 	static void showImages(Window* window, std::vector<std::string>& images);
 
 	GuiImageViewer(Window* window, bool linearSmooth = false);
-	~GuiImageViewer();
+	~GuiImageViewer() override;
 
 	bool input(InputConfig* config, Input input) override;
-	virtual std::vector<HelpPrompt> getHelpPrompts() override;
+	std::vector<HelpPrompt> getHelpPrompts() override;
 
 	void add(const std::string imagePath);
 	void setCursor(const std::string imagePath);
@@ -43,7 +43,7 @@ public:
 	static void playVideo(Window* window, const std::string videoPath);
 
 	GuiVideoViewer(Window* window, const std::string& path);
-	~GuiVideoViewer();
+	~GuiVideoViewer() override;
 
 	bool input(InputConfig* config, Input input) override;
 

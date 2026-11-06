@@ -40,7 +40,7 @@ public:
 	bool input(InputConfig* config, Input input) override;
 	void update(int deltaTime) override;
 	void render(const Transform4x4f& parentTrans) override;
-	virtual std::vector<HelpPrompt> getHelpPrompts() override;
+	std::vector<HelpPrompt> getHelpPrompts() override;
 
 	void onSizeChanged() override;
 	void onFocusGained() override;
@@ -55,8 +55,8 @@ public:
 	inline void setCursorChangedCallback(const std::function<void(CursorState state)>& callback) { mCursorChangedCallback = callback; };
 	inline const std::function<void(CursorState state)>& getCursorChangedCallback() const { return mCursorChangedCallback; };
 
-	virtual bool onMouseClick(int button, bool pressed, int x, int y) override;
-	virtual bool hitTest(int x, int y, Transform4x4f& parentTransform, std::vector<GuiComponent*>* pResult = nullptr) override;
+	bool onMouseClick(int button, bool pressed, int x, int y) override;
+	bool hitTest(int x, int y, Transform4x4f& parentTransform, std::vector<GuiComponent*>* pResult = nullptr) override;
 
 protected:
 	void onCursorChanged(const CursorState& state) override;

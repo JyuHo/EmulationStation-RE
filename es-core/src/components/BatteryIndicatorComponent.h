@@ -13,7 +13,7 @@ public:
 	std::string getThemeTypeName() override { return "batteryIndicator"; }
 
 protected:
-	virtual void init() override;
+	void init() override;
 };
 
 #endif // ES_APP_COMPONENTS_RATING_COMPONENT_H

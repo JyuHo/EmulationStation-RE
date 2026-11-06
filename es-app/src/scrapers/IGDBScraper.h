@@ -48,7 +48,7 @@ public:
 		mIsArcade = isArcade;
 	}
 
-	virtual bool retryOn249() { return !mIsManualScrape; }
+	bool retryOn249() override { return !mIsManualScrape; }
 
 protected:
 	bool process(const std::string& response, std::vector<ScraperSearchResult>& results) override;

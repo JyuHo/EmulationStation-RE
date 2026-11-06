@@ -13,7 +13,7 @@ class GuiFavoriteMusicSelector : public GuiComponent
 {
 public:
     GuiFavoriteMusicSelector(Window* window);
-    virtual ~GuiFavoriteMusicSelector();
+    ~GuiFavoriteMusicSelector() override;
 
     static void openSelectFavoriteSongs(Window* window, bool browseMusicMode = false, bool animate = false);
 

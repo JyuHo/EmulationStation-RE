@@ -19,7 +19,7 @@ public:
 
 	void onSizeChanged() override;
 	void update(int deltaTime) override;
-	void setSize(float w, float h);
+	void setSize(float w, float h) override;
 
 	void recalcLayout() override;
 

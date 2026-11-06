@@ -28,7 +28,7 @@ class ScraperSearchComponent : public GuiComponent
 {
 public:
 	ScraperSearchComponent(Window* window);
-	~ScraperSearchComponent();
+	~ScraperSearchComponent() override;
 
 	void search(const ScraperSearchParams& params);
 	void openInputScreen(ScraperSearchParams& from);

@@ -458,7 +458,7 @@ namespace Utils
 			{
 				done = true;
 
-				for(int i = 0; i < sizeof(remove); i += 2)
+				for(size_t i = 0; i < sizeof(remove); i += 2)
 				{
 					end   = string.find_first_of(remove[i + 1]);
 					start = string.find_last_of( remove[i + 0], end);
@@ -729,7 +729,7 @@ namespace Utils
 			while(idx < len) {
 				int code = chars2Unicode(_string, idx);
 				if (code < 0x80) {
-					vpinyin.push_back( s_tblpinyin[_string[idx-1]] );
+					vpinyin.push_back( s_tblpinyin[(unsigned char)_string[idx-1]] );
 				} else {
 					ret = true;
 					auto it = s_mapPinyin.find(code);
@@ -775,7 +775,7 @@ namespace Utils
 			size_t start = 0, ss = 0;
 			while ((start = text.find("<", (ss = start))) != std::string::npos)
 			{
-				int end = text.find(">", start);
+				size_t end = text.find(">", start);
 				if (end != std::string::npos && end >= start)
 					text = text.erase(start, end - start + 1);
 				else

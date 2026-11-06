@@ -193,7 +193,7 @@ private:
 			addChild(&mMenu);
 		}
 
-		~OptionListPopup()
+		~OptionListPopup() override
 		{
 			if (*mParentAlive)
 				mParent->onPopupClosed();
@@ -219,8 +219,8 @@ private:
 	};
 
 public:
-	OptionListComponent(Window* window, const std::string& name, bool multiSelect = false, bool multiSelectShowNames = false) : GuiComponent(window), mMultiSelect(multiSelect), mName(name),
-		 mText(window), mLeftArrow(window), mRightArrow(window), mMultiSelectShowNames(multiSelectShowNames)
+	OptionListComponent(Window* window, const std::string& name, bool multiSelect = false, bool multiSelectShowNames = false) : GuiComponent(window), mMultiSelect(multiSelect), mMultiSelectShowNames(multiSelectShowNames),
+		 mName(name), mText(window), mLeftArrow(window), mRightArrow(window)
 	{
 		auto theme = ThemeData::getMenuTheme();
 
@@ -266,7 +266,7 @@ public:
 		setSize(mLeftArrow.getSize().x() + mRightArrow.getSize().x(), theme->Text.font->getHeight());
 	}
 
-	~OptionListComponent()
+	~OptionListComponent() override
 	{
 		*mAlive = false;
 	}
@@ -295,7 +295,7 @@ public:
 		}).detach();
 	}
 
-	virtual void setColor(unsigned int color)
+	void setColor(unsigned int color) override
 	{
 		mText.setColor(color);
 		mLeftArrow.setColorShift(color);

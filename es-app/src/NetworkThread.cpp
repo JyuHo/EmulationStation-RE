@@ -43,7 +43,7 @@ bool CheckPadsBatteryLevelComponent::check()
 		changed = true;
 	else
 	{
-		for (int i = 0; i < padsInfo.size(); i++)
+		for (int i = 0; i < (int)padsInfo.size(); i++)
 		{
 			if (padsInfo[i].status == "Charging")
 				padsInfo[i].battery = -1;

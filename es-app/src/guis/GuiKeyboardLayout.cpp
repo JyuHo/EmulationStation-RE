@@ -16,7 +16,7 @@ std::vector<std::vector<std::string>> kbLayout =
 	{ "KEY_LEFTCTRL",	"KEY_LEFTMETA",		"KEY_LEFTALT",	"KEY_SPACE", "KEY_SPACE","KEY_SPACE","KEY_SPACE","KEY_SPACE","KEY_SPACE",	"KEY_RIGHTALT", "KEY_RIGHTMETA",	"KEY_MENU",			"KEY_RIGHTCTRL",	"KEY_RIGHTCTRL",	"KEY_LEFT",		"KEY_DOWN",		"KEY_RIGHT",	"KEY_KP0",		"KEY_KP0",		"KEY_KPDOT",		"KEY_KPENTER",		"BTN_LEFT", "BTN_MIDDLE", "BTN_RIGHT" }
 };
 
-GuiKeyboardLayout::GuiKeyboardLayout(Window* window, const std::function<void(const std::set<std::string>&)>& okCallback, std::set<std::string>* activeKeys) : GuiComponent(window), mKeyboard(window, true, false), mImageToggle(false)
+GuiKeyboardLayout::GuiKeyboardLayout(Window* window, const std::function<void(const std::set<std::string>&)>& okCallback, std::set<std::string>* activeKeys) : GuiComponent(window), mImageToggle(false), mKeyboard(window, true, false)
 {
 	setTag("popup");
 
@@ -34,9 +34,9 @@ GuiKeyboardLayout::GuiKeyboardLayout(Window* window, const std::function<void(co
 			sel = *mActiveKeys.begin();
 	}
 
-	for (int y = 0; y < kbLayout.size(); y++)
+	for (int y = 0; y < (int)kbLayout.size(); y++)
 	{
-		for (int x = 0; x < kbLayout[y].size(); x++)
+		for (int x = 0; x < (int)kbLayout[y].size(); x++)
 		{
 			if (kbLayout[y][x] == sel)
 			{
@@ -222,28 +222,28 @@ bool GuiKeyboardLayout::input(InputConfig* config, Input input)
 	}
 	else if (config->isMappedLike("right", input) && input.value != 0)
 	{
-		if (x + 1 >= kbLayout[mY].size())
+		if (x + 1 >= (int)kbLayout[mY].size())
 			x = 0;
 		else
 			x++;
 
-		while (x + 1 < kbLayout[mY].size() && (kbLayout[y][x] == "" || kbLayout[y][x] == current))
+		while (x + 1 < (int)kbLayout[mY].size() && (kbLayout[y][x] == "" || kbLayout[y][x] == current))
 			x++;
 
-		if (x + 1 == kbLayout[mY].size() && (kbLayout[y][x] == "" || kbLayout[y][x] == current))
+		if (x + 1 == (int)kbLayout[mY].size() && (kbLayout[y][x] == "" || kbLayout[y][x] == current))
 			x = 0;
 	}
 	else if (config->isMappedLike("down", input) && input.value != 0)
 	{
 		y++;
 
-		while (y < kbLayout.size() && (kbLayout[y][x] == current || kbLayout[y][x] == ""))
+		while (y < (int)kbLayout.size() && (kbLayout[y][x] == current || kbLayout[y][x] == ""))
 			y++;
 
-		if (y >= kbLayout.size())
+		if (y >= (int)kbLayout.size())
 			y = 0;
 		
-		if (x >= kbLayout[y].size())
+		if (x >= (int)kbLayout[y].size())
 			x = kbLayout[y].size() - 1;
 
 		while (x > 0 && kbLayout[y][x] == "")
@@ -259,7 +259,7 @@ bool GuiKeyboardLayout::input(InputConfig* config, Input input)
 		if (y < 0)
 			y = kbLayout.size() - 1;
 
-		if (x >= kbLayout[y].size())
+		if (x >= (int)kbLayout[y].size())
 			x = kbLayout[y].size() - 1;
 
 		while (x > 0 && kbLayout[y][x] == "")

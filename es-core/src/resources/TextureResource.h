@@ -47,8 +47,8 @@ public:
 	static size_t getTotalMemoryUsage(MemoryUsageType type = MemoryUsageType::Allocated); // returns an approximation of memory used by textures
 	size_t getMemoryUsage(MemoryUsageType type = MemoryUsageType::Allocated);
 
-	virtual bool unload();
-	virtual void reload() { reload(TextureLoadMode::STANDARD); }
+	bool unload() override;
+	void reload() override { reload(TextureLoadMode::STANDARD); }
 
 	void reload(TextureLoadMode mode);
 

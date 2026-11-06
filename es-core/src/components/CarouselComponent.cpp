@@ -168,7 +168,7 @@ bool CarouselComponent::input(InputConfig* config, Input input)
 
 void CarouselComponent::update(int deltaTime)
 {		
-	for (int i = 0; i < mEntries.size(); i++)
+	for (int i = 0; i < (int)mEntries.size(); i++)
 	{
 		const std::shared_ptr<GuiComponent> &comp = mEntries.at(i).data.logo;
 		if (comp != nullptr)
@@ -236,7 +236,7 @@ void CarouselComponent::onCursorChanged(const CursorState& state)
 	
 	bool oldCursorHasStoryboard = false;
 
-	if (oldCursor >= 0 && oldCursor < mEntries.size())
+	if (oldCursor >= 0 && oldCursor < (int)mEntries.size())
 	{
 		auto logo = mEntries.at(oldCursor).data.logo;
 		if (logo)
@@ -253,7 +253,7 @@ void CarouselComponent::onCursorChanged(const CursorState& state)
 
 	bool cursorHasStoryboard = false;
 
-	if (mCursor >= 0 && mCursor < mEntries.size())
+	if (mCursor >= 0 && mCursor < (int)mEntries.size())
 	{
 		auto logo = mEntries.at(mCursor).data.logo;
 		if (logo)
@@ -268,7 +268,7 @@ void CarouselComponent::onCursorChanged(const CursorState& state)
 		}
 	}
 
-	for (int i = 0; i < mEntries.size(); i++)
+	for (int i = 0; i < (int)mEntries.size(); i++)
 	{
 		if ((cursorHasStoryboard && i == mCursor) || (oldCursorHasStoryboard && i == oldCursor))
 			continue;
@@ -649,14 +649,14 @@ void CarouselComponent::onShow()
 
 	bool cursorStoryboardSet = false;
 
-	for (int i = 0; i < mEntries.size(); i++)
+	for (int i = 0; i < (int)mEntries.size(); i++)
 	{
 		auto logo = mEntries.at(i).data.logo;
 		if (logo)
 			logo->isShowing() = true;
 	}
 
-	if (mCursor >= 0 && mCursor < mEntries.size())
+	if (mCursor >= 0 && mCursor < (int)mEntries.size())
 	{
 		auto logo = mEntries.at(mCursor).data.logo;
 		if (logo)
@@ -676,7 +676,7 @@ void CarouselComponent::onShow()
 		}
 	}
 
-	for (int i = 0; i < mEntries.size(); i++)
+	for (int i = 0; i < (int)mEntries.size(); i++)
 	{
 		if (cursorStoryboardSet && mCursor == i)
 			continue;
@@ -691,7 +691,7 @@ void CarouselComponent::onHide()
 {
 	GuiComponent::onHide();	
 
-	for (int i = 0; i < mEntries.size(); i++)
+	for (int i = 0; i < (int)mEntries.size(); i++)
 	{
 		auto logo = mEntries.at(i).data.logo;
 		if (logo)
@@ -716,7 +716,7 @@ void CarouselComponent::topWindow(bool isTop)
 
 IBindable* CarouselComponent::getActiveObject()
 {
-	if (mCursor < 0 || mCursor >= mEntries.size())
+	if (mCursor < 0 || mCursor >= (int)mEntries.size())
 		return nullptr;
 
 	return mEntries[mCursor].object;
@@ -758,6 +758,8 @@ void CarouselComponent::ensureLogo(IList<CarouselComponentData, IBindable*>::Ent
 		case CarouselImageSource::FANART:    mediaName = "fanart";    break;
 		case CarouselImageSource::CARTRIDGE: mediaName = "cartridge"; break;
 		case CarouselImageSource::MIX:       mediaName = "mix";       break;
+		default:
+			break;
 		}
 
 		std::string marqueePath = entry.object->getProperty(mediaName).toString();
@@ -968,7 +970,7 @@ bool CarouselComponent::onMouseWheel(int delta)
 
 std::shared_ptr<GuiComponent> CarouselComponent::getLogo(int index)
 {
-	if (index >= 0 && index < mEntries.size())
+	if (index >= 0 && index < (int)mEntries.size())
 		return mEntries.at(index).data.logo;
 
 	return nullptr;

@@ -70,7 +70,7 @@ public:
 	static void init();
 
 	VideoVlcComponent(Window* window);
-	virtual ~VideoVlcComponent();
+	~VideoVlcComponent() override;
 
 	void render(const Transform4x4f& parentTrans) override;
 
@@ -78,20 +78,20 @@ public:
 	// If both are non-zero, potentially break the aspect ratio.  If both are zero, no resizing.
 	// Can be set before or after a video is loaded.
 	// setMaxSize() and setResize() are mutually exclusive.
-	void setResize(float width, float height);
+	void setResize(float width, float height) override;
 
 	// Resize the video to be as large as possible but fit within a box of this size.
 	// Can be set before or after a video is loaded.
 	// Never breaks the aspect ratio. setMaxSize() and setResize() are mutually exclusive.
-	void setMaxSize(float width, float height);
-	void setMinSize(float width, float height);
+	void setMaxSize(float width, float height) override;
+	void setMinSize(float width, float height) override;
 
-	virtual void applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element, unsigned int properties);
-	virtual void update(int deltaTime);	
+	void applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element, unsigned int properties) override;
+	void update(int deltaTime) override;	
 
 	void	setColorShift(unsigned int color);
 
-	virtual void onShow() override;
+	void onShow() override;
 
 	ThemeData::ThemeElement::Property getProperty(const std::string name) override;
 	void setProperty(const std::string name, const ThemeData::ThemeElement::Property& value) override;
@@ -114,18 +114,18 @@ private:
 	// Used internally whenever the resizing parameters or texture change.
 	void resize();
 	// Start the video Immediately
-	virtual void startVideo();
+	void startVideo() override;
 	// Stop the video
-	virtual void stopVideo();
+	void stopVideo() override;
 
-	virtual void pauseVideo();
-	virtual void resumeVideo();
-	virtual bool isPaused();
+	void pauseVideo() override;
+	void resumeVideo() override;
+	bool isPaused() override;
 
 	// Handle looping the video. Must be called periodically
-	virtual void handleLooping();
+	void handleLooping() override;
 
-	virtual void onVideoStarted();
+	void onVideoStarted() override;
 
 	VideoContext* createContext();
 

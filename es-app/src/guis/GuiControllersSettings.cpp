@@ -378,7 +378,6 @@ void GuiControllersSettings::openGlobalHotkeys()
 void GuiControllersSettings::openKeyboardtopads()
 {
 	GuiSettings* s = new GuiSettings(mWindow, _("KEYBOARDTOPADS"), true);
-	Window* window = mWindow;
 
 	std::vector<Keyboardtopad> keyboardtopads = ApiSystem::getInstance()->getKeyboardtopads();
 
@@ -593,7 +592,7 @@ void GuiControllersSettings::openControllersSpecificSettings_steamdeckgun()
 
 void GuiControllersSettings::clearLoadedInput() 
 {
-	for (int i = 0; i < mLoadedInput.size(); i++) 
+	for (int i = 0; i < (int)mLoadedInput.size(); i++) 
 		delete mLoadedInput[i];
 
 	mLoadedInput.clear();

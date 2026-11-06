@@ -116,16 +116,16 @@ public:
 	void resetLastCursor() { mLastCursor = -1; }
 	int getLastCursor() { return mLastCursor; }
 
-	virtual bool onMouseClick(int button, bool pressed, int x, int y) override;
-	virtual void onMouseMove(int x, int y) override;
-	virtual bool onMouseWheel(int delta) override;
-	virtual bool hitTest(int x, int y, Transform4x4f& parentTransform, std::vector<GuiComponent*>* pResult = nullptr) override;
+	bool onMouseClick(int button, bool pressed, int x, int y) override;
+	void onMouseMove(int x, int y) override;
+	bool onMouseWheel(int delta) override;
+	bool hitTest(int x, int y, Transform4x4f& parentTransform, std::vector<GuiComponent*>* pResult = nullptr) override;
 
 	Delegate<ILongMouseClickEvent> longMouseClick;
 
 protected:
-	virtual void onScroll(int /*amt*/) { if (!mScrollSound.empty()) Sound::get(mScrollSound)->play(); }
-	virtual void onCursorChanged(const CursorState& state);
+	void onScroll(int /*amt*/) override { if (!mScrollSound.empty()) Sound::get(mScrollSound)->play(); }
+	void onCursorChanged(const CursorState& state) override;
 
 private:
 	void  updateCameraOffset();
@@ -405,8 +405,8 @@ void TextListComponent<T>::render(const Transform4x4f& parentTrans)
 				{
 					Renderer::setMatrix(trans);
 					Renderer::drawRect(0.0f, y + mSelectorOffsetY, mSize.x(), mSelectorHeight,
-						mSelectorColor & 0xFFFFFF00 | (unsigned char)((mSelectorColor & 0xFF) * opacity),
-						mSelectorColorEnd & 0xFFFFFF00 | (unsigned char)((mSelectorColorEnd & 0xFF) * opacity),
+						(mSelectorColor & 0xFFFFFF00) | (unsigned char)((mSelectorColor & 0xFF) * opacity),
+						(mSelectorColorEnd & 0xFFFFFF00) | (unsigned char)((mSelectorColorEnd & 0xFF) * opacity),
 						mSelectorColorGradientHorizontal);
 				}
 			}
@@ -416,8 +416,8 @@ void TextListComponent<T>::render(const Transform4x4f& parentTrans)
 
 				float hotOpacity = 0.1f;
 				Renderer::drawRect(0.0f, y + mSelectorOffsetY, mSize.x(), entrySize,
-					mSelectorColor & 0xFFFFFF00 | (unsigned char)((mSelectorColor & 0xFF) * opacity * hotOpacity),
-					mSelectorColorEnd & 0xFFFFFF00 | (unsigned char)((mSelectorColorEnd & 0xFF) * opacity * hotOpacity),
+					(mSelectorColor & 0xFFFFFF00) | (unsigned char)((mSelectorColor & 0xFF) * opacity * hotOpacity),
+					(mSelectorColorEnd & 0xFFFFFF00) | (unsigned char)((mSelectorColorEnd & 0xFF) * opacity * hotOpacity),
 					mSelectorColorGradientHorizontal);
 			}
 
@@ -594,7 +594,7 @@ void TextListComponent<T>::updateCameraOffset()
 	auto totalHeight = rowHeight * mEntries.size();
 
 	// move the camera to scroll
-	if (totalHeight > mSize.y() && mCursor < mEntries.size())
+	if (totalHeight > mSize.y() && mCursor < (int)mEntries.size())
 	{
 		mCameraOffset = (rowHeight * mCursor) + ((rowHeight - mSize.y()) / 2.0f);
 
@@ -632,7 +632,7 @@ void TextListComponent<T>::onCursorChanged(const CursorState& state)
 
 	if (mLastCursor != mCursor || mLastCursorState != state)
 	{
-		if (mCursor >= 0 && mCursor < mEntries.size())
+		if (mCursor >= 0 && mCursor < (int)mEntries.size())
 		{
 			typename IList<TextListData, T>::Entry& entry = mEntries.at(mCursor);
 			if (entry.data.itemTemplate)
@@ -645,7 +645,7 @@ void TextListComponent<T>::onCursorChanged(const CursorState& state)
 			}
 		}
 
-		if (mLastCursor >= 0 && mLastCursor != mCursor && mLastCursor < mEntries.size())
+		if (mLastCursor >= 0 && mLastCursor != mCursor && mLastCursor < (int)mEntries.size())
 		{
 			typename IList<TextListData, T>::Entry& entry = mEntries.at(mLastCursor);
 			if (entry.data.itemTemplate)
@@ -813,7 +813,6 @@ bool TextListComponent<T>::hitTest(int x, int y, Transform4x4f& parentTransform,
 
 		for (unsigned int i = 0; i < mEntries.size(); i++)
 		{
-			auto& entry = mEntries.at(i);
 
 			if (ry - mCameraOffset + rowHeight >= 0)
 			{
@@ -836,7 +835,7 @@ bool TextListComponent<T>::hitTest(int x, int y, Transform4x4f& parentTransform,
 
 		trans.translate(0, -mCameraOffset);
 
-		for (int i = 0; i < getChildCount(); i++)
+		for (int i = 0; i < (int)getChildCount(); i++)
 			ret |= getChild(i)->hitTest(x, y, trans, pResult);
 	}
 

@@ -12,7 +12,7 @@ class VolumeInfoComponent : public GuiComponent
 {
 public:
 	VolumeInfoComponent(Window* window, bool actionLine = true);
-	~VolumeInfoComponent();
+	~VolumeInfoComponent() override;
 
 	void render(const Transform4x4f& parentTrans) override;
 	void update(int deltaTime) override;

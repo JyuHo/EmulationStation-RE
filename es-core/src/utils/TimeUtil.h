@@ -9,7 +9,7 @@ namespace Utils
 {
 	namespace Time
 	{
-		static int NOT_A_DATE_TIME = 0;
+		inline constexpr int NOT_A_DATE_TIME = 0;
 
 		class DateTime
 		{

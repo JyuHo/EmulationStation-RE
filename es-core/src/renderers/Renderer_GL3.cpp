@@ -345,7 +345,7 @@ namespace Renderer
 			{
 				while (std::getline(systemConf, line))
 				{
-					int idx = line.find("=");
+					size_t idx = line.find("=");
 					if (idx == std::string::npos || line.find("#") == 0 || line.find(";") == 0)
 						continue;
 
@@ -405,7 +405,6 @@ namespace Renderer
 		return ret;
 	};
 
-	static int getAvailableVideoMemory();
 
 	static void setupDefaultShaders()
 	{
@@ -1163,53 +1162,6 @@ namespace Renderer
 	#define GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX 0x9049
 	#endif
 
-	static int getAvailableVideoMemory()
-	{
-		/*
-		const std::string extensions = glGetString(GL_EXTENSIONS) ? (const char*)glGetString(GL_EXTENSIONS) : "";
-		if (extensions.find("GL_NVX_gpu_memory_info") != std::string::npos)
-		{
-			GLint totalMemoryKb = 0;
-			glGetIntegerv(GL_GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX, &totalMemoryKb);
-			if (totalMemoryKb != 0)
-				return totalMemoryKb / 1024;
-		}
-		*/
-		float total = 0;
-
-		float megabytes = 4.0;
-		int sz = sqrtf(megabytes * 1024.0 * 1024.0 / 4.0f);
-
-		std::vector<unsigned int> textures;
-		textures.reserve(1000);
-
-		while (true)
-		{
-			unsigned int textureId = 0;
-			glGenTextures(1, &textureId);
-
-			if (textureId == 0 || glGetError() != GL_NO_ERROR)
-				break;
-
-			textures.push_back(textureId);
-
-			bindTexture(textureId);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sz, sz, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-			if (glGetError() != GL_NO_ERROR)
-				break;
-
-			total += megabytes;
-		}
-
-		while (glGetError() != GL_NO_ERROR)
-			;
-
-		for (auto tx : textures)
-			glDeleteTextures(1, &tx);
-
-		return total;
-	}
-
 //////////////////////////////////////////////////////////////////////////
 	GL3Renderer::GL3Renderer() : mFrameBuffer(-1)
 	{
@@ -1438,7 +1390,7 @@ namespace Renderer
 			mShaderFrameBuffer2 = 0;
 		}
 
-		if (mFrameBuffer != -1)
+		if (mFrameBuffer != (unsigned int)-1)
 		{
 			GL3_CALL(glDeleteFramebuffers(1, &mFrameBuffer));
 			mFrameBuffer = -1;
@@ -2074,7 +2026,7 @@ namespace Renderer
 		if (shaderBatch == nullptr || shaderBatch->size() == 0)
 			return;
 
-		if (mFrameBuffer == -1)
+		if (mFrameBuffer == (unsigned int)-1)
 			GL3_CALL(glGenFramebuffers(1, &mFrameBuffer));
 
 		if (mFrameBuffer == 0 || mFrameBuffer == static_cast<unsigned int>(-1))
@@ -2175,7 +2127,6 @@ namespace Renderer
 			}
 		}
 
-		int width = getScreenWidth();
 		int height = getScreenHeight();
 
 		auto oldProgram = currentProgram;
@@ -2252,7 +2203,7 @@ namespace Renderer
 		}
 
 		bool framebufferComplete = true;
-		for (int i = 0; i < shaderBatch->size(); i++)
+		for (int i = 0; i < (int)shaderBatch->size(); i++)
 		{
 			auto customShader = shaderBatch->at(i);
 
@@ -2294,7 +2245,7 @@ namespace Renderer
 			{
 				bindTexture(i % 2 == 1 ? nTexture2 : nTextureID);
 
-				if (i == shaderBatch->size() - 1 && data == nullptr)
+				if (i == (int)shaderBatch->size() - 1 && data == nullptr)
 				{
 					// This is the last shader in the batch.
 					vertices[0] = { { (float)x    , (float)y       }, { 0.0f, 1.0f }, 0xFFFFFFFF };

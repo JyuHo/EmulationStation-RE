@@ -14,7 +14,7 @@ class AsyncNotificationComponent : public GuiComponent
 
 protected:
 	AsyncNotificationComponent(Window* window, bool actionLine = true);
-	~AsyncNotificationComponent();
+	~AsyncNotificationComponent() override;
 
 public:
 	void update(int deltaTime) override;
