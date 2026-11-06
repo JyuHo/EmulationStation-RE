@@ -28,23 +28,6 @@ private:
 	bool mEnabled;
 };
 
-class CheckUpdatesComponent : public IWatcher
-{
-public:
-	CheckUpdatesComponent() { mEnabled = true; }
-
-	std::string& getLastUpdateMessage() { return mLastUpdateMessage; }
-
-protected:
-	bool enabled() override;
-	int  updateTime() override { return 24 * 60 * 60 * 1000; } // 24 * 60 minutes
-	bool check() override;
-
-private:
-	std::string mLastUpdateMessage;
-	bool mEnabled;
-};
-
 class CheckCheevosTokenComponent : public IWatcher
 {
 public:
@@ -72,7 +55,6 @@ private:
 	void OnWatcherChanged(IWatcher* component) override;
 
 	CheckPadsBatteryLevelComponent					mCheckPadsBatteryLevelComponent;
-	CheckUpdatesComponent							mCheckUpdatesComponent;
 	CheckCheevosTokenComponent						mCheckCheevosTokenComponent;
 	Window* mWindow;
 };

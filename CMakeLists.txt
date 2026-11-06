@@ -16,7 +16,6 @@ if(OPENGL_OPTION_COUNT GREATER 1)
 endif()
 option(CEC "CEC" ON)
 
-option(BATOCERA "Set to ON to enable BATOCERA specific code" OFF)
 
 option(ENABLE_FILEMANAGER "Set to ON to enable f1 shortcut for filesystem" OFF)
 option(DISABLE_KODI "Set to ON to disable kodi in menu" OFF)
@@ -32,11 +31,6 @@ LIST(APPEND CMAKE_MODULE_PATH
     ${CMAKE_CURRENT_SOURCE_DIR}/CMake/Utils
     ${CMAKE_CURRENT_SOURCE_DIR}/CMake/Packages
 )
-
-if(BATOCERA)
-  MESSAGE("Batocera build")
-  add_definitions(-DBATOCERA)
-endif()
 
 # disable kodi menu
 if(DISABLE_KODI)

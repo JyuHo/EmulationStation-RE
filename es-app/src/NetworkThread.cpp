@@ -19,9 +19,6 @@ NetworkThread::NetworkThread(Window* window) : mWindow(window)
 	mgr->RegisterComponent(new BatteryLevelWatcher());
 	mgr->RegisterComponent(new NetworkStateWatcher());
 
-	if (ApiSystem::getInstance()->isScriptingSupported(ApiSystem::UPGRADE))
-		mgr->RegisterComponent(&mCheckUpdatesComponent);
-
 	if (ApiSystem::getInstance()->isScriptingSupported(ApiSystem::PADSINFO))
 		mgr->RegisterComponent(&mCheckPadsBatteryLevelComponent);
 
@@ -61,36 +58,6 @@ bool CheckPadsBatteryLevelComponent::check()
 
 	mPadsInfo = padsInfo;
 	return changed;
-}
-
-bool CheckUpdatesComponent::enabled()
-{
-	return mEnabled && SystemConf::getInstance()->getBool("updates.enabled") && ApiSystem::getInstance()->isScriptingSupported(ApiSystem::UPGRADE);
-}
-
-bool CheckUpdatesComponent::check()
-{
-	LOG(LogDebug) << "CheckUpdatesComponent : Checking for updates";
-
-	std::vector<std::string> msgtbl;
-	if (ApiSystem::getInstance()->canUpdate(msgtbl))
-	{
-		std::string msg = "";
-		for (int i = 0; i < msgtbl.size(); i++)
-		{
-			if (i != 0) msg += "\n";
-			msg += msgtbl[i];
-		}
-
-		LOG(LogDebug) << "CheckUpdatesComponent : Update available " << msg.c_str();
-		mLastUpdateMessage = msg;
-		mEnabled = false;
-		return true;
-	}
-	else
-		LOG(LogDebug) << "NetworkThread : No update found";
-
-	return false;
 }
 
 bool CheckCheevosTokenComponent::enabled()
@@ -139,12 +106,6 @@ void NetworkThread::onJoystickChanged()
 
 void NetworkThread::OnWatcherChanged(IWatcher* component)
 {
-	if (component == &mCheckUpdatesComponent)
-	{
-		mWindow->displayNotificationMessage(_U("\uF019  ") + _("UPDATE AVAILABLE") + std::string(": ") + mCheckUpdatesComponent.getLastUpdateMessage());
-		return;
-	}
-
 	if (component == &mCheckPadsBatteryLevelComponent)
 	{
 		auto pads = mCheckPadsBatteryLevelComponent.getPadsInfo();

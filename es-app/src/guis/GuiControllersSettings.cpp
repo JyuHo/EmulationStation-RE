@@ -102,67 +102,13 @@ GuiControllersSettings::GuiControllersSettings(Window* wnd, int autoSel) : GuiSe
 	{
 		addGroup(_("BLUETOOTH"));
 
-#if defined(BATOCERA)
-		// Bluetooth enable
-		bool baseBtEnabled = SystemConf::getInstance()->getBool("controllers.bluetooth.enabled");
-		auto enable_bt = std::make_shared<SwitchComponent>(mWindow);
-		enable_bt->setState(baseBtEnabled);
-		addWithLabel(_("ENABLE BLUETOOTH"), enable_bt, autoSel == 2);
-		enable_bt->setOnChangedCallback([this, window, enable_bt, baseBtEnabled]
-		{
-			bool btEnabled = enable_bt->getState();
-			if (btEnabled != baseBtEnabled)
-			{
-				SystemConf::getInstance()->setBool("controllers.bluetooth.enabled", btEnabled);
-				SystemConf::getInstance()->saveSystemConf();
-				if (btEnabled)
-					ApiSystem::getInstance()->enableBluetooth();
-				else
-					ApiSystem::getInstance()->disableBluetooth();
-
-				Window* parent = window;
-				delete this;
-				openControllersSettings(parent, 2);
-			}
-		});
-
-		addSaveFunc([enable_bt]
-		{
-			bool btEnabled = enable_bt->getState();
-			if (btEnabled != SystemConf::getInstance()->getBool("controllers.bluetooth.enabled"))
-			{
-				SystemConf::getInstance()->setBool("controllers.bluetooth.enabled", btEnabled);
-				SystemConf::getInstance()->saveSystemConf();
-				if (btEnabled)
-					ApiSystem::getInstance()->enableBluetooth();
-				else
-					ApiSystem::getInstance()->disableBluetooth();
-			}
-		});
-
-		if (baseBtEnabled)
-		{
-#endif
 
 		// PAIR A BLUETOOTH CONTROLLER
 		addEntry(_("PAIR BLUETOOTH PADS AUTOMATICALLY"), false, [window] { ThreadedBluetooth::start(window); });
 
-#if defined(BATOCERA)
-		// PAIR A BLUETOOTH CONTROLLER OR BT AUDIO DEVICE
-		addEntry(_("PAIR A BLUETOOTH DEVICE MANUALLY"), false, [window]
-		{
-			if (ThreadedBluetooth::isRunning())
-				window->pushGui(new GuiMsgBox(window, _("BLUETOOTH SCAN IS ALREADY RUNNING.")));
-			else
-				window->pushGui(new GuiBluetoothPair(window));
-		});
-#endif
 		// FORGET BLUETOOTH CONTROLLERS OR BT AUDIO DEVICES
 		addEntry(_("BLUETOOTH DEVICE LIST"), false, [window] { window->pushGui(new GuiBluetoothDevices(window)); });
 
-#if defined(BATOCERA)
-		}
-#endif
 	}
 
 	addGroup(_("DISPLAY OPTIONS"));
@@ -190,138 +136,7 @@ GuiControllersSettings::GuiControllersSettings(Window* wnd, int autoSel) : GuiSe
 	addSwitch(_("SHOW GUN NOTIFICATIONS"), "ShowGunsNotifications", true);	
 	addSwitch(_("DRAW GUN CROSSHAIR"), "DrawGunCrosshair", true);
 
-#ifdef BATOCERA
-	addGroup(_("BEHAVIOR"));
 
-	addEntry(_("JOYSTICKS HOTKEYS"), true, [this] { openControllersHotkeys(); });
-
-	auto restrictHotkeys = std::make_shared<SwitchComponent>(window);
-	restrictHotkeys->setState(SystemConf::getInstance()->getBool("global.exithotkeyonly"));
-	addWithLabel(_("RESTRICT JOYSTICKS HOTKEYS TO EXIT"), restrictHotkeys);
-	addSaveFunc([restrictHotkeys] { SystemConf::getInstance()->setBool("global.exithotkeyonly", restrictHotkeys->getState()); });
-
-	addEntry(_("GLOBAL HOTKEYS"), true, [this] { openGlobalHotkeys(); });
-	addEntry(_("KEYBOARDTOPADS"), true, [this] { openKeyboardtopads(); });
-#endif
-
-#ifdef BATOCERA
-	// controller LEDs
-	int red, green, blue;
-	bool ledSupported = ApiSystem::getInstance()->getLED(red, green, blue);
-
-	if (ledSupported) {
-		addGroup(_("LED HARDWARE"));
-
-		auto led_enabled_switch = std::make_shared<SwitchComponent>(mWindow);
-		bool isEnabled = ApiSystem::getInstance()->isLEDEnabled();
-		led_enabled_switch->setState(isEnabled);
-		addWithLabel(_("ENABLE LED"), led_enabled_switch);
-		
-		// Only display RGB color sliders and modes if the hardware is NOT monochrome
-		if (!ApiSystem::getInstance()->isLEDMonochrome()) {
-			// LED MODE Dropdown Component
-			std::string currentMode = SystemConf::getInstance()->get("led.mode");
-			if (currentMode.empty())
-				currentMode = "static";
-
-			auto ledMode = std::make_shared<OptionListComponent<std::string>>(mWindow, _("LED MODE"), false);
-			ledMode->addRange({
-				{ _("STATIC"), "static" },
-				{ _("RAINBOW"), "rainbow" },
-				{ _("CHROMA"), "chroma" },
-				{ _("PULSE"), "pulse" }
-			}, currentMode);
-			addWithLabel(_("LED MODE"), ledMode);
-
-			// RGB Configuration Colors
-			std::string colourString = SystemConf::getInstance()->get("led.colour");
-			if (colourString.empty())
-				colourString = "255 0 165";
-
-			std::stringstream ss(colourString);
-			ss >> red >> green >> blue; 
-
-			auto redLEDComponent = std::make_shared<SliderComponent>(mWindow, 0.f, 255.f, 1.f);
-			auto greenLEDComponent = std::make_shared<SliderComponent>(mWindow, 0.f, 255.f, 1.f);
-			auto blueLEDComponent = std::make_shared<SliderComponent>(mWindow, 0.f, 255.f, 1.f);
-
-			// Track if sliders were adjusted so we can revert mode back to static
-			auto sliderChanged = std::make_shared<bool>(false);
-
-			redLEDComponent->setValue(red);
-			redLEDComponent->setOnValueChanged([greenLEDComponent, blueLEDComponent, sliderChanged](const float &newVal) {
-				int redInt = static_cast<int>(newVal);
-				int greenInt = static_cast<int>(greenLEDComponent->getValue());
-				int blueInt = static_cast<int>(blueLEDComponent->getValue());
-				*sliderChanged = true;
-				ApiSystem::getInstance()->setLEDColours(redInt, greenInt, blueInt);
-				std::string colourString = std::to_string(redInt) + " " + std::to_string(greenInt) + " " + std::to_string(blueInt);
-				SystemConf::getInstance()->set("led.colour", colourString);
-			});
-			addWithLabel(_("RED"), redLEDComponent);
-
-			greenLEDComponent->setValue(green);
-			greenLEDComponent->setOnValueChanged([redLEDComponent, blueLEDComponent, sliderChanged](const float &newVal) {
-				int redInt = static_cast<int>(redLEDComponent->getValue());
-				int greenInt = static_cast<int>(newVal);
-				int blueInt = static_cast<int>(blueLEDComponent->getValue());
-				*sliderChanged = true;
-				ApiSystem::getInstance()->setLEDColours(redInt, greenInt, blueInt);
-				std::string colourString = std::to_string(redInt) + " " + std::to_string(greenInt) + " " + std::to_string(blueInt);
-				SystemConf::getInstance()->set("led.colour", colourString);
-			});
-			addWithLabel(_("GREEN"), greenLEDComponent);
-
-			blueLEDComponent->setValue(blue);
-			blueLEDComponent->setOnValueChanged([redLEDComponent, greenLEDComponent, sliderChanged](const float &newVal) {
-				int redInt = static_cast<int>(redLEDComponent->getValue());
-				int greenInt = static_cast<int>(greenLEDComponent->getValue());
-				int blueInt = static_cast<int>(newVal);
-				*sliderChanged = true;
-				ApiSystem::getInstance()->setLEDColours(redInt, greenInt, blueInt);
-				std::string colourString = std::to_string(redInt) + " " + std::to_string(greenInt) + " " + std::to_string(blueInt);
-				SystemConf::getInstance()->set("led.colour", colourString);
-			});
-			addWithLabel(_("BLUE"), blueLEDComponent);
-
-			addSaveFunc([led_enabled_switch, ledMode, sliderChanged] {
-				bool state = led_enabled_switch->getState();
-				if (state != (SystemConf::getInstance()->get("led.enabled") != "0")) {
-					ApiSystem::getInstance()->setLEDEnabled(state);
-				}
-
-				std::string newMode = ledMode->getSelected();
-				if (*sliderChanged) {
-					newMode = "static";
-				}
-				if (newMode != SystemConf::getInstance()->get("led.mode")) {
-					ApiSystem::getInstance()->setLEDMode(newMode);
-				}
-			});
-		} else {
-			addSaveFunc([led_enabled_switch] {
-				bool state = led_enabled_switch->getState();
-				if (state != (SystemConf::getInstance()->get("led.enabled") != "0")) {
-					ApiSystem::getInstance()->setLEDEnabled(state);
-				}
-			});
-		}
-	}
-	
-	// LED brightness - Only display if the hardware is NOT monochrome
-	int ledBrightness;
-	if (!ApiSystem::getInstance()->isLEDMonochrome() && ApiSystem::getInstance()->getLEDBrightness(ledBrightness)) {
-		auto ledBrightnessComponent = std::make_shared<SliderComponent>(mWindow, 0.f, 100.f, 1.f, "%");
-		ledBrightnessComponent->setValue(ledBrightness);
-		ledBrightnessComponent->setOnValueChanged([](const float &newVal)
-		{
-			ApiSystem::getInstance()->setLEDBrightness((int)Math::round(newVal));
-			SystemConf::getInstance()->set("led.brightness", std::to_string((int)Math::round(newVal)));
-		});
-
-		addWithLabel(_("LED BRIGHTNESS"), ledBrightnessComponent);
-	}
-#endif
 
 	addGroup(controllers_group_label);
 
@@ -547,17 +362,6 @@ void GuiControllersSettings::openControllersHotkeys()
 		}
 		ApiSystem::getInstance()->setJoysticksHotkeys(vals);
 
-#ifdef BATOCERA
-		// change the control center key for es too
-		for (unsigned int h = 0; h < hotkeys.size(); h++) {
-			if (btns_elts[h]->getSelected() == "controlcenter") {
-				Settings::getInstance()->setString("HOTKEY_CONTROLCENTER", hotkeys[h].button);
-				Settings::getInstance()->saveFile();
-				break;
-			}
-		}
-		//
-#endif
 		});
 
 	mWindow->pushGui(s);
@@ -728,66 +532,6 @@ void GuiControllersSettings::openControllersSpecificSettings_sindengun()
 	borderscolor_set->add(_("BLUE"), "BLUE", "blue" == selectedBordersColor);
 	s->addOptionList(_("BORDER COLOR"), { { _("AUTO"), "auto" },{ _("WHITE") , "white" },{ _("RED") , "red" },{ _("GREEN"), "green" },{ _("BLUE"), "blue" } }, "controllers.guns.borderscolor", false);
 
-#if BATOCERA
-	std::string selectedBordersRatio = SystemConf::getInstance()->get("controllers.guns.bordersratio");
-	auto bordersratio_set = std::make_shared<OptionListComponent<std::string> >(mWindow, _("BORDER RATIO"), false);
-	bordersratio_set->add(_("AUTO"), "", "" == selectedBordersRatio);
-	bordersratio_set->add("4:3", "4:3", "4:3" == selectedBordersRatio);
-	s->addWithLabel(_("BORDER RATIO"), bordersratio_set);
-
-	std::string selectedCameraContrast = SystemConf::getInstance()->get("controllers.guns.sinden.contrast");
-	auto cameracontrast_set = std::make_shared<OptionListComponent<std::string> >(mWindow, _("CAMERA CONTRAST"), false);
-	cameracontrast_set->add(_("AUTO"), "", "" == selectedCameraContrast);
-	cameracontrast_set->add(_("Daytime/Bright Sunlight (40)"), "40", "40" == selectedCameraContrast);
-	cameracontrast_set->add(_("Default (50)"), "50", "50" == selectedCameraContrast);
-	cameracontrast_set->add(_("Dim Display/Evening (60)"), "60", "60" == selectedCameraContrast);
-	s->addWithLabel(_("CAMERA CONTRAST"), cameracontrast_set);
-
-	std::string selectedCameraBrightness = SystemConf::getInstance()->get("controllers.guns.sinden.brightness");
-	auto camerabrightness_set = std::make_shared<OptionListComponent<std::string> >(mWindow, _("CAMERA BRIGHTNESS"), false);
-	camerabrightness_set->add(_("AUTO"), "", "" == selectedCameraBrightness);
-	camerabrightness_set->add(_("Daytime/Bright Sunlight (80)"), "80", "80" == selectedCameraBrightness);
-	camerabrightness_set->add(_("Default (100)"), "100", "100" == selectedCameraBrightness);
-	camerabrightness_set->add(_("Dim Display/Evening (120)"), "120", "120" == selectedCameraBrightness);
-	s->addWithLabel(_("CAMERA BRIGHTNESS"), camerabrightness_set);
-
-	std::string selectedCameraExposure = SystemConf::getInstance()->get("controllers.guns.sinden.exposure");
-	auto cameraexposure_set = std::make_shared<OptionListComponent<std::string> >(mWindow, _("CAMERA EXPOSURE"), false);
-	cameraexposure_set->add(_("AUTO"), "", "" == selectedCameraExposure);
-	cameraexposure_set->add(_("Projector/CRT (-5)"), "-5", "-5" == selectedCameraExposure);
-	cameraexposure_set->add(_("Projector/CRT (-6)"), "-6", "-6" == selectedCameraExposure);
-	cameraexposure_set->add(_("Default (-7)"), "-7", "-7" == selectedCameraExposure);
-	cameraexposure_set->add(_("Other (-8)"), "-8", "-8" == selectedCameraExposure);
-	cameraexposure_set->add(_("Other (-9)"), "-9", "-9" == selectedCameraExposure);
-	s->addWithLabel(_("CAMERA EXPOSURE"), cameraexposure_set);
-
-	std::string baseMode = SystemConf::getInstance()->get("controllers.guns.recoil");
-	auto sindenmode_choices = std::make_shared<OptionListComponent<std::string> >(mWindow, _("RECOIL"), false);
-	sindenmode_choices->add(_("AUTO"), "auto", baseMode.empty() || baseMode == "auto");
-	sindenmode_choices->add(_("DISABLED"), "disabled", baseMode == "disabled");
-	sindenmode_choices->add(_("GUN"), "gun", baseMode == "gun");
-	sindenmode_choices->add(_("MACHINE GUN"), "machinegun", baseMode == "machinegun");
-	sindenmode_choices->add(_("QUIET GUN"), "gun-quiet", baseMode == "gun-quiet");
-	sindenmode_choices->add(_("QUIET MACHINE GUN"), "machinegun-quiet", baseMode == "machinegun-quiet");
-	s->addWithLabel(_("RECOIL"), sindenmode_choices);
-
-	s->addSaveFunc([sindenmode_choices, bordersratio_set, cameracontrast_set, camerabrightness_set, cameraexposure_set] {
-		if (sindenmode_choices->getSelected() != SystemConf::getInstance()->get("controllers.guns.recoil") ||
-		        bordersratio_set->getSelected() != SystemConf::getInstance()->get("controllers.guns.bordersratio") ||
-			cameracontrast_set->getSelected() != SystemConf::getInstance()->get("controllers.guns.sinden.contrast") ||
-			camerabrightness_set->getSelected() != SystemConf::getInstance()->get("controllers.guns.sinden.brightness") ||
-			cameraexposure_set->getSelected() != SystemConf::getInstance()->get("controllers.guns.sinden.exposure")
-			) {
-			SystemConf::getInstance()->set("controllers.guns.recoil", sindenmode_choices->getSelected());
-			SystemConf::getInstance()->set("controllers.guns.bordersratio", bordersratio_set->getSelected());
-			SystemConf::getInstance()->set("controllers.guns.sinden.contrast", cameracontrast_set->getSelected());
-			SystemConf::getInstance()->set("controllers.guns.sinden.brightness", camerabrightness_set->getSelected());
-			SystemConf::getInstance()->set("controllers.guns.sinden.exposure", cameraexposure_set->getSelected());
-			SystemConf::getInstance()->saveSystemConf();
-			ApiSystem::getInstance()->replugControllers_sindenguns();
-		}
-	});
-#endif
 
 	mWindow->pushGui(s);
 }

@@ -94,12 +94,12 @@ namespace Utils
 
 		int runShutdownCommand()
 		{
-		return system("shutdown -P -h now");
+			return system("systemctl poweroff");
 		}
 
 		int runRestartCommand()
 		{
-			return system("shutdown -r now");
+			return system("systemctl reboot");
 		}
 
 		static QuitMode quitMode = QuitMode::QUIT;
@@ -412,112 +412,19 @@ namespace Utils
 
 		std::string getArchString()
 		{
-			std::string arch = Utils::FileSystem::readAllText("/usr/share/batocera/batocera.arch");
-			if (!arch.empty())
-				return arch;
-
-#if X86
-			return "x86";
-#endif
-
-#if X86_64
+#if defined(__x86_64__)
 			return "x86_64";
-#endif
-
-#if RPIZERO2
-			return "rpizero2";
-#endif
-
-#if RPI1 || BCM2835
-			return "rpi1";
-#endif
-
-#if RPI2
-			return "rpi2";
-#endif
-
-#if RPI3 || BCM2836 || BCM2837
-			return "rpi3";
-#endif
-
-#if RPI4 || BCM2711
-			return "rpi4";
-#endif
-
-#if ODROIDXU4
-			return "odroidxu4";
-#endif
-
-#if RK3128
-			return "rk3128";
-#endif
-
-#if RK3288
-			return "rk3288";
-#endif
-
-#if RK3326
-			return "rk3326";
-#endif
-
-#if RK3328
-			return "rk3328";
-#endif
-
-#if RK3399
-			return "rk3399";
-#endif
-
-#if RK3568
-			return "rk3568";
-#endif
-
-#if RK3588
-			return "rk3588";
-#endif
-
-#if H3
-			return "h3";
-#endif
-
-#if H5
-			return "h5";
-#endif
-
-#if H6
-			return "h6";
-#endif
-
-#if H616
-			return "h616";
-#endif
-
-#if S812
-			return "s812";
-#endif
-
-#if S905
-			return "s905";
-#endif
-
-#if S912
-			return "s912";
-#endif
-
-#if S905GEN2
-			return "s905gen2";
-#endif
-
-#if S905GEN3
-			return "s905gen3";
-#endif
-
-#if S922X
-			return "s922x";
-#endif
-
-
+#elif defined(__aarch64__)
+			// Raspberry Pi boards expose their model in the device tree
+			std::string model = Utils::FileSystem::readAllText("/proc/device-tree/model");
+			if (model.find("Raspberry Pi 5") != std::string::npos || model.find("Compute Module 5") != std::string::npos)
+				return "rpi5";
+			if (model.find("Raspberry Pi 4") != std::string::npos || model.find("Raspberry Pi 400") != std::string::npos || model.find("Compute Module 4") != std::string::npos)
+				return "rpi4";
+			return "aarch64";
+#else
 			return "";
+#endif
 		}
 
 		unsigned long long getTotalSystemMemory() 

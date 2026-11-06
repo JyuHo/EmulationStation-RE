@@ -150,30 +150,17 @@ public:
 		GAMESETTINGS = 7,
 		DECORATIONS = 8,
 		SHADERS = 9,
-		DISKFORMAT = 10,
-		OVERCLOCK = 11,
 		PDFEXTRACTION = 12,
-		BATOCERASTORE = 13,
 		EVMAPY = 14,
 		THEMESDOWNLOADER = 15,
-		THEBEZELPROJECT = 16,
 		PADSINFO = 17,
-		BATOCERAPREGAMELISTSHOOK = 18,
 		TIMEZONES = 19,
 		AUDIODEVICE = 20,
-		BACKUP = 21,
-		INSTALL = 22,
-		SUPPORTFILE = 23,
-		UPGRADE = 24,
 		SUSPEND = 25,
 		VERSIONINFO = 26,
 		VIDEOFILTERS = 27,
-		SERVICES = 28,
 		READPLANEMODE = 29,
-		WRITEPLANEMODE = 30,
-		BACKGLASS = 31,
 		NFC = 32,
-		UPGRADEVIATORRENT = 33,
 	};
 
 	virtual bool isScriptingSupported(ScriptId script);
@@ -194,38 +181,20 @@ public:
 
     std::string getRootPassword();
 
-    bool setOverscan(bool enable);
 
-    bool setOverclock(std::string mode);
 
-#ifdef BATOCERA
-    bool areCpuMitigationsEnabled();
-    bool setCpuMitigationsEnabled(bool enabled);
-#endif
 
-    virtual std::pair<std::string, int> updateSystem(const std::function<void(const std::string)>& func = nullptr, bool fromlocalmedia = false);
 
-    std::pair<std::string, int> backupSystem(BusyComponent* ui, std::string device);
-    std::pair<std::string, int> installSystem(BusyComponent* ui, std::string device, std::string architecture);
     std::pair<std::string, int> scrape(BusyComponent* ui);
 
     virtual bool ping();
-    virtual bool canUpdate(std::vector<std::string>& output);
-    virtual bool canLocalUpdate(); // update from a local media
-    virtual bool canArchitectureUpdate(std::string& architecture); // allow to upgrade architectures
 	virtual void setReadyFlag(bool ready = true);
 	virtual bool isReadyFlagSet();
 
-    virtual bool torrentIsReadyForUpdate();
-    virtual std::string torrentStatus();
-    virtual std::pair<std::string, int> torrentUpdateSystem(const std::function<void(const std::string)>& func = nullptr);
 
     virtual bool launchKodi(Window *window);
     bool launchFileManager(Window *window);
 
-#ifdef BATOCERA
-    virtual void launchControlcenter();
-#endif
 
     // Gets a list of drives that are safe to unmount.
     // Returns a vector of strings, each formatted as "DisplayName:MountPath"
@@ -263,34 +232,18 @@ public:
 	virtual std::vector<std::string> getPairedBluetoothDeviceList();	
     virtual bool scanNewBluetooth(const std::function<void(const std::string)>& func = nullptr); // Obsolete
 
-    std::vector<std::string> getAvailableBackupDevices();
-    std::vector<std::string> getAvailableInstallDevices();
-    std::vector<std::string> getAvailableInstallArchitectures();
-    std::vector<std::string> getAvailableOverclocking();
     std::vector<BiosSystem> getBiosInformations(const std::string system = "");
     virtual std::vector<std::string> getVideoModes(const std::string output = "");
-#ifdef BATOCERA
-    bool isHdrSupported();
-    bool isVrrSupported();
-#endif
 	std::vector<std::string> getCustomRunners();
 
-	virtual std::vector<std::string> getAvailableStorageDevices();
 	virtual std::vector<std::string> getSystemInformations();
 
-    bool generateSupportFile();
 
-    std::string getCurrentStorage();
 
-    bool setStorage(std::string basic_string);
 
-	bool setButtonColorGameForce(std::string basic_string);
 
-	bool setPowerLedGameForce(std::string basic_string);    
 
-	bool setButtonColorR36Ultra(const std::string& basic_string);
 
-	bool setPowerLedR36(const std::string& basic_string);
 
     /* audio card */
     bool setAudioOutputDevice(std::string device);
@@ -309,7 +262,6 @@ public:
 	virtual std::pair<std::string,int> installBatoceraTheme(std::string thname, const std::function<void(const std::string)>& func = nullptr);
 	virtual std::pair<std::string, int> uninstallBatoceraBezel(std::string bezelsystem, const std::function<void(const std::string)>& func = nullptr);
 
-    virtual std::vector<BatoceraBezel> getBatoceraBezelsList();
 	virtual std::pair<std::string,int> installBatoceraBezel(std::string bezelsystem, const std::function<void(const std::string)>& func = nullptr);
 	virtual std::pair<std::string,int> uninstallBatoceraTheme(std::string bezelsystem, const std::function<void(const std::string)>& func = nullptr);
 
@@ -324,13 +276,9 @@ public:
 	virtual std::string getRunningArchitecture();
 	virtual std::string getRunningBoard();
 
-	std::vector<PacmanPackage> getBatoceraStorePackages();
 	std::pair<std::string, int> installBatoceraStorePackage(std::string name, const std::function<void(const std::string)>& func = nullptr);
 	std::pair<std::string, int> uninstallBatoceraStorePackage(std::string name, const std::function<void(const std::string)>& func = nullptr);
-	void updateBatoceraStorePackageList();
-	void refreshBatoceraStorePackageList();
 
-	void callBatoceraPreGameListsHook();
 
 	bool	getBrightness(std::vector<BrightnessDevice>& value);
 	void	setBrightness(BrightnessDevice value);
@@ -359,8 +307,6 @@ public:
 	bool downloadFile(const std::string url, const std::string fileName, const std::string label = "", const std::function<void(const std::string)>& func = nullptr);
 	
 	// Formating
-	std::vector<std::string> getFormatDiskList();
-	std::vector<std::string> getFormatFileSystems();
 	int formatDisk(const std::string disk, const std::string format, const std::function<void(const std::string)>& func = nullptr);
 
 
@@ -383,11 +329,8 @@ public:
 	virtual void replugControllers_steamdeckguns();
 
 	virtual bool isPlaneMode();
-	virtual bool setPlaneMode(bool enable);
 	virtual bool isReadPlaneModeSupported();
 
-	virtual std::vector<Service> getServices();
-	virtual bool enableService(std::string name, bool enable);
 
   	virtual std::vector<Hotkey> getJoysticksHotkeys();
         virtual std::vector<std::string> getJoysticksHotkeysValues();
@@ -405,8 +348,6 @@ public:
       	virtual std::string detectEvKey(const std::string& device_path);
       	virtual void saveKeyboardtopads(Keyboardtopad ktp, const std::vector<KeyboardtopadDevice>& ktp_devices);
 
-	virtual std::vector<std::string> backglassThemes();
-	virtual void restartBackglass();
 
 	virtual bool nfc_is_available();
 	virtual bool nfc_write(const std::string& game);
@@ -420,7 +361,6 @@ protected:
 	virtual bool downloadGitRepository(const std::string& url, const std::string& branch, const std::string& fileName, const std::string& label, const std::function<void(const std::string)>& func, int64_t defaultDownloadSize = 0);
 	virtual std::string getGitRepositoryDefaultBranch(const std::string& url);
 		
-	virtual std::string getUpdateUrl();
 	virtual std::string getThemesUrl();
 
     static ApiSystem* instance;

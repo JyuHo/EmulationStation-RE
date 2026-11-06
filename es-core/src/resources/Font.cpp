@@ -293,7 +293,7 @@ std::vector<std::string> getFallbackFontPaths()
 	return paths;
 }
 
-#if defined(X86) || defined(X86_64)
+#if defined(__x86_64__)
 static std::map<std::string, ResourceData> globalTTFCache;
 #endif
 
@@ -312,7 +312,7 @@ FT_Face Font::getFaceForChar(unsigned int id)
 			// otherwise, take from fallbackFonts
 			const std::string& path = (i == 0 ? mPath : fallbackFonts.at(i - 1));
 
-#if defined(X86) || defined(X86_64)
+#if defined(__x86_64__)
 			auto itCache = globalTTFCache.find(path);
 			if (itCache == globalTTFCache.cend())
 			{
