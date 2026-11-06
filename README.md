@@ -56,6 +56,14 @@ source tree: `build/emulationstation`, `build/locale/<lang>/LC_MESSAGES/*.mo` an
 gettext (`msgfmt`) is installed. To refresh the `.pot` template and the `.po` files
 after changing strings in the code, run `cmake --build build --target i18n-update`.
 
+Game launcher
+-------------
+
+`es-launcher/` holds the game launcher: it configures each emulator (controllers, video,
+per-game options) and builds the command that starts it, as Batocera's `batocera-launch` does.
+It is licensed under the LGPL 3.0 or later, unlike the rest of the code (MIT), and is built as a
+shared library, `libes-launcher.so`. See [es-launcher/README.md](es-launcher/README.md).
+
 Installing and running
 ======================
 
