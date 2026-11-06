@@ -661,6 +661,11 @@ int main(int argc, char* argv[])
 
 				if (event.type == SDL_EVENT_QUIT)
 					running = false;
+
+				// The compositor may have dropped what was on screen
+				if (event.type == SDL_EVENT_WINDOW_EXPOSED || event.type == SDL_EVENT_WINDOW_SHOWN ||
+					event.type == SDL_EVENT_WINDOW_RESTORED || event.type == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED)
+					Renderer::invalidateFrame();
 			} 
 			while(SDL_PollEvent(&event));
 
@@ -704,12 +709,24 @@ int main(int argc, char* argv[])
 			deltaTime = 1000;
 
 		TRYCATCH("Window.update" ,window.update(deltaTime))	
-		TRYCATCH("Window.render", window.render())
+
+		// Walk the frame once without the GPU and only draw it when it differs from the one on screen
+		bool drawFrame = true;
+		if (Settings::getInstance()->getBool("RenderOnDemand"))
+		{
+			Renderer::beginFrameProbe();
+			TRYCATCH("Window.render", window.render())
+			drawFrame = Renderer::endFrameProbe();
+		}
+
+		if (drawFrame)
+			TRYCATCH("Window.render", window.render())
 
 		int fpsLimit = Settings::FpsLimit();
-		if (fpsLimit > 0)
+		// A skipped frame has no swap to wait on vsync: pace it at 60 Hz instead of spinning
+		if (fpsLimit > 0 || !drawFrame)
 		{
-			int frameTime = (1000 + fpsLimit / 2) / fpsLimit;
+			int frameTime = fpsLimit > 0 ? (1000 + fpsLimit / 2) / fpsLimit : 16;
 			int processDuration = SDL_GetTicks() - curTime;
 			if (processDuration < frameTime)
 			{
@@ -719,7 +736,11 @@ int main(int argc, char* argv[])
 			}
 		}
 
-		Renderer::swapBuffers();		
+		if (drawFrame)
+		{
+			Renderer::swapBuffers();
+			Renderer::markFramePresented();
+		}
 	}
 
 	if (Utils::Platform::isFastShutdown())
