@@ -20,13 +20,9 @@ namespace es::launcher
 		return quoted;
 	}
 
-	std::string Command::toShellLine() const
+	static std::string words(const std::map<std::string, std::string>& env, const std::vector<std::string>& argv)
 	{
 		std::string line;
-
-		if (!workingDirectory.empty())
-			line = "cd " + shellQuote(workingDirectory.string()) + " && ";
-
 		for (const auto& [name, value] : env)
 			line += name + "=" + shellQuote(value) + " ";
 
@@ -36,6 +32,21 @@ namespace es::launcher
 				line += ' ';
 			line += shellQuote(argv[i]);
 		}
+		return line;
+	}
+
+	std::string Command::toShellLine() const
+	{
+		std::string line;
+		for (const auto& step : before)
+			line += words(env, step) + " ; ";
+		line += words(env, argv);
+
+		if (!before.empty())   // one command for the redirections ES adds after it
+			line = "{ " + line + " ; }";
+
+		if (!workingDirectory.empty())
+			line = "cd " + shellQuote(workingDirectory.string()) + " && " + line;
 
 		return line;
 	}

@@ -16,6 +16,9 @@
 #include "cemu/CemuGenerator.h"
 #include "xemu/XemuGenerator.h"
 #include "xenia/XeniaGenerator.h"
+#include "rpcs3/Rpcs3Generator.h"
+#include "eden/EdenGenerator.h"
+#include "util/YamlFile.h"
 
 #include <pugixml.hpp>
 
@@ -24,6 +27,7 @@
 
 using namespace tests;
 using es::launcher::util::IniFile;
+using es::launcher::util::YamlFile;
 
 namespace
 {
@@ -495,6 +499,199 @@ static void testCemu()
 	CHECK(fs::read_symlink(tmp.path / "saves" / "wiiu" / "Cemu" / "keys.txt") == tmp.path / "bios" / "cemu" / "keys.txt");
 }
 
+static void testYamlFile()
+{
+	YamlFile yaml = YamlFile::parse(
+		"Core:\n"
+		"  PPU Decoder: Recompiler (LLVM)\n"
+		"  Libraries Control: []\n"
+		"  List:\n"
+		"    - one\n"
+		"    - two: 2\n"
+		"      three: 3\n"
+		"  Seq at key indent:\n"
+		"  - a\n"
+		"Video:\n"
+		"  Renderer: Vulkan\n"
+		"  Vulkan:\n"
+		"    Adapter: \"My GPU: fast\"\n"
+		"VFS:\n"
+		"  /dev_hdd0/: /old/\n"
+		"  Enable: true\n"
+		"Empty:\n");
+	CHECK(yaml.get({ "Core", "PPU Decoder" }) == "Recompiler (LLVM)");
+	CHECK(yaml.get({ "Video", "Vulkan", "Adapter" }) == "My GPU: fast");
+	CHECK(!yaml.get({ "Core", "List" }));   // kept as written
+	CHECK((yaml.keys({ "VFS" }) == std::vector<std::string>{ "/dev_hdd0/", "Enable" }));
+
+	yaml.set({ "Video", "Renderer" }, "OpenGL");
+	yaml.set({ "Video", "Handler" }, "Null");
+	yaml.set({ "Video", "Empty" }, "");
+	yaml.set({ "Audio", "Master Volume" }, 100);
+	yaml.set({ "Audio", "Enabled" }, true);
+	yaml.remove({ "VFS", "/dev_hdd0/" });
+	CHECK(yaml.toString() ==
+		"Core:\n"
+		"  PPU Decoder: Recompiler (LLVM)\n"
+		"  Libraries Control: []\n"
+		"  List:\n"
+		"    - one\n"
+		"    - two: 2\n"
+		"      three: 3\n"
+		"  Seq at key indent:\n"
+		"  - a\n"
+		"Video:\n"
+		"  Renderer: OpenGL\n"
+		"  Vulkan:\n"
+		"    Adapter: \"My GPU: fast\"\n"
+		"  Handler: \"Null\"\n"
+		"  Empty: \"\"\n"
+		"VFS:\n"
+		"  Enable: true\n"
+		"Empty:\n"
+		"Audio:\n"
+		"  Master Volume: 100\n"
+		"  Enabled: true\n");
+
+	// a re-read gives the same file
+	CHECK(YamlFile::parse(yaml.toString()).toString() == yaml.toString());
+	CHECK(YamlFile::quote("a \"b\"") == "a \"b\"");
+	CHECK(YamlFile::quote("\"b\"") == "\"\\\"b\\\"\"");
+	CHECK(YamlFile::quote("true") == "\"true\"");
+}
+
+static void testCommandBefore()
+{
+	Command cmd;
+	cmd.argv = { "rpcs3", "game" };
+	cmd.env = { { "A", "1" } };
+	cmd.before = { { "rpcs3", "--installfw", "x" } };
+	CHECK(cmd.toShellLine() == "{ A='1' 'rpcs3' '--installfw' 'x' ; A='1' 'rpcs3' 'game' ; }");
+	cmd.workingDirectory = "/tmp";
+	CHECK(cmd.toShellLine() == "cd '/tmp' && { A='1' 'rpcs3' '--installfw' 'x' ; A='1' 'rpcs3' 'game' ; }");
+}
+
+static void testRpcs3()
+{
+	TempDir tmp;
+	PathOverride path(tmp.path / "bin");
+	writeFile(tmp.path / "bin" / "rpcs3", "#!/bin/sh\n", true);
+	writeFile(tmp.path / "roms" / "Demon.ps3" / "PS3_GAME" / "USRDIR" / "EBOOT.BIN", "");
+
+	LaunchContext ctx = makeContext(tmp.path, "rpcs3", "ps3", tmp.path / "roms" / "Demon.ps3");
+	ctx.controllers = { makePad(1, 0), makePad(2, 1) };
+	ctx.settings = Settings({}, { { "rpcs3_framelimit", "45" }, { "rpcs3_shadermode", "Shader Recompiler" } }, {});
+
+	// no firmware installed nor to install
+	CHECK(throwsLaunchError(ctx, ErrorCode::Generic));
+
+	writeFile(tmp.path / "bios" / "PS3UPDAT.PUP", "pup");
+	fs::path config = tmp.path / "emulators" / "rpcs3" / "rpcs3";
+	writeFile(config / "config.yml", "Core:\n  PPU Decoder: Interpreter\n  Libraries Control: []\nVideo:\n  VSync: true\nVFS:\n  /dev_hdd0/: /old/\n  Enable /host_root/: false\n");
+
+	Command cmd = Launch(ctx).prepare();
+	CHECK(cmd.closeOnHotkey == true);
+	CHECK((cmd.argv == std::vector<std::string>{ (tmp.path / "bin" / "rpcs3").string(),
+		(tmp.path / "roms" / "Demon.ps3" / "PS3_GAME" / "USRDIR" / "EBOOT.BIN").string(), "--no-gui" }));
+	CHECK(cmd.before.size() == 1);
+	CHECK((cmd.before[0] == std::vector<std::string>{ (tmp.path / "bin" / "rpcs3").string(), "--headless", "--installfw",
+		(tmp.path / "bios" / "PS3UPDAT.PUP").string() }));
+	CHECK(cmd.env["XDG_CONFIG_HOME"] == (tmp.path / "emulators" / "rpcs3").string());
+	CHECK(fs::is_directory(tmp.path / "saves" / "ps3" / "dev_hdd0"));
+
+	YamlFile yaml = YamlFile::load(config / "config.yml");
+	CHECK(yaml.get({ "Core", "PPU Decoder" }) == "Recompiler (LLVM)");
+	CHECK(yaml.toString().find("Libraries Control: []") != std::string::npos);   // kept
+	CHECK(yaml.get({ "Video", "Frame limit" }) == "Off");
+	CHECK(yaml.get({ "Video", "Second Frame Limit" }) == "45");
+	CHECK(yaml.get({ "Video", "Shader Mode" }) == "Legacy Recompiler (single-threaded)");
+	CHECK(!yaml.get({ "Video", "VSync" }));
+	CHECK((yaml.keys({ "VFS" }) == std::vector<std::string>{ "Enable /host_root/" }));
+	CHECK(yaml.get({ "Miscellaneous", "Exit RPCS3 when process finishes" }) == "true");
+
+	YamlFile vfs = YamlFile::load(config / "vfs.yml");
+	CHECK(vfs.get({ "/dev_hdd0/" }) == (tmp.path / "saves" / "ps3" / "dev_hdd0").string() + "/");
+	CHECK(vfs.get({ "/dev_usb***/", "/dev_usb000", "Path" }) == "$(EmulatorDir)dev_usb000/");
+
+	YamlFile input = YamlFile::load(config / "input_configs" / "global" / "Default.yml");
+	CHECK(input.get({ "Player 1 Input", "Handler" }) == "SDL");
+	CHECK(input.get({ "Player 1 Input", "Device" }) == "Xbox 360 Controller 1");
+	CHECK(input.get({ "Player 2 Input", "Device" }) == "Xbox 360 Controller 2");
+	CHECK(input.get({ "Player 1 Input", "Config", "Cross" }) == "South");
+	CHECK(input.get({ "Player 1 Input", "Config", "Motion Sensor G", "Axis" }) == "RY");
+
+	IniFile gui = IniFile::load(config / "GuiConfigs" / "CurrentSettings.ini");
+	CHECK(gui.get("main_window", "infoBoxEnabledWelcome") == "false");
+
+	// installed firmware: no install step; a .psn file names a game installed on dev_hdd0
+	writeFile(config / "dev_flash" / "vsh" / "etc" / "version.txt", "release:04.92\n");
+	writeFile(tmp.path / "saves" / "ps3" / "dev_hdd0" / "game" / "NPUB30001" / "USRDIR" / "EBOOT.BIN", "");
+	writeFile(tmp.path / "roms" / "Flower.psn", "npub30001\n");
+	ctx.game.rom = tmp.path / "roms" / "Flower.psn";
+	ctx.settings = Settings({}, { { "rpcs3_gui", "1" } }, {});
+	cmd = Launch(ctx).prepare();
+	CHECK(cmd.before.empty());
+	CHECK(cmd.argv.back() == (tmp.path / "saves" / "ps3" / "dev_hdd0" / "game" / "NPUB30001" / "USRDIR" / "EBOOT.BIN").string());
+
+	// a game that is not there
+	ctx.game.rom = tmp.path / "roms" / "Missing.ps3";
+	CHECK(throwsLaunchError(ctx, ErrorCode::BadArguments));
+
+	ctx.architecture = Architecture::AArch64;
+	CHECK(throwsLaunchError(ctx, ErrorCode::Generic));
+}
+
+static void testEden()
+{
+	TempDir tmp;
+	PathOverride path(tmp.path / "bin");
+	writeFile(tmp.path / "bin" / "eden", "#!/bin/sh\n", true);
+
+	LaunchContext ctx = makeContext(tmp.path, "eden", "switch", "/roms/switch/Zelda.nsp");
+	ctx.controllers = { makePad(1, 1), makePad(2, 0) };
+	ctx.controllers[0].guid = "03001234" "5e0400008e02000010010000";   // a name CRC, as SDL 3 makes them
+
+	// no keys
+	CHECK(throwsLaunchError(ctx, ErrorCode::Generic));
+	writeFile(tmp.path / "bios" / "switch" / "prod.keys", "keys");
+
+	Command cmd = Launch(ctx).prepare();
+	CHECK(cmd.closeOnHotkey == false);   // Eden quits on hotkey + Start itself
+	CHECK((std::vector<std::string>(cmd.argv.end() - 3, cmd.argv.end()) == std::vector<std::string>{ "-f", "-g", "/roms/switch/Zelda.nsp" }));
+	CHECK(cmd.env["XDG_CONFIG_HOME"] == (tmp.path / "emulators" / "eden").string());
+	CHECK(cmd.env["XDG_DATA_HOME"] == (tmp.path / "saves" / "switch").string());
+	CHECK(fs::read_symlink(tmp.path / "saves" / "switch" / "eden" / "keys") == tmp.path / "bios" / "switch");
+
+	IniFile ini = IniFile::load(tmp.path / "emulators" / "eden" / "eden" / "qt-config.ini");
+	CHECK(ini.get("Renderer", "backend") == "1");
+	CHECK(ini.get("Renderer", "backend\\default") == "false");
+	CHECK(ini.get("UI", "fullscreen") == "true");
+	CHECK(ini.get("UI", "Shortcuts\\Main%20Window\\Exit%20Eden\\Controller_KeySeq") == "Home+Plus");
+	CHECK(ini.get("UI", "Shortcuts\\Main%20Window\\Continue\\Pause%20Emulation\\Controller_KeySeq") == "Home+B");
+	CHECK(ini.get("UI", "Shortcuts\\Main%20Window\\Fullscreen\\Controller_KeySeq") == "");
+
+	// the CRC is not part of Eden's GUID; player 1 is the second pad of that GUID
+	std::string pad1 = "engine:sdl,port:1,guid:030000005e0400008e02000010010000";
+	std::string pad2 = "engine:sdl,port:0,guid:030000005e0400008e02000010010000";
+	CHECK(ini.get("Controls", "player_0_connected") == "true");
+	CHECK(ini.get("Controls", "player_0_button_a") == "\"" + pad1 + ",button:0\"");
+	CHECK(ini.get("Controls", "player_0_button_dup") == "\"" + pad1 + ",hat:0,direction:up\"");
+	CHECK(ini.get("Controls", "player_0_button_zl") == "\"" + pad1 + ",axis:2,threshold:0.500000,invert:+\"");
+	CHECK(ini.get("Controls", "player_0_button_home") == "\"" + pad1 + ",button:8\"");
+	CHECK(ini.get("Controls", "player_0_lstick") == "\"" + pad1 + ",axis_x:0,axis_y:1,offset_x:0.000000,offset_y:0.000000,invert_x:+,invert_y:+,deadzone:0.150000,range:1.000000\"");
+	CHECK(ini.get("Controls", "player_1_button_b") == "\"" + pad2 + ",button:1\"");
+	CHECK(ini.get("Controls", "player_2_connected") == "false");
+
+	// hotkey on select: the shortcuts use Minus, Home stays unbound
+	ctx.controllers[0].inputs["hotkey"] = ctx.controllers[0].inputs["select"];
+	Launch(ctx).prepare();
+	ini = IniFile::load(tmp.path / "emulators" / "eden" / "eden" / "qt-config.ini");
+	CHECK(ini.get("UI", "Shortcuts\\Main%20Window\\Exit%20Eden\\Controller_KeySeq") == "Minus+Plus");
+	CHECK(ini.get("Controls", "player_0_button_home") == "\"\"");
+
+	CHECK(es::launcher::eden::EdenGenerator::edenGuid("0300ABCD5E0400008E02000010010000") == "030000005e0400008e02000010010000");
+}
+
 void tests::runStandaloneTests()
 {
 	testIniFile();
@@ -508,4 +705,8 @@ void tests::runStandaloneTests()
 	testXenia();
 	testAzahar();
 	testCemu();
+	testYamlFile();
+	testCommandBefore();
+	testRpcs3();
+	testEden();
 }

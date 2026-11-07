@@ -33,6 +33,7 @@ add_library(es-launcher-objects OBJECT
     src/util/Files.cpp
     src/util/Gamepad.cpp
     src/util/IniFile.cpp
+    src/util/YamlFile.cpp
     src/retroarch/ConfigFile.cpp
     src/retroarch/Cores.cpp
     src/retroarch/RetroArchGenerator.cpp
@@ -44,6 +45,8 @@ add_library(es-launcher-objects OBJECT
     src/cemu/CemuGenerator.cpp
     src/xemu/XemuGenerator.cpp
     src/xenia/XeniaGenerator.cpp
+    src/rpcs3/Rpcs3Generator.cpp
+    src/eden/EdenGenerator.cpp
     # Cemu's settings are XML: the copy of pugixml ES ships, built in with hidden symbols
     ${CMAKE_CURRENT_SOURCE_DIR}/../external/pugixml/src/pugixml.cpp
 )
