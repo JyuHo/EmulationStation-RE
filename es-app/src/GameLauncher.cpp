@@ -7,6 +7,7 @@
 #include "SaveState.h"
 #include "SystemConf.h"
 #include "SystemData.h"
+#include "catalog/CatalogInstaller.h"
 #include "renderers/Renderer.h"
 
 namespace GameLauncher
@@ -90,6 +91,7 @@ namespace GameLauncher
 		paths.cache = Paths::getCachePath();
 		paths.runtime = Paths::getRuntimePath();
 		paths.emulatorConfigs = Paths::getConfigPath() + "/emulators";
+		paths.cores = CatalogInstaller::coresPath();
 		return paths;
 	}
 
@@ -192,6 +194,12 @@ namespace GameLauncher
 		ctx.settings = launcher::Settings(readLayer("global."), readLayer(system->getName() + "."), readLayer(game->getConfigurationName() + "."));
 		ctx.controllers = readControllers();
 		ctx.paths = readPaths();
+
+		// What the emulator catalog installed: es-launcher prefers it to what is in PATH
+		for (const auto& [id, item] : CatalogInstaller::loadInstalled().emulators)
+			if (!item.command.empty())
+				ctx.installedEmulators[id] = item.command;
+
 		ctx.netplay = readNetplay(options);
 		ctx.saveState = readSaveState(options.saveStateInfo);
 		ctx.screenWidth = Renderer::getScreenWidth();

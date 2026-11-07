@@ -29,6 +29,7 @@ add_library(es-launcher-objects OBJECT
     src/LaunchContext.cpp
     src/Launcher.cpp
     src/Settings.cpp
+    src/util/EmulatorCommand.cpp
     src/util/Files.cpp
     src/retroarch/ConfigFile.cpp
     src/retroarch/Cores.cpp

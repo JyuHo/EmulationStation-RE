@@ -71,6 +71,10 @@ namespace es::launcher
 		std::filesystem::path emulatorConfigs;
 
 		std::filesystem::path configFor(std::string_view emulator) const { return emulatorConfigs / emulator; }
+
+		// libretro cores installed by ES's emulator catalog, with their .info files in info/.
+		// Looked up before the distribution's cores. Empty when ES has none.
+		std::filesystem::path cores;
 	};
 
 	struct ES_LAUNCHER_API Netplay
@@ -115,6 +119,13 @@ namespace es::launcher
 		Settings settings;
 		std::vector<Controller> controllers;
 		LaunchPaths paths;
+
+		// Emulators installed by ES's emulator catalog (installed.json): emulator id -> the
+		// command that starts it, without arguments ({ ".../pcsx2.AppImage" } or
+		// { "flatpak", "run", "net.pcsx2.PCSX2" }). Generators find them with
+		// util::emulatorCommand(), which falls back to PATH.
+		std::map<std::string, std::vector<std::string>, std::less<>> installedEmulators;
+
 		std::optional<Netplay> netplay;
 		SaveState saveState;
 		Architecture architecture = currentArchitecture();

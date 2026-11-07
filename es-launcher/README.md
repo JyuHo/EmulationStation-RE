@@ -109,6 +109,9 @@ ES_LAUNCHER_REGISTER_GENERATOR("hatari", HatariGenerator)
 Rules for generators:
 
 * Never hard-code a path: everything comes from `ctx.paths`.
+* Find the emulator with `util::emulatorCommand(ctx, "<id>", "<binary>", { paths it reads or writes })`:
+  it returns what ES's emulator catalog installed (an AppImage, or `flatpak run` with access to
+  those paths), else the binary found in `PATH`. Append the emulator's arguments to it.
 * Write only in `ctx.paths.configFor("<emulator>")`, never in the player's own emulator configuration.
 * Throw `LaunchError` with a message the player can act on (which BIOS is missing, which package to install).
 

@@ -29,9 +29,10 @@ namespace es::launcher::retroarch
 	public:
 		Command configure(const LaunchContext& ctx) override;
 
-		// Where libretro cores are looked for, in order: $ES_LIBRETRO_CORES_DIR, the cores RetroArch
-		// downloads itself, then the distribution folders (Arch, Debian/Armbian).
-		static std::vector<std::filesystem::path> coreDirectories();
+		// Where libretro cores are looked for, in order: $ES_LIBRETRO_CORES_DIR, the cores of ES's
+		// emulator catalog (catalogCores), the cores RetroArch downloads itself, then the
+		// distribution folders (Arch, Debian/Armbian).
+		static std::vector<std::filesystem::path> coreDirectories(const std::filesystem::path& catalogCores = {});
 
 		// The pieces configure() is made of, public for the tests
 		static void setPaths(const LaunchContext& ctx, ConfigFile& config, const std::filesystem::path& coresDir);

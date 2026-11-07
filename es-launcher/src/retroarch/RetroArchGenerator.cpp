@@ -7,6 +7,7 @@
 
 #include "es-launcher/LaunchError.h"
 #include "retroarch/Cores.h"
+#include "util/EmulatorCommand.h"
 #include "util/Files.h"
 
 #include <algorithm>
@@ -101,9 +102,12 @@ namespace es::launcher::retroarch
 		}
 	}
 
-	std::vector<fs::path> RetroArchGenerator::coreDirectories()
+	std::vector<fs::path> RetroArchGenerator::coreDirectories(const fs::path& catalogCores)
 	{
 		std::vector<fs::path> dirs = util::pathsFromEnv("ES_LIBRETRO_CORES_DIR");
+
+		if (!catalogCores.empty())
+			dirs.push_back(catalogCores);
 
 		fs::path configHome;
 		if (const char* xdg = std::getenv("XDG_CONFIG_HOME"); xdg != nullptr && xdg[0] == '/')
@@ -142,8 +146,11 @@ namespace es::launcher::retroarch
 		config.set("cache_directory", cache.string());
 		config.set("libretro_directory", coresDir.string());
 
+		// The .info files of the emulator catalog cover all the cores it installs
 		std::error_code ec;
-		if (fs::is_directory("/usr/share/libretro/info", ec))
+		if (!ctx.paths.cores.empty() && fs::is_directory(ctx.paths.cores / "info", ec))
+			config.set("libretro_info_path", (ctx.paths.cores / "info").string());
+		else if (fs::is_directory("/usr/share/libretro/info", ec))
 			config.set("libretro_info_path", "/usr/share/libretro/info");
 
 		// saves land in saves/<system>/, never in a sub folder named after the core
@@ -412,17 +419,21 @@ namespace es::launcher::retroarch
 
 	Command RetroArchGenerator::configure(const LaunchContext& ctx)
 	{
-		auto retroarch = util::findExecutable("retroarch");
-		if (!retroarch)
-			throw LaunchError(ErrorCode::EmulatorMissing, "RetroArch is not installed (package \"retroarch\").");
-
 		if (ctx.core.empty())
 			throw LaunchError(ErrorCode::InvalidConfiguration, "No libretro core is selected for this game.");
 
 		std::string library = coreLibraryName(ctx.core);
-		auto core = util::findFile(library, coreDirectories());
+		auto core = util::findFile(library, coreDirectories(ctx.paths.cores));
 		if (!core)
 			throw LaunchError(ErrorCode::CoreMissing, "The libretro core \"" + ctx.core + "\" is not installed (" + library + ").");
+
+		// The catalog installs RetroArch under the id "retroarch", whatever ctx.emulator says
+		// ("libretro" in es_systems.cfg). A Flatpak RetroArch needs to reach everything below.
+		auto retroarch = util::emulatorCommand(ctx, "retroarch", "retroarch", {
+			ctx.paths.configFor("retroarch"), ctx.paths.saves, ctx.paths.bios, ctx.paths.screenshots,
+			ctx.paths.cache, core->parent_path(), ctx.game.rom.parent_path() });
+		if (!retroarch)
+			throw LaunchError(ErrorCode::EmulatorMissing, "RetroArch is not installed: install it from the emulator catalog or with your package manager.");
 
 		const Core& profile = coreProfile(ctx.core);
 		fs::path configDir = ctx.paths.configFor("retroarch");
@@ -460,7 +471,8 @@ namespace es::launcher::retroarch
 		}
 
 		Command cmd;
-		cmd.argv = { retroarch->string(), "-L", core->string(), "--config", configPath.string() };
+		cmd.argv = *retroarch;
+		cmd.argv.insert(cmd.argv.end(), { "-L", core->string(), "--config", configPath.string() });
 
 		// the player's own per-system and per-game overrides
 		std::string append;
