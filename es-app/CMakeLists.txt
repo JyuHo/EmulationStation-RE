@@ -43,6 +43,7 @@ set(ES_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/NetworkThread.h
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ContentInstaller.h
 	${CMAKE_CURRENT_SOURCE_DIR}/src/catalog/CatalogInstaller.h
+	${CMAKE_CURRENT_SOURCE_DIR}/src/system/SystemServices.h
 	${CMAKE_CURRENT_SOURCE_DIR}/src/catalog/EmulatorCatalog.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/scrapers/ThreadedScraper.h
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ThreadedHasher.h
@@ -147,6 +148,7 @@ set(ES_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/NetworkThread.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ContentInstaller.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/catalog/CatalogInstaller.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/system/SystemServices.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/catalog/EmulatorCatalog.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/scrapers/ThreadedScraper.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ThreadedHasher.cpp
@@ -259,6 +261,15 @@ if(ES_TESTS)
         ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/es-core/src ${RAPIDJSON_INCLUDE_DIRS})
     target_compile_options(es-app-catalog-tests PRIVATE -Wall -Wextra)
     add_test(NAME es-app-catalog-tests COMMAND es-app-catalog-tests)
+
+    add_executable(es-app-system-services-tests
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/system_services_tests.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/system/SystemServices.cpp
+        ${CMAKE_SOURCE_DIR}/es-core/src/utils/StringUtil.cpp)
+    target_include_directories(es-app-system-services-tests PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/es-core/src ${RAPIDJSON_INCLUDE_DIRS})
+    target_compile_options(es-app-system-services-tests PRIVATE -Wall -Wextra)
+    add_test(NAME es-app-system-services-tests COMMAND es-app-system-services-tests)
 endif()
 
 
