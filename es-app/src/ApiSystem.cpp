@@ -1,3 +1,5 @@
+#include "system/SystemServices.h"
+#include <atomic>
 #include "ApiSystem.h"
 #include "Settings.h"
 #include "Log.h"
@@ -49,20 +51,16 @@
 #define script_install "batocera-install"; // listDisks, listArchs, install X Y
 #define script_scraper "batocera-scraper";
 #define script_kodi "batocera-kodi";
-#define script_wifi "batocera-wifi"; // scanlist, list, enable X Y, disable
-#define script_bluetooth "batocera-bluetooth"; // trust, list, remove 
 #define script_resolution "batocera-resolution"; // listModes
 #define script_sync "batocera-sync";   // list
 #define script_info "batocera-info"; // --full
 #define script_systems "batocera-systems"; // --filter
 #define script_suport "batocera-support";
 #define script_gameforce "batocera-gameforce"; // buttonColorLed X, powerLed X
-#define script_audio "batocera-audio"; // list, list-profiles, get-profile, set-profile 'X', get, set 'X'
 #define script_bezelproject "batocera-es-thebezelproject"; // list, install X, remove X
 #define script_format "batocera-format"; // listDisks, listFstypes
 #define script_store "batocera-store"; // list, update, refresh, clean-all, install "X", remove "X"
 #define script_preupdategamelists "batocera-preupdate-gamelists-hook";
-#define script_timezones "batocera-timezone"; // get, detect, set "X"
 #define script_padsinfos "batocera-padsinfo";
 #define script_swissknife "batocera-es-swissknife"; // --emukill"
 */
@@ -321,29 +319,45 @@ bool ApiSystem::launchFileManager(Window *window)
 	return exitCode == 0;
 }
 
-bool ApiSystem::enableWifi(std::string ssid, std::string key, std::string country)
+bool ApiSystem::enableWifi(std::string ssid, std::string key, std::string /*country*/)
 {
-	ssid = Utils::String::replace(ssid, "'", "'\\''");
-	key = Utils::String::replace(key, "'", "'\\''");
-	country = Utils::String::replace(country, "'", "'\\''");
+	// The regulatory domain is the distribution's business (wireless-regdb, cfg80211)
+	if (!SystemServices::Wifi::setEnabled(true))
+		return false;
 
-	return executeScript("batocera-wifi enable '" + ssid + "' '" + key + "' '" + country + "'");
+	return ssid.empty() || SystemServices::Wifi::connect(ssid, key);
 }
 
 bool ApiSystem::configureWifi()
 {
-	return executeScript("batocera-wifi configure");
+	// NetworkManager keeps its own profiles: make sure the primary network is the one in use
+	const std::string ssid = SystemConf::getInstance()->get("wifi.ssid");
+	if (ssid.empty() || ssid == SystemServices::Wifi::connectedSsid())
+		return true;
+
+	return SystemServices::Wifi::connect(ssid, SystemConf::getInstance()->get("wifi.key"));
 }
 
 bool ApiSystem::connectWifi(const std::string& ssid)
 {
-	const std::string escapedSSID = Utils::String::replace(ssid, "'", "'\\''");
-	return executeScript("batocera-wifi connect '" + escapedSSID + "'");
+	// The key saved with that network in the menu, if any
+	std::string key;
+	for (int i = 1; i <= 10; i++)
+	{
+		std::string slot = i == 1 ? "wifi" : "wifi" + std::to_string(i);
+		if (SystemConf::getInstance()->get(slot + ".ssid") == ssid)
+		{
+			key = SystemConf::getInstance()->get(slot + ".key");
+			break;
+		}
+	}
+
+	return SystemServices::Wifi::connect(ssid, key);
 }
 
-bool ApiSystem::disableWifi() 
+bool ApiSystem::disableWifi()
 {
-	return executeScript("batocera-wifi disable");
+	return SystemServices::Wifi::setEnabled(false);
 }
 
 std::string ApiSystem::getIpAddress()
@@ -359,52 +373,58 @@ std::string ApiSystem::getIpAddress()
 
 bool ApiSystem::enableBluetooth()
 {
-	return executeScript("batocera-bluetooth enable 2>&1 >/dev/null");
+	return SystemServices::Bluetooth::setPowered(true);
 }
 
 bool ApiSystem::disableBluetooth()
 {
-	return executeScript("batocera-bluetooth disable");
+	return SystemServices::Bluetooth::setPowered(false);
 }
+
+static std::atomic<bool> sStopBluetoothScan { false };
 
 void ApiSystem::startBluetoothLiveDevices(const std::function<void(const std::string)>& func)
 {
-	executeScript("batocera-bluetooth live_devices", func);
+	sStopBluetoothScan = false;
+	SystemServices::Bluetooth::scan([func](const std::string& xml) { if (func) func(xml); }, sStopBluetoothScan);
 }
 
 void ApiSystem::stopBluetoothLiveDevices()
 {
-	executeScript("batocera-bluetooth stop_live_devices");
+	sStopBluetoothScan = true;
 }
 
 bool ApiSystem::pairBluetoothDevice(const std::string& deviceName)
 {
-	return executeScript("batocera-bluetooth trust " + deviceName);
+	return SystemServices::Bluetooth::pair(deviceName);
 }
 
 bool ApiSystem::connectBluetoothDevice(const std::string& deviceName)
 {
-	return executeScript("batocera-bluetooth connect " + deviceName);
+	return SystemServices::Bluetooth::connect(deviceName);
 }
 
 bool ApiSystem::disconnectBluetoothDevice(const std::string& deviceName)
 {
-	return executeScript("batocera-bluetooth disconnect " + deviceName);
+	return SystemServices::Bluetooth::disconnect(deviceName);
 }
 
 bool ApiSystem::removeBluetoothDevice(const std::string& deviceName)
 {
-	return executeScript("batocera-bluetooth remove " + deviceName);
+	return SystemServices::Bluetooth::remove(deviceName);
 }
 
 bool ApiSystem::scanNewBluetooth(const std::function<void(const std::string)>& func)
 {
-	return executeScript("batocera-bluetooth trust input", func).second == 0;
+	return SystemServices::Bluetooth::pairInputDevices([func](const std::string& info) { if (func) func(info); });
 }
 
 std::vector<std::string> ApiSystem::getPairedBluetoothDeviceList()
 {
-	return executeEnumerationScript("batocera-bluetooth list");
+	std::vector<std::string> result;
+	for (const auto& device : SystemServices::Bluetooth::pairedDevices())
+		result.push_back(SystemServices::Bluetooth::toXml(device));
+	return result;
 }
 
 std::vector<std::string> ApiSystem::getVideoModes(const std::string output)
@@ -478,9 +498,12 @@ std::vector<BiosSystem> ApiSystem::getBiosInformations(const std::string system)
 	return res;
 }
 
-bool ApiSystem::forgetBluetoothControllers() 
+bool ApiSystem::forgetBluetoothControllers()
 {
-	return executeScript("batocera-config forgetBT");
+	bool ok = true;
+	for (const auto& device : SystemServices::Bluetooth::pairedDevices())
+		ok &= SystemServices::Bluetooth::remove(device.address);
+	return ok;
 }
 
 std::string ApiSystem::getRootPassword() 
@@ -509,90 +532,38 @@ std::vector<std::string> ApiSystem::getAvailableVideoOutputDevices()
 	return executeEnumerationScript("batocera-config lsoutputs");
 }
 
-std::vector<std::string> ApiSystem::getAvailableAudioOutputDevices() 
+std::vector<std::string> ApiSystem::getAvailableAudioOutputDevices()
 {
-
-	return executeEnumerationScript("batocera-audio list");
+	return SystemServices::Audio::outputs();
 }
 
-std::string ApiSystem::getCurrentAudioOutputDevice() 
+std::string ApiSystem::getCurrentAudioOutputDevice()
 {
-
-	LOG(LogDebug) << "ApiSystem::getCurrentAudioOutputDevice";
-
-	std::ostringstream oss;
-	oss << "batocera-audio get";
-	FILE *pipe = popen(oss.str().c_str(), "r");
-	char line[1024];
-
-	if (pipe == NULL)
-		return "";	
-
-	if (fgets(line, 1024, pipe)) 
-	{
-		strtok(line, "\n");
-		pclose(pipe);
-		return std::string(line);
-	}
-
-	return "";
+	return SystemServices::Audio::currentOutput();
 }
 
-bool ApiSystem::setAudioOutputDevice(std::string selected) 
+bool ApiSystem::setAudioOutputDevice(std::string selected)
 {
-	LOG(LogDebug) << "ApiSystem::setAudioOutputDevice";
-
-	std::ostringstream oss;
-
-	oss << "batocera-audio set" << " '" << selected << "'";
-	int exitcode = system(oss.str().c_str());
-
+	bool ok = SystemServices::Audio::setOutput(selected);
 	Sound::get(":/checksound.ogg")->play();
-
-	return exitcode == 0;
+	return ok;
 }
 
 std::vector<std::string> ApiSystem::getAvailableAudioOutputProfiles()
 {
-
-	return executeEnumerationScript("batocera-audio list-profiles");
+	return SystemServices::Audio::profiles();
 }
 
-std::string ApiSystem::getCurrentAudioOutputProfile() 
+std::string ApiSystem::getCurrentAudioOutputProfile()
 {
-
-	LOG(LogDebug) << "ApiSystem::getCurrentAudioOutputProfile";
-
-	std::ostringstream oss;
-	oss << "batocera-audio get-profile";
-	FILE *pipe = popen(oss.str().c_str(), "r");
-	char line[1024];
-
-	if (pipe == NULL)
-		return "";	
-
-	if (fgets(line, 1024, pipe)) 
-	{
-		strtok(line, "\n");
-		pclose(pipe);
-		return std::string(line);
-	}
-
-	return "";
+	return SystemServices::Audio::currentProfile();
 }
 
-bool ApiSystem::setAudioOutputProfile(std::string selected) 
+bool ApiSystem::setAudioOutputProfile(std::string selected)
 {
-	LOG(LogDebug) << "ApiSystem::setAudioOutputProfile";
-
-	std::ostringstream oss;
-
-	oss << "batocera-audio set-profile" << " '" << selected << "'";
-	int exitcode = system(oss.str().c_str());
-	
+	bool ok = SystemServices::Audio::setProfile(selected);
 	Sound::get(":/checksound.ogg")->play();
-
-	return exitcode == 0;
+	return ok;
 }
 
 std::string ApiSystem::getThemesUrl()
@@ -1602,13 +1573,12 @@ bool ApiSystem::isLEDMonochrome()
 
 std::vector<std::string> ApiSystem::getWifiNetworks(bool scan)
 {
-	return executeEnumerationScript(scan ? "batocera-wifi scanlist" : "batocera-wifi list");
+	return SystemServices::Wifi::networks(scan);
 }
 
 std::string ApiSystem::getConnectedWifiSsid()
 {
-	std::vector<std::string> result = executeEnumerationScript("batocera-wifi connected");
-	return result.empty() ? "" : result[0];
+	return SystemServices::Wifi::connectedSsid();
 }
 
 std::vector<std::string> ApiSystem::executeEnumerationScript(const std::string command)
@@ -1685,11 +1655,9 @@ bool ApiSystem::isScriptingSupported(ScriptId script)
 		executables.push_back("kodi");
 		break;
 	case ApiSystem::WIFI:
-		executables.push_back("batocera-wifi");
-		break;
+		return SystemServices::Wifi::isAvailable();
 	case ApiSystem::BLUETOOTH:
-		executables.push_back("batocera-bluetooth");
-		break;
+		return SystemServices::Bluetooth::isAvailable();
 	case ApiSystem::RESOLUTION:
 		executables.push_back("batocera-resolution");
 		break;
@@ -1710,11 +1678,9 @@ bool ApiSystem::isScriptingSupported(ScriptId script)
 		executables.push_back("evmapy");
 		break;
 	case ApiSystem::TIMEZONES:
-		executables.push_back("batocera-timezone");
-		break;
+		return SystemServices::TimeZone::isAvailable();
 	case ApiSystem::AUDIODEVICE:
-		executables.push_back("batocera-audio");
-		break;		
+		return SystemServices::Audio::isAvailable();
 	case ApiSystem::SUSPEND:
 		return (Utils::FileSystem::exists("/usr/sbin/pm-suspend") && Utils::FileSystem::exists("/usr/bin/pm-is-supported") && executeScript("/usr/bin/pm-is-supported --suspend"));
 	case ApiSystem::VERSIONINFO:
@@ -1970,57 +1936,17 @@ std::vector<std::string> ApiSystem::getRetroachievementsSoundsList()
 
 std::vector<std::string> ApiSystem::getTimezones()
 {
-	std::vector<std::string> ret;
-
-	LOG(LogDebug) << "ApiSystem::getTimezones";
-
-	auto folder = Paths::getTimeZonesPath();
-	if (Utils::FileSystem::isDirectory(folder))
-	{
-		for (auto continent : Utils::FileSystem::getDirContent(folder, false))
-		{
-			std::string short_continent = continent.substr(continent.find_last_of('/') + 1);
-			if (short_continent == "Africa" || short_continent == "America"
-				|| short_continent == "Antarctica" || short_continent == "Asia"
-				|| short_continent == "Atlantic" || short_continent == "Australia"
-				|| short_continent == "Etc" || short_continent == "Europe"
-				|| short_continent == "Indian" || short_continent == "Pacific")
-			{
-				for (auto file : Utils::FileSystem::getDirContent(continent, false))
-				{
-					if (!Utils::FileSystem::isDirectory(file))
-					{
-						auto tz = Utils::FileSystem::getFileName(file);
-						if (std::find(ret.cbegin(), ret.cend(), tz) == ret.cend())
-						ret.push_back(short_continent + "/" + tz);
-					}
-				}
-			}
-		}
-	}
-
-	std::sort(ret.begin(), ret.end());
-	return ret;
+	return SystemServices::TimeZone::list();
 }
 
 std::string ApiSystem::getCurrentTimezone()
 {
-	LOG(LogInfo) << "ApiSystem::getCurrentTimezone";
-	auto cmd = executeEnumerationScript("batocera-timezone get");
-	std::string tz = Utils::String::join(cmd, "");
-	remove_if(tz.begin(), tz.end(), isspace);
-	if (tz.empty()) {
-		cmd = executeEnumerationScript("batocera-timezone detect");
-		tz = Utils::String::join(cmd, "");
-	}
-	return tz;
+	return SystemServices::TimeZone::current();
 }
 
 bool ApiSystem::setTimezone(std::string tz)
 {
-	if (tz.empty())
-		return false;
-	return executeScript("batocera-timezone set \"" + tz + "\"");
+	return SystemServices::TimeZone::set(tz);
 }
 
 std::vector<PadInfo> ApiSystem::getPadsInfo()
