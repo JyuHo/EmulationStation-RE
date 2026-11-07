@@ -2983,6 +2983,12 @@ msgstr ""
 msgid "REALLY QUIT?"
 msgstr ""
 
+msgid "RESTART EMULATIONSTATION"
+msgstr ""
+
+msgid "REALLY RESTART EMULATIONSTATION?"
+msgstr ""
+
 msgid "AUTO SAVE/LOAD ON GAME LAUNCH"
 msgstr ""
 

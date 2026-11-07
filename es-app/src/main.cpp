@@ -781,6 +781,8 @@ int main(int argc, char* argv[])
 
 	Log::flush();
 
+	Utils::Platform::restartIfRequested(argv);
+
 	return 0;
 }
 
