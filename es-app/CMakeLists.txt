@@ -29,6 +29,7 @@ set(ES_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/EmulationStation.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FileData.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/GameLauncher.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/HotkeyExitWatcher.h
 	${CMAKE_CURRENT_SOURCE_DIR}/src/FileTag.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FileSorts.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/MetaData.h
@@ -131,6 +132,7 @@ set(ES_HEADERS
 set(ES_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FileData.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/GameLauncher.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/HotkeyExitWatcher.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/FileTag.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FileSorts.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp

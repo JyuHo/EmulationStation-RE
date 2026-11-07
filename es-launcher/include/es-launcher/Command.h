@@ -25,6 +25,11 @@ namespace es::launcher
 		// Empty: the emulator starts in the directory ES runs in.
 		std::filesystem::path workingDirectory;
 
+		// The emulator cannot bind its own exit to a pad (Azahar, Cemu, xemu, Xenia): ES closes it
+		// when a player holds the hotkey and presses Start. Generators of emulators that quit on
+		// hotkey + Start by themselves leave it off, so ES never cuts them short.
+		bool closeOnHotkey = false;
+
 		bool empty() const { return argv.empty(); }
 
 		// The command as one POSIX shell line ("cd 'dir' && VAR='value' 'argv0' 'arg1' ..."), every

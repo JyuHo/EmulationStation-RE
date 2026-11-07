@@ -1,4 +1,6 @@
 #pragma once
+
+#include <functional>
 #ifndef ES_CORE_PLATFORM_H
 #define ES_CORE_PLATFORM_H
 
@@ -35,6 +37,10 @@ namespace Utils
 			Window* window;
 			std::string stderrFilename;
 			std::string stdoutFilename;
+
+			// Polled while the process runs (waitForExit only): when it returns true, the process
+			// and its children get SIGTERM, then SIGKILL 5 seconds later, and run() returns 0.
+			std::function<bool()> stopRequested;
 		};
 
 		int quitES(QuitMode mode = QuitMode::QUIT);

@@ -162,6 +162,7 @@ static void testDuckStation()
 	writeFile(data / "settings.ini", "[Main]\nPlayerOwn = yes\n[Pad5]\nType = AnalogController\n");
 
 	Command cmd = Launch(ctx).prepare();
+	CHECK(cmd.closeOnHotkey == false);
 	CHECK(cmd.argv.front() == (tmp.path / "bin" / "duckstation-qt").string());
 	CHECK(contains(cmd.argv, "-batch"));
 	CHECK(cmd.argv[cmd.argv.size() - 2] == "--");
@@ -219,6 +220,7 @@ static void testPcsx2()
 	fs::resize_file(tmp.path / "bios" / "ps2" / "scph39001.bin", 4 * 1024 * 1024);
 
 	Command cmd = Launch(ctx).prepare();
+	CHECK(cmd.closeOnHotkey == false);
 	CHECK(cmd.argv.front() == (tmp.path / "bin" / "pcsx2-qt").string());
 	CHECK(contains(cmd.argv, "-nogui"));
 	CHECK(cmd.argv.back() == "/roms/ps2/Okami.iso");
@@ -260,6 +262,7 @@ static void testPpsspp()
 	fs::create_directories(tmp.path / "emulators" / "ppsspp" / "ppsspp" / "PSP" / "PPSSPP_STATE");
 
 	Command cmd = Launch(ctx).prepare();
+	CHECK(cmd.closeOnHotkey == false);
 	CHECK(cmd.argv.front() == (tmp.path / "bin" / "ppsspp").string());
 	CHECK(cmd.argv[1] == "/roms/psp/Patapon.iso");
 	CHECK(cmd.env["XDG_CONFIG_HOME"] == (tmp.path / "emulators" / "ppsspp").string());
@@ -299,6 +302,7 @@ static void testDolphin()
 	writeFile(user / "Config" / "Dolphin.ini", "[Interface]\nThemeName = Clean\n");
 
 	Command cmd = Launch(ctx).prepare();
+	CHECK(cmd.closeOnHotkey == false);
 	CHECK(cmd.argv.front() == (tmp.path / "bin" / "dolphin-emu").string());
 	CHECK(contains(cmd.argv, "-b"));
 	CHECK(contains(cmd.argv, user.string()));
@@ -369,6 +373,7 @@ static void testXemu()
 	writeFile(config, "[input.bindings]\nport3 = \"old\"\n\n[general]\nuser_setting = true\n");
 
 	Command cmd = Launch(ctx).prepare();
+	CHECK(cmd.closeOnHotkey == true);
 	CHECK((cmd.argv == std::vector<std::string>{ (tmp.path / "bin" / "xemu").string(), "-config_path", config.string() }));
 	CHECK(readFile(tmp.path / "saves" / "xbox" / "xbox_hdd.qcow2") == "disk");
 	CHECK(cmd.env["LC_NUMERIC"] == "C");
@@ -404,6 +409,7 @@ static void testXenia()
 	ctx.settings = Settings({}, { { "xenia_edge_resolution_scale", "2" } }, {});
 
 	Command cmd = Launch(ctx).prepare();
+	CHECK(cmd.closeOnHotkey == true);
 	CHECK(cmd.argv.size() == 2);
 	CHECK(cmd.argv[1] == (tmp.path / "roms" / "Game" / "default.xex").string());
 	CHECK(cmd.env["XDG_DATA_HOME"] == (tmp.path / "emulators" / "xenia-edge").string());
@@ -430,6 +436,7 @@ static void testAzahar()
 	ctx.settings = Settings({}, { { "azahar_screen_layout", "1-true" } }, {});
 
 	Command cmd = Launch(ctx).prepare();
+	CHECK(cmd.closeOnHotkey == true);
 	CHECK(cmd.argv.back() == "/roms/3ds/Zelda.3ds");
 	CHECK(cmd.env["XDG_CONFIG_HOME"] == (tmp.path / "emulators" / "azahar").string());
 	CHECK(cmd.env["XDG_DATA_HOME"] == (tmp.path / "saves" / "3ds").string());
@@ -464,6 +471,7 @@ static void testCemu()
 	writeFile(config / "controllerProfiles" / "controller5.xml", "old");
 
 	Command cmd = Launch(ctx).prepare();
+	CHECK(cmd.closeOnHotkey == true);
 	CHECK(cmd.argv.back() == (tmp.path / "roms" / "Zelda" / "code" / "U-King.rpx").string());
 	CHECK(contains(cmd.argv, "-f"));
 

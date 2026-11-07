@@ -205,6 +205,7 @@ namespace es::launcher::azahar
 		cmd.env["XDG_CONFIG_HOME"] = home.string();
 		cmd.env["XDG_DATA_HOME"] = saves.string();
 		cmd.env["XDG_CACHE_HOME"] = ctx.paths.cache.string();
+		cmd.closeOnHotkey = true;   // no pad hotkeys of its own
 		util::forwardEnvironment(cmd);
 		return cmd;
 	}
