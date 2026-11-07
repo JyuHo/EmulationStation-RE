@@ -12,6 +12,12 @@
 #include "util/EmulatorCommand.h"
 #include "util/Gamepad.h"
 #include "util/IniFile.h"
+#include "azahar/AzaharGenerator.h"
+#include "cemu/CemuGenerator.h"
+#include "xemu/XemuGenerator.h"
+#include "xenia/XeniaGenerator.h"
+
+#include <pugixml.hpp>
 
 #include <algorithm>
 #include <string>
@@ -133,7 +139,7 @@ static void testGamepad()
 
 static void testRegistry()
 {
-	for (const char* name : { "duckstation", "pcsx2", "ppsspp", "dolphin" })
+	for (const char* name : { "duckstation", "pcsx2", "ppsspp", "dolphin", "azahar", "cemu", "xemu", "xenia-edge" })
 		CHECK(Registry::instance().contains(name));
 }
 
@@ -343,6 +349,144 @@ static void testDolphin()
 	CHECK(throwsLaunchError(ctx, ErrorCode::InvalidConfiguration));
 }
 
+static void testXemu()
+{
+	TempDir tmp;
+	PathOverride path(tmp.path / "bin");
+	writeFile(tmp.path / "bin" / "xemu", "#!/bin/sh\n", true);
+
+	LaunchContext ctx = makeContext(tmp.path, "xemu", "xbox", "/roms/xbox/Halo \"CE\".iso");
+	ctx.screenWidth = 1920;
+	ctx.screenHeight = 1080;
+
+	CHECK(throwsLaunchError(ctx, ErrorCode::Generic));   // no BIOS
+	writeFile(tmp.path / "bios" / "mcpx_1.0.bin", "");
+	writeFile(tmp.path / "bios" / "Complex_4627.bin", "");
+	CHECK(throwsLaunchError(ctx, ErrorCode::Generic));   // no hard disk
+	writeFile(tmp.path / "bios" / "xbox_hdd.qcow2", "disk");
+
+	fs::path config = tmp.path / "emulators" / "xemu" / "xemu.toml";
+	writeFile(config, "[input.bindings]\nport3 = \"old\"\n\n[general]\nuser_setting = true\n");
+
+	Command cmd = Launch(ctx).prepare();
+	CHECK((cmd.argv == std::vector<std::string>{ (tmp.path / "bin" / "xemu").string(), "-config_path", config.string() }));
+	CHECK(readFile(tmp.path / "saves" / "xbox" / "xbox_hdd.qcow2") == "disk");
+	CHECK(cmd.env["LC_NUMERIC"] == "C");
+
+	IniFile toml = IniFile::load(config);
+	CHECK(toml.get("general", "user_setting") == "true");
+	CHECK(toml.get("sys.files", "dvd_path") == "\"/roms/xbox/Halo \\\"CE\\\".iso\"");
+	CHECK(toml.get("sys.files", "bootrom_path") == "\"" + (tmp.path / "bios" / "mcpx_1.0.bin").string() + "\"");
+	CHECK(toml.get("display.window", "startup_size") == "\"1920x1080\"");
+	CHECK(toml.get("input.bindings", "port1") == "\"030000005e0400008e02000010010000\"");
+	CHECK(!toml.get("input.bindings", "port3"));
+
+	// the player's disk is never replaced
+	writeFile(tmp.path / "saves" / "xbox" / "xbox_hdd.qcow2", "mine");
+	Launch(ctx).prepare();
+	CHECK(readFile(tmp.path / "saves" / "xbox" / "xbox_hdd.qcow2") == "mine");
+
+	ctx.architecture = Architecture::AArch64;
+	CHECK(throwsLaunchError(ctx, ErrorCode::Generic));
+}
+
+static void testXenia()
+{
+	TempDir tmp;
+	PathOverride path(tmp.path / "bin");
+	writeFile(tmp.path / "bin" / "xenia_edge", "#!/bin/sh\n", true);
+
+	// a playlist names the game, relative to itself
+	writeFile(tmp.path / "roms" / "Game.xbox360", "/Game/default.xex\n");
+	writeFile(tmp.path / "roms" / "Game" / "default.xex", "");
+
+	LaunchContext ctx = makeContext(tmp.path, "xenia-edge", "xbox360", tmp.path / "roms" / "Game.xbox360");
+	ctx.settings = Settings({}, { { "xenia_edge_resolution_scale", "2" } }, {});
+
+	Command cmd = Launch(ctx).prepare();
+	CHECK(cmd.argv.size() == 2);
+	CHECK(cmd.argv[1] == (tmp.path / "roms" / "Game" / "default.xex").string());
+	CHECK(cmd.env["XDG_DATA_HOME"] == (tmp.path / "emulators" / "xenia-edge").string());
+
+	IniFile toml = IniFile::load(tmp.path / "emulators" / "xenia-edge" / "Xenia" / "xenia-edge.config.toml");
+	CHECK(toml.get("GPU", "draw_resolution_scale_x") == "2");
+	CHECK(toml.get("GPU.Debug", "texture_cache_memory_limit_hard") == "768");
+	CHECK(toml.get("Storage", "content_root") == "\"" + (tmp.path / "saves" / "xbox360").string() + "\"");
+	CHECK(toml.get("HID", "hid") == "\"sdl\"");
+
+	// a playlist naming nothing that exists
+	writeFile(tmp.path / "roms" / "Gone.xbox360", "Gone/default.xex\n");
+	ctx.game.rom = tmp.path / "roms" / "Gone.xbox360";
+	CHECK(throwsLaunchError(ctx, ErrorCode::Generic));
+}
+
+static void testAzahar()
+{
+	TempDir tmp;
+	PathOverride path(tmp.path / "bin");
+	writeFile(tmp.path / "bin" / "azahar", "#!/bin/sh\n", true);
+
+	LaunchContext ctx = makeContext(tmp.path, "azahar", "3ds", "/roms/3ds/Zelda.3ds");
+	ctx.settings = Settings({}, { { "azahar_screen_layout", "1-true" } }, {});
+
+	Command cmd = Launch(ctx).prepare();
+	CHECK(cmd.argv.back() == "/roms/3ds/Zelda.3ds");
+	CHECK(cmd.env["XDG_CONFIG_HOME"] == (tmp.path / "emulators" / "azahar").string());
+	CHECK(cmd.env["XDG_DATA_HOME"] == (tmp.path / "saves" / "3ds").string());
+
+	IniFile ini = IniFile::load(tmp.path / "emulators" / "azahar" / "azahar-emu" / "qt-config.ini");
+	CHECK(ini.get("Layout", "layout_option") == "1");
+	CHECK(ini.get("Layout", "swap_screen") == "true");
+	CHECK(ini.get("Layout", "swap_screen\\default") == "false");
+	CHECK(ini.get("Controls", "profiles\\size") == "1");
+	std::string guid = "guid:030000005e0400008e02000010010000,port:0,engine:sdl";
+	CHECK(ini.get("Controls", "profiles\\1\\button_a") == "\"button:0," + guid + "\"");
+	CHECK(ini.get("Controls", "profiles\\1\\button_up") == "\"hat:0,direction:up," + guid + "\"");
+	CHECK(ini.get("Controls", "profiles\\1\\button_zl") == "\"axis:2,direction:+,threshold:0.5," + guid + "\"");
+	CHECK(ini.get("Controls", "profiles\\1\\circle_pad") == "\"axis_x:0,axis_y:1," + guid + "\"");
+	CHECK(ini.get("Controls", "profiles\\1\\c_stick") == "\"\"");   // the test pad has no right stick
+}
+
+static void testCemu()
+{
+	TempDir tmp;
+	PathOverride path(tmp.path / "bin");
+	writeFile(tmp.path / "bin" / "cemu", "#!/bin/sh\n", true);
+	writeFile(tmp.path / "bios" / "cemu" / "keys.txt", "keys");
+	writeFile(tmp.path / "roms" / "Zelda" / "code" / "U-King.rpx", "");
+	writeFile(tmp.path / "roms" / "Zelda" / "content" / "data.bin", "");
+
+	LaunchContext ctx = makeContext(tmp.path, "cemu", "wiiu", tmp.path / "roms" / "Zelda");
+	ctx.controllers = { makePad(1, 1), makePad(2, 0) };
+
+	fs::path config = tmp.path / "emulators" / "cemu" / "Cemu";
+	writeFile(config / "settings.xml", "<?xml version=\"1.0\"?>\n<content><GamePaths><Entry>/elsewhere</Entry></GamePaths><Graphic><api>0</api><Shaders>x</Shaders></Graphic></content>\n");
+	writeFile(config / "controllerProfiles" / "controller5.xml", "old");
+
+	Command cmd = Launch(ctx).prepare();
+	CHECK(cmd.argv.back() == (tmp.path / "roms" / "Zelda" / "code" / "U-King.rpx").string());
+	CHECK(contains(cmd.argv, "-f"));
+
+	pugi::xml_document settings;
+	CHECK(settings.load_file((config / "settings.xml").c_str()));
+	pugi::xml_node content = settings.child("content");
+	CHECK(std::string(content.child("mlc_path").text().get()) == (tmp.path / "saves" / "wiiu" / "mlc01").string());
+	CHECK(std::string(content.child("Graphic").child("api").text().get()) == "1");
+	CHECK(std::string(content.child("Graphic").child("Shaders").text().get()) == "x");   // kept
+	CHECK(std::distance(content.child("GamePaths").children("Entry").begin(), content.child("GamePaths").children("Entry").end()) == 2);
+
+	pugi::xml_document pad;
+	CHECK(pad.load_file((config / "controllerProfiles" / "controller0.xml").c_str()));
+	CHECK(std::string(pad.child("emulated_controller").child("type").text().get()) == "Wii U GamePad");
+	// player 1 has the higher index of two identical pads: the second of that GUID
+	CHECK(std::string(pad.child("emulated_controller").child("controller").child("uuid").text().get()) == "1_030000005e0400008e02000010010000");
+	pad.load_file((config / "controllerProfiles" / "controller1.xml").c_str());
+	CHECK(std::string(pad.child("emulated_controller").child("type").text().get()) == "Wii U Pro Controller");
+	CHECK(!fs::exists(config / "controllerProfiles" / "controller5.xml"));
+
+	CHECK(fs::read_symlink(tmp.path / "saves" / "wiiu" / "Cemu" / "keys.txt") == tmp.path / "bios" / "cemu" / "keys.txt");
+}
+
 void tests::runStandaloneTests()
 {
 	testIniFile();
@@ -352,4 +496,8 @@ void tests::runStandaloneTests()
 	testPcsx2();
 	testPpsspp();
 	testDolphin();
+	testXemu();
+	testXenia();
+	testAzahar();
+	testCemu();
 }

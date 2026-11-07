@@ -183,4 +183,16 @@ namespace es::launcher::util
 	{
 		writeFileAtomically(path, toString());
 	}
+
+	std::string tomlString(std::string_view value)
+	{
+		std::string quoted = "\"";
+		for (char c : value)
+		{
+			if (c == '"' || c == '\\')
+				quoted += '\\';
+			quoted += c;
+		}
+		return quoted + "\"";
+	}
 }
