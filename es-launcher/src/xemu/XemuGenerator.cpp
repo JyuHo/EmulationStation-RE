@@ -131,6 +131,7 @@ namespace es::launcher::xemu
 		cmd.env["XDG_CONFIG_HOME"] = home.string();
 		cmd.env["LC_NUMERIC"] = "C";
 		cmd.env["SDL_GAMECONTROLLERCONFIG"] = util::gameControllerConfig(ctx.controllers);
+		cmd.closeOnHotkey = true;   // no pad hotkeys of its own
 		util::forwardEnvironment(cmd);
 		return cmd;
 	}

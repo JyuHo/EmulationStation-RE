@@ -1,5 +1,6 @@
 #include "FileData.h"
 #include "GameLauncher.h"
+#include "HotkeyExitWatcher.h"
 
 #include "utils/FileSystemUtil.h"
 #include "utils/StringUtil.h"
@@ -706,11 +707,15 @@ bool FileData::launchGame(Window* window, LaunchGameOptions options)
 	std::unique_ptr<es::launcher::Launch> launch = GameLauncher::create(this, options);
 
 	std::string command;
+	bool closeOnHotkey = false;
 	if (launch)
 	{
 		try
 		{
-			command = launch->prepare().toShellLine();
+			es::launcher::Command prepared = launch->prepare();
+			command = prepared.toShellLine();
+			// "exithotkey=0" in the ES configuration turns it off
+			closeOnHotkey = prepared.closeOnHotkey && launch->context().settings.getBool("exithotkey", true);
 		}
 		catch (const std::exception& e) // es::launcher::LaunchError carries a message for the player
 		{
@@ -749,8 +754,17 @@ bool FileData::launchGame(Window* window, LaunchGameOptions options)
 
 	ProcessStartInfo process(command);
 	process.window = hideWindow ? NULL : window;
-	
+
+	// for the emulators that cannot quit on hotkey + start themselves
+	std::unique_ptr<HotkeyExitWatcher> exitWatcher;
+	if (closeOnHotkey)
+	{
+		exitWatcher = std::make_unique<HotkeyExitWatcher>(launch->context().controllers);
+		process.stopRequested = [&exitWatcher] { return exitWatcher->exitRequested(); };
+	}
+
 	int exitCode = process.run();
+	exitWatcher.reset();
 
 	if (launch)
 		launch->finish();

@@ -12,6 +12,9 @@
 #include <unistd.h>
 
 #include <fcntl.h>
+#include <signal.h>
+#include <cerrno>
+#include <chrono>
 #include "Window.h"
 #include "utils/FileSystemUtil.h"
 #include "utils/StringUtil.h"
@@ -47,6 +50,57 @@ namespace Utils
 			stdoutFilename = "es_launch_stdout.log";
 		}
 
+		// Like system(), but the command runs in a process group of its own that is stopped when
+		// stopRequested() says so
+		static int runStoppable(const std::string& cmd, const std::function<bool()>& stopRequested)
+		{
+			pid_t pid = fork();
+			if (pid == 0)
+			{
+				setpgid(0, 0);
+				execl("/bin/sh", "sh", "-c", cmd.c_str(), (char *) NULL);
+				_exit(127);
+			}
+			if (pid < 0)
+				return 1;
+
+			setpgid(pid, pid); // also from here: the child may not have run yet
+
+			bool stopping = false;
+			auto killAt = std::chrono::steady_clock::now();
+			int status = 0;
+
+			while (true)
+			{
+				pid_t done = waitpid(pid, &status, WNOHANG);
+				if (done == pid)
+					break;
+				if (done < 0 && errno != EINTR)
+					return 1;
+
+				if (!stopping && stopRequested())
+				{
+					LOG(LogInfo) << "Closing the emulator: hotkey + start";
+					stopping = true;
+					kill(-pid, SIGTERM);
+					killAt = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+				}
+				else if (stopping && std::chrono::steady_clock::now() >= killAt)
+				{
+					kill(-pid, SIGKILL);
+					killAt += std::chrono::hours(1);
+				}
+
+				usleep(50 * 1000);
+			}
+
+			// the emulator was closed on purpose: not an error for the player
+			if (stopping)
+				return 0;
+
+			return WIFEXITED(status) ? WEXITSTATUS(status) : 1;
+		}
+
 		int ProcessStartInfo::run() const
 		{
 			if (command.empty())
@@ -62,6 +116,9 @@ namespace Utils
 			std::string cmdOutput = "((((" + cmd_utf8 + " 2> " + Utils::FileSystem::combine(Paths::getLogPath(), stderrFilename) + " ; echo $? >&3) | head -300 > " + Utils::FileSystem::combine(Paths::getLogPath(), stdoutFilename) + ") 3>&1) | (read xs; exit $xs))";
 			if (!Log::enabled())
 			  cmdOutput = "((((" + cmd_utf8 + " 2> /dev/null ; echo $? >&3) | head -300 > /dev/null) 3>&1) | (read xs; exit $xs))";
+
+			if (waitForExit && stopRequested)
+				return runStoppable(cmdOutput, stopRequested);
 
 			if (waitForExit) {
 			  int n = system(cmdOutput.c_str());

@@ -123,8 +123,10 @@ leaves the others as the player set them in the emulator's menus.
 * Hotkeys: the same as RetroArch, bound in the emulator to player 1's hotkey held with the other
   button (Start quits, B opens the menu or pauses, Y/X save and load a state...), where the
   emulator has the action. Without a pad, the keyboard keys of batocera-launch. Azahar, Cemu,
-  xemu and Xenia cannot bind actions to a pad: they have no hotkeys yet (Batocera sends them
-  keyboard keys from a separate daemon).
+  xemu and Xenia cannot bind actions to a pad, so their command sets `closeOnHotkey`: while the
+  game runs, ES watches the pads itself and closes the emulator when a player holds the hotkey
+  and presses Start (SIGTERM to its process group, SIGKILL after 5 seconds). `exithotkey=0`
+  turns this off. Their other hotkeys stay in the emulator's own menus.
 * Azahar binds player 1's pad input by input (button numbers and SDL GUID), as batocera-launch does.
 * Wii: emulated Wii Remotes by default; `emulatedwiimotes=0` for real ones. `controller_mode` adds
   an extension: `cc` or `pro` (Classic Controller), `in` (Nunchuk), `side` (held sideways).
