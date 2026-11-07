@@ -6,6 +6,7 @@
 
 #include "util/Files.h"
 
+#include <algorithm>
 #include <set>
 
 namespace es::launcher::util
@@ -55,5 +56,36 @@ namespace es::launcher::util
 			return std::vector<std::string>{ program->string() };
 
 		return std::nullopt;
+	}
+
+	std::optional<std::vector<std::string>> emulatorCommand(const LaunchContext& ctx, std::string_view id,
+		std::initializer_list<std::string_view> binaries, const std::vector<fs::path>& sharedPaths)
+	{
+		std::optional<std::vector<std::string>> found;
+		for (std::string_view binary : binaries)
+		{
+			// the catalog is looked up on each call: only the PATH fallback differs
+			found = emulatorCommand(ctx, id, binary, sharedPaths);
+			if (found)
+				return found;
+		}
+		if (binaries.size() == 0)
+			found = emulatorCommand(ctx, id, std::string_view(), sharedPaths);
+		return found;
+	}
+
+	void forwardEnvironment(Command& cmd)
+	{
+		if (!isFlatpakRun(cmd.argv))
+			return;
+
+		// the application id is the first word after "run" that is not an option
+		auto app = std::find_if(cmd.argv.begin() + 2, cmd.argv.end(), [](const std::string& word) { return !word.starts_with("-"); });
+
+		std::vector<std::string> options;
+		for (const auto& [name, value] : cmd.env)
+			options.push_back("--env=" + name + "=" + value);
+
+		cmd.argv.insert(app, options.begin(), options.end());
 	}
 }

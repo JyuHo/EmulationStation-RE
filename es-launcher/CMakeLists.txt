@@ -31,9 +31,15 @@ add_library(es-launcher-objects OBJECT
     src/Settings.cpp
     src/util/EmulatorCommand.cpp
     src/util/Files.cpp
+    src/util/Gamepad.cpp
+    src/util/IniFile.cpp
     src/retroarch/ConfigFile.cpp
     src/retroarch/Cores.cpp
     src/retroarch/RetroArchGenerator.cpp
+    src/duckstation/DuckStationGenerator.cpp
+    src/dolphin/DolphinGenerator.cpp
+    src/pcsx2/Pcsx2Generator.cpp
+    src/ppsspp/PpssppGenerator.cpp
 )
 
 target_include_directories(es-launcher-objects
@@ -65,6 +71,7 @@ if(ES_LAUNCHER_TESTS)
     add_executable(es-launcher-tests
         tests/launcher_tests.cpp
         tests/retroarch_tests.cpp
+        tests/standalone_tests.cpp
         tests/main.cpp
         $<TARGET_OBJECTS:es-launcher-objects>
     )

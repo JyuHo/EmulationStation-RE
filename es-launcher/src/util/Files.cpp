@@ -5,6 +5,7 @@
 #include "util/Files.h"
 
 #include <cstdlib>
+#include <fstream>
 #include <unistd.h>
 
 namespace es::launcher::util
@@ -78,5 +79,35 @@ namespace es::launcher::util
 	std::string fileName(const fs::path& path)
 	{
 		return path.filename().string();
+	}
+
+	void writeFileAtomically(const fs::path& path, std::string_view content)
+	{
+		if (path.has_parent_path())
+			fs::create_directories(path.parent_path());
+
+		fs::path tmp = path;
+		tmp += ".tmp";
+		{
+			std::ofstream out(tmp, std::ios::binary | std::ios::trunc);
+			out.write(content.data(), static_cast<std::streamsize>(content.size()));
+			if (!out)
+				throw fs::filesystem_error("cannot write", tmp, std::make_error_code(std::errc::io_error));
+		}
+		fs::rename(tmp, path);
+	}
+
+	bool linkDirectory(const fs::path& link, const fs::path& target)
+	{
+		std::error_code ec;
+		if (fs::exists(fs::symlink_status(link, ec)))
+			return true;
+
+		fs::create_directories(target, ec);
+		if (link.has_parent_path())
+			fs::create_directories(link.parent_path(), ec);
+
+		fs::create_directory_symlink(target, link, ec);
+		return !ec;
 	}
 }

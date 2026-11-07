@@ -68,6 +68,10 @@ Generators
 | Emulator name (`es_systems.cfg`) | Generator | Notes |
 | --- | --- | --- |
 | `libretro`, `retroarch` | RetroArch | Core profiles for gambatte, mgba, melondsds, mesen, fceumm, snes9x, mupen64plus-next and flycast; any other core runs with the generic settings |
+| `duckstation` | DuckStation | PlayStation |
+| `pcsx2` | PCSX2 | PlayStation 2, x86_64 only |
+| `ppsspp` | PPSSPP | PSP |
+| `dolphin` | Dolphin | GameCube and Wii |
 
 Any other emulator keeps the `es_systems.cfg` command. Setting `eslauncher=0` in the ES
 configuration (`global.eslauncher`, `<system>.eslauncher` or for one game) also keeps it.
@@ -84,6 +88,33 @@ configuration (`global.eslauncher`, `<system>.eslauncher` or for one game) also 
 * Saves and save states go to `<saves>/<system>/`, the BIOS folder is RetroArch's system folder.
 * Hotkeys: hold the hotkey button of player 1, then Start quits, B opens the menu, Y/X save and load
   a state, Up/Down change the slot, Left rewinds, Right fast-forwards, A resets.
+
+### Standalone emulators
+
+Each one has its own folder in `$XDG_CONFIG_HOME/emulationstation/emulators/<name>/`, never the
+player's own (`~/.config/dolphin-emu`...). ES rewrites the keys it manages at each launch and
+leaves the others as the player set them in the emulator's menus.
+
+| Emulator | Settings | Saves |
+| --- | --- | --- |
+| DuckStation | `duckstation/duckstation/settings.ini` (`XDG_CONFIG_HOME` is `duckstation/`) | memory cards in `<saves>/psx`, states in `<saves>/psx/duckstation` |
+| PCSX2 | `pcsx2/PCSX2/inis/PCSX2.ini` (`XDG_CONFIG_HOME` is `pcsx2/`) | `<saves>/ps2/pcsx2` |
+| PPSSPP | `ppsspp/ppsspp/PSP/SYSTEM/` (`XDG_CONFIG_HOME` is `ppsspp/`) | `PSP/SAVEDATA` and `PSP/PPSSPP_STATE` link to `<saves>/psp` |
+| Dolphin | `dolphin/Config/` (started with `-u dolphin/`) | `GC/` and `Wii/` link to `<saves>/gamecube/GC` and `<saves>/wii/Wii`, `StateSaves/` to `<saves>/dolphin/StateSaves` |
+
+* BIOS: DuckStation looks at the root of the BIOS folder, then `psx/` (scph1001.bin, scph5501.bin...);
+  PCSX2 in `ps2/`, then the root. A missing BIOS stops the launch with a message.
+* Options keep the names of batocera-launch (`duckstation_gfxbackend`, `pcsx2_ratio`,
+  `internal_resolution`...), so the same `es_features.cfg` entries work. For PPSSPP,
+  `ppsspp.<section>.<key>` sets any key of `ppsspp.ini`.
+* Pads: the emulators read them through SDL. ES passes its own mapping of each pad in
+  `SDL_GAMECONTROLLERCONFIG`, so the generators bind SDL's gamepad names and any pad works the way
+  it was mapped in ES. A Flatpak gets this environment through `--env=` options.
+* Hotkeys: the same as RetroArch, bound in the emulator to player 1's hotkey held with the other
+  button (Start quits, B opens the menu or pauses, Y/X save and load a state...), where the
+  emulator has the action. Without a pad, the keyboard keys of batocera-launch.
+* Wii: emulated Wii Remotes by default; `emulatedwiimotes=0` for real ones. `controller_mode` adds
+  an extension: `cc` or `pro` (Classic Controller), `in` (Nunchuk), `side` (held sideways).
 
 Writing a generator
 -------------------
