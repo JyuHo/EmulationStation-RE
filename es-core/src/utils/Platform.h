@@ -45,6 +45,9 @@ namespace Utils
 
 		int quitES(QuitMode mode = QuitMode::QUIT);
 		bool isFastShutdown();
+		// Called once everything is shut down, when QuitMode::RESTART was asked: starts a new
+		// instance in place of this process with the same arguments. Returns only on failure.
+		void restartIfRequested(char* argv[]);
 		void processQuitMode();
 
 		struct BatteryInformation

@@ -1447,7 +1447,7 @@ public:
 #endif
 
 private:
-  bool is_ssl_ = false;
+  [[maybe_unused]] bool is_ssl_ = false;
   std::shared_ptr<Client> cli_;
 };
 

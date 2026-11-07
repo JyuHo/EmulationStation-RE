@@ -15,6 +15,8 @@
 #include <signal.h>
 #include <cerrno>
 #include <chrono>
+#include <cstdio>
+#include <cstring>
 #include "Window.h"
 #include "utils/FileSystemUtil.h"
 #include "utils/StringUtil.h"
@@ -208,7 +210,6 @@ namespace Utils
 
 			case QuitMode::RESTART:
 				LOG(LogInfo) << "Restarting EmulationStation";
-				touch(Paths::getRuntimePath() + "/restart.please");
 				break;
 			case QuitMode::REBOOT:
 			case QuitMode::FAST_REBOOT:
@@ -223,6 +224,20 @@ namespace Utils
 				runShutdownCommand();
 				break;
 			}
+		}
+
+		void restartIfRequested(char* argv[])
+		{
+			if (quitMode != QuitMode::RESTART)
+				return;
+
+			// The new instance reopens the log, the controllers, the HTTP port...: none of ours may leak into it
+			close_range(3, ~0U, CLOSE_RANGE_CLOEXEC);
+
+			// /proc/self/exe survives a relative argv[0]; argv[0] still works if the binary was replaced meanwhile
+			execv("/proc/self/exe", argv);
+			execvp(argv[0], argv);
+			fprintf(stderr, "EmulationStation: restart failed: %s\n", strerror(errno));
 		}
 
 		bool isFastShutdown()

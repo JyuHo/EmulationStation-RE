@@ -3716,6 +3716,22 @@ void GuiMenu::openQuitMenu_static(Window *window, bool quickAccessMenu, bool ani
 	if (quickAccessMenu)
 		s->addGroup(_("QUIT"));
 
+	// Hidden by --no-exit, for setups where ES is the whole session
+	if (Settings::getInstance()->getBool("ShowExit"))
+	{
+		s->addEntry(_("RESTART EMULATIONSTATION"), false, [window] {
+			window->pushGui(new GuiMsgBox(window, _("REALLY RESTART EMULATIONSTATION?"),
+				_("YES"), [] { Utils::Platform::quitES(Utils::Platform::QuitMode::RESTART); },
+				_("NO"), nullptr));
+		}, "iconRestart");
+
+		s->addEntry(_("QUIT EMULATIONSTATION"), false, [window] {
+			window->pushGui(new GuiMsgBox(window, _("REALLY QUIT?"),
+				_("YES"), [] { Utils::Platform::quitES(Utils::Platform::QuitMode::QUIT); },
+				_("NO"), nullptr));
+		}, "iconQuit");
+	}
+
 	s->addEntry(_("RESTART SYSTEM"), false, [window] {
 		window->pushGui(new GuiMsgBox(window, _("REALLY RESTART?"),
 			_("YES"), [] { Utils::Platform::quitES(Utils::Platform::QuitMode::REBOOT); },
