@@ -23,4 +23,14 @@ namespace es::launcher::util
 
 	// "/roms/psx/Final Fantasy VII (Disc 1).chd" -> "Final Fantasy VII (Disc 1).chd"
 	std::string fileName(const std::filesystem::path& path);
+
+	// Writes next to the target, then renames, so a crash never leaves half a file. Creates the
+	// parent directory. Throws std::filesystem::filesystem_error on failure.
+	void writeFileAtomically(const std::filesystem::path& path, std::string_view content);
+
+	// Makes `link` a symbolic link to the directory `target` (created if needed), so an emulator
+	// that keeps its saves inside its own folder writes them where ES keeps saves. Does nothing
+	// when `link` already exists, as a real folder or a link: the player's choice is kept.
+	// Returns false when the link could not be made.
+	bool linkDirectory(const std::filesystem::path& link, const std::filesystem::path& target);
 }

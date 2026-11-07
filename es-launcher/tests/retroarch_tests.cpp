@@ -3,6 +3,7 @@
 // Copyright (c) 2026 The EmulationStation-RE contributors.
 
 #include "Check.h"
+#include "Helpers.h"
 #include "es-launcher/Launcher.h"
 #include "retroarch/ConfigFile.h"
 #include "retroarch/Cores.h"
@@ -18,68 +19,7 @@ using namespace es::launcher;
 using namespace es::launcher::retroarch;
 namespace fs = std::filesystem;
 
-namespace
-{
-	// A temporary directory removed at the end of the test
-	struct TempDir
-	{
-		fs::path path;
-
-		TempDir()
-		{
-			std::string tmpl = (fs::temp_directory_path() / "es-launcher-test-XXXXXX").string();
-			path = mkdtemp(tmpl.data());
-		}
-		~TempDir()
-		{
-			std::error_code ec;
-			fs::remove_all(path, ec);
-		}
-	};
-
-	void writeFile(const fs::path& path, const std::string& content, bool executable = false)
-	{
-		fs::create_directories(path.parent_path());
-		std::ofstream(path) << content;
-		if (executable)
-			fs::permissions(path, fs::perms::owner_all);
-	}
-
-	std::string readFile(const fs::path& path)
-	{
-		std::ifstream in(path);
-		return std::string(std::istreambuf_iterator<char>(in), {});
-	}
-
-	Controller makePad(int player, int index)
-	{
-		Controller pad;
-		pad.player = player;
-		pad.deviceIndex = index;
-		pad.guid = "030000005e0400008e02000010010000";
-		pad.name = "Xbox 360 Controller";
-		pad.inputs = {
-			{ "a", { InputBinding::Type::Button, 0, 1 } },
-			{ "b", { InputBinding::Type::Button, 1, 1 } },
-			{ "x", { InputBinding::Type::Button, 2, 1 } },
-			{ "y", { InputBinding::Type::Button, 3, 1 } },
-			{ "pageup", { InputBinding::Type::Button, 4, 1 } },
-			{ "pagedown", { InputBinding::Type::Button, 5, 1 } },
-			{ "l2", { InputBinding::Type::Axis, 2, 1 } },
-			{ "r2", { InputBinding::Type::Axis, 5, 1 } },
-			{ "select", { InputBinding::Type::Button, 6, 1 } },
-			{ "start", { InputBinding::Type::Button, 7, 1 } },
-			{ "hotkey", { InputBinding::Type::Button, 8, 1 } },
-			{ "up", { InputBinding::Type::Hat, 0, 1 } },
-			{ "down", { InputBinding::Type::Hat, 0, 4 } },
-			{ "left", { InputBinding::Type::Hat, 0, 8 } },
-			{ "right", { InputBinding::Type::Hat, 0, 2 } },
-			{ "joystick1up", { InputBinding::Type::Axis, 1, -1 } },
-			{ "joystick1left", { InputBinding::Type::Axis, 0, -1 } },
-		};
-		return pad;
-	}
-}
+using namespace tests;
 
 static void testConfigFile()
 {

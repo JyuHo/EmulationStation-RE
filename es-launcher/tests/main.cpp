@@ -8,6 +8,7 @@ int main()
 {
 	tests::runLauncherTests();
 	tests::runRetroArchTests();
+	tests::runStandaloneTests();
 
 	if (tests::failures == 0)
 		std::puts("es-launcher: all tests passed");

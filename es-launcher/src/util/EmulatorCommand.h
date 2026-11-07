@@ -4,9 +4,11 @@
 
 #pragma once
 
+#include "es-launcher/Command.h"
 #include "es-launcher/LaunchContext.h"
 
 #include <filesystem>
+#include <initializer_list>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -24,4 +26,14 @@ namespace es::launcher::util
 	// configuration, the saves, the BIOS, the game...), inserted as --filesystem= options.
 	std::optional<std::vector<std::string>> emulatorCommand(const LaunchContext& ctx, std::string_view id, std::string_view binary,
 		const std::vector<std::filesystem::path>& sharedPaths = {});
+
+	// The same, trying several program names in PATH, in order: distributions do not agree on
+	// them ("PPSSPPSDL", "ppsspp").
+	std::optional<std::vector<std::string>> emulatorCommand(const LaunchContext& ctx, std::string_view id,
+		std::initializer_list<std::string_view> binaries, const std::vector<std::filesystem::path>& sharedPaths = {});
+
+	// A Flatpak does not see the environment of the process that starts it (its XDG_* variables
+	// are its own): copies cmd.env into --env= options, before the application id. Does nothing
+	// for any other command. Call it once the environment is complete.
+	void forwardEnvironment(Command& cmd);
 }

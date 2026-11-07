@@ -21,6 +21,7 @@ namespace tests
 
 	void runLauncherTests();
 	void runRetroArchTests();
+	void runStandaloneTests();
 }
 
 #define CHECK(x) ::tests::check((x), #x, __FILE__, __LINE__)
