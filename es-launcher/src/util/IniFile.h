@@ -63,4 +63,8 @@ namespace es::launcher::util
 
 		std::vector<Section> mSections;
 	};
+
+	// A TOML basic string: "C:\\dir" with its backslashes and quotes escaped. xemu and Xenia
+	// write TOML, which an IniFile reads as long as each value fits on its line.
+	std::string tomlString(std::string_view value);
 }

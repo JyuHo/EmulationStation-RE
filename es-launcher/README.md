@@ -72,6 +72,10 @@ Generators
 | `pcsx2` | PCSX2 | PlayStation 2, x86_64 only |
 | `ppsspp` | PPSSPP | PSP |
 | `dolphin` | Dolphin | GameCube and Wii |
+| `azahar` | Azahar | Nintendo 3DS |
+| `cemu` | Cemu | Wii U, x86_64 only |
+| `xemu` | xemu | Xbox, x86_64 only |
+| `xenia-edge` | Xenia Edge | Xbox 360, x86_64 only |
 
 Any other emulator keeps the `es_systems.cfg` command. Setting `eslauncher=0` in the ES
 configuration (`global.eslauncher`, `<system>.eslauncher` or for one game) also keeps it.
@@ -101,9 +105,15 @@ leaves the others as the player set them in the emulator's menus.
 | PCSX2 | `pcsx2/PCSX2/inis/PCSX2.ini` (`XDG_CONFIG_HOME` is `pcsx2/`) | `<saves>/ps2/pcsx2` |
 | PPSSPP | `ppsspp/ppsspp/PSP/SYSTEM/` (`XDG_CONFIG_HOME` is `ppsspp/`) | `PSP/SAVEDATA` and `PSP/PPSSPP_STATE` link to `<saves>/psp` |
 | Dolphin | `dolphin/Config/` (started with `-u dolphin/`) | `GC/` and `Wii/` link to `<saves>/gamecube/GC` and `<saves>/wii/Wii`, `StateSaves/` to `<saves>/dolphin/StateSaves` |
+| Azahar | `azahar/azahar-emu/qt-config.ini` (`XDG_CONFIG_HOME` is `azahar/`) | `XDG_DATA_HOME` is `<saves>/3ds` |
+| Cemu | `cemu/Cemu/settings.xml`, `controllerProfiles/` | `XDG_DATA_HOME` is `<saves>/wiiu`, the Wii U storage `<saves>/wiiu/mlc01` |
+| xemu | `xemu/xemu.toml` (started with `-config_path`) | hard disk and EEPROM in `<saves>/xbox` |
+| Xenia Edge | `xenia-edge/Xenia/xenia-edge.config.toml` (`XDG_DATA_HOME` is `xenia-edge/`) | `<saves>/xbox360` |
 
 * BIOS: DuckStation looks at the root of the BIOS folder, then `psx/` (scph1001.bin, scph5501.bin...);
-  PCSX2 in `ps2/`, then the root. A missing BIOS stops the launch with a message.
+  PCSX2 in `ps2/`, then the root; xemu needs `mcpx_1.0.bin` and `Complex_4627.bin` at the root,
+  and copies `xbox_hdd.qcow2` from there to `<saves>/xbox` the first time. Cemu's `keys.txt` is
+  linked from `cemu/keys.txt` or the root. A missing BIOS stops the launch with a message.
 * Options keep the names of batocera-launch (`duckstation_gfxbackend`, `pcsx2_ratio`,
   `internal_resolution`...), so the same `es_features.cfg` entries work. For PPSSPP,
   `ppsspp.<section>.<key>` sets any key of `ppsspp.ini`.
@@ -112,7 +122,10 @@ leaves the others as the player set them in the emulator's menus.
   it was mapped in ES. A Flatpak gets this environment through `--env=` options.
 * Hotkeys: the same as RetroArch, bound in the emulator to player 1's hotkey held with the other
   button (Start quits, B opens the menu or pauses, Y/X save and load a state...), where the
-  emulator has the action. Without a pad, the keyboard keys of batocera-launch.
+  emulator has the action. Without a pad, the keyboard keys of batocera-launch. Azahar, Cemu,
+  xemu and Xenia cannot bind actions to a pad: they have no hotkeys yet (Batocera sends them
+  keyboard keys from a separate daemon).
+* Azahar binds player 1's pad input by input (button numbers and SDL GUID), as batocera-launch does.
 * Wii: emulated Wii Remotes by default; `emulatedwiimotes=0` for real ones. `controller_mode` adds
   an extension: `cc` or `pro` (Classic Controller), `in` (Nunchuk), `side` (held sideways).
 

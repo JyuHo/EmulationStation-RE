@@ -40,11 +40,17 @@ add_library(es-launcher-objects OBJECT
     src/dolphin/DolphinGenerator.cpp
     src/pcsx2/Pcsx2Generator.cpp
     src/ppsspp/PpssppGenerator.cpp
+    src/azahar/AzaharGenerator.cpp
+    src/cemu/CemuGenerator.cpp
+    src/xemu/XemuGenerator.cpp
+    src/xenia/XeniaGenerator.cpp
+    # Cemu's settings are XML: the copy of pugixml ES ships, built in with hidden symbols
+    ${CMAKE_CURRENT_SOURCE_DIR}/../external/pugixml/src/pugixml.cpp
 )
 
 target_include_directories(es-launcher-objects
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
-    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src
+    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/../external/pugixml/src
 )
 target_compile_definitions(es-launcher-objects PRIVATE ES_LAUNCHER_BUILDING)
 target_compile_options(es-launcher-objects PRIVATE -Wall -Wextra)
@@ -79,6 +85,7 @@ if(ES_LAUNCHER_TESTS)
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${CMAKE_CURRENT_SOURCE_DIR}/tests
+        ${CMAKE_CURRENT_SOURCE_DIR}/../external/pugixml/src
     )
     target_compile_options(es-launcher-tests PRIVATE -Wall -Wextra)
     add_test(NAME es-launcher-tests COMMAND es-launcher-tests)
