@@ -283,6 +283,72 @@ static void testFullLaunch()
 	unsetenv("ES_LIBRETRO_CORES_DIR");
 }
 
+// RetroArch and a core installed by ES's emulator catalog (installed.json, cores/)
+static void testCatalogInstall()
+{
+	TempDir tmp;
+	fs::path bin = tmp.path / "bin";
+	fs::path catalogCores = tmp.path / "data" / "cores";
+	fs::path appImage = tmp.path / "data" / "emulators" / "retroarch" / "retroarch.AppImage";
+	writeFile(bin / "retroarch", "#!/bin/sh\n", true);        // the distribution's, must lose
+	writeFile(bin / "flatpak", "#!/bin/sh\n", true);
+	writeFile(appImage, "#!/bin/sh\n", true);
+	writeFile(catalogCores / "snes9x_libretro.so", "");
+	writeFile(catalogCores / "info" / "snes9x_libretro.info", "");
+
+	std::string oldPath = std::getenv("PATH") ? std::getenv("PATH") : "";
+	setenv("PATH", bin.c_str(), 1);
+	unsetenv("ES_LIBRETRO_CORES_DIR");
+
+	LaunchContext ctx;
+	ctx.emulator = "libretro";
+	ctx.core = "snes9x";
+	ctx.game.system = "snes";
+	ctx.game.rom = "/roms/snes/Game.sfc";
+	ctx.paths.bios = tmp.path / "bios";
+	ctx.paths.saves = tmp.path / "saves";
+	ctx.paths.screenshots = tmp.path / "shots";
+	ctx.paths.cache = tmp.path / "cache";
+	ctx.paths.emulatorConfigs = tmp.path / "emulators";
+	ctx.paths.cores = catalogCores;
+	ctx.installedEmulators["retroarch"] = { appImage.string() };
+
+	fs::path configDir = tmp.path / "emulators" / "retroarch";
+
+	// the AppImage of the catalog, the core of the catalog, its .info files
+	Command cmd = Launch(ctx).prepare();
+	CHECK(cmd.argv[0] == appImage.string());
+	CHECK(cmd.argv[1] == "-L");
+	CHECK(cmd.argv[2] == (catalogCores / "snes9x_libretro.so").string());
+	ConfigFile written = ConfigFile::load(configDir / "retroarch.cfg");
+	CHECK(written.get("libretro_info_path") == (catalogCores / "info").string());
+	CHECK(written.get("libretro_directory") == catalogCores.string());
+
+	// a Flatpak gets access to what it reads and writes, before the application id
+	ctx.installedEmulators["retroarch"] = { "flatpak", "run", "org.libretro.RetroArch" };
+	cmd = Launch(ctx).prepare();
+	auto ref = std::ranges::find(cmd.argv, std::string("org.libretro.RetroArch"));
+	CHECK(cmd.argv[0] == (bin / "flatpak").string());
+	CHECK(cmd.argv[1] == "run");
+	CHECK(ref != cmd.argv.end());
+	auto shared = [&](const fs::path& path) {
+		return std::find(cmd.argv.begin(), ref, "--filesystem=" + path.lexically_normal().string()) != ref;
+	};
+	CHECK(shared(configDir));
+	CHECK(shared(tmp.path / "saves"));
+	CHECK(shared(tmp.path / "bios"));
+	CHECK(shared(catalogCores));
+	CHECK(shared("/roms/snes"));
+	CHECK(ref + 1 != cmd.argv.end() && *(ref + 1) == "-L");
+
+	// removed by hand: back to the one in PATH
+	ctx.installedEmulators["retroarch"] = { (tmp.path / "gone.AppImage").string() };
+	cmd = Launch(ctx).prepare();
+	CHECK(cmd.argv[0] == (bin / "retroarch").string());
+
+	setenv("PATH", oldPath.c_str(), 1);
+}
+
 void tests::runRetroArchTests()
 {
 	testConfigFile();
@@ -290,4 +356,5 @@ void tests::runRetroArchTests()
 	testControllers();
 	testVideoAndStates();
 	testFullLaunch();
+	testCatalogInstall();
 }
