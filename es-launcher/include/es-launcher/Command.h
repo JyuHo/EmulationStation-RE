@@ -22,6 +22,11 @@ namespace es::launcher
 		// Variables added to (or overriding) the environment ES was started with.
 		std::map<std::string, std::string> env;
 
+		// Commands run first, one after the other, with the same environment and directory: a
+		// setup step of the emulator itself (RPCS3 installing the PS3 firmware). Their failure
+		// does not stop the launch.
+		std::vector<std::vector<std::string>> before;
+
 		// Empty: the emulator starts in the directory ES runs in.
 		std::filesystem::path workingDirectory;
 
@@ -33,7 +38,8 @@ namespace es::launcher
 		bool empty() const { return argv.empty(); }
 
 		// The command as one POSIX shell line ("cd 'dir' && VAR='value' 'argv0' 'arg1' ..."), every
-		// word single-quoted, for code that still starts processes through a shell.
+		// word single-quoted, for code that still starts processes through a shell. The commands
+		// of `before` come first, separated by ";", all inside { }.
 		std::string toShellLine() const;
 	};
 

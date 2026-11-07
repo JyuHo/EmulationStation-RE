@@ -76,6 +76,8 @@ Generators
 | `cemu` | Cemu | Wii U, x86_64 only |
 | `xemu` | xemu | Xbox, x86_64 only |
 | `xenia-edge` | Xenia Edge | Xbox 360, x86_64 only |
+| `rpcs3` | RPCS3 | PlayStation 3, x86_64 only |
+| `eden` | Eden | Nintendo Switch, x86_64 only |
 
 Any other emulator keeps the `es_systems.cfg` command. Setting `eslauncher=0` in the ES
 configuration (`global.eslauncher`, `<system>.eslauncher` or for one game) also keeps it.
@@ -109,25 +111,35 @@ leaves the others as the player set them in the emulator's menus.
 | Cemu | `cemu/Cemu/settings.xml`, `controllerProfiles/` | `XDG_DATA_HOME` is `<saves>/wiiu`, the Wii U storage `<saves>/wiiu/mlc01` |
 | xemu | `xemu/xemu.toml` (started with `-config_path`) | hard disk and EEPROM in `<saves>/xbox` |
 | Xenia Edge | `xenia-edge/Xenia/xenia-edge.config.toml` (`XDG_DATA_HOME` is `xenia-edge/`) | `<saves>/xbox360` |
+| RPCS3 | `rpcs3/rpcs3/config.yml`, `vfs.yml`, `input_configs/global/Default.yml` (`XDG_CONFIG_HOME` is `rpcs3/`) | the PS3 hard disk `dev_hdd0` is `<saves>/ps3/dev_hdd0` |
+| Eden | `eden/eden/qt-config.ini` (`XDG_CONFIG_HOME` is `eden/`) | `XDG_DATA_HOME` is `<saves>/switch`: NAND and SD card in `<saves>/switch/eden` |
 
 * BIOS: DuckStation looks at the root of the BIOS folder, then `psx/` (scph1001.bin, scph5501.bin...);
   PCSX2 in `ps2/`, then the root; xemu needs `mcpx_1.0.bin` and `Complex_4627.bin` at the root,
   and copies `xbox_hdd.qcow2` from there to `<saves>/xbox` the first time. Cemu's `keys.txt` is
-  linked from `cemu/keys.txt` or the root. A missing BIOS stops the launch with a message.
+  linked from `cemu/keys.txt` or the root. RPCS3 installs the PS3 firmware from `PS3UPDAT.PUP`
+  (root or `ps3/`) before the first game. Eden's `keys/` folder links to `switch/`, which must
+  hold `prod.keys`; its firmware is installed from Eden's menu. A missing BIOS stops the launch
+  with a message.
 * Options keep the names of batocera-launch (`duckstation_gfxbackend`, `pcsx2_ratio`,
   `internal_resolution`...), so the same `es_features.cfg` entries work. For PPSSPP,
   `ppsspp.<section>.<key>` sets any key of `ppsspp.ini`.
+  Eden has no batocera-launch generator: its options are `eden_backend`, `eden_resolution`,
+  `eden_vsync`, `eden_ratio`, `eden_antialiasing`, `eden_scaling`, `eden_accuracy` (Eden's own
+  values) and `eden_docked`.
 * Pads: the emulators read them through SDL. ES passes its own mapping of each pad in
   `SDL_GAMECONTROLLERCONFIG`, so the generators bind SDL's gamepad names and any pad works the way
   it was mapped in ES. A Flatpak gets this environment through `--env=` options.
 * Hotkeys: the same as RetroArch, bound in the emulator to player 1's hotkey held with the other
   button (Start quits, B opens the menu or pauses, Y/X save and load a state...), where the
-  emulator has the action. Without a pad, the keyboard keys of batocera-launch. Azahar, Cemu,
-  xemu and Xenia cannot bind actions to a pad, so their command sets `closeOnHotkey`: while the
-  game runs, ES watches the pads itself and closes the emulator when a player holds the hotkey
-  and presses Start (SIGTERM to its process group, SIGKILL after 5 seconds). `exithotkey=0`
-  turns this off. Their other hotkeys stay in the emulator's own menus.
-* Azahar binds player 1's pad input by input (button numbers and SDL GUID), as batocera-launch does.
+  emulator has the action; Eden gets them as its controller shortcuts. Without a pad, the keyboard
+  keys of batocera-launch. Azahar, Cemu, xemu, Xenia and RPCS3 cannot bind actions to a pad, so
+  their command sets `closeOnHotkey`: while the game runs, ES watches the pads itself and closes
+  the emulator when a player holds the hotkey and presses Start (SIGTERM to its process group,
+  SIGKILL after 5 seconds). `exithotkey=0` turns this off. Their other hotkeys stay in the
+  emulator's own menus.
+* Azahar binds player 1's pad input by input (button numbers and SDL GUID), as batocera-launch does;
+  Eden does the same for players 1 to 8.
 * Wii: emulated Wii Remotes by default; `emulatedwiimotes=0` for real ones. `controller_mode` adds
   an extension: `cc` or `pro` (Classic Controller), `in` (Nunchuk), `side` (held sideways).
 
